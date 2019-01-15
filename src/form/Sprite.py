@@ -1,28 +1,43 @@
+import math
+
 import pygame
-from src.other import Data
-from src.entity.Entity import Entity
+
+from src.entity.Space import Space
+from src.other.Data import Data
 
 
-class Sprite(Entity):
-    def __init__(self, texture_name='Error', subset=None):
+class Sprite(pygame.sprite.Sprite):
+    def __init__(self, group, pos=Space(), texture_name='Error'):
         super().__init__()
-        self.form = Data.get_cache_image(texture_name)
-        if subset is None:
-            self.canvas = pygame.Surface(self.form.get_size())
-            self.canvas.blit(self.form, (0, 0))
-        else:
-            self.canvas = pygame.Surface((subset[2], subset[3]))
-            self.canvas.blit(self.form, (0, 0), subset)
-
-    def load(self, p):
-        super().load(p)
-        self.resize(self.size)
-
-    def resize(self, size):
-        if size is None:
-            self.canvas = pygame.transform.scale(self.canvas, self.canvas.get_size())
-        else:
-            self.canvas = pygame.transform.scale(self.canvas, size)
+        self.visible = 1
+        group.append(self)
+        self.pos = pos
+        self.image = Data.get_image(texture_name, 1)
+        self.orig_image = self.image
+        self.rotation = 0
+        self.direction = 1
+        self.size = Space(self.image.get_size())
+        self.rect = self.size.to_list()
+        self.pivot = Space(self.size.x / 2, self.size.y / 2)
 
     def draw(self, surface):
-        surface.blit(self.canvas, self.pos)
+        if self.size.x != 0 and self.size.y != 0:
+            self.image = self.orig_image
+            if self.size.x < 0:
+                self.image = pygame.transform.flip(self.orig_image, 1, 0)
+            if self.size.y < 0:
+                self.image = pygame.transform.flip(self.orig_image, 0, 1)
+            self.image = pygame.transform.smoothscale(self.image, self.size.abs().to_list())
+            self.image = pygame.transform.rotate(self.image, self.rotation)
+            pp = self.pivot - (self.size * .5)
+            aa = math.atan2(-pp.y, -pp.x)
+            piv = pp.distance()
+            ax = math.cos(math.radians(-self.rotation) + aa) * piv
+            ay = math.sin(math.radians(-self.rotation) + aa) * piv
+            self.rect = self.image.get_rect(center=[self.pos.x+ax, self.pos.y+ay])
+            surface.blit(self.image, self.rect)
+
+    def face(self, direction):
+        if self.direction != direction:
+            self.direction = direction
+            self.orig_image = pygame.transform.flip(self.orig_image, 1, 0)

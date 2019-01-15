@@ -2,62 +2,95 @@ import os
 import ast
 import pygame
 
-cache = {}
 
+class Data:
+    cache = {}
 
-def direct(fdir):
-    return os.path.join('../Data/' + fdir)
+    @staticmethod
+    def init():
+        res = Data.process_raw(Data.read('resource.txt'))
+        for x in res:
+            Data.initialize_image(x[0], x[1], x[2])
 
+    @staticmethod
+    def direct(fdir):
+        return os.path.join('../Data/' + fdir)
 
-def get_cache_image(fdir):
-    if fdir not in cache:
-        cache[fdir] = pygame.image.load(direct(fdir + '.png'))
-    return cache[fdir]
-
-
-def get_cache_file(fdir, ext):
-    if fdir not in cache:
-        cache[fdir] = read(fdir + '.' + ext)
-    return cache[fdir]
-
-
-def get_cache_clip(fdir):
-    r = []
-    clip = get_cache_file(fdir, '2d')
-    lines = clip.split('\n\n')
-    header = lines[0].split('\n')
-    r.append(process_raw(header[0]))
-    r.append(process_raw(header[1]))
-    r.append(process_raw(lines[1]))
-    r.append(process_raw(lines[2]))
-    return r
-
-
-def process_raw(data):
-    r = ''
-    data_flag = 0
-    for x in data:
-        if x not in ('[', ']', ',', '\n'):
-            if data_flag == 0:
-                r += '\''
-                data_flag = 1
+    @staticmethod
+    def initialize_image(name, fdir, subset_size):
+        image = Data.get_image(fdir, 0)
+        size = image.get_size()
+        if subset_size == 0:
+            surface = pygame.Surface((size[0], size[1]), pygame.SRCALPHA, 32)
+            surface.blit(image, (0, 0))
+            Data.cache[name] = surface
         else:
-            if data_flag == 1:
-                r += '\''
-                data_flag = 0
-        r += x
-    return ast.literal_eval(",".join('['+x+']' for x in r.split('\n')))
+            cols = int(size[0] / subset_size[0])
+            rows = int(size[1] / subset_size[1])
+            for x in range(0, cols+1):
+                for y in range(0, rows+1):
+                    surface = pygame.Surface((subset_size[0], subset_size[1]), pygame.SRCALPHA, 32)
+                    surface.blit(image, (0, 0), (subset_size[0]*x, subset_size[1]*y, subset_size[0], subset_size[1]))
+                    Data.cache[name+'_'+str(x)+'x'+str(y)] = surface
 
+    @staticmethod
+    def get_image(fdir, cache):
+        if cache:
+            if fdir not in Data.cache:
+                Data.cache[fdir] = pygame.image.load(Data.direct(fdir + '.png'))
+            return Data.cache[fdir]
+        else:
+            return pygame.image.load(Data.direct(fdir + '.png'))
 
-def read(fdir):
-    with open(direct(fdir), "U", newline='\n') as f:
-        data = f.readlines()
-        return '\n'.join([x.strip().split(' //')[0] for x in data])
+    @staticmethod
+    def get_cache_file(fdir, ext):
+        if fdir not in Data.cache:
+            Data.cache[fdir] = Data.read(fdir + '.' + ext)
+        return Data.cache[fdir]
 
+    @staticmethod
+    def get_cache_clip(fdir):
+        r = []
+        clip = Data.get_cache_file(fdir, '2d')
+        lines = clip.split('\n\n')
+        r.append(Data.process_raw(lines[0]))
+        r.append(Data.process_raw(lines[1]))
+        r.append(Data.process_raw(lines[2]))
+        return r
 
-def write(fdir, data):
-    with open(direct(fdir), "U", newline='\n') as f:
-        f.seek(0)
-        f.write(data)
-        f.truncate()
+    @staticmethod
+    def process_raw(data):
+        r = ''
+        data_flag = 0
+        for x in data:
+            if x != '-':
+                if x not in ('[', ']', ',', '\n'):
+                    if data_flag == 0:
+                        if x.isdigit():
+                            data_flag = 2
+                        else:
+                            r += '\''
+                            data_flag = 1
+                else:
+                    if data_flag == 1:
+                        r += '\''
+                        data_flag = 0
+                    elif data_flag == 2:
+                        data_flag = 0
+            r += x
+        if data_flag == 1:
+            r += '\''
+        return ast.literal_eval(",".join('['+x+']' for x in r.split('\n')))
 
+    @staticmethod
+    def read(fdir):
+        with open(Data.direct(fdir), "U", newline='\n') as f:
+            data = f.readlines()
+            return '\n'.join([x.strip().split(' //')[0] for x in data])
+
+    @staticmethod
+    def write(fdir, data):
+        with open(Data.direct(fdir), "U", newline='\n') as f:
+            f.seek(0)
+            f.write(data)
+            f.truncate()

@@ -1,19 +1,26 @@
-from src.entity.Entity import Entity
+from src.Group import Group
+from src.entity.Space import Space
 from src.form.Sprite import Sprite
 
 
-class Object(Entity):
+class Object:
     def __init__(self, form):  # same characteristics across all objects
-        Entity.__init__(self)
-        self.form = self.make_form(form)
+        self.id = -1
         self.seed = -1
+        self.pos = Space()
+        self.form = None
+        self.make_form(form)
 
-    def load(self, p):  # instance specific characteristics
-        super().load(p)
-        self.form.resize(self.size)
+    def load(self, p):
+        self.id = p[0]
+        self.seed = p[1]
+        self.pos.load(p[2])
+        return 3
 
-    def make_form(self, p):
-        return Sprite(texture_name=p)
+    def remove(self):
+        Group.remove(self.form)
 
-    def draw(self, surface):
-        self.form.draw(surface, self.pos)
+    def make_form(self, arg):
+        if isinstance(self.form, Sprite):
+            self.remove()
+        self.form = Sprite(Group.object, self.pos, texture_name=arg)

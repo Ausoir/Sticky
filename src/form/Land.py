@@ -1,5 +1,5 @@
 import pygame
-from src.other import Data
+from src.other.Data import Data
 
 
 class Land:

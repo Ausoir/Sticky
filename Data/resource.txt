@@ -1,0 +1,5 @@
+Error,Error,0 //Name, Directory, Subset, Pivot(offset)(1=left,2=right,3=up,4=down,5=center)
+Icon,Icon,[24,24]
+Face,unit/Face,0
+Man_skin,unit/Man_skin,[32,96]
+Crystal,item/armor/Crystal,[32,96]

@@ -4,4 +4,5 @@ class GroupInterface(list):
 
     def input(self, arg):
         for x in self:
-            x.input(arg)
+            if x.input(arg) == 1:
+                return

@@ -1,12 +1,12 @@
 from src.form.Appendage import Appendage
-from src.other.Data import Data
-from src.other.Timer import Timer
+from src.tools.Data import Data
+from src.tools.Timer import Timer
 
 
 class Body:
-    def __init__(self, pos, texture_name):
+    def __init__(self, vec, texture_name):
         data = Data.get_cache_clip(texture_name).copy()
-        self.pos = pos
+        self.vec = vec
         self.model = data[0]
         self.animation = data[1]
         self.motion = {}
@@ -21,13 +21,13 @@ class Body:
         parent = []
         for x in self.model:
             parent.append(x[0])
-            self.organs.append(Appendage(self.pos, texture_name=x[1], resize=x[2]))
+            self.organs.append(Appendage(self.vec, texture_name=x[1], resize=x[2]))
         for k, x in enumerate(self.organs):
             if abs(parent[k]) != k:
                 x.set_parent(self.organs[abs(parent[k])], parent[k] < 0)
         for k, organ in enumerate(self.organs):
-            organ.edge.load(organ.pos.x + self.animation[0][k][0], organ.pos.y + self.animation[0][k][1])
-        self.set('Idle')
+            organ.edge.load(organ.vec.x + self.animation[0][k][0], organ.vec.y + self.animation[0][k][1])
+        self.set('idle')
 
     def update(self):
         if self.timer.update():
@@ -39,9 +39,9 @@ class Body:
             else:
                 clip = self.animation[self.current_motion[self.current_clip]]
             for k, organ in enumerate(self.organs):
-                x = (((clip[k][0] * self.direction) + organ.pos.x) - organ.edge.x) / self.timer.max
-                y = ((clip[k][1] + organ.pos.y) - organ.edge.y) / self.timer.max
-                organ.edge += (round(x), round(y))
+                x = (((clip[k][0] * self.direction) + organ.offset.x) - organ.edge.x) / self.timer.max
+                y = ((clip[k][1] + organ.offset.y) - organ.edge.y) / self.timer.max
+                organ.edge += (x, y)
                 organ.update()
 
     def set(self, state):
@@ -61,4 +61,4 @@ class Body:
     def face(self, direction):
         self.direction = direction
         for x in self.organs:
-            x.form.face(direction)
+            x.face(direction)

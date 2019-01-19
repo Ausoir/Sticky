@@ -3,3 +3,8 @@ Air: infinite Mistform
 Void: Kill
 Fire: Inf energy
 Conjuration: Conjure item/obj/unit
+new energy generation - energy restore by 1 for every death nearby
+Level up - trainer (money, hours)
+Standing still = rest
+Sprint is no longer default action
+Right click is interact, Left click is attack (punch/weapon)

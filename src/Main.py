@@ -2,43 +2,54 @@ import sys
 
 import pygame
 
-from src.Group import Group
-from src.entity.Object import Object
+from src.game.Group import Group
 from src.entity.Unit import Unit
-from src.interface.Menu import Menu
-from src.other.Data import Data
+from src.game.Turn import Turn
 from src.interface.Control import Control
-
-pygame.font.init()
-clock = pygame.time.Clock()
-display = (1200, 600)
-screen = pygame.display.set_mode(display, 0, 32)
-Data.init()
-Menu.init()
+from src.interface.Menu import Menu
+from src.map.Map import Map
+from src.tools.Data import Data
 
 
-def loop():
-    while True:
-        clock.tick(60)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            Group.interface.input(event)
-        draw()
+class Main:
+    def __init__(self):
+        pygame.font.init()
+        self.clock = pygame.time.Clock()
+        self.display = (1200, 600)
+        self.screen = pygame.display.set_mode(self.display, pygame.RESIZABLE, 32)
+        Data.init()
+        pygame.display.set_icon(Data.get_image('Icon_1x0', 1))
+        pygame.display.set_caption('Sticky', 'Sticky')
+
+        map = Map()
+        self.player = Unit('unit/Man', map)
+        self.another = Unit('unit/Man', map)
+        control = Control(Menu(), self.player)
+        Group.interface.append(control)
+        Group.updates.append(self.player)
+        Group.updates.append(self.another)
+        self.loop()
+
+    def loop(self):
+        while True:
+            self.clock.tick(60)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.VIDEORESIZE:
+                    display = (event.w, event.h)
+                    Main.screen = pygame.display.set_mode(display, pygame.RESIZABLE, 32)
+                Group.interface.input(event)
+            self.draw()
+            Turn.update()
+
+    def draw(self):
+        Group.update()
+        self.screen.fill((255, 255, 255))
+        Group.draw(self.screen)
+        pygame.display.flip()
 
 
-def draw():
-    obj.update()
-    screen.fill((255, 255, 255))
-    Group.draw(screen)
-    pygame.display.flip()
-
-
-Group.interface.append(Control())
-test = Object('Man_skin_1x0')
-test.form.pivot.load(test.form.size.x / 2, 0)
-test.load([-1, -1, [500, 200]])
-obj = Unit('unit/Man')
-obj.load([-1, -1, [200, 200]])
-loop()
+if __name__ == '__main__':
+    Main()

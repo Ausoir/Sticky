@@ -1,8 +1,12 @@
-from src.entity.Space import Space
-from src.form.Line import Line
+from src.form.GroupSprite import GroupSprite
 
-# [[500,100],[500,400]] @ [451,456]
-# [[500,400],[100,400]] @ [451,456]
-# [[500,100],[500,400]] @ [450,456]
-# [[500,400],[100,400]] @ [450,456]
-print(Line(Space(1,0), Space(1,1)).cross_line(Line(Space(2,1), Space(0,1))))
+class ASD:
+    def __init__(self, d):
+        self.depth = d
+
+test = GroupSprite()
+test.add(ASD(4))
+test.add(ASD(3))
+test.add(ASD(1))
+test.add(ASD(2))
+print(test)

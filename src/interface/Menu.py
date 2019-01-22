@@ -57,6 +57,8 @@ class Menu:
         text = ['HP - 3/3', 'Str - 1', 'Agi - 1', 'Int - 1', 'Nutrition - 5/5']
         panel = Menu.make_button(text, describe)
         panel.color = Window.fore_color3
+        panel.normal_font_color = Window.font_color1
+        panel.hover_font_color = Window.font_color3
         panel.depth = 2
         panel.redraw()
         self.window.add_child(panel)
@@ -65,9 +67,11 @@ class Menu:
         self.sub_window.display(1)
 
     def menu_skills(self):
-        text = ['Airstrike - lvl 1', 'Windwalk - lvl 4']
+        text = ['L1 Airstrike', 'L2 Windwalk', 'L1 Punch']
         panel = Menu.make_button(text, None)
         panel.color = Window.fore_color3
+        panel.normal_font_color = Window.font_color1
+        panel.hover_font_color = Window.font_color3
         panel.depth = 2
         panel.redraw()
         self.window.add_child(panel)
@@ -81,7 +85,7 @@ class Menu:
     def menu_equipment(self):
         self.window.add_child(Menu.make_button(['Hat'], None))
         self.window.add_child(Menu.make_button(['Comfort Wear'], None))
-        self.window.add_child(Menu.make_button(['Aa Amulet'], None))
+        self.window.add_child(Menu.make_button(['Amulet'], None))
         inv = [[1, 0, 1], [1, 0, 1], [0, 1, 0], [1, 0, 1]]
         for ky, vy in enumerate(inv):
             for kx, vx in enumerate(vy):
@@ -92,7 +96,7 @@ class Menu:
                 self.sub_window.add_child(slot)
                 self.sub_window.next_y -= slot.size[1] + self.sub_window.margin.y
         textbox = Window(3, [0, 0], color=Window.font_color1)
-        textbox.set_text(['Gold: 464'])
+        textbox.set_text(['Gold: 123'])
         self.window.add_child(textbox)
         self.sub_window.display(1)
 

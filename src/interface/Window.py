@@ -8,17 +8,19 @@ from src.game.Group import Group
 class Window(Shape):
     fore_color1 = (68, 102, 120, 200)
     fore_color2 = (95, 112, 120, 220)
-    fore_color3 = (210, 220, 240, 80)
+    fore_color3 = (210, 220, 240, 40)
     font_color1 = (205, 209, 227, 255)
     font_color2 = (120, 180, 140, 200)
+    font_color3 = (60, 80, 80, 220)
 
     def __init__(self, depth, size, vec=(0, 0), color=fore_color1):
         self.color = color
         self.size = size
         self.depth = depth
         self.vec = Space(vec)
-        super().__init__(Group.gui, self.depth - 1, self.vec, color=self.color, vertices=Shape.make_rect(size))
+        super().__init__(self.depth - 1, self.vec, color=self.color, vertices=Shape.make_rect(size))
 
+        Group.gui.append(self)
         Group.interface.append(self)
         self.children = []
         self.visible = -1
@@ -26,7 +28,9 @@ class Window(Shape):
         self.on_click = None
         self.margin = Space(8, 8)
         self.font = pygame.font.SysFont('Helvetica', 20)
-        self.font_color = Window.font_color1
+        self.normal_font_color = Window.font_color1
+        self.hover_font_color = Window.font_color2
+        self.font_color = self.normal_font_color
         self.spacing = 40
         self.next_y = self.vec.y + self.margin.y
 
@@ -48,9 +52,9 @@ class Window(Shape):
             mouse = pygame.mouse.get_pos()
             if self.text:
                 if self.collide(mouse):
-                    self.font_color = Window.font_color2
+                    self.font_color = self.hover_font_color
                 else:
-                    self.font_color = Window.font_color1
+                    self.font_color = self.normal_font_color
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse = pygame.mouse.get_pos()
             if self.collide(mouse):

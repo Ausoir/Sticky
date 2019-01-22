@@ -12,10 +12,10 @@ class Space:
         return '[' + str(self.x) + ',' + str(self.y) + ']'
 
     def load(self, arg, arg2=None):
-        if arg2:
+        if arg2 is not None:
             self.x = arg
             self.y = arg2
-        elif arg:
+        else:
             if isinstance(arg, Space):
                 self.x = arg.x
                 self.y = arg.y
@@ -70,11 +70,20 @@ class Space:
             self.y *= arg[1]
         return self
 
-    def __mul__(self, other):
-        return Space(self.x * other, self.y * other)
+    def __mul__(self, arg):
+        if isinstance(arg, Space):
+            return Space(self.x * arg.x, self.y * arg.y)
+        elif isinstance(arg, int):
+            return Space(self.x * arg, self.y * arg)
+        elif isinstance(arg, tuple) or isinstance(arg, list):
+            return Space(self.x * arg[0], self.y * arg[1])
 
-    def atan(self):  # left is 0, clockwise to 360
+    def get_atan(self):  # left is 0, clockwise to 360
         return math.degrees(math.atan2(-self.y, self.x)) + 180
+
+    def get_atan_to(self, mag):
+        degree = self.get_atan()
+        return [math.cos(degree) * mag, math.sin(degree) * mag]
 
     def abs(self):
         return Space(abs(self.x), abs(self.y))

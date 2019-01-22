@@ -8,7 +8,6 @@ class Turn:
         if Turn.frame >= 8:
             Turn.frame = 0
             for i in Turn.queue:
-                if i.turn == 0:
-                    i.perform()
-                else:
-                    i.turn -= 1
+                i.turn()
+                if i.delay > 0:
+                    i.delay -= 1

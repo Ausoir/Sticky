@@ -4,9 +4,8 @@ from src.tools.Timer import Timer
 
 
 class Body:
-    def __init__(self, vec, texture_name):
+    def __init__(self, texture_name):
         data = Data.get_cache_clip(texture_name).copy()
-        self.vec = vec
         self.model = data[0]
         self.animation = data[1]
         self.motion = {}
@@ -21,13 +20,17 @@ class Body:
         parent = []
         for x in self.model:
             parent.append(x[0])
-            self.organs.append(Appendage(self.vec, texture_name=x[1], resize=x[2]))
+            self.organs.append(Appendage(texture_name=x[1], resize=x[2]))
         for k, x in enumerate(self.organs):
             if abs(parent[k]) != k:
                 x.set_parent(self.organs[abs(parent[k])], parent[k] < 0)
         for k, organ in enumerate(self.organs):
-            organ.edge.load(organ.vec.x + self.animation[0][k][0], organ.vec.y + self.animation[0][k][1])
+            organ.edge.load(self.animation[0][k][0], self.animation[0][k][1])
         self.set('idle')
+
+    def draw(self, surface, pos):
+        for i in self.organs:
+            i.draw(surface, pos)
 
     def update(self):
         if self.timer.update():
@@ -57,6 +60,10 @@ class Body:
         clip = self.animation[self.current_clip]
         frame = clip[clip.__len__()-1]
         self.timer.set(frame)
+
+    def set_speed(self, turn):
+        speed = min(turn+1, self.timer.max)
+        self.timer.set(max(1, speed))
 
     def face(self, direction):
         self.direction = direction

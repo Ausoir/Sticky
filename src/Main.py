@@ -2,13 +2,14 @@ import sys
 
 import pygame
 
-from src.game.Group import Group
 from src.entity.Unit import Unit
+from src.game.Group import Group
 from src.game.Turn import Turn
 from src.interface.Control import Control
 from src.interface.Menu import Menu
 from src.map.Map import Map
 from src.tools.Data import Data
+from src.tools.Math import Math
 
 
 class Main:
@@ -17,17 +18,16 @@ class Main:
         self.clock = pygame.time.Clock()
         self.display = (1200, 600)
         self.screen = pygame.display.set_mode(self.display, pygame.RESIZABLE, 32)
+        Math.init()
         Data.init()
         pygame.display.set_icon(Data.get_image('Icon_1x0', 1))
         pygame.display.set_caption('Sticky', 'Sticky')
 
-        map = Map()
-        self.player = Unit('unit/Man', map)
-        self.another = Unit('unit/Man', map)
+        self.map = Map(40, 12)
+        self.player = Unit('unit/Man', self.map)
+        self.another = Unit('unit/Man', self.map)
         control = Control(Menu(), self.player)
         Group.interface.append(control)
-        Group.updates.append(self.player)
-        Group.updates.append(self.another)
         self.loop()
 
     def loop(self):
@@ -47,7 +47,10 @@ class Main:
     def draw(self):
         Group.update()
         self.screen.fill((255, 255, 255))
-        Group.draw(self.screen)
+        Group.background.draw(self.screen)
+        self.map.draw(self.screen)
+        self.map.draw_objects(self.screen)
+        Group.gui.draw(self.screen)
         pygame.display.flip()
 
 

@@ -1,3 +1,4 @@
+from src.entity.Attack import Attack
 from src.map.Tile import Tile
 
 
@@ -10,12 +11,16 @@ class Action:
             turn, continuous, animation = getattr(self, action)()
             self.host.delay = turn
             if animation:
-                self.host.form.set(animation)
+                self.set_animation(animation, continuous)
             else:
-                self.host.form.set(action)
+                self.set_animation(action, continuous)
             self.host.form.set_speed(turn)
             return continuous
         return 0
+
+    def set_animation(self, arg, continuous):
+        if not continuous or self.host.form.state_name != arg:
+            self.host.form.set(arg)
 
     def make(self, animation, turn, speed):
         self.host.form.set(animation)
@@ -38,7 +43,7 @@ class Action:
         return 2, 1, None
 
     def hit(self):
-        return 1, 0, None
+        return 3, 0, None
 
     def attack(self):
         r1, r2, r3 = self.punch()
@@ -56,11 +61,23 @@ class Action:
         return 4, 0, None
 
     def punch(self):
+        self.host.location.attack.register(self.host, 1, [self.host.direction, -1], 0, Attack.BATTER)
         return 4, 0, None
 
     def kick(self):
-        return 6, 0, None
+        direction = self.host.direction
+
+        def on_hit(victim):
+            victim.move(direction, 0)
+        self.host.location.attack.register(self.host, 1, [direction, 0], 1, Attack.BLOODY, on_hit)
+        return 4, 0, None
 
     def jump(self):
-        self.host.move(self.host.direction, -3)
-        return 3, 0, None
+        self.host.move(self.host.direction*2, -3)
+        return 2, 0, None
+
+    def summon(self):
+        from src.entity.Stock import Stock
+        r = Stock.get('man', self.host.location)
+        r.relocate(self.host.pos.x + self.host.direction, self.host.pos.y - 3)
+        return 6, 0, 'conjure'

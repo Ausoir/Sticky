@@ -8,8 +8,8 @@
 32,sprint
 1,rest
 49,kick
-50,down
-51,a3
+50,summon
+51,down
 27,quit
 501,attack
 502,interact

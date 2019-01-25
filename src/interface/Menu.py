@@ -2,7 +2,8 @@ from src.interface.Window import Window
 
 
 class Menu:
-    def __init__(self):
+    def __init__(self, host):
+        self.host = host
         self.visible = -1
         self.state = self.menu_main
         self.window = Window(1, [160, 300], (300, 120))
@@ -54,7 +55,8 @@ class Menu:
     def menu_character(self):
         def describe():
             self.show_dialog(['Something HP', 'Some long dialog text.....', 'And your choice'])
-        text = ['HP - 3/3', 'Str - 1', 'Agi - 1', 'Int - 1', 'Nutrition - 5/5']
+        hp = str(self.host.durability)
+        text = ['HP - '+hp+'/3', 'Str - 1', 'Agi - 1', 'Int - 1', 'Nutrition - 5/5']
         panel = Menu.make_button(text, describe)
         panel.color = Window.fore_color3
         panel.normal_font_color = Window.font_color1

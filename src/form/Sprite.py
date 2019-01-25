@@ -17,8 +17,9 @@ class Sprite(pygame.sprite.Sprite):
         self.size = Space(self.image.get_size())
         self.rect = self.size.to_list()
         self.pivot = Space(self.size.x / 2, self.size.y / 2)
+        self.height = self.size.y / 2
 
-    def draw(self, surface, pos):
+    def draw(self, surface, x, y):
         if self.size.x != 0 and self.size.y != 0:
             self.image = self.orig_image
             if self.size.x < 0:
@@ -32,7 +33,7 @@ class Sprite(pygame.sprite.Sprite):
             piv = pp.distance()
             ax = math.cos(math.radians(-self.rotation) + aa) * piv
             ay = math.sin(math.radians(-self.rotation) + aa) * piv
-            self.rect = self.image.get_rect(center=[pos[0] + ax, pos[1] + ay])
+            self.rect = self.image.get_rect(center=[x + ax, y + ay - self.height])
             surface.blit(self.image, self.rect)
 
     def face(self, direction):

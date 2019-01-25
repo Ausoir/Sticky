@@ -1,5 +1,7 @@
-Error,Error,0 //Name, Directory, Subset, Pivot(offset)(1=left,2=right,3=up,4=down,5=center)
+Error,Error,0 //Name, Directory, Subset
 Icon,Icon,[24,24]
 Face,unit/Face,0
 Man_skin,unit/Man_skin,[32,96]
 Comfortwear,item/armor/Comfortwear,[32,96]
+Hit,effect/Battering,[32,32]
+Blood,effect/Splattering,[32,32]

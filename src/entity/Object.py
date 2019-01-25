@@ -9,17 +9,25 @@ from src.map.Tile import Tile
 class Object:
     BLOCK = 40
 
-    def __init__(self, form, map):
+    def __init__(self, form, loc):
         Turn.queue.append(self)
-        self.id = -1
-        self.seed = -1
+        self.id = 0
+        self.name = 'none'
+        self.seed = 0
         self.form = None
         self.make_form(form)
-        self.map = map
-        self.pos = map.get_tile(4, 4)
-        self.move(0, 0)
+        self.location = loc
+        self.location.record.append(self)
+        self.save = 1
+        self.pos = loc.get_tile(0, 0)
         self.animation_move_from = [0, 0]
         self.delay = 0
+        self.gravity = 1
+        self.collide = 1
+
+    def __str__(self):
+        return '[' + str(self.id) + ',' + self.name + ',' + str(self.seed) + ',' + \
+               '[' + str(self.pos.x) + ',' + str(self.pos.y) + ']]'
 
     def load(self, p):
         self.id = p[0]
@@ -27,30 +35,42 @@ class Object:
         self.pos.load(p[2])
         return 3
 
+    def remove(self):
+        Turn.queue.remove(self)
+        self.location.record.remove(self)
+        self.pos.things.remove(self)
+
     def make_form(self, arg):
         self.form = Sprite(texture_name=arg)
 
-    def draw(self, surface, pos):
+    def draw(self, tile, surface, pos):
         self.animation_move_from[0] += (pos[0] - self.animation_move_from[0]) * .1
         y = pos[1] - self.animation_move_from[1]
         if y > 0:
             self.animation_move_from[1] += min(16, y)
         else:
             self.animation_move_from[1] += y * .1
-        self.form.draw(surface, self.animation_move_from)
+        self.form.draw(surface, self.animation_move_from[0], self.animation_move_from[1])
 
     def turn(self):
-        if self.move(0, 8, Tile.CHECK_ANY):
-            self.on_fall()
+        if self.gravity:
+            moves = self.move(0, 8, Tile.CHECK_ANY)
+            if moves:
+                self.on_fall(moves)
 
-    def move(self, x, y, flag=Tile.CHECK_NONE):
+    def relocate(self, x, y):
         old_pos = self.pos
-        self.pos = self.map.collide_line(self.pos, x, y, flag)
+        self.pos = self.location.get_tile(x, y)
         if self.pos != old_pos:
-            old_pos.remove(self)
+            old_pos.things.remove(self)
             self.pos.things.append(self)
-            return 1
+            diff = (self.pos - old_pos)
+            return abs(diff.x) + abs(diff.y)
         return 0
 
-    def on_fall(self):
+    def move(self, x, y, flag=Tile.CHECK_NONE):
+        new_pos = self.location.collide_line(self.pos, x, y, flag)
+        return self.relocate(new_pos.x, new_pos.y)
+
+    def on_fall(self, distance):
         pass

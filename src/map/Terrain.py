@@ -1,24 +1,25 @@
 from src.form.Shape import Shape
+from src.tools.Data import Data
 
 
 class Terrain(Shape):
     BLOCK = None
 
-    @classmethod
-    def make(cls, terrain, pos):
-        if hasattr(cls, terrain):
-            return getattr(cls, terrain)(pos)
-        print('Failed to create terrain '+terrain)
-
-    @classmethod
-    def dirt(cls, pos):
-        return cls(pos, 1, (180, 120, 90), 0)
-
-    @classmethod
-    def mark(cls, pos):
-        return cls(pos, 0, (215, 215, 215), 1)
-
-    def __init__(self, pos, type, color, width):
+    def __init__(self, id, pos, type, color, width):
         super().__init__(1, pos, color, Shape.make_rect((Terrain.BLOCK, Terrain.BLOCK)), width)
+        self.id = id
         self.visible = 1
         self.type = type
+
+    @classmethod
+    def load(cls, pos, id):
+        args = Data.get_cache_processed('Data/raw/Tile.txt')[id]
+        return cls(id, pos, args[1], args[2], args[3])
+
+    @classmethod
+    def load_from_name(cls, pos, name):
+        args = Data.get_cache_processed('Data/raw/Tile.txt')
+        for k, i in enumerate(args):
+            if i[0] == name:
+                return cls(k, pos, i[1], i[2], i[3])
+        return None

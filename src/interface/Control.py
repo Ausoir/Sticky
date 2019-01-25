@@ -2,6 +2,7 @@ import sys
 
 import pygame
 
+from src.map.Tile import Tile
 from src.tools.Data import Data
 
 
@@ -11,12 +12,13 @@ class Control:
         self.player = player
         self.keymap = {}
         self.mouse = [0, 0]
-        control = Data.process_raw(Data.read("Keymap.txt"))
+        control = Data.process_raw(Data.read("Data/Keymap.txt"))
         for k, v in control:
             self.keymap[k] = v
 
     def input(self, event):
         self.mouse = pygame.mouse.get_pos()
+        self.mouse = [self.mouse[0] / Tile.BLOCK, self.mouse[1] / Tile.BLOCK]
         if event.type == pygame.MOUSEBUTTONDOWN:
             button = event.button + 500
             if button in self.keymap:

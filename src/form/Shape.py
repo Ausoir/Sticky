@@ -2,6 +2,7 @@ import pygame
 
 from src.entity.Space import Space
 from src.form.Line import Line
+from src.game.Camera import Camera
 
 
 class Shape:
@@ -40,7 +41,7 @@ class Shape:
             pygame.draw.polygon(self.canvas, (0, 0, 0), self.vertices, self.border)
 
     def draw(self, surface):
-        surface.blit(self.canvas, self.vec.to_list())
+        surface.blit(self.canvas, [self.vec.x + Camera.pos[0], self.vec.y + Camera.pos[1]])
 
     def collide(self, point):
         mouse = Line(Space(-self.vec), Space(point) - self.vec)

@@ -3,6 +3,7 @@ import math
 import pygame
 
 from src.entity.Space import Space
+from src.game.Camera import Camera
 from src.tools.Data import Data
 
 
@@ -33,7 +34,7 @@ class Sprite(pygame.sprite.Sprite):
             piv = pp.distance()
             ax = math.cos(math.radians(-self.rotation) + aa) * piv
             ay = math.sin(math.radians(-self.rotation) + aa) * piv
-            self.rect = self.image.get_rect(center=[x + ax, y + ay - self.height])
+            self.rect = self.image.get_rect(center=[x + ax + Camera.pos[0], y + ay - self.height + Camera.pos[1]])
             surface.blit(self.image, self.rect)
 
     def face(self, direction):

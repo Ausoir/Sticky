@@ -1,5 +1,7 @@
+from src.entity.Space import Space
 from src.form.Appendage import Appendage
 from src.tools.Data import Data
+from src.tools.Math import Math
 from src.tools.Random import Random
 from src.tools.Timer import Timer
 
@@ -7,18 +9,18 @@ from src.tools.Timer import Timer
 class Body:
     def __init__(self, texture_name, seed):
         data = Data.get_cache_clip(texture_name).copy()
+        self.texture_name = texture_name
         self.model = data[0]
         self.animation = data[1]
         self.randomize_body(seed)
         self.motion = {}
         self.organs = []
         self.current_clip = 0
-        self.current_motion = []
         self.timer = Timer(0, repeat=1)
         self.direction = 1
         self.current_animation = None
-        self.offset_x = 0
         self.state_name = 'idle'
+        self.animation_ended = 0
 
         for x in data[2]:
             self.motion[x[0]] = x[1]
@@ -36,12 +38,11 @@ class Body:
 
     def draw(self, surface, x, y):
         for i in self.organs:
-            i.draw(surface, x + self.offset_x, y)
+            i.draw(surface, x, y)
 
     def update(self):
         if self.timer.update():
-            self.current_clip += 1
-            self.set_clip()
+            self.update_clip()
         else:
             for k, organ in enumerate(self.organs):
                 x = (((self.current_animation[k][0] * self.direction) + organ.offset.x) - organ.edge.x) / self.timer.max
@@ -51,23 +52,21 @@ class Body:
 
     def set(self, state):
         self.state_name = state
-        self.current_motion = self.motion[state]
         self.current_clip = 0
-        self.set_clip()
+        self.update_clip()
 
-    def set_clip(self):
-        if self.current_clip >= self.current_motion.__len__():
+    def update_clip(self):
+        self.animation_ended = 0
+        current_motion = self.motion[self.state_name]
+        if self.current_clip >= current_motion.__len__():
             self.current_clip = 0
-        if self.current_motion[self.current_clip] == -1:
+        if current_motion[self.current_clip] == -1:
             self.current_clip -= 1
-        clip = self.animation[self.current_clip]
-        frame = clip[clip.__len__()-1]
+            self.animation_ended = 1
+        self.current_animation = self.animation[current_motion[self.current_clip]]
+        frame = self.current_animation[self.current_animation.__len__()-1]
         self.timer.set(frame)
-        self.current_animation = self.animation[self.current_motion[self.current_clip]]
-
-    def set_speed(self, turn):
-        speed = min(turn+1, self.timer.max)
-        self.timer.set(max(1, speed))
+        self.current_clip += 1
 
     def face(self, direction):
         self.direction = direction
@@ -75,12 +74,15 @@ class Body:
             x.face(direction)
 
     def set_height(self, arg=0):
-        height = arg
-        if not arg:
-            for i in self.organs:
+        if arg:
+            height = arg
+        else:
+            leg_index = 0
+            for k, i in enumerate(self.organs):
                 if i.leg:
-                    height = i.edge.y - 4
+                    leg_index = k
                     break
+            height = self.animation[0][leg_index][1] - 4
         for i in self.organs:
             i.height = height
 
@@ -106,15 +108,21 @@ class Body:
     def randomize_body(self, seed):
         import random
         random.seed(seed)
-        self.offset_x = random.randint(-2, 2)
         mag = random.gauss(1, .1)
         r = []
         for clip in self.animation:
             r1 = []
             for i in clip:
                 if isinstance(i, list):
-                    r1.append([i[0], i[1] * mag])
+                    r1.append([i[0], int(i[1] * mag)])
                 else:
                     r1.append(i)
             r.append(r1)
         self.animation = r
+
+    def rotate_appendage(self, frame, organ, target):
+        animation = Data.get_cache_clip(self.texture_name)[1]
+        length = abs(animation[frame][organ][0]) + abs(animation[frame][organ][1])
+        atan = Space(target).to_int().get_atan()
+        self.animation[frame][organ][0] = length*Math.cos(atan)*-self.direction
+        self.animation[frame][organ][1] = length*Math.sin(atan)

@@ -19,5 +19,9 @@ class Random:
         return random.randint(arg1, arg2)
 
     @staticmethod
+    def rand_seed():
+        return Random.rand_int(1, 99999)
+
+    @staticmethod
     def gauss(arg1, arg2):
         return random.gauss(arg1, arg2)

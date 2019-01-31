@@ -1,12 +1,11 @@
 from src.form.Shape import Shape
+from src.game import Global
 from src.tools.Data import Data
 
 
 class Terrain(Shape):
-    BLOCK = None
-
     def __init__(self, id, pos, type, color, width):
-        super().__init__(1, pos, color, Shape.make_rect((Terrain.BLOCK, Terrain.BLOCK)), width)
+        super().__init__(1, pos, color, Shape.make_rect((Global.BLOCK, Global.BLOCK)), width)
         self.id = id
         self.visible = 1
         self.type = type

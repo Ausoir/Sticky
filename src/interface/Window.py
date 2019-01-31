@@ -2,6 +2,7 @@ import pygame
 
 from src.entity.Space import Space
 from src.form.Shape import Shape
+from src.game.Camera import Camera
 from src.game.Group import Group
 
 
@@ -63,7 +64,11 @@ class Window(Shape):
                     return 1
 
     def draw(self, surface):
+        self.vec.x -= Camera.pos[0]
+        self.vec.y -= Camera.pos[1]
         super().draw(surface)
+        self.vec.x += Camera.pos[0]
+        self.vec.y += Camera.pos[1]
         position = [self.vec.x + self.margin.x, self.vec.y + self.margin.y]
         for i in self.text:
             surface.blit(self.font.render(i, 1, self.font_color), position)

@@ -50,10 +50,23 @@ class Space:
         return self.__add__(arg)
 
     def __sub__(self, arg):
-        return self.__add__(-arg)
+        if isinstance(arg, Space):
+            return Space(self.x - arg.x, self.y - arg.y)
+        elif isinstance(arg, int):
+            return Space(self.x - arg, self.y - arg)
+        elif isinstance(arg, tuple) or isinstance(arg, list):
+            return Space(self.x - arg[0], self.y - arg[1])
 
     def __rsub__(self, arg):
-        return arg.__add__(-self)
+        if isinstance(arg, Space):
+            self.x -= arg.x
+            self.y -= arg.y
+        elif isinstance(arg, int):
+            self.x -= arg
+            self.y -= arg
+        elif isinstance(arg, tuple) or isinstance(arg, list):
+            self.x -= arg[0]
+            self.y -= arg[1]
 
     def __neg__(self):
         return Space(-self.x, -self.y)
@@ -90,6 +103,9 @@ class Space:
 
     def distance(self):
         return math.sqrt((self.x * self.x) + (self.y * self.y))
+
+    def to_int(self):
+        return Space(round(self.x), round(self.y))
 
     def to_list(self):
         return [self.x, self.y]

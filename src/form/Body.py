@@ -7,9 +7,11 @@ from src.tools.Timer import Timer
 
 
 class Body:
-    def __init__(self, texture_name, seed):
-        data = Data.get_cache_clip(texture_name).copy()
-        self.texture_name = texture_name
+    LEG = 2
+
+    def __init__(self, model_name, seed):
+        data = Data.get_cache_clip(model_name).copy()
+        self.model_name = model_name
         self.model = data[0]
         self.animation = data[1]
         self.randomize_body(seed)
@@ -21,33 +23,35 @@ class Body:
         self.current_animation = None
         self.state_name = 'idle'
         self.animation_ended = 0
+        self.height = 0
 
         for x in data[2]:
             self.motion[x[0]] = x[1]
         parent = []
         for x in self.model:
             parent.append(x[0])
-            self.organs.append(Appendage(texture_name=x[1], resize=x[2], organ=x[3]))
+            self.organs.append(Appendage(texture_name=x[1], part=x[2], resize=x[3]))
         for k, x in enumerate(self.organs):
             if abs(parent[k]) != k:
                 x.set_parent(self.organs[abs(parent[k])], parent[k] < 0)
         for k, organ in enumerate(self.organs):
-            organ.edge.load(self.animation[0][k][0], self.animation[0][k][1])
+            organ.lower_joint.load(self.animation[0][k][0], self.animation[0][k][1])
         self.set('idle')
         self.set_height()
 
     def draw(self, surface, x, y):
         for i in self.organs:
-            i.draw(surface, x, y)
+            i.draw(surface, x, y - self.height)
 
     def update(self):
         if self.timer.update():
             self.update_clip()
         else:
             for k, organ in enumerate(self.organs):
-                x = (((self.current_animation[k][0] * self.direction) + organ.offset.x) - organ.edge.x) / self.timer.max
-                y = ((self.current_animation[k][1] + organ.offset.y) - organ.edge.y) / self.timer.max
-                organ.edge += (x, y)
+                diff = organ.upper_joint - organ.lower_joint
+                x = ((self.current_animation[k][0] * self.direction) + diff.x) / self.timer.max
+                y = (self.current_animation[k][1] + diff.y) / self.timer.max
+                organ.lower_joint += (x, y)
                 organ.update()
 
     def set(self, state):
@@ -79,12 +83,11 @@ class Body:
         else:
             leg_index = 0
             for k, i in enumerate(self.organs):
-                if i.leg:
+                if i.part == Body.LEG:
                     leg_index = k
                     break
-            height = self.animation[0][leg_index][1] - 4
-        for i in self.organs:
-            i.height = height
+            height = self.animation[0][leg_index][1]
+        self.height = height
 
     def randomize_once(self, mag):
         r = []
@@ -108,20 +111,21 @@ class Body:
     def randomize_body(self, seed):
         import random
         random.seed(seed)
-        mag = random.gauss(1, .1)
+        mag = random.gauss(.46, .1)
+        mag_x = mag * 1.5
         r = []
         for clip in self.animation:
             r1 = []
             for i in clip:
                 if isinstance(i, list):
-                    r1.append([i[0], int(i[1] * mag)])
+                    r1.append([int(i[0] * mag_x), int(i[1] * mag)])
                 else:
                     r1.append(i)
             r.append(r1)
         self.animation = r
 
     def rotate_appendage(self, frame, organ, target):
-        animation = Data.get_cache_clip(self.texture_name)[1]
+        animation = Data.get_cache_clip(self.model_name)[1]
         length = abs(animation[frame][organ][0]) + abs(animation[frame][organ][1])
         atan = Space(target).to_int().get_atan()
         self.animation[frame][organ][0] = length*Math.cos(atan)*-self.direction

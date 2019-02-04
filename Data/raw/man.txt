@@ -1,0 +1,2 @@
+Pawn,[1,1,1],[sprint],Melee,0,0 //Name,stats,skills,pilot,armor,weapon
+Swordsman,[1,1,1],[lunge,dash],Melee,[Leather],[Shortsword]

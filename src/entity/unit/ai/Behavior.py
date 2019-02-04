@@ -9,10 +9,10 @@ class Behavior:
         self.tactic = getattr(Tactic, fight_type)(host)
         self.arguments = None
 
-    def set(self, *arg):
-        if hasattr(self, arg[0]):
-            self.behave = getattr(self, arg[0])
-            self.arguments = arg[1:]
+    def set(self, behavior, arg):
+        if hasattr(self, behavior):
+            self.behave = getattr(self, behavior)
+            self.arguments = arg
 
     def perform(self):
         self.behave()
@@ -22,7 +22,15 @@ class Behavior:
 
     def hunt(self):
         self.priority = 1
-        self.tactic.hunt(self.arguments[0])
+        nearest_dist = 10
+        nearest = self.arguments[0]
+        for i in self.arguments:
+            if not i.is_dead():
+                t = (i.pos[0] - self.host.pos[0]).distance()
+                if t < nearest_dist:
+                    nearest_dist = t
+                    nearest = i
+        return self.tactic.hunt(nearest)
 
     def react(self):
         pass

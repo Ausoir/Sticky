@@ -38,13 +38,13 @@ class Object:
         return 4
 
     def add(self):
-        Turn.queue.append(self)
+        Turn.add(self)
         self.relocate(self.pos[0].x, self.pos[0].y, 1)
         self.location.record.append(self)
         return self
 
     def remove(self):
-        Turn.queue.remove(self)
+        Turn.remove(self)
         self.location.record.remove(self)
         for i in self.pos:
             i.things.remove(self)
@@ -55,7 +55,7 @@ class Object:
     def draw(self, surface, pos):
         self.animation_move_from[0] += (pos[0] - self.animation_move_from[0]) * .1
         y = pos[1] - self.animation_move_from[1]
-        if y > 0:
+        if y > 0 and self.gravity:
             self.animation_move_from[1] += min(16, y)
         else:
             self.animation_move_from[1] += y * .1
@@ -63,9 +63,10 @@ class Object:
 
     def turn(self):
         if self.gravity:
-            moves = self.move(0, 8)
-            if moves:
-                self.on_fall(moves)
+            old = self.pos[0]
+            new = self.move(0, 8)
+            if new != old:
+                self.on_fall(new.y - old.y)
 
     def relocate(self, x, y, force=0):
         if force or x != self.pos[0].x or y != self.pos[0].y:
@@ -77,12 +78,17 @@ class Object:
                 new.things.append(self)
                 new_pos.append(new)
             self.pos = new_pos
-            return abs(diff[0]) + abs(diff[1])
+            if force:
+                vec = self.pos[0].get_vec()
+                self.animation_move_from[0] = vec[0]
+                self.animation_move_from[1] = vec[1]
+            return abs(diff[0]), abs(diff[1])
         return 0
 
-    def move(self, x, y, max=-1, flag=Tile.CHECK_LARGE):
-        new_pos = self.location.collide_line(self.pos[0], x, y, max=max, flag=flag)
-        return self.relocate(new_pos.x, new_pos.y)
+    def move(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
+        new_pos = self.location.collide_line(self.pos[0], x, y, distance=distance, flag=flag)
+        self.relocate(new_pos.x, new_pos.y)
+        return new_pos
 
     def on_fall(self, distance):
         pass

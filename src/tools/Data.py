@@ -1,5 +1,6 @@
-import os
 import ast
+import os
+
 import pygame
 
 
@@ -8,6 +9,8 @@ class Data:
 
     @staticmethod
     def init():
+        Data.set_cache('armor', Data.process_raw(Data.get_cache_file('raw/armor.txt')))
+        Data.set_cache('weapon', Data.process_raw(Data.get_cache_file('raw/weapon.txt')))
         res = Data.process_raw(Data.read('Data/resource.txt'))
         for x in res:
             Data.initialize_image(x[0], 'Data/' + x[1], x[2])
@@ -89,6 +92,15 @@ class Data:
             return Data.cache[fdir]
         else:
             return pygame.image.load(Data.direct(fdir + '.png'))
+
+    @staticmethod
+    def get_cache_file(fdir):
+        cache = Data.get_cache(fdir)
+        if not cache:
+            r = Data.read('Data/' + fdir)
+            Data.set_cache(fdir, r)
+            return r
+        return cache
 
     @staticmethod
     def get_cache_clip(fdir):

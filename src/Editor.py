@@ -13,7 +13,7 @@ class Editor:
     scroll = 160
 
     def __init__(self, loc):
-        Turn.queue.append(self)
+        Turn.add(self)
         Group.interface.append(self)
         Group.gui.append(self)
         self.location = loc
@@ -25,6 +25,10 @@ class Editor:
         self.display_text = ''
         self.enter = 0
         self.button = 0
+
+    def remove(self):
+        Turn.remove(self)
+        Group.remove(self)
 
     def input(self, event):
         if event.type == pygame.MOUSEMOTION:
@@ -110,8 +114,8 @@ class ToolTerrain:
 class ToolObject:
     def __init__(self, loc):
         self.location = loc
-        self.text = 'crate'
-        self.selection = Stock.get('crate', self.location).add()
+        self.text = 'Crate'
+        self.selection = Stock.get('Crate', self.location).add()
         self.tile = loc.get_tile(0, 0)
         self.prev_tile = None
 
@@ -137,6 +141,10 @@ class ToolObject:
                 self.mouse_down(1)
 
     def mouse_down(self, button):
-        self.selection = Stock.get(self.text, self.location).add()
-        if not self.selection:
-            self.selection = Stock.get('crate', self.location).add()
+        if button == 1:
+            self.selection = Stock.get(self.text.title(), self.location).add()
+            if not self.selection:
+                self.selection = Stock.get('Crate', self.location).add()
+        else:
+            for thing in self.selection.pos[0].things:
+                thing.remove()

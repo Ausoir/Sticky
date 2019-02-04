@@ -1,4 +1,5 @@
 from src.entity.Prop import Prop
+from src.entity.unit.Attribute import Attribute
 from src.form.Body import Body
 
 
@@ -15,15 +16,18 @@ class Unit(Prop):
         self.next_target = [0, 0]
         self.direction = 1
         self.collide = Tile.CHECK_UNIT
+        self.attributes = Attribute()
 
     def __str__(self):
-        return super().__str__() + ',' + self.faction.__str__() + ',[' + self.action.__str__() + ']'
+        return super().__str__() + ',' + self.faction.__str__() +\
+               ',[' + self.attributes.__str__() + '],[' + self.action.__str__() + ']'
 
     def load(self, p):
         index = super().load(p)
         self.faction.load(p[index])
-        self.action.load(p[index + 1])
-        return index + 2
+        self.attributes.load(p[index + 1])
+        self.action.load(p[index + 2])
+        return index + 3
 
     def make_form(self, arg):
         self.form = Body(arg, self.seed)
@@ -35,6 +39,7 @@ class Unit(Prop):
     def turn(self):
         super().turn()
         if self.delay == 0:
+            self.attributes.rest()
             if self.next_target[0] > 0 and self.direction != 1:
                 self.face(1)
             elif self.next_target[0] < 0 and self.direction != -1:
@@ -79,3 +84,6 @@ class Unit(Prop):
             if tile == i:
                 return 1
         return 0
+
+    def is_dead(self):
+        return self.action.current_action == 'dead'

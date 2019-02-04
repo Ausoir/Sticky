@@ -8,7 +8,7 @@ class Attack:
     BLOODY = 2
 
     def __init__(self):
-        Turn.queue.append(self)
+        Turn.add(self)
         self.registry = []
         self.delay = 0
 

@@ -1,57 +1,93 @@
 from src.entity.Prop import Prop
 from src.entity.unit.ai.Pilot import Pilot
+from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Item import Item
+from src.tools.Data import Data
 from src.tools.Random import Random
 
 
 class Stock:
+    registry = {}
+
+    @staticmethod
+    def init():
+        Stock.register('prop', Stock.prop)
+        Stock.register('man', Stock.man)
+        Stock.register('armor', Stock.armor)
+        Stock.register('weapon', Stock.weapon)
+
+    @staticmethod
+    def register(arg, fn):
+        list = Data.process_raw(Data.get_cache_file('raw/'+arg+'.txt'))
+        for i in list:
+            Stock.registry[i[0]] = [fn, i]
+
+    @staticmethod
+    def load(arg, loc):
+        r = Stock.get(arg[1], loc)
+        r.load(arg)
+        return r
+
     @staticmethod
     def get(name, loc, seed=None):
-        if hasattr(Stock, name):
+        if name in Stock.registry.keys():
             if not seed:
                 seed = Random.rand_seed()
-            r = getattr(Stock, name)(loc, seed)
+            record = Stock.registry[name]
+            r = record[0](loc, seed, record[1])
             r.name = name
             return r
 
     @staticmethod
-    def man(loc, seed=0):
+    def man(loc, seed, arg):
         from src.entity.unit.Humanoid import Humanoid
         r = Humanoid('unit/Man', seed, loc)
+        # r.stats = arg[1]
         r.durability = 5
-        r.action.abilities += ['lunge', 'dash']
-        Pilot(r, 'Melee')
+        r.action.abilities = arg[2]
+        Pilot(r, arg[3])
+        if arg[4]:
+            r.armor = arg[4]
+        if arg[5]:
+            r.weapon = arg[5]
         return r
 
     @staticmethod
-    def fist(loc, seed=0):
-        return Item('Data/item/weapon/Fist', seed, loc)
+    def armor(loc, seed, arg):
+        name = arg[0]
+        fdir = 'Data/item/armor/' + name
+        Data.initialize_image(name, fdir, (16, 48))
+        return Armor(name, seed, loc, arg[1], arg[2])
 
     @staticmethod
-    def error(loc, seed=0):
-        return Prop('Error', seed, loc)
-
-    @staticmethod
-    def crate(loc, seed=0):
-        r = Prop('Data/object/Crate', seed, loc)
-        r.durability = 2
+    def weapon(loc, seed, arg):
+        name = arg[0]
+        r = Item('Data/item/weapon/' + name, seed, loc)
+        if arg[1]:
+            r.form.pivot.x = arg[1]
+        r.range = arg[2]
         return r
 
     @staticmethod
-    def sword(loc, seed=0):
-        r = Item('Data/item/weapon/Shortsword', seed, loc)
-        r.form.pivot.x = 8
+    def prop(loc, seed, arg):
+        name = arg[0]
+        r = Prop('Data/object/' + name, seed, loc)
+        if arg[1]:
+            r.form.offset[1] = arg[1]
+        else:
+            r.form.offset[1] = -r.form.size.y / 2
+        r.durability = arg[2]
         return r
 
     @staticmethod
-    def spear(loc, seed=0):
-        r = Item('Data/item/weapon/Spear', seed, loc)
-        r.range = [2]
-        return r
-
-    @staticmethod
-    def bokken(loc, seed=0):
-        r = Item('Data/item/weapon/Bokken', seed, loc)
-        r.form.pivot.x = 8
-        r.range = [1, 2]
+    def arrow(loc):
+        def turn():
+            r.count -= 1
+            if r.count == 0:
+                r.remove()
+        r = Item('Data/item/weapon/Arrow', 0, loc)
+        r.count = 2
+        loc.record.remove(r)
+        r.turn = turn
+        r.gravity = 0
         return r

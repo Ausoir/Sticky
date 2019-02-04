@@ -1,0 +1,67 @@
+Underwear,0,[0,0,0,0] //Name, Encumbrance, Dimensions
+Casual,1,[101,111,111,0]
+Shirt,Comfortwear,1,0,0,[Cloth],0
+Sports Shirt,Sportswear,1,0,0,[Nylon],-6 // Tier 2
+Spring Suit Torso,Spring_Suit,1,0,1,[Cloth],0
+Robe Top,Robe,1,0,0,[Cloth],30
+Hoodie,Cargo,1,0,1,[Cloth],10 // Tier 3
+Jumpsuit Torso,Jumpsuit,1,0,1,[Cloth],20
+Jean Jacket,Jean,1,0,0,[Cloth],50
+Sweater,Sweater,1,0,0,[Wool],0
+Camo Top,Camo,1,0,0,[Nylon,Web],16
+Suit Torso,Suit,1,1,1,[Cloth,Silk],10
+Custom Suit Torso,Brown_Suit,1,1,1,[Leather],0 // Tier 2
+Sweat Suit Torso,Sweat_Suit,1,1,1,[Wool],14
+Lab Coat,Labwear,1,1,2,[Cloth],-5 // Tier 3
+Leather Jacket,Leather,1,1,0,[Leather],40
+Rogue Turtleneck,Rogue,1,1,1,[Nylon,Silk,Web],0
+Uniform Top,Uniform,1,1,1,[Copper,Bronze],0
+Burlap Armor,Burlap,1,2,0,[Wooden],60
+Dustset Jacket,Dustset,1,2,0,[Leather],90 // Tier 2
+Padded Vest,Pad,1,2,0,[Iron,Steel],0
+Infantry Jacket,Infantry,1,2,1,[Nylon],70
+Mythringmail Armor,Mythringmail,1,2,0,[Silver,Gold,Steel,Obsidian,Crystal],0
+Scavenger Jacket,Scavenger,1,2,4,[Cloth],20
+Adventure Torso,Adventurewear,1,2,2,[Nylon,Wool],64
+Chainmail Armor,Chainmail,1,3,1,[Iron,Silver,Steel],20
+Breastplate,Platemail,1,3,1,[Copper,Iron,Steel,Crystal,Gold,Obsidian],20 // Tier 2
+Security Armor,Security,1,3,1,[Nylon,Silk,Web,Wool],80
+Shadowrobe Torso,Shadowrobe,1,3,3,[Bone],20
+Robotic Upper Body,Robot,1,3,4,[Copper],0
+Crystal Breastplate,Crystal,1,3,1,[Crystal],110
+Battle Armor,Battlewear,1,4,1,[Titanium],20
+Baldcut,Baldcut,0,0,0,[Organic],0
+Gingercut,Gingercut,0,0,0,[Organic],0
+Blondecut,Blondecut,0,0,0,[Organic],0
+Ponytail,Ponytail,0,0,0,[Organic],0
+Buzzcut,Buzzcut,0,0,0,[Organic],0
+Bandana,Bandana,0,0,0,[Cloth],4
+Mask,Bandana_Mask,0,0,0,[Cloth],4
+Headband,Headband,0,0,0,[Nylon],4 // Tier 2
+Fur Hat,Fur_Hat,0,0,0,[Wool],0
+Straw Hat,Straw_Hat,0,1,0,[Wooden],20 // Encumbrance 1
+Balaclava,Balaclava,0,0,0,[Nylon],10
+Camo Hat,Camo_Hat,0,0,0,[Nylon],30
+Glasses,Glasses,0,1,0,[Glass,Crystal],0
+Sunglass,Sunglass,0,1,0,[Obsidian],0
+Cap,Cap,0,1,0,[Cloth],40
+Bright Cap,Cap2,0,1,0,[Cloth],50
+Top Hat,Tophat,0,1,1,[Cloth],0
+Mouthwrap,Mouthwrap,0,1,0,[Wool,Leather],20
+Hood,Hood,0,1,0,[Cloth],20
+Beanie,Beanie,0,1,0,[Cloth],0
+Mask,Mask,0,1,0,[Nylon],40 // Encumbrance 2
+Lace Helm,Lace_Helm,0,2,0,[Copper],30
+Riot Helmet,Riot_Helmet,0,2,1,[Copper],20
+Legion Helm,Legion_Helm,0,3,0,[Iron,Steel],0 // Encumbrance 3
+Full Helm,Full_Helm,0,3,0,[Iron,Steel],0
+Military Helmet,Military_Helmet,0,3,0,[Steel,Titanium],-20
+Cloak,Cloak,3,0,0,[Cloth,Nylon,Wool],0
+Night Cloak,Night_Cloak,3,1,1,[Nylon,Wool],0
+Fannypack,Fannypack,3,0,1,[Cloth,Leather],0
+Knapsack,Knapsack,3,1,2,[Cloth,Leather],0
+Backpack,Backpack,3,2,3,[Cloth,Leather],0
+Dufflebag,Dufflebag,3,3,5,[Cloth],0
+Adventure_Pack,Adventure_Pack,3,1,3,[Wool],0
+Quiver,Quiver,3,0,0,[Leather],0
+Jewelry,Jewelry,4,2,0,[Silver,Gold,Crystal,Bone,Obsidian],0

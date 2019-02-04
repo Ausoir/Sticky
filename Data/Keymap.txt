@@ -5,11 +5,12 @@
 119,jump
 32,sprint
 1,rest
-49,kick
-50,summon
+49,summon
+50,kick
 51,underhand
 52,lunge
 53,dash
+54,arch
 27,quit
-501,attack
+501,use
 503,interact

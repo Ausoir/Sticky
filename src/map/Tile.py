@@ -20,9 +20,11 @@ class Tile(Space):
         self.things = List()
 
     def __str__(self):
-        if not self.terrain:
-            return None
-        return '[' + super().__str__() + ',' + str(self.terrain.id) + ']'
+        if self.terrain:
+            id = str(self.terrain.id)
+        else:
+            id = '-1'
+        return '[' + super().__str__() + ',' + id + ']'
 
     def set_terrain(self, terrain):
         self.terrain = Terrain.load_from_name(self * [Global.BLOCK, Global.BLOCK], terrain)

@@ -10,6 +10,21 @@ class Item(Prop):
         self.host = None
         self.range = [1]
 
+    def __str__(self):
+        r = []
+        for i in self.pos:
+            r.append('[' + str(i.x) + ',' + str(i.y) + ']')
+        return str(self.id) + ',' + self.name + ',' + str(self.seed) + ',[' + (','.join(r)) + ']'
+
+    def load(self, p):
+        self.id = p[0]
+        self.name = p[1]
+        self.seed = p[2]
+        self.pos = []
+        for i in p[3]:
+            self.pos.append(self.location.get_tile(i))
+        return 4
+
     def on_equip(self, host):
         self.host = host
         self.remove()
@@ -18,9 +33,12 @@ class Item(Prop):
         self.host = None
         self.add()
 
+    def use(self):
+        self.host.action.set('attack')
+
     def attack(self, delay=0, on_hit=None):
         for i in self.range:
             tile = self.host.location.collide_line(self.host.get_interact_pos(),
                                                    self.host.next_target[0], self.host.next_target[1],
-                                                   max=i, flag=Tile.CHECK_NONE)
+                                                   distance=i, flag=Tile.CHECK_NONE)
             self.location.attack.register(self.host, 1, tile, delay, Attack.BLOODY, faction=self.host.faction, callback=on_hit)

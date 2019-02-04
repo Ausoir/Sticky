@@ -1,16 +1,27 @@
-from src.tools.List import List
-
-
 class Turn:
-    queue = List()
+    queue = [[], [], [], [], [], [], [], [], [], []]
     frame = 0
+    queue_turn = 0
 
     @staticmethod
     def update():
+        for i in Turn.queue[Turn.frame]:
+            i.turn()
+            if i.delay > 0:
+                i.delay -= 1
         Turn.frame += 1
         if Turn.frame >= 10:
             Turn.frame = 0
-            for i in Turn.queue:
-                i.turn()
-                if i.delay > 0:
-                    i.delay -= 1
+
+    @staticmethod
+    def add(arg):
+        Turn.queue[Turn.queue_turn].append(arg)
+        Turn.queue_turn += 1
+        if Turn.queue_turn >= 10:
+            Turn.queue_turn = 0
+
+    @staticmethod
+    def remove(arg):
+        for i in Turn.queue:
+            if arg in i:
+                i.remove(arg)

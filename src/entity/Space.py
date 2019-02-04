@@ -26,6 +26,17 @@ class Space:
                 self.x = arg[0]
                 self.y = arg[1]
 
+    def __eq__(self, arg):
+        if isinstance(arg, Space):
+            return self.x == arg.x and self.y == arg.y
+        elif isinstance(arg, int):
+            return self.x == arg and self.y == arg
+        elif isinstance(arg, tuple) or isinstance(arg, list):
+            return self.x == arg[0] and self.y == arg[1]
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __iadd__(self, arg):
         if isinstance(arg, Space):
             self.x += arg.x

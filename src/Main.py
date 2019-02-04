@@ -3,19 +3,18 @@ import sys
 import pygame
 
 from src.Editor import Editor
+from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Camera import Camera
 from src.game.Group import Group
 from src.game.Turn import Turn
 from src.game.World import World
-from src.map.Location import Location
 from src.tools.Data import Data
 from src.tools.Math import Math
 from src.tools.Random import Random
 
 
 class Main:
-
     def __init__(self):
         pygame.font.init()
         self.clock = pygame.time.Clock()
@@ -23,24 +22,37 @@ class Main:
         Math.init()
         Random.init(99999)
         Data.init()
+        Stock.init()
         pygame.display.set_icon(Data.get_image('Icon_1x0', 1))
         pygame.display.set_caption('Sticky', 'Sticky')
 
         self.world = World()
 
-        editor = 0
+        self.on_pause = None
+        self.editor = 0
+        self.pause = 0
         for i in sys.argv[1:]:
             if i == 'editor':
-                editor = 1
-        if not editor:
+                self.editor = 1
+
+    def start(self):
+        if not self.editor:
             self.play_loop()
         else:
             Group.interface.clear()
             Editor(self.world.map)
             self.editor_loop()
 
+    def switch(self):
+        def afterward():
+            self.pause = 0
+            self.start()
+        self.pause = 1
+        self.on_pause = afterward
+        self.editor = not self.editor
+
     def play_loop(self):
-        while True:
+        while not self.pause:
             self.clock.tick(60)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -52,9 +64,11 @@ class Main:
                 Group.interface.input(event)
             self.draw()
             Turn.update()
+        if self.on_pause:
+            self.on_pause()
 
     def editor_loop(self):
-        while True:
+        while not self.pause:
             self.clock.tick(60)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -65,6 +79,8 @@ class Main:
                     Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 32)
                 Group.interface.input(event)
             self.draw()
+        if self.on_pause:
+            self.on_pause()
 
     def draw(self):
         Camera.update()
@@ -79,4 +95,5 @@ class Main:
 
 
 if __name__ == '__main__':
-    Main()
+    Global.main = Main()
+    Global.main.start()

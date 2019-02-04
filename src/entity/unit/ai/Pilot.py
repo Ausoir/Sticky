@@ -7,17 +7,18 @@ from src.tools.Random import Random
 
 class Pilot:
     def __init__(self, host, fight_type):
-        Turn.queue.insert(0, self)
+        Turn.add(self)
         self.host = host
         self.delay = 0
         self.range = 4
         self.behavior = Behavior(host, fight_type)
-        self.behavior.set('idle')
+        self.behavior.set('idle', None)
 
     def turn(self):
         if not self.dodge():
             if not self.delay:
-                self.perceive()
+                behavior, arguments = self.perceive()
+                self.behavior.set(behavior, arguments)
                 self.behavior.perform()
 
     def perceive(self):
@@ -31,14 +32,16 @@ class Pilot:
                         if thing != self.host:
                             perceived.append(thing)
         if self.behavior.priority >= 2:
+            targets = []
             for thing in perceived:
                 if isinstance(thing, Unit) and self.host.faction.is_against(thing.faction):
-                    self.behavior.set('hunt', thing)
-                    return
+                    targets.append(thing)
+            if targets:
+                return 'hunt', targets
         if self.behavior.priority >= 3:
             if perceived:
-                self.behavior.set('react', perceived[Random.rand_int(0, perceived.__len__()-1)])
-                return
+                return 'react', perceived[Random.rand_int(0, perceived.__len__()-1)]
+        return 'idle', None
 
     def dodge(self):
         for i in self.host.location.attack.registry:

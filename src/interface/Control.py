@@ -9,7 +9,7 @@ from src.tools.Data import Data
 
 class Control:
     def __init__(self, menu, player):
-        Turn.queue.append(self)
+        Turn.add(self)
         self.menu = menu
         self.player = player
         self.keymap = {}
@@ -33,12 +33,11 @@ class Control:
                 self.perform(self.keymap[event.key])
         elif event.type == pygame.KEYUP:
             self.idle = 1
-            # self.command = 'idle'
         return 0
 
     def turn(self):
         self.mouse = pygame.mouse.get_pos()
-        self.mouse = Global.get_absolute_tile_pos(self.mouse[0], self.mouse[1])
+        self.mouse = Global.get_relative_tile_pos(self.mouse[0], self.mouse[1])
         self.player.input(self.command, self.mouse)
         if self.idle:
             self.command = 'idle'

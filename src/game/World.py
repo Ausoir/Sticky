@@ -6,7 +6,7 @@ from src.tools.Data import Data
 
 class World:
     def __init__(self):
-        Turn.queue.append(self)
+        Turn.add(self)
         data = Data.process_raw(Data.read('save/player'))
         if not data:
             data = Data.process_raw(Data.read('save/template'))

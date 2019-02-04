@@ -6,39 +6,36 @@ from src.entity.Stock import Stock
 class Humanoid(Unit):
     def __init__(self, form, seed, loc):
         super().__init__(form, seed, loc)
-        self.pos.append(self.location.get_tile(0, -1))
         self.form.randomize_clip('hit', 4)
         self.form.randomize_clip('dead1', 16)
         self.form.randomize_clip('dead2', 16)
         self.form.randomize_clip('dead3', 16)
         self.weapon = self.make_fist()
+        self.armor = self.make_armor()
         self.aim_angle = 0
 
     def __str__(self):
+        armor = '['+self.armor.__str__()+']'
         weapon = '['+self.weapon.__str__()+']'
-        return super().__str__() + ',' + weapon
+        return super().__str__() + ',' + armor + ',' + weapon
 
     def load(self, p):
         index = super().load(p)
-        if p[index]:
-            weapon = Stock.get(p[index][1], self.location)
-            weapon.load(p[index])
-            self.pickup(weapon)
-        return index + 1
+        armor = Stock.load(p[index], self.location)
+        armor.use(self)
+        weapon = Stock.load(p[index+1], self.location)
+        self.pickup(weapon)
+        return index + 2
 
     def make_fist(self):
-        r = Stock.get('fist', self.location)
+        r = Stock.get('Fist', self.location)
         r.on_equip(self)
         return r
 
-    def input(self, action, target):
-        super().input(action, [target[0], target[1] + 1])
-
-    def get_interact_pos(self):
-        if self.pos.__len__() > 1:
-            return self.pos[1]
-        else:
-            return self.location.get_tile(self.pos[0] + (0, -1))
+    def make_armor(self):
+        r = Stock.get('Underwear', self.location)
+        r.on_equip(self)
+        return r
 
     def hit(self, hitter, damage):
         r = super().hit(hitter, damage)
@@ -46,14 +43,13 @@ class Humanoid(Unit):
         return r
 
     def face(self, direction):
-        if self.weapon and direction != self.direction:
-            self.weapon.form.rotation += 180
+        self.weapon.form.flip(-direction)
         super().face(direction)
 
     def draw(self, surface, pos):
         if self.weapon:
-            x = self.animation_move_from[0] + self.form.organs[0].edge.x
-            y = self.animation_move_from[1] + self.form.organs[0].edge.y - self.form.organs[0].height
+            x = self.animation_move_from[0] + self.form.organs[0].lower_joint.x
+            y = self.animation_move_from[1] + self.form.organs[0].lower_joint.y - self.form.height
             self.weapon.form.draw(surface, x, y)
         super().draw(surface, pos)
 
@@ -66,7 +62,7 @@ class Humanoid(Unit):
         self.weapon = self.make_fist()
 
     def is_armed(self):
-        return self.weapon.name != 'fist'
+        return self.weapon.name != 'Fist'
 
     def aim(self):
         angle = Space(self.next_target).get_atan()

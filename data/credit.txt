@@ -1,0 +1,18 @@
+Textures
+junkyard : https://www.pexels.com/photo/scrap-metal-trash-litter-scrapyard-128421/
+
+Sounds
+grass footstep : http://www.freesound.org/people/Badkitty67044/sounds/274679/
+cloth 1 & 2 : http://www.freesound.org/people/Walter_Odington/sounds/18626/
+cloth 3 : http://www.freesound.org/people/RutgerMuller/sounds/51140/
+other : generated using http://www.bfxr.net/
+swing 1 : http://www.freesound.org/people/snowflakes/sounds/72191/
+swing 2 : http://www.freesound.org/people/XxChr0nosxX/sounds/268226/
+swing 3 : http://www.freesound.org/people/lmbubec/sounds/118792/
+scroll : http://www.freesound.org/people/natenaterson/sounds/223375/
+hit 1 : http://www.freesound.org/people/scarbelly25/sounds/35409/
+hit 2 (cut) : http://www.freesound.org/people/Abyssmal/sounds/35213/
+hit 3 (cut) : http://www.freesound.org/people/Kreastricon62/sounds/323526/
+freeze : http://www.freesound.org/people/karlis.stigis/sounds/168712/
+fire: http://www.freesound.org/people/pengo_au/sounds/90143/
+drink: http://www.freesound.org/people/Q.K./sounds/56270/

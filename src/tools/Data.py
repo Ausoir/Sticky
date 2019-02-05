@@ -9,11 +9,11 @@ class Data:
 
     @staticmethod
     def init():
-        Data.set_cache('armor', Data.process_raw(Data.get_cache_file('raw/armor.txt')))
-        Data.set_cache('weapon', Data.process_raw(Data.get_cache_file('raw/weapon.txt')))
-        res = Data.process_raw(Data.read('Data/resource.txt'))
+        Data.set_cache('armor', Data.process_raw(Data.get_cache_file('raw/armors.txt')))
+        Data.set_cache('weapon', Data.process_raw(Data.get_cache_file('raw/weapons.txt')))
+        res = Data.process_raw(Data.read('data/resource.txt'))
         for x in res:
-            Data.initialize_image(x[0], 'Data/' + x[1], x[2])
+            Data.initialize_image(x[0], 'data/' + x[1], x[2])
 
     @staticmethod
     def direct(fdir):
@@ -97,7 +97,7 @@ class Data:
     def get_cache_file(fdir):
         cache = Data.get_cache(fdir)
         if not cache:
-            r = Data.read('Data/' + fdir)
+            r = Data.read('data/' + fdir)
             Data.set_cache(fdir, r)
             return r
         return cache
@@ -107,7 +107,7 @@ class Data:
         cache = Data.get_cache(fdir)
         if not cache:
             r = []
-            clip = Data.read('Data/' + fdir + '.2d')
+            clip = Data.read('data/' + fdir + '.2d')
             lines = clip.split('\n\n')
             r.append(Data.process_raw(lines[0]))
             r.append(Data.process_raw(lines[1]))

@@ -1,0 +1,16 @@
+9,save
+97,left
+100,right
+119,up
+115,down
+49,switch
+50,tiles
+51,props
+52,units
+53,weapons
+54,armors
+27,quit
+501,use
+503,delete
+504,prev
+505,next

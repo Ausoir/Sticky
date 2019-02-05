@@ -1,12 +1,4 @@
-from src.form.GroupSprite import GroupSprite
+import pygame
 
-class ASD:
-    def __init__(self, d):
-        self.depth = d
-
-test = GroupSprite()
-test.add(ASD(4))
-test.add(ASD(3))
-test.add(ASD(1))
-test.add(ASD(2))
-print(test)
+screen = pygame.display.set_mode((600, 600), pygame.RESIZABLE, 32)
+screen.fill((255, 255, 100))

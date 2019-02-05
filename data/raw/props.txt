@@ -1,0 +1,4 @@
+Crate,0,1 //Name, pivot, durability
+Tree-1,0,3
+Tree-2,0,3
+Tree-3,0,3

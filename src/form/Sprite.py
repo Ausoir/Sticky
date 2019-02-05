@@ -5,6 +5,7 @@ import pygame
 from src.entity.Space import Space
 from src.game.Camera import Camera
 from src.tools.Data import Data
+from src.tools.Math import Math
 
 
 class Sprite(pygame.sprite.Sprite):
@@ -40,10 +41,10 @@ class Sprite(pygame.sprite.Sprite):
             if self.rotation:
                 self.image = pygame.transform.rotozoom(self.image, self.rotation, 1)
             pp = self.pivot - (self.size * (.5, .5))
-            aa = math.atan2(-pp.y, -pp.x)
+            aa = math.degrees(math.atan2(-pp.y, -pp.x))
             piv = pp.distance()
-            ax = math.cos(math.radians(-self.rotation) + aa) * piv
-            ay = math.sin(math.radians(-self.rotation) + aa) * piv
+            ax = Math.cos(-self.rotation + aa) * piv
+            ay = Math.sin(-self.rotation + aa) * piv
             rect = [x + ax + Camera.pos[0] + self.offset[0], y + ay + Camera.pos[1] + self.offset[1]]
             self.rect = self.image.get_rect(center=rect)
             surface.blit(self.image, self.rect)

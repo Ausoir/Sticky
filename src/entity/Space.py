@@ -105,10 +105,6 @@ class Space:
     def get_atan(self):  # left is 0, clockwise to 360
         return math.degrees(math.atan2(-self.y, self.x)) + 180
 
-    def get_atan_to(self, mag):
-        degree = self.get_atan()
-        return [math.cos(degree) * mag, math.sin(degree) * mag]
-
     def abs(self):
         return Space(abs(self.x), abs(self.y))
 
@@ -116,7 +112,7 @@ class Space:
         return math.sqrt((self.x * self.x) + (self.y * self.y))
 
     def to_int(self):
-        return Space(round(self.x), round(self.y))
+        return Space(math.floor(self.x), math.floor(self.y))
 
     def to_list(self):
         return [self.x, self.y]

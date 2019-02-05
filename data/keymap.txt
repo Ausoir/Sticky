@@ -4,8 +4,7 @@
 100,right
 119,jump
 32,sprint
-1,rest
-49,summon
+49,switch
 50,kick
 51,underhand
 52,lunge

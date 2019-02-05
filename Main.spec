@@ -2,11 +2,16 @@
 
 block_cipher = None
 
+added_files = [
+    ('src', 'src'),
+    ('Data', 'Data'),
+    ('save', 'save')
+]
 
-a = Analysis(['src\\main.py'],
-             pathex=['C:\\Users\\kizen\\PycharmProjects\\Sticky\\venv\\Scripts'],
-             binaries=[('C:\\Program Files (x86)\\Windows Kits\\10\\Redist\\ucrt\\DLLs\\x64','x64')], # copy the folder when pyinstall
-             datas=[('beam.png','.')],
+a = Analysis(['src\\Main.py'],
+             pathex=['src'],
+             binaries=[('x64','x64')],
+             datas=added_files,
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -19,18 +24,11 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          [],
-          exclude_binaries=True,
-          name='test',
-          debug=False,
+          a.binaries,
+          a.datas,
+          name='Game',
+          debug=True,
           bootloader_ignore_signals=False,
           strip=False,
-          upx=False,
-          console=False )
-coll = COLLECT(exe,
-               a.binaries,
-               a.zipfiles,
-               a.datas,
-               strip=False,
-               upx=False,
-               name='test')
+          upx=True,
+          console=True )

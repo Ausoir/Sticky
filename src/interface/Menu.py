@@ -28,10 +28,11 @@ class Menu:
             self.window.display(1)
 
     @staticmethod
-    def make_button(text, callback):
+    def make_button(text, callback, r_callback):
         button = Window(2, [140, 40], color=Window.fore_color2)
         button.set_text(text)
         button.on_click = callback
+        button.on_r_click = r_callback
         return button
 
     def show_dialog(self, text):
@@ -48,46 +49,70 @@ class Menu:
         self.window.add_child(textbox)
 
     def menu_main(self):
-        self.window.add_child(Menu.make_button(['Skills'], self.click_skills))
-        self.window.add_child(Menu.make_button(['Character'], self.click_character))
-        self.window.add_child(Menu.make_button(['Equipment'], self.click_equipment))
+        def click_character():
+            self.state = self.menu_character
+            self.display(1)
+
+        def click_skills():
+            self.state = self.menu_skills
+            self.display(1)
+
+        def click_equipment():
+            self.state = self.menu_equipment
+            self.display(1)
+
+        self.window.add_child(Menu.make_button(['Skills'], click_skills, None))
+        self.window.add_child(Menu.make_button(['Character'], click_character, None))
+        self.window.add_child(Menu.make_button(['Equipment'], click_equipment, None))
 
     def menu_character(self):
+        def click_mastery():
+            self.state = self.menu_mastery
+            self.display(1)
+
+        def click_status():
+            self.state = self.menu_status
+            self.display(1)
+
         def describe():
             self.show_dialog(['Something HP', 'Some long dialog text.....', 'And your choice'])
+
         hp = str(self.host.durability)
         text = ['HP - '+hp+'/3', 'Str - 1', 'Agi - 1', 'Int - 1', 'Nutrition - 5/5']
-        panel = Menu.make_button(text, describe)
+        panel = Menu.make_button(text, describe, None)
         panel.color = Window.fore_color3
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
         panel.depth = 2
         panel.redraw()
         self.window.add_child(panel)
-        self.sub_window.add_child(Menu.make_button(['Mastery'], self.click_mastery))
-        self.sub_window.add_child(Menu.make_button(['Status'], self.click_status))
+        self.sub_window.add_child(Menu.make_button(['Mastery'], click_mastery, None))
+        self.sub_window.add_child(Menu.make_button(['Status'], click_status, None))
         self.sub_window.display(1)
 
     def menu_skills(self):
         text = ['L1 Airstrike', 'L2 Windwalk', 'L1 Punch']
-        panel = Menu.make_button(text, None)
+        panel = Menu.make_button(text, None, None)
         panel.color = Window.fore_color3
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
         panel.depth = 2
         panel.redraw()
         self.window.add_child(panel)
-        self.sub_window.add_child(Menu.make_button(['Action [1]'], None))
-        self.sub_window.add_child(Menu.make_button(['Action [2]'], None))
-        self.sub_window.add_child(Menu.make_button(['Action [3]'], None))
-        self.sub_window.add_child(Menu.make_button(['Action [Q]'], None))
-        self.sub_window.add_child(Menu.make_button(['Action [E]'], None))
+        self.sub_window.add_child(Menu.make_button(['Action [1]'], None, None))
+        self.sub_window.add_child(Menu.make_button(['Action [2]'], None, None))
+        self.sub_window.add_child(Menu.make_button(['Action [3]'], None, None))
+        self.sub_window.add_child(Menu.make_button(['Action [Q]'], None, None))
+        self.sub_window.add_child(Menu.make_button(['Action [E]'], None, None))
         self.sub_window.display(1)
 
     def menu_equipment(self):
-        self.window.add_child(Menu.make_button(['Hat'], None))
-        self.window.add_child(Menu.make_button(['Comfort Wear'], None))
-        self.window.add_child(Menu.make_button(['Amulet'], None))
+        def click_armor():
+            self.show_dialog(self.host.armor.describe().split('\n'))
+
+        self.window.add_child(Menu.make_button(['Hat'], None, None))
+        self.window.add_child(Menu.make_button([self.host.armor.form_name], click_armor, click_armor))
+        self.window.add_child(Menu.make_button(['Amulet'], None, None))
         inv = [[1, 0, 1], [1, 0, 1], [0, 1, 0], [1, 0, 1]]
         for ky, vy in enumerate(inv):
             for kx, vx in enumerate(vy):
@@ -97,33 +122,14 @@ class Menu:
                 slot.vec.y = ky * 48
                 self.sub_window.add_child(slot)
                 self.sub_window.next_y -= slot.size[1] + self.sub_window.margin.y
-        textbox = Window(3, [0, 0], color=Window.font_color1)
+        textbox = Window(3, [140, 0], color=Window.fore_color3)
+        textbox.hover_font_color = Window.fore_color3
         textbox.set_text(['Gold: 123'])
         self.window.add_child(textbox)
         self.sub_window.display(1)
 
     def menu_mastery(self):
-        self.window.add_child(Menu.make_button(['Mastery'], None))
+        self.window.add_child(Menu.make_button(['Mastery'], None, None))
 
     def menu_status(self):
-        self.window.add_child(Menu.make_button(['Status'], None))
-
-    def click_character(self):
-        self.state = self.menu_character
-        self.display(1)
-
-    def click_skills(self):
-        self.state = self.menu_skills
-        self.display(1)
-
-    def click_equipment(self):
-        self.state = self.menu_equipment
-        self.display(1)
-
-    def click_mastery(self):
-        self.state = self.menu_mastery
-        self.display(1)
-
-    def click_status(self):
-        self.state = self.menu_status
-        self.display(1)
+        self.window.add_child(Menu.make_button(['Status'], None, None))

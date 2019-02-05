@@ -58,7 +58,8 @@ class Humanoid(Unit):
         self.weapon = item
 
     def drop(self):
-        self.weapon.on_unequip(self)
+        if self.is_armed():
+            self.weapon.on_unequip(self)
         self.weapon = self.make_fist()
 
     def is_armed(self):

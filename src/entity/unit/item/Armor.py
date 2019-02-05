@@ -19,6 +19,16 @@ class Armor(Item):
         self.inventory = p[index + 1]
         return index + 2
 
+    def describe(self):
+        inv = 0
+        for row in self.inventory:
+            for i in str(row):
+                if i == '1':
+                    inv += 1
+        r = 'Encumbrance: ' + str(self.encumbrance) + '\n'
+        r += 'Inventory: ' + str(inv) + '\n'
+        return r
+
     def use(self, host=None):
         if not host:
             host = self.host

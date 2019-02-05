@@ -1,3 +1,4 @@
+from src.Editor import Editor
 from src.game.Camera import Camera
 from src.game.Turn import Turn
 from src.map.Location import Location
@@ -7,6 +8,7 @@ from src.tools.Data import Data
 class World:
     def __init__(self):
         Turn.add(self)
+        self.control = None
         data = Data.process_raw(Data.read('save/player'))
         if not data:
             data = Data.process_raw(Data.read('save/template'))
@@ -20,14 +22,22 @@ class World:
         from src.interface.Control import Control
         from src.game.Group import Group
         player = Humanoid('unit/Man', 0, loc)
-        control = Control(Menu(player), player)
+        self.control = Control(Menu(player), player)
         Camera.target = player.animation_move_from
-        Group.interface.append(control)
-        player.durability = 3
+        Group.interface.append(self.control)
+        player.durability = 8
         player.load(data)
         player.add()
         loc.record.remove(player)
         return player
+
+    def switch(self):
+        if self.player == self.control.player:
+            Editor(self.map, self.control)
+        else:
+            self.control.set_keymap('data/keymap.txt')
+            self.control.player = self.player
+            Camera.target = self.player.animation_move_from
 
     def turn(self):
         r = self.map.name + '\n'

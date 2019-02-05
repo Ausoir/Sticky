@@ -26,7 +26,7 @@ class Unit(Prop):
         index = super().load(p)
         self.faction.load(p[index])
         self.attributes.load(p[index + 1])
-        self.action.load(p[index + 2])
+        self.action.abilities = p[index + 2]
         return index + 3
 
     def make_form(self, arg):

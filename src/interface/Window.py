@@ -27,6 +27,7 @@ class Window(Shape):
         self.visible = -1
         self.text = []
         self.on_click = None
+        self.on_r_click = None
         self.margin = Space(8, 8)
         self.font = pygame.font.SysFont('Helvetica', 20)
         self.normal_font_color = Window.font_color1
@@ -61,6 +62,9 @@ class Window(Shape):
             if self.collide(mouse):
                 if event.button == 1 and self.on_click is not None:
                     self.on_click()
+                    return 1
+                elif event.button == 3 and self.on_r_click is not None:
+                    self.on_r_click()
                     return 1
 
     def draw(self, surface):

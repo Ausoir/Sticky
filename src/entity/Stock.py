@@ -11,10 +11,10 @@ class Stock:
 
     @staticmethod
     def init():
-        Stock.register('prop', Stock.prop)
-        Stock.register('man', Stock.man)
-        Stock.register('armor', Stock.armor)
-        Stock.register('weapon', Stock.weapon)
+        Stock.register('props', Stock.prop)
+        Stock.register('units', Stock.man)
+        Stock.register('armors', Stock.armor)
+        Stock.register('weapons', Stock.weapon)
 
     @staticmethod
     def register(arg, fn):
@@ -47,22 +47,22 @@ class Stock:
         r.action.abilities = arg[2]
         Pilot(r, arg[3])
         if arg[4]:
-            r.armor = arg[4]
+            r.armor = Stock.get(arg[4], loc)
         if arg[5]:
-            r.weapon = arg[5]
+            r.weapon = Stock.get(arg[5], loc)
         return r
 
     @staticmethod
     def armor(loc, seed, arg):
         name = arg[0]
-        fdir = 'Data/item/armor/' + name
+        fdir = 'data/item/armor/' + name
         Data.initialize_image(name, fdir, (16, 48))
         return Armor(name, seed, loc, arg[1], arg[2])
 
     @staticmethod
     def weapon(loc, seed, arg):
         name = arg[0]
-        r = Item('Data/item/weapon/' + name, seed, loc)
+        r = Item('data/item/weapon/' + name, seed, loc)
         if arg[1]:
             r.form.pivot.x = arg[1]
         r.range = arg[2]
@@ -71,7 +71,7 @@ class Stock:
     @staticmethod
     def prop(loc, seed, arg):
         name = arg[0]
-        r = Prop('Data/object/' + name, seed, loc)
+        r = Prop('data/object/' + name, seed, loc)
         if arg[1]:
             r.form.offset[1] = arg[1]
         else:
@@ -85,7 +85,7 @@ class Stock:
             r.count -= 1
             if r.count == 0:
                 r.remove()
-        r = Item('Data/item/weapon/Arrow', 0, loc)
+        r = Item('data/item/weapon/Arrow', 0, loc)
         r.count = 2
         loc.record.remove(r)
         r.turn = turn

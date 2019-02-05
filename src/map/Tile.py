@@ -21,10 +21,10 @@ class Tile(Space):
 
     def __str__(self):
         if self.terrain:
-            id = str(self.terrain.id)
+            terrain = str(self.terrain.id)
         else:
-            id = '-1'
-        return '[' + super().__str__() + ',' + id + ']'
+            terrain = '-1'
+        return '[' + super().__str__() + ',' + terrain + ']'
 
     def set_terrain(self, terrain):
         self.terrain = Terrain.load_from_name(self * [Global.BLOCK, Global.BLOCK], terrain)

@@ -1,3 +1,5 @@
+import math
+
 from src.entity.Space import Space
 from src.entity.Stock import Stock
 from src.game import Global
@@ -76,9 +78,9 @@ class Location:
 
     def get_tile(self, x=None, y=None, create=1):
         if y:
-            tmp = Space(x, y)
+            tmp = Space(x, y).to_int()
         else:
-            tmp = Space(x)
+            tmp = Space(x).to_int()
         if tmp.x not in self.tiles:
             if not create:
                 return None
@@ -90,7 +92,7 @@ class Location:
         return self.tiles[tmp.x][tmp.y]
 
     def get_tile_from_vec(self, x, y):
-        return self.get_tile(int(x / Global.BLOCK), int(y / Global.BLOCK))
+        return self.get_tile(math.floor(x / Global.BLOCK), math.floor(y / Global.BLOCK))
 
     def collide_line(self, vec_from, x, y, distance=10, flag=Tile.CHECK_TERRAIN):
         target_pos = vec_from + (x, y)

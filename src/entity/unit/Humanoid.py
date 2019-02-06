@@ -1,6 +1,6 @@
 from src.entity.Space import Space
-from src.entity.unit.Unit import Unit
 from src.entity.Stock import Stock
+from src.entity.unit.Unit import Unit
 
 
 class Humanoid(Unit):
@@ -10,21 +10,23 @@ class Humanoid(Unit):
         self.form.randomize_clip('dead1', 16)
         self.form.randomize_clip('dead2', 16)
         self.form.randomize_clip('dead3', 16)
-        self.weapon = self.make_fist()
-        self.armor = self.make_armor()
+        self.weapon = None
+        self.armor = None
         self.aim_angle = 0
 
     def __str__(self):
-        armor = '['+self.armor.__str__()+']'
         weapon = '['+self.weapon.__str__()+']'
-        return super().__str__() + ',' + armor + ',' + weapon
+        armor = '['+self.armor.__str__()+']'
+        return super().__str__() + ',' + weapon + ',' + armor
 
     def load(self, p):
         index = super().load(p)
-        armor = Stock.load(p[index], self.location)
-        armor.use(self)
-        weapon = Stock.load(p[index+1], self.location)
-        self.pickup(weapon)
+        if p[index]:
+            weapon = Stock.get(p[index][3], self.location, p[index])
+            weapon.interact(self)
+        if p[index + 1]:
+            armor = Stock.get(p[index+1][3], self.location, p[index+1])
+            armor.use(self)
         return index + 2
 
     def make_fist(self):
@@ -53,13 +55,9 @@ class Humanoid(Unit):
             self.weapon.form.draw(surface, x, y)
         super().draw(surface, pos)
 
-    def pickup(self, item):
-        item.on_equip(self)
-        self.weapon = item
-
     def drop(self):
         if self.is_armed():
-            self.weapon.on_unequip(self)
+            self.weapon.on_unequip()
         self.weapon = self.make_fist()
 
     def is_armed(self):

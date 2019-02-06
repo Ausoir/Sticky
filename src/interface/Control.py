@@ -17,28 +17,69 @@ class Control:
         self.keymap = {}
         self.mouse = [0, 0]
         self.delay = 0
-        self.set_keymap('data/keymap.txt')
+        self.directory = 'data/keymap.txt'
+        self.set_keymap(self.directory)
 
     def set_keymap(self, fdir):
+        self.directory = fdir
         control = Data.process_raw(Data.read(fdir))
         for k, v in control:
             self.keymap[k] = v
 
-    def input(self, event):
+    def change_key(self, key, action):
+        self.keymap[key] = action
+        data = Data.process_raw(Data.read(self.directory))
+        new_data = []
+        for k, v in data:
+            if k != key and v != action:
+                new_data.append(str(k) + ',' + v)
+        new_data.append(str(key) + ',' + action)
+        Data.write(self.directory, '\n'.join(new_data))
+
+    def get_key_name_from_action(self, action):
+        for k, v in self.keymap.items():
+            if v == action:
+                return self.get_key_name(k)
+        return 0
+
+    @staticmethod
+    def get_key_name(key):
+        if key == 501:
+            return 'LMB'
+        elif key == 502:
+            return 'MMB'
+        elif key == 503:
+            return 'RMB'
+        elif key == 504:
+            return 'Wheel+'
+        elif key == 505:
+            return 'Wheel-'
+        return pygame.key.name(key)
+
+    @staticmethod
+    def restore():
+        Data.write('data/keymap.txt', Data.read('data/default_keymap.txt'))
+
+    @staticmethod
+    def get_event_code(event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            button = event.button + 500
-            if button not in self.keypress:
-                self.keypress.append(button)
+            return event.button + 500
         elif event.type == pygame.MOUSEBUTTONUP:
-            button = event.button + 500
-            if button not in self.keyrelease:
-                self.keyrelease.append(button)
+            return -(event.button + 500)
         elif event.type == pygame.KEYDOWN:
-            if event.key not in self.keypress:
-                self.keypress.append(event.key)
+            return event.key
         elif event.type == pygame.KEYUP:
-            if event.key not in self.keyrelease:
-                self.keyrelease.append(event.key)
+            return -event.key
+        return 0
+
+    def input(self, event):
+        code = Control.get_event_code(event)
+        if code > 0:
+            if code not in self.keypress:
+                self.keypress.append(code)
+        elif code < 0:
+            if -code not in self.keyrelease:
+                self.keyrelease.append(-code)
         return 0
 
     def turn(self):
@@ -59,6 +100,13 @@ class Control:
                         self.keypress.remove(code)
                     if self.menu:
                         self.menu.toggle()
+                elif command == 'switch':
+                    if code in self.keyrelease:
+                        self.keyrelease.remove(code)
+                    if code in self.keypress:
+                        self.keypress.remove(code)
+                    self.player.input(command, mouse)
+                    Global.main.world.switch()
                 else:
                     self.player.input(command, mouse)
         else:

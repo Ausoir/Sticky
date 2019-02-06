@@ -17,6 +17,7 @@ class Editor:
         def update():
             control.turn()
 
+        self.backup = Turn.update
         Turn.update = update
         Group.gui.append(self)
         control.set_keymap('data/editor_keymap.txt')
@@ -32,6 +33,7 @@ class Editor:
     def remove(self):
         Turn.remove(self)
         Group.remove(self)
+        Turn.update = self.backup
 
     def input(self, action, target):
         vec_x = Camera.target[0] / Global.BLOCK + target[0]
@@ -39,7 +41,7 @@ class Editor:
         if action == 'idle':
             self.tool.input(0, self.location.get_tile(vec_x, vec_y))
         elif action == 'switch':
-            Global.main.world.switch()
+            self.tool.cancel()
         elif action == 'use':
             self.tool.input(1, self.location.get_tile(vec_x, vec_y))
         elif action == 'delete':
@@ -56,6 +58,10 @@ class Editor:
             Camera.target = [Camera.target[0] - Editor.scroll, Camera.target[1]]
         elif action == 'right':
             Camera.target = [Camera.target[0] + Editor.scroll, Camera.target[1]]
+        elif action == 'travel':
+            self.tool.cancel()
+            self.tool = ToolTravel(self.location)
+            self.display_text = 'Travel'
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -77,6 +83,7 @@ class Editor:
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Armors Tool'
         elif action == 'save':
+            self.tool.cancel()
             self.location.turn()
             self.display_text = 'saved'
         elif action == 'quit':
@@ -129,7 +136,6 @@ class ToolObject:
         self.text = 'Crate'
         self.selection = Stock.get('Crate', self.location).add()
         self.tile = loc.get_tile(0, 0)
-        self.prev_tile = None
         self.object_list = Data.process_raw(Data.get_cache_file('raw/'+object_type+'.txt'))
         self.current = 0
 
@@ -151,8 +157,33 @@ class ToolObject:
         if not button:
             self.selection.relocate(tile.x, tile.y)
         elif button == 1:
-            if not tile.things:
+            if not tile.things or len(tile.things) == 1 and tile.things[0] == self.selection:
                 self.selection = Stock.get(self.text.title(), self.location).add()
+                self.selection.relocate(tile.x, tile.y)
+        else:
+            if tile.things:
+                for i in tile.things:
+                    i.remove()
+
+
+class ToolTravel:
+    def __init__(self, loc):
+        self.location = loc
+        self.selection = Stock.get('Travel', self.location).add()
+        self.tile = loc.get_tile(0, 0)
+
+    def cancel(self):
+        self.selection.remove()
+
+    def cycle(self, inc):
+        return 'Travel'
+
+    def input(self, button, tile):
+        if not button:
+            self.selection.relocate(tile.x, tile.y)
+        elif button == 1:
+            if not tile.things or len(tile.things) == 1 and tile.things[0] == self.selection:
+                self.selection = Stock.get('Travel', self.location).add()
                 self.selection.relocate(tile.x, tile.y)
         else:
             if tile.things:

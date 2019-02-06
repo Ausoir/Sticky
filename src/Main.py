@@ -2,7 +2,6 @@ import sys
 
 import pygame
 
-from src.Editor import Editor
 from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Camera import Camera
@@ -35,8 +34,10 @@ class Main:
                 self.world.switch()
 
     def loop(self):
+        dt = 0
+        fps = 60
         while not self.pause:
-            self.clock.tick(60)
+            dt = self.clock.tick(fps + dt)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()

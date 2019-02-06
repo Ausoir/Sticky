@@ -24,7 +24,7 @@ class Location:
         self.record = List()
         self.load(Data.process_raw(Data.read('save/'+data[0]+'.map')))
         self.sight_x = int(Global.DISPLAY[0] / Global.BLOCK / 2)
-        self.sight_y = int(Global.DISPLAY[1] / Global.BLOCK / 2)
+        self.sight_y = 100  # int(Global.DISPLAY[1] / Global.BLOCK / 2)
         self.draw_tile_list = []
 
     def __str__(self):
@@ -51,9 +51,7 @@ class Location:
             tile = self.get_tile(x, y)
             tile.terrain = Terrain.load(tile * [Global.BLOCK, Global.BLOCK], i[1])
         for i in arg[1]:
-            obj = Stock.get(i[1], self)
-            obj.load(i)
-            obj.add()
+            Stock.get(i[3], self, i).add()
 
     def remove(self, arg):
         if arg in self.record:

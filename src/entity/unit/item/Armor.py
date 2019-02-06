@@ -37,5 +37,27 @@ class Armor(Item):
         for i in host.form.organs:
             if i.part != 3:
                 i.set(self.form_name + '_'+str(i.part)+'x0')
-        host.drop()
+        if host.weapon == self:
+            host.drop()
         self.remove()
+
+    def get_inventory(self):
+        r = []
+        for i in self.inventory:
+            if i == 0:
+                r.append([0, 0, 0])
+            elif i == 100:
+                r.append([1, 0, 0])
+            elif i == 10:
+                r.append([0, 1, 0])
+            elif i == 1:
+                r.append([0, 0, 1])
+            elif i == 110:
+                r.append([1, 1, 0])
+            elif i == 11:
+                r.append([0, 1, 1])
+            elif i == 101:
+                r.append([1, 0, 1])
+            elif i == 111:
+                r.append([1, 1, 1])
+        return r

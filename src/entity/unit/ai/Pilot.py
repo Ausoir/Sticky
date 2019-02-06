@@ -7,12 +7,17 @@ from src.tools.Random import Random
 
 class Pilot:
     def __init__(self, host, fight_type):
-        Turn.add(self)
         self.host = host
-        self.delay = 0
-        self.range = 4
-        self.behavior = Behavior(host, fight_type)
-        self.behavior.set('idle', None)
+        self.fight_type = fight_type
+        if fight_type != 'Manual':
+            Turn.add(self)
+            self.delay = 0
+            self.range = 4
+            self.behavior = Behavior(host, fight_type)
+            self.behavior.set('idle', None)
+
+    def __str__(self):
+        return self.fight_type
 
     def turn(self):
         if not self.dodge():

@@ -1,7 +1,7 @@
 from src.entity.Prop import Prop
-from src.entity.unit.ai.Pilot import Pilot
 from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Item import Item
+from src.entity.unit.item.Weapon import Weapon
 from src.tools.Data import Data
 from src.tools.Random import Random
 
@@ -15,68 +15,60 @@ class Stock:
         Stock.register('units', Stock.man)
         Stock.register('armors', Stock.armor)
         Stock.register('weapons', Stock.weapon)
+        Stock.registry['Travel'] = [Stock.travel, [None]]
 
     @staticmethod
     def register(arg, fn):
-        list = Data.process_raw(Data.get_cache_file('raw/'+arg+'.txt'))
-        for i in list:
+        registry_list = Data.process_raw(Data.get_cache_file('raw/'+arg+'.txt'))
+        for i in registry_list:
             Stock.registry[i[0]] = [fn, i]
 
     @staticmethod
-    def load(arg, loc):
-        r = Stock.get(arg[1], loc)
+    def get(name, loc, data=None):
+        if name in Stock.registry.keys():
+            record = Stock.registry[name]
+            if not data:
+                id = 0
+                seed = Random.rand_seed()
+                pos = [[0, 0]]
+                data = [id, seed, pos] + record[1]
+            r = record[0](loc, data)
+            return r
+
+    @staticmethod
+    def travel(loc, arg):
+        from src.entity.Travel import Travel
+        return Travel(loc, [0, 0])
+
+    @staticmethod
+    def man(loc, arg):
+        from src.entity.unit.Humanoid import Humanoid
+        r = Humanoid('unit/Man', arg[1], loc)
         r.load(arg)
         return r
 
     @staticmethod
-    def get(name, loc, seed=None):
-        if name in Stock.registry.keys():
-            if not seed:
-                seed = Random.rand_seed()
-            record = Stock.registry[name]
-            r = record[0](loc, seed, record[1])
-            r.name = name
-            return r
-
-    @staticmethod
-    def man(loc, seed, arg):
-        from src.entity.unit.Humanoid import Humanoid
-        r = Humanoid('unit/Man', seed, loc)
-        # r.stats = arg[1]
-        r.durability = 5
-        r.action.abilities = arg[2]
-        Pilot(r, arg[3])
-        if arg[4]:
-            r.armor = Stock.get(arg[4], loc)
-        if arg[5]:
-            r.weapon = Stock.get(arg[5], loc)
-        return r
-
-    @staticmethod
-    def armor(loc, seed, arg):
-        name = arg[0]
+    def armor(loc, arg):
+        name = arg[3]
         fdir = 'data/item/armor/' + name
         Data.initialize_image(name, fdir, (16, 48))
-        return Armor(name, seed, loc, arg[1], arg[2])
-
-    @staticmethod
-    def weapon(loc, seed, arg):
-        name = arg[0]
-        r = Item('data/item/weapon/' + name, seed, loc)
-        if arg[1]:
-            r.form.pivot.x = arg[1]
-        r.range = arg[2]
+        r = Armor(name, arg[1], loc, arg[4], arg[5])
+        r.load(arg)
         return r
 
     @staticmethod
-    def prop(loc, seed, arg):
-        name = arg[0]
-        r = Prop('data/object/' + name, seed, loc)
-        if arg[1]:
-            r.form.offset[1] = arg[1]
-        else:
-            r.form.offset[1] = -r.form.size.y / 2
-        r.durability = arg[2]
+    def weapon(loc, arg):
+        name = arg[3]
+        r = Weapon('data/item/weapon/' + name, arg[1], loc)
+        r.load(arg)
+        return r
+
+    @staticmethod
+    def prop(loc, arg):
+        name = arg[3]
+        r = Prop('data/object/' + name, arg[1], loc)
+        r.form.offset[1] = -r.form.size.y / 2
+        r.load(arg)
         return r
 
     @staticmethod

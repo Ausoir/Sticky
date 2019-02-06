@@ -1,3 +1,5 @@
+from src.game import Global
+from src.interface.Prompt import Prompt
 from src.interface.Window import Window
 
 
@@ -78,7 +80,7 @@ class Menu:
             self.show_dialog(['Something HP', 'Some long dialog text.....', 'And your choice'])
 
         hp = str(self.host.durability)
-        text = ['HP - '+hp+'/3', 'Str - 1', 'Agi - 1', 'Int - 1', 'Nutrition - 5/5']
+        text = ['HP - ' + hp + '/3', 'Str - 1', 'Agi - 1', 'Int - 1', 'Nutrition - 5/5']
         panel = Menu.make_button(text, describe, None)
         panel.color = Window.fore_color3
         panel.normal_font_color = Window.font_color1
@@ -91,19 +93,35 @@ class Menu:
         self.sub_window.display(1)
 
     def menu_skills(self):
-        text = ['L1 Airstrike', 'L2 Windwalk', 'L1 Punch']
-        panel = Menu.make_button(text, None, None)
-        panel.color = Window.fore_color3
-        panel.normal_font_color = Window.font_color1
-        panel.hover_font_color = Window.font_color3
-        panel.depth = 2
-        panel.redraw()
-        self.window.add_child(panel)
-        self.sub_window.add_child(Menu.make_button(['Action [1]'], None, None))
-        self.sub_window.add_child(Menu.make_button(['Action [2]'], None, None))
-        self.sub_window.add_child(Menu.make_button(['Action [3]'], None, None))
-        self.sub_window.add_child(Menu.make_button(['Action [Q]'], None, None))
-        self.sub_window.add_child(Menu.make_button(['Action [E]'], None, None))
+        def on_click(action):
+            def assign_action():
+                def callback(event):
+                    code = Global.main.world.control.get_event_code(event)
+                    if code > 0:
+                        Global.main.world.control.change_key(code, action)
+                        change_label(key_name, action.title())
+                        return 1
+                key_name = Global.main.world.control.get_key_name_from_action(action)
+                if not key_name:
+                    key_name = '<PRESS KEY>'
+                change_label(action.title(), key_name)
+                Prompt(callback)
+            return assign_action
+
+        def restore():
+            Global.main.world.control.restore()
+
+        def change_label(button, label):
+            for child in self.window.children:
+                if child.text[0].split(' [')[0] == button:
+                    child.text[0] = label
+        first = self.host.action.abilities[:5]
+        second = self.host.action.abilities[5:]
+        self.window.add_child(Menu.make_button(['RESTORE'], restore, None))
+        for i in first:
+            self.window.add_child(Menu.make_button([i.title()], on_click(i), None))
+        for i in second:
+            self.sub_window.add_child(Menu.make_button([i.title()], on_click(i), None))
         self.sub_window.display(1)
 
     def menu_equipment(self):
@@ -113,7 +131,7 @@ class Menu:
         self.window.add_child(Menu.make_button(['Hat'], None, None))
         self.window.add_child(Menu.make_button([self.host.armor.form_name], click_armor, click_armor))
         self.window.add_child(Menu.make_button(['Amulet'], None, None))
-        inv = [[1, 0, 1], [1, 0, 1], [0, 1, 0], [1, 0, 1]]
+        inv = self.host.armor.get_inventory()
         for ky, vy in enumerate(inv):
             for kx, vx in enumerate(vy):
                 color = Window.fore_color3 if vx == 1 else (120, 120, 120, 220)

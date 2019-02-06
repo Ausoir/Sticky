@@ -52,7 +52,7 @@ class Tile(Space):
         if check == Tile.CHECK_NONE:
             return 0
         else:
-            if self.terrain and self.terrain.type == 1:
+            if self.terrain and self.terrain.type % 2:
                 if isinstance(check, int):
                     if check == Tile.CHECK_TERRAIN:
                         return 1

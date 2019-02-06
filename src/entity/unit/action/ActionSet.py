@@ -2,12 +2,11 @@ from src.entity.Space import Space
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 from src.entity.unit.action.Attack import Attack
-from src.entity.unit.item.Item import Item
 from src.map.Tile import Tile
 
 
 class ActionSet:
-    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'dead', 'interact', 'use', 'jump']
+    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'dead', 'interact', 'use', 'jump', 'item']
 
     def __init__(self, host):
         self.host = host
@@ -51,6 +50,11 @@ class ActionSet:
     def recover(self):
         self.host.form.set_height()
 
+    @staticmethod
+    def knockdown(victim):
+        if isinstance(victim, Unit):
+            victim.action.set('down')
+
     def idle(self):
         if self.time > 3:
             self.make(animation='standby', turn=0)
@@ -72,24 +76,22 @@ class ActionSet:
     def hit(self):
         self.make(turn=2)
 
+    def climb(self):
+        self.make(turn=0)
+
     def interact(self):
         if self.host.is_armed():
-            self.make(animation='throw', turn=2)
+            self.make(turn=2)
             weapon = self.host.weapon
             self.host.drop()
             to = self.host.get_interact_pos()
             weapon.relocate(to.x, to.y)
             weapon.animation_move_from = weapon.pos[0].get_vec()
-            weapon.move(self.host.next_target[0], self.host.next_target[1], distance=9, flag=Tile.CHECK_ANY)
         else:
             self.make(turn=3)
-            self.host.form.rotate_appendage(7, 0, self.host.next_target)
-            target = self.host.location.collide_line(self.host.get_interact_pos(),
-                                                     self.host.next_target[0], self.host.next_target[1],
-                                                     distance=1, flag=Tile.CHECK_NONE)
-            for thing in target.things:
-                if isinstance(thing, Item):
-                    self.host.pickup(thing)
+            for thing in self.host.pos[0].things:
+                if thing.interact(self.host):
+                    return
 
     def dead(self):
         self.host.form.set_height(4)
@@ -159,41 +161,51 @@ class ActionSet:
             self.host.move(self.host.direction*1, -1)
             self.make(turn=2)
 
+    def leap(self):
+        if self.host.attributes.exert(0, 6):
+            self.set('rest')
+        else:
+            self.host.location.attack.register(self.host, 1, self.host.get_offset_tile(self.host.direction*2, 0),
+                                               delay=1, type=Attack.BATTER, callback=self.knockdown)
+            self.host.move(self.host.direction * 2, -3)
+            self.make(animation='jump', turn=2)
+
     def lunge(self):
         if self.host.attributes.exert(2, 6):
             self.set('rest')
         else:
-            def on_hit(victim):
-                victim.action.set('down')
             if self.host.pos[0] != self.host.move(self.host.direction, 0):
-                self.host.weapon.attack(delay=2, on_hit=on_hit)
+                self.host.weapon.attack(delay=2, on_hit=self.knockdown)
                 self.make(turn=4)
             else:
                 self.make(animation='drop', turn=4)
 
-    def switch(self):
-        from src.game import Global
-        Global.main.world.switch()
-
     def underhand(self):
         def fin():
             self.host.hittable = 1
-        self.host.form.rotate_appendage(41, 0, self.host.next_target)
-        self.host.weapon.attack(delay=1)
-        self.host.hittable = 0
-        self.on_finish = fin
-        self.make(turn=7)
+        if self.host.attributes.exert(2, 4):
+            self.set('rest')
+        else:
+            if self.host.pos[0] != self.host.move(-self.host.direction, 0):
+                self.host.form.rotate_appendage(41, 0, self.host.next_target)
+                self.host.weapon.attack(delay=1)
+                self.host.hittable = 0
+                self.on_finish = fin
+                self.make(turn=5)
+            else:
+                self.make(animation='drop', turn=4)
 
     def arch(self):
         def fin():
             r = Stock.arrow(self.host.location).add()
             r.relocate(self.host.get_interact_pos().x, self.host.get_interact_pos().y, force=1)
-            prev = r.move(x, y, flag=Tile.CHECK_LARGE)
-            self.host.location.attack.register(self.host, 1, prev, 1)
+            r.move(x, y, flag=Tile.CHECK_LARGE)
+            landing = r.move(x, y, distance=1, flag=Tile.CHECK_NONE)
+            self.host.location.attack.register(self.host, 1, landing, 1)
             r.form.rotation = Space(x, y).get_atan() + 180
         x = self.host.next_target[0] * 10
         y = self.host.next_target[1] * 10
         self.host.form.rotate_appendage(31, 0, self.host.next_target)
-        self.host.form.rotate_appendage(31, 5, self.host.next_target)
+        self.host.form.rotate_appendage(32, 0, self.host.next_target)
         self.on_finish = fin
         self.make(turn=7)

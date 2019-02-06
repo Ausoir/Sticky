@@ -17,17 +17,20 @@ class Unit(Prop):
         self.direction = 1
         self.collide = Tile.CHECK_UNIT
         self.attributes = Attribute()
+        self.pilot = None
 
     def __str__(self):
-        return super().__str__() + ',' + self.faction.__str__() +\
+        return super().__str__() + ',' + self.faction.__str__() + ',' + self.pilot.__str__() +\
                ',[' + self.attributes.__str__() + '],[' + self.action.__str__() + ']'
 
     def load(self, p):
+        from src.entity.unit.ai.Pilot import Pilot
         index = super().load(p)
         self.faction.load(p[index])
-        self.attributes.load(p[index + 1])
-        self.action.abilities = p[index + 2]
-        return index + 3
+        self.pilot = Pilot(self, p[index + 1])
+        self.attributes.load(p[index + 2])
+        self.action.abilities = p[index + 3]
+        return index + 4
 
     def make_form(self, arg):
         self.form = Body(arg, self.seed)

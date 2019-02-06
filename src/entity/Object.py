@@ -26,15 +26,15 @@ class Object:
         r = []
         for i in self.pos:
             r.append('[' + str(i.x) + ',' + str(i.y) + ']')
-        return str(self.id) + ',' + self.name + ',' + str(self.seed) + ',[' + (','.join(r)) + ']'
+        return str(self.id) + ',' + str(self.seed) + ',[' + (','.join(r)) + '],' + self.name
 
     def load(self, p):
         self.id = p[0]
-        self.name = p[1]
-        self.seed = p[2]
+        self.seed = p[1]
         self.pos = []
-        for i in p[3]:
+        for i in p[2]:
             self.pos.append(self.location.get_tile(i))
+        self.name = p[3]
         return 4
 
     def add(self):
@@ -61,10 +61,13 @@ class Object:
             self.animation_move_from[1] += y * .1
         self.form.draw(surface, self.animation_move_from[0], self.animation_move_from[1])
 
+    def interact(self, host):
+        return 0
+
     def turn(self):
         if self.gravity:
             old = self.pos[0]
-            new = self.move(0, 8)
+            new = self.move(0, 4)
             if new != old:
                 self.on_fall(new.y - old.y)
 

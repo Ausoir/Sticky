@@ -1,2 +1,3 @@
-Pawn,[1,1,1],[sprint],Melee,0,0 //Name,stats,skills,pilot,armor,weapon
-Swordsman,[1,1,1],[lunge,dash],Melee,Leather,Shortsword
+Peasant,1,Melee,[1,1,1],[sprint],0,0 //Name,faction,pilot,stats,skills,armor,weapon
+Rogue,0,Melee,[1,2,1],[lunge,dash],Casual,Dagger
+Swordsman,0,Melee,[2,1,1],[lunge,dash],0,Bokken

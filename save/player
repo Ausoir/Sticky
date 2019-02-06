@@ -1,2 +1,2 @@
 map
-0,player,85185,[[3,7]],1,[1,1,1,0,0,0],[sprint,kick,arch,summon,underhand,lunge],[0,Casual,95310,[[20,6]],1,[101,111,111,0]],[0,Bokken,29812,[[8,7]]]
+0,85185,[[9,7]],Player,5,Wood,1,Manual,[1,1,1,0,0,0],[dash,leap,sprint,kick,arch,summon,underhand,lunge],[0,26662,[[9,7]],Scimitar,-1,0,8,[1,2]],[0,95310,[[20,6]],Casual,4,Wood,1,[0,111,111,101]]

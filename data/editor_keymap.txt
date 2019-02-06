@@ -3,6 +3,7 @@
 100,right
 119,up
 115,down
+116,travel
 49,switch
 50,tiles
 51,props

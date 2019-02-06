@@ -15,6 +15,7 @@ class World:
         self.map = Location(data[0])
         self.player = self.load_player(self.map, data[1])
         self.delay = 0
+        self.editor = None
 
     def load_player(self, loc, data):
         from src.entity.unit.Humanoid import Humanoid
@@ -33,8 +34,9 @@ class World:
 
     def switch(self):
         if self.player == self.control.player:
-            Editor(self.map, self.control)
+            self.editor = Editor(self.map, self.control)
         else:
+            self.editor.remove()
             self.control.set_keymap('data/keymap.txt')
             self.control.player = self.player
             Camera.target = self.player.animation_move_from

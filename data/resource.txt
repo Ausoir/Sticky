@@ -1,6 +1,7 @@
-Error,Error,0 //Name, Directory, Subset
-Icon,Icon,[24,24]
-Face,unit/Face,0
-Man_skin,unit/Man_skin,[16,48]
-Hit,effect/Battering,[32,32]
-Blood,effect/Splattering,[32,32]
+Error,data/Error,0 //Name, Directory, Subset
+Icon,data/Icon,[24,24]
+Head,data/image/unit/Head,0
+Body,data/image/unit/Body,[16,48]
+GFX,data/image/_effects,[40,40]
+Item,data/image/_items,[40,40]
+Prop,data/image/_props,[40,40]

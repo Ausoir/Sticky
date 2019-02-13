@@ -19,7 +19,7 @@ class Editor:
 
         self.backup = Turn.update
         Turn.update = update
-        Group.gui.append(self)
+        Group.effects.append(self)
         control.set_keymap('data/editor_keymap.txt')
         control.player = self
         self.location = loc
@@ -29,6 +29,7 @@ class Editor:
         self.tool = ToolTerrain(self.location)
         self.display_text = ''
         self.enter = 0
+        self.prev_command = None
 
     def remove(self):
         Turn.remove(self)
@@ -47,9 +48,11 @@ class Editor:
         elif action == 'delete':
             self.tool.input(2, self.location.get_tile(vec_x, vec_y))
         elif action == 'prev':
-            self.display_text = self.tool.cycle(-1)
+            if action != self.prev_command:
+                self.display_text = self.tool.cycle(-1)
         elif action == 'next':
-            self.display_text = self.tool.cycle(1)
+            if action != self.prev_command:
+                self.display_text = self.tool.cycle(1)
         elif action == 'up':
             Camera.target = [Camera.target[0], Camera.target[1] - Editor.scroll]
         elif action == 'down':
@@ -58,10 +61,6 @@ class Editor:
             Camera.target = [Camera.target[0] - Editor.scroll, Camera.target[1]]
         elif action == 'right':
             Camera.target = [Camera.target[0] + Editor.scroll, Camera.target[1]]
-        elif action == 'travel':
-            self.tool.cancel()
-            self.tool = ToolTravel(self.location)
-            self.display_text = 'Travel'
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -70,6 +69,10 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Props Tool'
+        elif action == 'items':
+            self.tool.cancel()
+            self.tool = ToolObject(self.location, action)
+            self.display_text = 'Items Tool'
         elif action == 'units':
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
@@ -89,6 +92,7 @@ class Editor:
         elif action == 'quit':
             pygame.quit()
             sys.exit()
+        self.prev_command = action
         return 0
 
     def draw(self, surface):
@@ -98,7 +102,7 @@ class Editor:
 
 class ToolTerrain:
     def __init__(self, loc):
-        self.tile_list = Data.process_raw(Data.get_cache_file('raw/tile.txt'))
+        self.tile_list = Data.process_raw(Data.get_cache_file('raw/tiles.txt'))
         self.text = 'dirt'
         self.tile = loc.get_tile(0, 0)
         self.prev_tile = None
@@ -136,7 +140,7 @@ class ToolObject:
         self.text = 'Crate'
         self.selection = Stock.get('Crate', self.location).add()
         self.tile = loc.get_tile(0, 0)
-        self.object_list = Data.process_raw(Data.get_cache_file('raw/'+object_type+'.txt'))
+        self.object_list = list(Data.process_raw(Data.get_cache_file('raw/'+object_type+'.txt')))
         self.current = 0
 
     def cancel(self):
@@ -159,31 +163,6 @@ class ToolObject:
         elif button == 1:
             if not tile.things or len(tile.things) == 1 and tile.things[0] == self.selection:
                 self.selection = Stock.get(self.text.title(), self.location).add()
-                self.selection.relocate(tile.x, tile.y)
-        else:
-            if tile.things:
-                for i in tile.things:
-                    i.remove()
-
-
-class ToolTravel:
-    def __init__(self, loc):
-        self.location = loc
-        self.selection = Stock.get('Travel', self.location).add()
-        self.tile = loc.get_tile(0, 0)
-
-    def cancel(self):
-        self.selection.remove()
-
-    def cycle(self, inc):
-        return 'Travel'
-
-    def input(self, button, tile):
-        if not button:
-            self.selection.relocate(tile.x, tile.y)
-        elif button == 1:
-            if not tile.things or len(tile.things) == 1 and tile.things[0] == self.selection:
-                self.selection = Stock.get('Travel', self.location).add()
                 self.selection.relocate(tile.x, tile.y)
         else:
             if tile.things:

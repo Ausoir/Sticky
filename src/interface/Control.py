@@ -2,6 +2,7 @@ import sys
 
 import pygame
 
+from src.entity.Space import Space
 from src.game import Global
 from src.game.Turn import Turn
 from src.tools.Data import Data
@@ -15,7 +16,6 @@ class Control:
         self.keypress = []
         self.keyrelease = []
         self.keymap = {}
-        self.mouse = [0, 0]
         self.delay = 0
         self.directory = 'data/keymap.txt'
         self.set_keymap(self.directory)
@@ -73,6 +73,9 @@ class Control:
         return 0
 
     def input(self, event):
+        if self.menu:
+            if self.menu.input(event):
+                return 1
         code = Control.get_event_code(event)
         if code > 0:
             if code not in self.keypress:
@@ -84,7 +87,7 @@ class Control:
 
     def turn(self):
         mouse = pygame.mouse.get_pos()
-        mouse = Global.get_relative_tile_pos(mouse[0], mouse[1])
+        mouse = Space(Global.get_relative_tile_pos(mouse[0], mouse[1]))
         length = self.keypress.__len__()
         if length > 0:
             code = self.keypress[length - 1]

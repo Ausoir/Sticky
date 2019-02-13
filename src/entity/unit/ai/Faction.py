@@ -1,7 +1,8 @@
 class Faction:
     FFA = 0
-    ONE = 1
-    TWO = 2
+    PLAYER = 1
+    A = 2
+    B = 3
 
     def __init__(self, arg):
         self.team = None

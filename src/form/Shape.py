@@ -6,8 +6,7 @@ from src.game.Camera import Camera
 
 
 class Shape:
-    def __init__(self, depth, vec, color, vertices, border=0):
-        self.depth = depth
+    def __init__(self, vec, color, vertices, border=0):
         self.vec = vec
         self.vertices = vertices
         self.color = color

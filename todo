@@ -1,7 +1,42 @@
-Final rank spells:
-Air: infinite Mistform
-Void: Kill
-Fire: Inf energy
-Conjuration: Conjure item/obj/unit
-new energy generation - energy restore by 1 for every death nearby
 Level up - trainer (money, hours)
+
+Material - craft plates
+Food - eat or sell
+
+-- Passive Item
+Plating - 1x2, 1 hp, medium
+Insulation - 2x1, burn immune, medium
+Jump boost - 1x2, expensive
+-- Active Item
+Material Placer - 1x1, medium
+Ladders - 1x1, cheap
+
+-- Unique Item
+Raise dead
+Control target
+Charm target
+Immortality
+
+-- Spell
+* Charm - Charm, clairvoyance
+* Cast - Cast, glowshot
+* Fire - Ignite, fire brand
+Air - Whirlwind, quick & dissipates, push nearby
+Conjuration - Conjure, create portal, enter to blink
+% Fire Fire - fire immunity, free
+Air Air - dispell, knockdown (15x15), free
+Conjuration Conjuration - barrier, knockdown, free
+* Fire Charm - Brand, lasting fire brand
+* Fire Cast - Fireblast
+* Air Charm - Levitation
+Air Cast - Tornado
+Conjuration Charm - Heal
+Conjuration Cast - Summon clone at portal
+Fire/Air Charm - Auto shock
+Fire/Air Cast - Lightning
+Fire/Conjuration Charm - Fireball (throwable, explode on drop, takes 5x5 item space)
+Fire/Conjuration Cast - Explosion at portal
+Air/Conjuration Charm - 'Teleportation' Blink to portal
+Air/Conjuration Cast - 'Rift' Guided portal placement
+Fire/Air/Conjuration Charm - Wisp form
+Fire/Air/Conjuration Cast - Thunderstorm near portal

@@ -1,4 +1,21 @@
-1/29 streak 1 (2 hrs game, 3 day workout)
+1/29 *** streak 1 (2 hrs game, 3 day workout)
 2/2 8% - Stock registry (10/20) //date, focus, work (points)
-2/3 20% - Stock registry finished (8/20), Armor str and load (10), Tactic improves (10)
-2/4 16% - Control improvements (20), Editor converted to Control (30)
+2/3 20% - Stock registry finished (8/20), Armor str and load (10), Tactic improves (10) - most done at night
+2/4 16% - Control improvements (20), Editor converted to Control (30) - most done at night
+2/5 10% - Menu interface reflects armor, weapons (10) - sleep deprived
+2/6 streak 1 70% success, time incentive sucks
+2/6 *** streak 2 (3 pt : 1 hr solo, Mo/Wed/Fri workout, 1 day/week social, SAT/SUN rest, max 12 pts)
+2/6 1pt = 1 debugging or 1 feature, 2pt = 1pt*2 or 1 comprehensive debug follow, 3pt = 1pt*3 or difficult debugging
+2/6 fixed Humanoid.drop (1), readjusted Tile.checks (1), implemented ladder (2), Location.get_tile bugfix (2), Menu.equipment semi done (5)
+2/7 Menu.update (1), Menu.equip done (12), Armor.inventory redone (3), Headgear done (5), Stock.man fixed (1)
+2/8 Moved Object.draw to GroupSprite (1), modified stamina recovery (1), added spell framework (3), added gold (1)
+2/9 Set Effect.png framework (1)
+2/11 Fixed Tile.center not used properly in units (1), Redone Menu.skills (7), set up Projectile (3), first spell fireblast (1)
+2/12 streak 2 success, improved over 1, but not flexible for vacation/whatnot
+2/12 *** streak 3 (-3 pt/day, pt < 0 = end, max 24 pts, no weekend rest, 1 pt/15 min of data work, 3pt:1hr, 3 workout/week)
+2/12 immediately gained 3 pts for balance
+2/12 Added Effects.png (1), improved Buffs (1), States to Props (1), Stock.items (1), Implemented object.id (1)
+2/12 Improved leap (1), Improved levitate and fire (1), Combined effects into GFX (1), added GFX 5~7 (1), redone Object image directory (4)
+2/12 Menu.status (1), Attack.dealer removed (1), lists turned to Space as much as possible (2), fixed projectile (1)
+
+points 23/24

@@ -4,9 +4,10 @@
 119,up
 115,down
 116,travel
-49,switch
-50,tiles
-51,props
+282,switch
+49,tiles
+50,props
+51,items
 52,units
 53,weapons
 54,armors
@@ -15,3 +16,5 @@
 503,delete
 504,prev
 505,next
+113,prev
+101,next

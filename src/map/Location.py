@@ -14,6 +14,8 @@ from src.tools.Math import Math
 
 # Handles both map and save functions
 class Location:
+    OBJECT_ID = 0
+
     def __init__(self, data):
         Turn.add(self)
         from src.entity.unit.action.Attack import Attack
@@ -23,11 +25,11 @@ class Location:
         self.tiles = {}
         self.record = List()
         self.load(Data.process_raw(Data.read('save/'+data[0]+'.map')))
-        self.sight_x = int(Global.DISPLAY[0] / Global.BLOCK / 2)
-        self.sight_y = 100  # int(Global.DISPLAY[1] / Global.BLOCK / 2)
-        self.draw_tile_list = []
+        self.sight_x = math.ceil(Global.DISPLAY[0] / Global.BLOCK / 2)
+        self.sight_y = math.ceil(Global.DISPLAY[1] / Global.BLOCK / 2)
 
     def __str__(self):
+        meta = str(Turn.frame) + ',' + str(Location.OBJECT_ID)
         ry = []
         for tile_row in self.tiles.values():
             rx = []
@@ -42,16 +44,18 @@ class Location:
         for i in self.record:
             r.append('['+i.__str__()+']')
         objects = ','.join(r)
-        return tiles + '\n' + objects + '\n'
+        return meta + '\n' + tiles + '\n' + objects + '\n'
 
     def load(self, arg):
-        for i in arg[0]:
+        Turn.frame = arg[0][0]
+        Location.OBJECT_ID = arg[0][1]
+        for i in arg[1]:
             x = i[0][0]
             y = i[0][1]
             tile = self.get_tile(x, y)
             tile.terrain = Terrain.load(tile * [Global.BLOCK, Global.BLOCK], i[1])
-        for i in arg[1]:
-            Stock.get(i[3], self, i).add()
+        for i in arg[2]:
+            Stock.get(i[2], self, i).add()
 
     def remove(self, arg):
         if arg in self.record:
@@ -62,20 +66,37 @@ class Location:
 
     def draw(self, surface):
         rel = Global.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
+        depth_3 = []
         for k, v in self.tiles.items():
             if -rel[0] - self.sight_x < k < -rel[0] + self.sight_x:
                 for k2, v2 in v.items():
                     if -rel[1] - self.sight_y < k2 < -rel[1] + self.sight_y:
-                        v2.draw(surface)
-                        self.draw_tile_list.append(v2)
+                        if v2.terrain and v2.terrain.type > 0:
+                            depth_3.append(v2)
+                        else:
+                            v2.draw(surface)
+        for i in depth_3:
+            i.draw(surface)
 
-    def draw_objects(self, surface):
-        for i in self.draw_tile_list:
-            i.draw_objects(surface)
-        self.draw_tile_list = []
+    @staticmethod
+    def get_id():
+        Location.OBJECT_ID += 1
+        return Location.OBJECT_ID
+
+    def get_object(self, id):
+        for i in self.record:
+            if i.id == id:
+                return i
+        return None
+
+    def is_in_camera(self, x, y):
+        rel = Global.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
+        in_x = -rel[0] - self.sight_x < x < -rel[0] + self.sight_x
+        in_y = -rel[1] - self.sight_y < y < -rel[1] + self.sight_y
+        return in_x and in_y
 
     def get_tile(self, x=None, y=None, create=1):
-        if y:
+        if y is not None:
             tmp = Space(x, y).to_int()
         else:
             tmp = Space(x).to_int()

@@ -6,14 +6,15 @@ import pygame
 
 class Data:
     cache = {}
+    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'projectiles']
 
     @staticmethod
     def init():
-        Data.set_cache('armor', Data.process_raw(Data.get_cache_file('raw/armors.txt')))
-        Data.set_cache('weapon', Data.process_raw(Data.get_cache_file('raw/weapons.txt')))
+        for i in Data.registry_list:
+            Data.set_cache(i, Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt')))
         res = Data.process_raw(Data.read('data/resource.txt'))
         for x in res:
-            Data.initialize_image(x[0], 'data/' + x[1], x[2])
+            Data.initialize_image(x[0], x[1], x[2])
 
     @staticmethod
     def direct(fdir):
@@ -97,7 +98,7 @@ class Data:
     def get_cache_file(fdir):
         cache = Data.get_cache(fdir)
         if not cache:
-            r = Data.read('data/' + fdir)
+            r = Data.read(fdir)
             Data.set_cache(fdir, r)
             return r
         return cache

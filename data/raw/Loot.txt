@@ -1,9 +1,0 @@
-Berrybush,Berrybush,[],[Fruit] //Name, Image Name, Openers, Loots
-Crate,Crate,[Crowbar],[Scrap,Cup,Threadball,Jug,Candle,Pot,Statue,Hammer]
-Barrel,Barrel,[Crowbar],[Water,Potion,Alcohol]
-Cabinet,Cabinet,[Lockpick,Crowbar],[Moneybag,Scroll,Shirt,Pants,Jean Jacket,Jeans,Spring Suit Torso,Spring Suit Pants,Cloak]
-Dresser,Dresser,[],[Moneybag,Buzzcut,Blondecut,Gingercut,Baldcut,Ponytail,Glasses,Straw Hat,Bandana,Mask]
-Refrigerator,Refrigerator,[],[Alcohol,Bread,Cheese,Fruit,Sugar,Salt,Kitchenware]
-Chest,Chest,[],[Manual,Textbook,Xanax,Moneybag]
-Toolbox,Toolbox,[Lockpick],[Battery,Scrap,Scroll,Potion]
-Great Chest,Chest2,[Lockpick],[Firestone,Tranquilizer,Artifact]

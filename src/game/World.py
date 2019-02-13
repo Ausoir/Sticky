@@ -1,5 +1,4 @@
 from src.Editor import Editor
-from src.game.Camera import Camera
 from src.game.Turn import Turn
 from src.map.Location import Location
 from src.tools.Data import Data
@@ -21,11 +20,9 @@ class World:
         from src.entity.unit.Humanoid import Humanoid
         from src.interface.Menu import Menu
         from src.interface.Control import Control
-        from src.game.Group import Group
-        player = Humanoid('unit/Man', 0, loc)
+        player = Humanoid(loc)
         self.control = Control(Menu(player), player)
-        Camera.target = player.animation_move_from
-        Group.interface.append(self.control)
+        player.center_camera()
         player.durability = 8
         player.load(data)
         player.add()
@@ -39,7 +36,7 @@ class World:
             self.editor.remove()
             self.control.set_keymap('data/keymap.txt')
             self.control.player = self.player
-            Camera.target = self.player.animation_move_from
+            self.player.center_camera()
 
     def turn(self):
         r = self.map.name + '\n'

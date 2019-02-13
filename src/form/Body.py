@@ -1,5 +1,6 @@
 from src.entity.Space import Space
 from src.form.Appendage import Appendage
+from src.game import Global
 from src.tools.Data import Data
 from src.tools.Math import Math
 from src.tools.Random import Random
@@ -9,12 +10,12 @@ from src.tools.Timer import Timer
 class Body:
     LEG = 2
 
-    def __init__(self, model_name, seed):
+    def __init__(self, model_name):
         data = Data.get_cache_clip(model_name).copy()
         self.model_name = model_name
         self.model = data[0]
         self.animation = data[1]
-        self.randomize_body(seed)
+        self.randomize_body(0)  # todo unit seed system
         self.motion = {}
         self.organs = []
         self.current_clip = 0
@@ -24,14 +25,18 @@ class Body:
         self.state_name = 'idle'
         self.animation_ended = 0
         self.height = 0
+        self.leg = None
 
         for x in data[2]:
             self.motion[x[0]] = x[1]
         parent = []
         for x in self.model:
             parent.append(x[0])
-            self.organs.append(Appendage(texture_name=x[1], part=x[2], resize=x[3]))
+            organ = Appendage(texture_name=x[1], part=x[2], resize=x[3])
+            self.organs.append(organ)
         for k, x in enumerate(self.organs):
+            if x.part == Body.LEG:
+                self.leg = k
             if abs(parent[k]) != k:
                 x.set_parent(self.organs[abs(parent[k])], parent[k] < 0)
         for k, organ in enumerate(self.organs):
@@ -77,16 +82,11 @@ class Body:
         for x in self.organs:
             x.face(direction)
 
-    def set_height(self, arg=0):
-        if arg:
-            height = arg
+    def set_height(self, collapse=0):
+        if collapse:
+            height = -self.animation[0][self.leg][1]
         else:
-            leg_index = 0
-            for k, i in enumerate(self.organs):
-                if i.part == Body.LEG:
-                    leg_index = k
-                    break
-            height = self.animation[0][leg_index][1]
+            height = self.animation[0][self.leg][1] - Global.HALF_BLOCK - 1
         self.height = height
 
     def randomize_once(self, mag):
@@ -111,7 +111,7 @@ class Body:
     def randomize_body(self, seed):
         import random
         random.seed(seed)
-        mag = random.gauss(.46, .1)
+        mag = random.gauss(.45, .04)
         mag_x = mag * 1.5
         r = []
         for clip in self.animation:
@@ -127,6 +127,6 @@ class Body:
     def rotate_appendage(self, frame, organ, target):
         animation = Data.get_cache_clip(self.model_name)[1]
         length = abs(animation[frame][organ][0]) + abs(animation[frame][organ][1])
-        atan = Space(target).to_int().get_atan()
+        atan = target.to_int().get_atan()
         self.animation[frame][organ][0] = length*Math.cos(atan)*-self.direction
         self.animation[frame][organ][1] = length*Math.sin(atan)

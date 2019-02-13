@@ -4,9 +4,6 @@ from src.game.Turn import Turn
 
 
 class Attack:
-    BATTER = 1
-    BLOODY = 2
-
     def __init__(self):
         Turn.add(self)
         self.registry = []
@@ -23,16 +20,14 @@ class Attack:
                 new_reg.append(new)
         self.registry = new_reg
 
-    def register(self, dealer, damage, pos, delay=0, type=BATTER, faction=Faction.FFA, callback=None):
-        self.registry.append([delay, pos, dealer, damage, type, faction, callback])
+    def register(self, damage, pos, delay=0, type=0, faction=Faction.FFA, callback=None):
+        self.registry.append([delay, pos, damage, type, faction, callback])
 
     def hit(self, data):
         for thing in data[1].things:
-            if thing.faction.is_against(data[5]):
-                thing.hit(data[2], data[3])
-                if data[4] == Attack.BATTER:
-                    Effect.batter(data[1].get_center())
-                elif data[4] == Attack.BLOODY:
-                    Effect.blood(data[1].get_center())
-                if data[6]:
-                    data[6](thing)
+            if thing.faction.is_against(data[4]):
+                thing.hit(data[2])
+                if data[3]:
+                    Effect.get(data[3])(data[1].get_center())
+                if data[5]:
+                    data[5](thing)

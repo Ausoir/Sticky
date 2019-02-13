@@ -1,3 +1,3 @@
-Peasant,1,Melee,[1,1,1],[sprint],0,0 //Name,faction,pilot,stats,skills,armor,weapon
-Rogue,0,Melee,[1,2,1],[lunge,dash],Casual,Dagger
-Swordsman,0,Melee,[2,1,1],[lunge,dash],0,Bokken
+Peasant,unit/Man,0,3,Wood,[],1,Melee,[1,1,1],[sprint],0,0,0,0 //Name,collide,dur,loot,state,faction,pilot,stats,skills,gold,armor,weapon,headgear
+Rogue,unit/Man,0,3,Wood,[],0,Melee,[1,2,1],[lunge,dash],0,0,0,0
+Swordsman,unit/Man,0,3,Wood,[],0,Melee,[2,1,1],[lunge,dash],0,0,0,0

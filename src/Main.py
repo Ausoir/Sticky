@@ -45,7 +45,7 @@ class Main:
                 elif event.type == pygame.VIDEORESIZE:
                     Global.DISPLAY = (event.w, event.h)
                     Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 32)
-                Group.interface.input(event)
+                self.world.control.input(event)
             self.draw()
             Turn.update()
         if self.on_pause:
@@ -57,9 +57,9 @@ class Main:
         self.screen.fill((255, 255, 255))
         Group.background.draw(self.screen)
         self.world.map.draw(self.screen)
-        self.world.map.draw_objects(self.screen)
+        Group.objects.draw(self.screen)
         Group.effects.draw(self.screen)
-        Group.gui.draw(self.screen)
+        self.world.control.menu.draw(self.screen)
         pygame.display.flip()
 
 

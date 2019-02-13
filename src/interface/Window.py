@@ -3,10 +3,10 @@ import pygame
 from src.entity.Space import Space
 from src.form.Shape import Shape
 from src.game.Camera import Camera
-from src.game.Group import Group
 
 
 class Window(Shape):
+    fore_color0 = (0, 0, 0, 0)
     fore_color1 = (68, 102, 120, 200)
     fore_color2 = (95, 112, 120, 220)
     fore_color3 = (210, 220, 240, 40)
@@ -14,15 +14,12 @@ class Window(Shape):
     font_color2 = (120, 180, 140, 200)
     font_color3 = (60, 80, 80, 220)
 
-    def __init__(self, depth, size, vec=(0, 0), color=fore_color1):
+    def __init__(self, size, vec=(0, 0), color=fore_color1):
         self.color = color
-        self.size = size
-        self.depth = depth
+        self.size = Space(size)
         self.vec = Space(vec)
-        super().__init__(self.depth - 1, self.vec, color=self.color, vertices=Shape.make_rect(size))
+        super().__init__(self.vec, color=self.color, vertices=Shape.make_rect(size))
 
-        Group.gui.append(self)
-        Group.interface.append(self)
         self.children = []
         self.visible = -1
         self.text = []
@@ -33,7 +30,7 @@ class Window(Shape):
         self.normal_font_color = Window.font_color1
         self.hover_font_color = Window.font_color2
         self.font_color = self.normal_font_color
-        self.spacing = 40
+        self.text_spacing = 40
         self.next_y = self.vec.y + self.margin.y
 
     def display(self, visible):
@@ -50,11 +47,15 @@ class Window(Shape):
     def input(self, event):
         if self.visible != 1:
             return 0
+        for i in self.children:
+            if i.input(event):
+                return 1
         if event.type == pygame.MOUSEMOTION:
             mouse = pygame.mouse.get_pos()
             if self.text:
                 if self.collide(mouse):
-                    self.font_color = self.hover_font_color
+                    if self.hover_font_color:
+                        self.font_color = self.hover_font_color
                 else:
                     self.font_color = self.normal_font_color
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -66,25 +67,29 @@ class Window(Shape):
                 elif event.button == 3 and self.on_r_click is not None:
                     self.on_r_click()
                     return 1
+        return 0
 
     def draw(self, surface):
-        self.vec.x -= Camera.pos[0]
-        self.vec.y -= Camera.pos[1]
-        super().draw(surface)
-        self.vec.x += Camera.pos[0]
-        self.vec.y += Camera.pos[1]
-        position = [self.vec.x + self.margin.x, self.vec.y + self.margin.y]
-        for i in self.text:
-            surface.blit(self.font.render(i, 1, self.font_color), position)
-            position[1] += self.spacing
+        if self.visible == 1:
+            self.vec.x -= Camera.pos[0]
+            self.vec.y -= Camera.pos[1]
+            super().draw(surface)
+            self.vec.x += Camera.pos[0]
+            self.vec.y += Camera.pos[1]
+            position = [self.vec.x + self.margin.x, self.vec.y + self.margin.y]
+            for i in self.text:
+                surface.blit(self.font.render(i, 1, self.font_color), position)
+                position[1] += self.text_spacing
+            for i in self.children:
+                i.draw(surface)
 
     def set_text(self, text):
         self.text = text
-        self.size[1] = self.spacing * len(text)
-        self.vertices = Shape.make_rect(self.size)
+        self.size.y = self.text_spacing * len(text)
+        self.vertices = Shape.make_rect(self.size.to_list())
         self.redraw()
 
     def add_child(self, child):
         self.children.append(child)
         child.vec.load(child.vec.x + self.margin.x + self.vec.x, child.vec.y + self.next_y)
-        self.next_y += child.size[1] + self.margin.y
+        self.next_y += child.size.y + self.margin.y

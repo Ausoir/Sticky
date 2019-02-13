@@ -16,10 +16,6 @@ class Flee:
 class Melee:
     def __init__(self, host):
         self.host = host
-        self.longest_range = 0
-        for i in self.host.weapon.range:
-            if i > self.longest_range:
-                self.longest_range = i
 
     def hunt(self, target):
         if not self.attack(target):
@@ -63,11 +59,15 @@ class Melee:
 
     def attack(self, target):
         dist = target.pos[0] - self.host.pos[0]
-        if abs(dist.x) == 1 and 0 <= dist.y <= 1 and 'kick' in self.host.action.abilities:
+        if abs(dist.x) == 1 and 0 <= dist.y <= 1 and 'kick' in self.host.action.skills:
             self.host.input('kick', dist.to_list())
             return 1
+        longest_range = 0
+        for i in self.host.weapon.range:
+            if i > longest_range:
+                longest_range = i
         reach = self.host.location.collide_line(self.host.get_interact_pos(), dist.x, dist.y,
-                                                distance=self.longest_range, flag=Tile.CHECK_TERRAIN)
+                                                distance=longest_range, flag=Tile.CHECK_TERRAIN)
         reach = reach - self.host.get_interact_pos()
         if self.in_range(abs(dist.x)) and abs(reach.x) >= abs(dist.x):
             if -1 <= dist.y <= 1:
@@ -77,10 +77,10 @@ class Melee:
             destination = self.host.location.collide_line(self.host.pos[0], dist.x, 0, distance=4, flag=Tile.CHECK_LARGE)
             destination = destination - self.host.pos[0]
             x = min(abs(dist.x), abs(destination.x))
-            if x == 1 and 'lunge' in self.host.action.abilities:
+            if x == 1 and 'lunge' in self.host.action.skills:
                 self.host.input('lunge', dist.to_list())
                 return 1
-            if x == 3 and 'dash' in self.host.action.abilities:
+            if x == 3 and 'dash' in self.host.action.skills:
                 self.host.input('dash', dist.to_list())
                 return 1
         return 0

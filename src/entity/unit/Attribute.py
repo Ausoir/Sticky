@@ -16,30 +16,31 @@ class Attribute:
         self.strength = arg[0]
         self.agility = arg[1]
         self.intelligence = arg[2]
-        self.leg = arg[3]
-        self.biceps = arg[4]
-        self.triceps = arg[5]
+        if len(arg) > 3:
+            self.leg = arg[3]
+            self.biceps = arg[4]
+            self.triceps = arg[5]
 
     def exert(self, muscle, mag):
-        stamina = self.strength * 3
+        stamina = self.strength * 5
         if muscle == 0:
+            self.leg += mag
             if self.leg > stamina:
                 return 1
-            self.leg += mag
         elif muscle == 1:
+            self.biceps += mag
             if self.biceps > stamina:
                 return 1
-            self.biceps += mag
         elif muscle == 2:
+            self.triceps += mag
             if self.triceps > stamina:
                 return 1
-            self.triceps += mag
         return 0
 
-    def rest(self):
+    def rest(self, mag=1):
         if self.leg > 0:
-            self.leg -= 1
+            self.leg -= mag
         if self.biceps > 0:
-            self.biceps -= 1
+            self.biceps -= mag
         if self.triceps > 0:
-            self.triceps -= 1
+            self.triceps -= mag

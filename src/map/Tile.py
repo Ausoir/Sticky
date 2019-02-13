@@ -5,14 +5,19 @@ from src.tools.List import List
 
 
 class Tile(Space):
-    CHECK_NONE = 0
-    CHECK_ANY = 1
-    CHECK_TERRAIN = 2
-    CHECK_UNIT = 3
-    CHECK_PROP = 4
-    CHECK_ITEM = 5
-    CHECK_MEDIUM = [2, 3]
-    CHECK_LARGE = [2, 3, 4]
+    CHECK_NONE = []
+    CHECK_ANY = [10, 20, 30, 40]
+    CHECK_LARGE = [10, 30, 40]
+    CHECK_PROJECTILE = [40, 60]
+    CHECK_TERRAIN = [10]
+    CHECK_LANDABLE = [10, 30, 32, 40]
+    COLLIDE_TERRAIN = 10
+    COLLIDE_OBJECT = 20
+    COLLIDE_LANDABLE = 32
+    COLLIDE_PROP = 30
+    COLLIDE_UNIT = 40
+    COLLIDE_ITEM = 50
+    COLLIDE_COVER = 60
 
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -33,36 +38,17 @@ class Tile(Space):
         if self.terrain:
             self.terrain.draw(surface)
 
-    def draw_objects(self, surface):
-        if self.things:
-            vec = self.get_vec()
-            boundary = [vec[0] + Global.BLOCK / 2, vec[1] + Global.BLOCK]
-            for thing in self.things:
-                if thing.pos[0] == self:
-                    thing.draw(surface, boundary)
-
     def get_vec(self):
-        return [self.x * Global.BLOCK, self.y * Global.BLOCK]
+        return self * Global.BLOCK
 
     def get_center(self):
-        vec = self.get_vec()
-        return [vec[0] + Global.BLOCK / 2, vec[1] + Global.BLOCK]
+        return self.get_vec() + Global.HALF_BLOCK
 
     def is_land(self, check):
-        if check == Tile.CHECK_NONE:
-            return 0
-        else:
-            if self.terrain and self.terrain.type % 2:
-                if isinstance(check, int):
-                    if check == Tile.CHECK_TERRAIN:
-                        return 1
-                else:
-                    if Tile.CHECK_TERRAIN in check:
-                        return 1
-            for i in self.things:
-                if isinstance(check, int):
-                    if i.collide == check:
-                        return 1
-                else:
-                    if i.collide in check:
-                        return 1
+        if self.terrain and self.terrain.type % 2:
+            if Tile.COLLIDE_TERRAIN in check:
+                return 1
+        for i in self.things:
+            if i.collide in check:
+                return 1
+        return 0

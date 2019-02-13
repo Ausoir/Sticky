@@ -1,5 +1,5 @@
-Underwear,10,0,0,[0,0,0,0] //Name, Durability, Loot, Encumbrance, Dimensions
-Casual,10,0,1,[000,000,000,101]
-Sportswear,10,0,1,[10,000,101,101]
-Leather,10,0,1,[000,000,111,101]
-Robe,10,0,1,[000,111,111,000]
+Body,data/image/unit/Body,0,1,0,[],[5,5],batter,0,[111,111,111,111],[] //Name, Collision, Durability, Loot, Size, Encumbrance, Dimensions, Items
+Casual,data/image/unit/Casual,0,1,0,[],[2,1],batter,1,[111,111,111,212],[]
+Sportswear,data/image/unit/Sportswear,0,1,0,[],[2,2],batter,1,[111,111,212,212],[]
+Leather,data/image/unit/Leather,0,1,0,[],[3,2],batter,1,[111,121,222,212],[]
+Robe,data/image/unit/Robe,0,1,0,[],[3,3],batter,1,[111,121,222,212],[]

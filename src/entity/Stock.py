@@ -9,6 +9,7 @@ from src.tools.Data import Data
 
 class Stock:
     registry = {}
+    location = None
 
     @staticmethod
     def init():
@@ -16,57 +17,65 @@ class Stock:
             registry_items = Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt'))
             for item in registry_items:
                 Stock.registry[item[0]] = [getattr(Stock, i), item]
+            Stock.registry['Projectile'] = [Stock.projectiles, None]
 
     @staticmethod
-    def get(name, loc, data=None):
+    def get(name, data=None):
         if name in Stock.registry.keys():
             record = Stock.registry[name]
             if not data:
-                object_id = loc.get_id()
+                object_id = Stock.location.get_id()
                 pos = [[0, 0]]
                 data = [object_id, pos] + record[1]
-            r = record[0](loc, data)
+            r = record[0](data)
             return r
 
     @staticmethod
-    def props(loc, arg):
-        r = Prop(loc)
+    def props(arg):
+        r = Prop(Stock.location)
         r.load(arg)
         return r
 
     @staticmethod
-    def units(loc, arg):
+    def units(arg):
         from src.entity.unit.Humanoid import Humanoid
-        r = Humanoid(loc)
+        r = Humanoid(Stock.location)
         r.load(arg)
         return r
 
     @staticmethod
-    def items(loc, arg):
-        r = Item(loc)
+    def items(arg):
+        r = Item(Stock.location)
         r.load(arg)
         return r
 
     @staticmethod
-    def armors(loc, arg):
-        r = Armor(loc)
+    def armors(arg):
+        r = Armor(Stock.location)
         r.load(arg)
         return r
 
     @staticmethod
-    def headgears(loc, arg):
-        r = Headgear(loc)
+    def headgears(arg):
+        r = Headgear(Stock.location)
         r.load(arg)
         return r
 
     @staticmethod
-    def weapons(loc, arg):
-        r = Weapon(loc)
+    def weapons(arg):
+        r = Weapon(Stock.location)
         r.load(arg)
         return r
 
     @staticmethod
-    def projectiles(loc, arg):
-        r = Projectile(loc)
+    def projectiles(arg):
+        arg[2] = 'Projectile'
+        r = Projectile(Stock.location)
         r.load(arg)
         return r
+
+    @staticmethod
+    def project(form, pos, lifetime):
+        r = Stock.projectiles([0, [pos]] + Stock.registry['Force'][1] + [lifetime])
+        r.make_form(form)
+        return r.add()

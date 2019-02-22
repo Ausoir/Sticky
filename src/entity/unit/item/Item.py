@@ -29,9 +29,6 @@ class Item(Prop):
         self.host = None
         self.add()
 
-    def interact(self, host):
-        self.on_equip(host)
-
     def use(self):
         self.host.action.set('attack')
 

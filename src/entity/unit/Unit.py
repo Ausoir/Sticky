@@ -1,3 +1,4 @@
+from src.game.Global import DEPTH_UNIT
 from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.Attribute import Attribute
@@ -11,24 +12,24 @@ from src.map.Tile import Tile
 class Unit(Prop):
     def __init__(self, loc):
         super().__init__(loc)
-        from src.entity.unit.action.Actions import ActionSet
-        self.action = ActionSet(self)
+        from src.entity.unit.action.Actions import Actions
+        self.action = Actions(self)
         self.next_action = 'idle'
         self.next_target = Space()
         self.direction = 1
         self.collide = Tile.COLLIDE_UNIT
         self.attributes = Attribute()
         self.pilot = None
-        self.depth = 40
+        self.depth = DEPTH_UNIT
 
     def __str__(self):
-        return super().__str__() + ',' + self.faction.__str__() + ','\
-               + self.pilot.__str__() + ',[' + self.attributes.__str__() + '],[' + self.action.__str__() + ']'
+        return super().__str__() + ',' + str(self.faction) + ',' + self.pilot.__str__() +\
+               ',[' + self.attributes.__str__() + '],[' + self.action.__str__() + ']'
 
     def load(self, p):
         from src.entity.unit.ai.Pilot import Pilot
         index = super().load(p)
-        self.faction.load(p[index])
+        self.faction = p[index]
         index += 1
         self.pilot = Pilot(self, p[index])
         index += 1
@@ -84,7 +85,7 @@ class Unit(Prop):
 
     def hit(self, damage):
         r = super().hit(damage)
-        if r:
+        if r and not self.is_dead():
             self.action.set('hit')
         return r
 

@@ -1,5 +1,6 @@
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
+from src.form.BodyHumanoid import BodyHumanoid
 
 
 class Humanoid(Unit):
@@ -25,40 +26,29 @@ class Humanoid(Unit):
         self.form.randomize_clip('dead3', 16)
         self.gold = p[index]
         if p[index + 1]:
-            weapon = Stock.get(p[index + 1][2], self.location, p[index + 1])
-            weapon.interact(self)
+            weapon = Stock.get(p[index + 1][2], p[index + 1])
+            weapon.on_equip(self)
         else:
             self.weapon = self.make_fist()
         if p[index + 2]:
-            armor = Stock.get(p[index + 2][2], self.location, p[index + 2])
+            armor = Stock.get(p[index + 2][2], p[index + 2])
             armor.use(self)
         else:
             self.armor = self.make_armor()
         if p[index + 3]:
-            headgear = Stock.get(p[index + 3][2], self.location, p[index + 3])
+            headgear = Stock.get(p[index + 3][2], p[index + 3])
             headgear.use(self)
         else:
             self.headgear = self.make_headgear()
         return index + 4
 
+    def make_form(self, arg):
+        self.form_name = arg
+        self.form = BodyHumanoid(arg)
+
     def turn(self):
         super().turn()
         self.weapon.states.update()
-
-    def make_fist(self):
-        r = Stock.get('Fist', self.location)
-        r.on_equip(self)
-        return r
-
-    def make_armor(self):
-        r = Stock.get('Body', self.location)
-        r.use(self)
-        return r
-
-    def make_headgear(self):
-        r = Stock.get('Head', self.location)
-        r.use(self)
-        return r
 
     def hit(self, damage):
         r = super().hit(damage)
@@ -75,6 +65,27 @@ class Humanoid(Unit):
         self.weapon.motion_pos.load(x, y)
         self.weapon.form.draw(surface, x, y)
         super().draw(surface)
+
+    def clean_buffs(self, force=0):
+        r = super().clean_buffs(force)
+        r = r or self.weapon.clean_buffs(force)
+        r = r or self.armor.clean_buffs(force)
+        return r
+
+    def make_fist(self):
+        r = Stock.get('Fist')
+        r.on_equip(self)
+        return r
+
+    def make_armor(self):
+        r = Stock.get('Body')
+        r.use(self)
+        return r
+
+    def make_headgear(self):
+        r = Stock.get('Head')
+        r.use(self)
+        return r
 
     def drop(self):
         if self.is_armed():

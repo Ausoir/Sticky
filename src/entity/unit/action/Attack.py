@@ -1,5 +1,5 @@
+from src.entity.Effect import Effect
 from src.entity.unit.ai.Faction import Faction
-from src.form.Effect import Effect
 from src.game.Turn import Turn
 
 
@@ -25,9 +25,9 @@ class Attack:
 
     def hit(self, data):
         for thing in data[1].things:
-            if thing.faction.is_against(data[4]):
+            if Faction.is_against(thing.faction, data[4]):
                 thing.hit(data[2])
                 if data[3]:
-                    Effect.get(data[3])(data[1].get_center())
+                    Effect.make(data[3], data[1].get_center())
                 if data[5]:
                     data[5](thing)

@@ -1,9 +1,10 @@
+from src.game.Global import DEPTH_OBJECT
 from src.entity.Space import Space
-from src.form.Sprite import Sprite
 from src.game.Camera import Camera
 from src.game.Group import Group
 from src.game.Turn import Turn
 from src.map.Tile import Tile
+from src.tools.Data import Data
 
 
 class Object:
@@ -20,7 +21,7 @@ class Object:
         self.delay = 0
         self.gravity = 1
         self.collide = Tile.COLLIDE_OBJECT
-        self.depth = 10
+        self.depth = DEPTH_OBJECT
         self.visible = 1
 
     def __str__(self):
@@ -54,7 +55,11 @@ class Object:
 
     def make_form(self, arg):
         self.form_name = arg
-        self.form = Sprite(texture_name=arg)
+        self.form = Data.get_cache(arg)
+        if self.form:
+            self.form = self.form.create()
+        else:
+            self.form = Data.get_image(arg, 1).create()
 
     def draw(self, surface):
         if self.location.is_in_camera(self.pos[0].x, self.pos[0].y):
@@ -66,9 +71,6 @@ class Object:
             else:
                 self.motion_pos.y += y * .1
             self.form.draw(surface, self.motion_pos.x, self.motion_pos.y)
-
-    def interact(self, host):
-        return 0
 
     def turn(self):
         if self.gravity:
@@ -88,7 +90,7 @@ class Object:
                 new_pos.append(new)
             self.pos = new_pos
             if force:
-                self.motion_pos.load(self.pos[0].get_vec())
+                self.motion_pos.load(self.pos[0].get_center())
             return abs(diff[0]), abs(diff[1])
         return 0
 

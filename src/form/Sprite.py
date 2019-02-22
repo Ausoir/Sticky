@@ -4,12 +4,11 @@ import pygame
 
 from src.entity.Space import Space
 from src.game.Camera import Camera
-from src.tools.Data import Data
 from src.tools.Math import Math
 
 
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self, texture_name):
+    def __init__(self, image):
         super().__init__()
         self.visible = 1
         self.rotation = 0
@@ -20,15 +19,20 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = None
         self.pivot = None
         self.offset = [0, 0]
-        self.set(texture_name)
         self.flipped = 0
+        self.set(image)
 
-    def set(self, texture_name='Error'):
-        self.image = Data.get_image(texture_name, 1)
+    def set(self, image):
+        self.image = image
         self.orig_image = self.image
         self.size = Space(self.image.get_size())
         self.rect = self.size.to_list()
         self.pivot = Space(self.size.x / 2, self.size.y / 2)
+
+    def create(self):
+        self.visible = 1
+        self.rotation = 0
+        return self
 
     def draw(self, surface, x, y):
         if self.size.x != 0 and self.size.y != 0:

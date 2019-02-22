@@ -19,12 +19,12 @@ class Terrain(Shape):
 
     @classmethod
     def load(cls, pos, id):
-        args = Data.get_cache_processed('data/raw/tiles.txt')[id]
+        args = Data.get_cache('tiles')[id]
         return cls.make(id, args[0], pos, args[1], args[2], args[3])
 
     @classmethod
     def load_from_name(cls, pos, name):
-        args = Data.get_cache_processed('data/raw/tiles.txt')
+        args = Data.get_cache('tiles')
         for k, i in enumerate(args):
             if i[0] == name:
                 return cls.make(k, i[0], pos, i[1], i[2], i[3])

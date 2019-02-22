@@ -4,6 +4,7 @@ import pygame
 
 from src.entity.Space import Space
 from src.game import Global
+from src.game.Camera import Camera
 from src.game.Turn import Turn
 from src.tools.Data import Data
 
@@ -87,7 +88,7 @@ class Control:
 
     def turn(self):
         mouse = pygame.mouse.get_pos()
-        mouse = Space(Global.get_relative_tile_pos(mouse[0], mouse[1]))
+        mouse = Space(Camera.get_relative_tile_pos(mouse[0], mouse[1]))
         length = self.keypress.__len__()
         if length > 0:
             code = self.keypress[length - 1]

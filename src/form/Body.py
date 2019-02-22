@@ -1,4 +1,3 @@
-from src.entity.Space import Space
 from src.form.Appendage import Appendage
 from src.game import Global
 from src.tools.Data import Data
@@ -25,24 +24,27 @@ class Body:
         self.state_name = 'idle'
         self.animation_ended = 0
         self.height = 0
-        self.leg = None
+        self.leg = []
 
         for x in data[2]:
             self.motion[x[0]] = x[1]
         parent = []
         for x in self.model:
             parent.append(x[0])
-            organ = Appendage(texture_name=x[1], part=x[2], resize=x[3])
+            organ = Appendage(Data.get_cache(x[1]), part=x[2], resize=x[3])
             self.organs.append(organ)
         for k, x in enumerate(self.organs):
             if x.part == Body.LEG:
-                self.leg = k
+                self.leg.append(k)
             if abs(parent[k]) != k:
                 x.set_parent(self.organs[abs(parent[k])], parent[k] < 0)
         for k, organ in enumerate(self.organs):
             organ.lower_joint.load(self.animation[0][k][0], self.animation[0][k][1])
         self.set('idle')
-        self.set_height()
+
+    def create(self):
+        self.set('idle')
+        return self
 
     def draw(self, surface, x, y):
         for i in self.organs:
@@ -54,15 +56,18 @@ class Body:
         else:
             for k, organ in enumerate(self.organs):
                 diff = organ.upper_joint - organ.lower_joint
-                x = ((self.current_animation[k][0] * self.direction) + diff.x) / self.timer.max
-                y = (self.current_animation[k][1] + diff.y) / self.timer.max
-                organ.lower_joint += (x, y)
+                dx = ((self.current_animation[k][0] * self.direction) + diff.x) / self.timer.max
+                dy = (self.current_animation[k][1] + diff.y) / self.timer.max
+                organ.lower_joint += (dx, dy)
                 organ.update()
 
     def set(self, state):
         self.state_name = state
         self.current_clip = 0
         self.update_clip()
+        self.height = -1000
+        for i in self.leg:
+            self.height = max(self.height, self.current_animation[i][1] - Global.HALF_BLOCK - 1)
 
     def update_clip(self):
         self.animation_ended = 0
@@ -80,14 +85,7 @@ class Body:
     def face(self, direction):
         self.direction = direction
         for x in self.organs:
-            x.face(direction)
-
-    def set_height(self, collapse=0):
-        if collapse:
-            height = -self.animation[0][self.leg][1]
-        else:
-            height = self.animation[0][self.leg][1] - Global.HALF_BLOCK - 1
-        self.height = height
+            x.form.face(direction)
 
     def randomize_once(self, mag):
         r = []

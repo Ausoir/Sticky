@@ -27,7 +27,7 @@ class Headgear(Item):
             host = self.host
         host.headgear = self
         host.face(1)
-        host.form.organs[3].set(self.form_name)
+        host.form.organs[3].set(self.form)
         if host.weapon == self:
             host.drop()
         self.remove()

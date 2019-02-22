@@ -1,7 +1,0 @@
-Error,data/Error,0 //Name, Directory, Subset
-Icon,data/Icon,[24,24]
-Head,data/image/unit/Head,0
-Body,data/image/unit/Body,[16,48]
-GFX,data/image/_effects,[40,40]
-Item,data/image/_items,[40,40]
-Prop,data/image/_props,[40,40]

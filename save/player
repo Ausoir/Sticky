@@ -1,2 +1,2 @@
 map
-0,[[29,3]],Player,unit/Man,40,48,Wood,[],1,Manual,[1,1,1,0,0,0],[ignite,whirlwind,conjure,charm,cast,leap,dash,arch,brand,levitate,fireblast],100,[1,[[0,0]],Fist,data/image/None,50,-1,0,[],[1,1],batter,0,[1]],[2,[[29,3]],Casual,data/image/unit/Casual,50,10,0,[],[2,2],batter,1,[111,111,111,312],[[3,[[0,3]],Ladder,data/image/Ladder,32,2,Wood,[],[1,1],batter]]],[4,[[0,0]],Head,data/image/unit/Head,50,-1,0,[],[1,1],batter,0]
+0,[[36,6]],Player,unit/Man,40,9,Wood,[],1,Manual,[1,1,1,0,0,0],[ignite,whirlwind,conjure,charm,cast,arch,dash,leap],100,[978,[[0,0]],Fist,none,50,-1,0,[],[1,1],batter,0,[1]],[2,[[34,7]],Casual,data/image/unit/Casual,50,10,0,[],[2,2],batter,1,[111,111,111,212],[]],[4,[[0,0]],Head,head,50,-1,0,[],[1,1],batter,0]

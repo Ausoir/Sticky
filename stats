@@ -12,10 +12,25 @@
 2/9 Set Effect.png framework (1)
 2/11 Fixed Tile.center not used properly in units (1), Redone Menu.skills (7), set up Projectile (3), first spell fireblast (1)
 2/12 streak 2 success, improved over 1, but not flexible for vacation/whatnot
-2/12 *** streak 3 (-3 pt/day, pt < 0 = end, max 24 pts, no weekend rest, 1 pt/15 min of data work, 3pt:1hr, 3 workout/week)
-2/12 immediately gained 3 pts for balance
+2/12 *** streak 3 (-3 pt/day., pt < 0 = end, max 24 pts, no weekend rest, 1 pt/15 min of data work, 3pt:1hr, 3 workout/week)
 2/12 Added Effects.png (1), improved Buffs (1), States to Props (1), Stock.items (1), Implemented object.id (1)
 2/12 Improved leap (1), Improved levitate and fire (1), Combined effects into GFX (1), added GFX 5~7 (1), redone Object image directory (4)
 2/12 Menu.status (1), Attack.dealer removed (1), lists turned to Space as much as possible (2), fixed projectile (1)
+2/13. Spells.brand and Spells.insulation changed, Spells.conjuration implemented, Spells.summon crate, Spells.dispell done (4)
+2/13 Body.height is now auto (1), redone Faction and changed Fireblast (1)
+-- Rest
+2/14. replaced insulation with combust and added Location aoe fn (1), added Spells.tornado (1), fixed remaining lists (1)
+2/14 modified _effects wind and extended _effects (1)
+2/15.
+2/16.
+2/17. added Animation and made Sprite receive Data.cache directly (1)
+ * Week 1
+2/18.
+2/19.w
+-- End
+2/20. Form.create to clone Animation (1), Effect offset (1), separated Effect from Projectile again (3)
+2/20 1pt = 1 debugging or 1 feature, 3pt = 1 comprehensive debug follow, 5pt = difficult debugging, 1:4 ratio
+2/21.w Added conjure unit (1), resources to lower case (1), Projectile motion_pos bugfix (1), added Spells.fargate (1)
+2/21 fixed Projectile to be loadable (2), fixed Editor object double placement bug (3)
 
-points 23/24
+points 7/24

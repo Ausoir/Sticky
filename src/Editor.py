@@ -16,7 +16,6 @@ class Editor:
     def __init__(self, loc, control):
         def update():
             control.turn()
-
         self.backup = Turn.update
         Turn.update = update
         Group.effects.append(self)
@@ -30,6 +29,7 @@ class Editor:
         self.display_text = ''
         self.enter = 0
         self.prev_command = None
+        Camera.target = Camera.target + 0
 
     def remove(self):
         Turn.remove(self)
@@ -37,8 +37,8 @@ class Editor:
         Turn.update = self.backup
 
     def input(self, action, target):
-        vec_x = Camera.target[0] / Global.BLOCK + target[0]
-        vec_y = Camera.target[1] / Global.BLOCK + target[1] - 1
+        vec_x = Camera.target.x / Global.BLOCK + target.x
+        vec_y = Camera.target.y / Global.BLOCK + target.y
         if action == 'idle':
             self.tool.input(0, self.location.get_tile(vec_x, vec_y))
         elif action == 'switch':
@@ -54,13 +54,13 @@ class Editor:
             if action != self.prev_command:
                 self.display_text = self.tool.cycle(1)
         elif action == 'up':
-            Camera.target = [Camera.target[0], Camera.target[1] - Editor.scroll]
+            Camera.target.load(Camera.target.x, Camera.target.y - Editor.scroll)
         elif action == 'down':
-            Camera.target = [Camera.target[0], Camera.target[1] + Editor.scroll]
+            Camera.target.load(Camera.target.x, Camera.target.y + Editor.scroll)
         elif action == 'left':
-            Camera.target = [Camera.target[0] - Editor.scroll, Camera.target[1]]
+            Camera.target.load(Camera.target.x - Editor.scroll, Camera.target.y)
         elif action == 'right':
-            Camera.target = [Camera.target[0] + Editor.scroll, Camera.target[1]]
+            Camera.target.load(Camera.target.x + Editor.scroll, Camera.target.y)
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -102,7 +102,7 @@ class Editor:
 
 class ToolTerrain:
     def __init__(self, loc):
-        self.tile_list = Data.process_raw(Data.get_cache_file('raw/tiles.txt'))
+        self.tile_list = Data.get_cache('tiles')
         self.text = 'dirt'
         self.tile = loc.get_tile(0, 0)
         self.prev_tile = None
@@ -138,9 +138,9 @@ class ToolObject:
     def __init__(self, loc, object_type):
         self.location = loc
         self.text = 'Crate'
-        self.selection = Stock.get('Crate', self.location).add()
+        self.selection = Stock.get('Crate').add()
         self.tile = loc.get_tile(0, 0)
-        self.object_list = list(Data.process_raw(Data.get_cache_file('raw/'+object_type+'.txt')))
+        self.object_list = list(Data.get_cache(object_type))
         self.current = 0
 
     def cancel(self):
@@ -154,15 +154,21 @@ class ToolObject:
             self.current = self.object_list.__len__() - 1
         self.text = self.object_list[self.current][0]
         self.selection.remove()
-        self.selection = Stock.get(self.text.title(), self.location)
+        self.selection = Stock.get(self.text.title()).add()
         return self.text
 
     def input(self, button, tile):
         if not button:
             self.selection.relocate(tile.x, tile.y)
         elif button == 1:
-            if not tile.things or len(tile.things) == 1 and tile.things[0] == self.selection:
-                self.selection = Stock.get(self.text.title(), self.location).add()
+            self.selection.relocate(tile.x, tile.y)
+            preexisting = 0
+            for i in tile.things:
+                if i != self.selection:
+                    preexisting = 1
+                    break
+            if not preexisting:
+                self.selection = Stock.get(self.text.title()).add()
                 self.selection.relocate(tile.x, tile.y)
         else:
             if tile.things:

@@ -1,4 +1,4 @@
-Fist,data/image/None,0,-1,0,[],[1,1],batter,0,[1] //Name, Collision, Durability, Loot, Size, Pivot.x, Range, Type
+Fist,none,0,-1,0,[],[1,1],batter,0,[1] //Name, Collision, Durability, Loot, Size, Pivot.x, Range, Type
 Bokken,data/image/Bokken,0,2,Wood,[],[2,1],batter,8,[2]
 Shortsword,data/image/Shortsword,0,2,0,[],[1,1],blood,8,[1]
 Spear,data/image/Spear,0,2,0,[],[3,1],blood,0,[2]

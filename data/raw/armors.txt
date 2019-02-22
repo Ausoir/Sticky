@@ -1,4 +1,4 @@
-Body,data/image/unit/Body,0,1,0,[],[5,5],batter,0,[111,111,111,111],[] //Name, Collision, Durability, Loot, Size, Encumbrance, Dimensions, Items
+Body,data/image/unit/Body,0,1,0,[],[5,5],batter,0,[111,111,111,111],[] //Name, Collision, Durability, Loot, Size, Type, Encumbrance, Dimensions, Items
 Casual,data/image/unit/Casual,0,1,0,[],[2,1],batter,1,[111,111,111,212],[]
 Sportswear,data/image/unit/Sportswear,0,1,0,[],[2,2],batter,1,[111,111,212,212],[]
 Leather,data/image/unit/Leather,0,1,0,[],[3,2],batter,1,[111,121,222,212],[]

@@ -18,13 +18,14 @@ class Location:
 
     def __init__(self, data):
         Turn.add(self)
+        Stock.location = self
         from src.entity.unit.action.Attack import Attack
         self.name = data[0]
         self.attack = Attack()
         self.delay = 0
         self.tiles = {}
         self.record = List()
-        self.load(Data.process_raw(Data.read('save/'+data[0]+'.map')))
+        self.load(list(Data.process_raw(Data.read('save/'+data[0]+'.map'))))
         self.sight_x = math.ceil(Global.DISPLAY[0] / Global.BLOCK / 2)
         self.sight_y = math.ceil(Global.DISPLAY[1] / Global.BLOCK / 2)
 
@@ -47,6 +48,8 @@ class Location:
         return meta + '\n' + tiles + '\n' + objects + '\n'
 
     def load(self, arg):
+        while len(arg) < 3:
+            arg = arg + [[]]
         Turn.frame = arg[0][0]
         Location.OBJECT_ID = arg[0][1]
         for i in arg[1]:
@@ -55,7 +58,7 @@ class Location:
             tile = self.get_tile(x, y)
             tile.terrain = Terrain.load(tile * [Global.BLOCK, Global.BLOCK], i[1])
         for i in arg[2]:
-            Stock.get(i[2], self, i).add()
+            Stock.get(i[2], i).add()
 
     def remove(self, arg):
         if arg in self.record:
@@ -65,7 +68,7 @@ class Location:
         Data.write('save/map.map', self.__str__())
 
     def draw(self, surface):
-        rel = Global.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
+        rel = Camera.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
         depth_3 = []
         for k, v in self.tiles.items():
             if -rel[0] - self.sight_x < k < -rel[0] + self.sight_x:
@@ -90,7 +93,7 @@ class Location:
         return None
 
     def is_in_camera(self, x, y):
-        rel = Global.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
+        rel = Camera.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
         in_x = -rel[0] - self.sight_x < x < -rel[0] + self.sight_x
         in_y = -rel[1] - self.sight_y < y < -rel[1] + self.sight_y
         return in_x and in_y
@@ -126,3 +129,13 @@ class Location:
                 return prev_tile
             prev_tile = tile
         return prev_tile
+
+    def get_area(self, center_tile, aoe):
+        tiles = []
+        half = int(aoe/2)
+        for x in range(-aoe, aoe):
+            for y in range(-half, half):
+                tile = self.get_tile(center_tile + (x, y), create=0)
+                if tile:
+                    tiles.append(tile)
+        return tiles

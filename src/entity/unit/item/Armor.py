@@ -12,6 +12,8 @@ class Armor(Item):
         self.encumbrance = None
         self.items = []
         self.inventory = []
+        self.form_arm = None
+        self.form_leg = None
 
     def __str__(self):
         r = super().__str__()
@@ -35,12 +37,14 @@ class Armor(Item):
             self.inventory.append(row)
         self.items = []
         for i in p[index + 2]:
-            self.items.append(Stock.get(i[2], self.location, i))
+            self.items.append(Stock.get(i[2], i))
         return index + 3
 
     def make_form(self, arg):
         Data.initialize_image(self.name, arg, (16, 48))
         super().make_form(self.name + '_0x0')
+        self.form_arm = Data.get_cache(self.name + '_1x0')
+        self.form_leg = Data.get_cache(self.name + '_2x0')
         self.form_name = arg
 
     def describe(self):
@@ -59,8 +63,12 @@ class Armor(Item):
         host.armor = self
         host.face(1)
         for i in host.form.organs:
-            if i.part != 3:
-                i.set(self.name + '_'+str(i.part)+'x0')
+            if i.part == 0:
+                i.set(self.form)
+            elif i.part == 1:
+                i.set(self.form_arm)
+            elif i.part == 2:
+                i.set(self.form_leg)
         if host.weapon == self:
             host.drop()
         self.remove()

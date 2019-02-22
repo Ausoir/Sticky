@@ -1,11 +1,12 @@
-from src.form.Effect import Effect
+from src.entity.Effect import Effect
 
 
 class Buffs:
     MODE_LOAD = 0
     MODE_BEGIN = 1
     MODE_UPDATE = 2
-    MODE_FINISH = 3
+    MODE_OVERLAP = 3
+    MODE_FINISH = 4
 
     def __init__(self, host):
         self.host = host
@@ -26,13 +27,13 @@ class Buffs:
     def update(self):
         for k, i in enumerate(self.buffs):
             self.current = i
-            i[2] -= 1
-            if i[2] <= 0:
+            if i[2] > 0:
+                self.perform(i, Buffs.MODE_UPDATE)
+                i[0]()
+                i[2] -= 1
+            else:
                 self.perform(i, Buffs.MODE_FINISH)
                 self.buffs.pop(k)
-                continue
-            self.perform(i, Buffs.MODE_UPDATE)
-            i[0]()
 
     def get(self, buff):
         for i in self.buffs:
@@ -49,53 +50,68 @@ class Buffs:
             self.perform(buff, mode)
         else:
             preexisting[2] = duration
+            self.perform(preexisting, Buffs.MODE_OVERLAP)
 
     def perform(self, buff, mode):
         self.current_mode = mode
         self.current = buff
         buff[0]()
 
+    def clear(self, force):
+        r = 0
+        for i in self.buffs:
+            if force or i[2] >= 0:
+                self.end(i)
+                r = 1
+        return r
+
+    def end(self, arg=None):
+        if arg:
+            arg[2] = 0
+        else:
+            self.current[2] = 0
+
+    def var(self, arg=None, value=None):
+        if arg:
+            if value:
+                arg[3] = value
+            return arg[3]
+        else:
+            if value:
+                self.current[3] = value
+            return self.current[3]
+
     def fire(self):
-        self.current[3] += 1
-        if not self.current[3] % 6:
-            Effect.kindle(self.host.motion_pos)
+        self.var(value=self.var()+1)
+        if not self.var() % 6:
+            Effect.make('burn', self.host.motion_pos)
 
     def air(self):
-        Effect.zip(self.host.pos[0].get_center())
+        Effect.make('wind', self.host.pos[0].get_center())
 
     def conjuration(self):
-        Effect.barrier(self.host.pos[0].get_center())
+        Effect.make('barrier', self.host.motion_pos, offset=0)
 
     def burn(self):
-        if self.current_mode == Buffs.MODE_BEGIN:
-            if self.get('insulation'):
-                self.current[2] = 0
-            else:
-                self.host.hit(1)
-                Effect.burn(self.host.pos[0].get_center())
-        elif self.current_mode == Buffs.MODE_UPDATE:
-            self.host.hit(0)
-            Effect.burn(self.host.pos[0].get_center())
+        self.var(value=self.var()+1)
+        if not self.var() % 4:
+            self.host.hit(1)
+        Effect.make('burn', self.host.motion_pos)
 
     def levitate(self):
-        if self.current_mode == Buffs.MODE_BEGIN:
+        if self.current_mode == Buffs.MODE_BEGIN or self.current_mode == Buffs.MODE_LOAD:
             if self.host.gravity:
                 self.host.gravity = 0
             else:
-                self.current[2] = 0
-                self.current[3] = 1
-        elif self.current_mode == Buffs.MODE_FINISH and not self.current[3]:
+                self.end()
+                self.var(value=1)
+        elif self.current_mode == Buffs.MODE_FINISH and not self.var():
             self.host.gravity = 1
-        Effect.zip(self.host.pos[0].get_center())
-
-    def insulation(self):
-        self.current[3] += 1
-        if not self.current[3] % 4:
-            Effect.wind(self.host.pos[0].get_center())
+        Effect.make('zip', self.host.pos[0].get_center())
 
     def rift(self):
         if self.current_mode == Buffs.MODE_FINISH:
-            obj = self.host.location.get_object(self.current[3])
+            obj = self.host.location.get_object(self.var())
             if obj:
                 obj.remove()
 
@@ -103,3 +119,13 @@ class Buffs:
         if self.current_mode == Buffs.MODE_BEGIN or self.current_mode == Buffs.MODE_LOAD:
             self.host.action.set('hit')
             self.host.delay = self.current[2]
+
+    def barrier(self):
+        if self.current_mode == Buffs.MODE_BEGIN:
+            self.host.durability += 3
+        elif self.current_mode == Buffs.MODE_FINISH:
+            self.host.durability -= 4
+            self.host.hit(0)
+        self.var(value=self.var()+1)
+        if not self.var() % 10:
+            Effect.make('barrier', self.host.motion_pos, offset=0)

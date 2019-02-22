@@ -94,8 +94,8 @@ class Menu:
             self.state = self.menu_equipment
             self.display(1)
 
-        self.window.add_child(Menu.make_button(['Skills'], click_skills, None))
         self.window.add_child(Menu.make_button(['Character'], click_character, None))
+        self.window.add_child(Menu.make_button(['Skills'], click_skills, None))
         self.window.add_child(Menu.make_button(['Equipment'], click_equipment, None))
 
     def menu_character(self):
@@ -111,7 +111,10 @@ class Menu:
             self.show_dialog(['Something HP', 'Some long dialog text.....', 'And your choice'])
 
         hp = str(self.host.durability)
-        text = ['HP - ' + hp + '/3', 'Str - 1', 'Agi - 1', 'Int - 1', 'Nutrition - 5/5']
+        st1 = str(self.host.attributes.strength)
+        st2 = str(self.host.attributes.agility)
+        st3 = str(self.host.attributes.intelligence)
+        text = ['HP - ' + hp, 'Str - ' + st1, 'Agi - ' + st2, 'Int - ' + st3, 'Nutrition - 5/5']
         panel = Menu.make_button(text, describe, None)
         panel.color = Window.fore_color3
         panel.normal_font_color = Window.font_color1
@@ -215,7 +218,7 @@ class Menu:
             pos = (i.pos[0] * 48)
             pos.x += (48 * i.volume[0]) / 2
             pos.y += (48 * i.volume[1]) / 2
-            item_canvas = CanvasWindow(i.form.name, vec=pos)
+            item_canvas = CanvasWindow(i.form_name, vec=pos)
             self.sub_window.next_y = self.sub_window.vec.y + 8
             self.sub_window.add_child(item_canvas)
             item_canvas.display(1)

@@ -3,18 +3,28 @@ import os
 
 import pygame
 
+from src.form.Animation import Animation
+from src.form.Sprite import Sprite
+
 
 class Data:
     cache = {}
-    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'projectiles']
+    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears']
 
     @staticmethod
     def init():
+        Data.set_cache('tiles', Data.process_raw(Data.get_cache_file('data/raw/tiles.txt')))
         for i in Data.registry_list:
             Data.set_cache(i, Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt')))
-        res = Data.process_raw(Data.read('data/resource.txt'))
-        for x in res:
-            Data.initialize_image(x[0], x[1], x[2])
+        res = Data.process_raw(Data.read('data/image/resource.txt'))
+        for i in res:
+            Data.initialize_image(i[0], i[1], i[2])
+        anim = Data.process_raw(Data.read('data/raw/animations.txt'))
+        for i in anim:
+            sequence = []
+            for sprite in i[1]:
+                sequence.append(Data.get_cache(sprite))
+            Data.set_cache(i[0], Animation(sequence, speed=i[2], repeat=i[3]))
 
     @staticmethod
     def direct(fdir):
@@ -75,7 +85,7 @@ class Data:
         if subset_size == 0:
             surface = pygame.Surface((size[0], size[1]), pygame.SRCALPHA, 32)
             surface.blit(image, (0, 0))
-            Data.cache[name] = surface
+            Data.cache[name] = Sprite(surface)
         else:
             cols = int(size[0] / subset_size[0])
             rows = int(size[1] / subset_size[1])
@@ -83,13 +93,12 @@ class Data:
                 for y in range(0, rows+1):
                     surface = pygame.Surface((subset_size[0], subset_size[1]), pygame.SRCALPHA, 32)
                     surface.blit(image, (0, 0), (subset_size[0]*x, subset_size[1]*y, subset_size[0], subset_size[1]))
-                    Data.cache[name+'_'+str(x)+'x'+str(y)] = surface
+                    Data.cache[name+'_'+str(x)+'x'+str(y)] = Sprite(surface)
 
     @staticmethod
     def get_image(fdir, cache):
         if cache:
-            if fdir not in Data.cache:
-                Data.cache[fdir] = pygame.image.load(Data.direct(fdir + '.png'))
+            Data.cache[fdir] = Sprite(pygame.image.load(Data.direct(fdir + '.png')))
             return Data.cache[fdir]
         else:
             return pygame.image.load(Data.direct(fdir + '.png'))
@@ -113,15 +122,6 @@ class Data:
             r.append(Data.process_raw(lines[0]))
             r.append(Data.process_raw(lines[1]))
             r.append(Data.process_raw(lines[2]))
-            Data.set_cache(fdir, r)
-            return r
-        return cache
-
-    @staticmethod
-    def get_cache_processed(fdir):
-        cache = Data.get_cache(fdir)
-        if not cache:
-            r = Data.process_raw(Data.read(fdir))
             Data.set_cache(fdir, r)
             return r
         return cache

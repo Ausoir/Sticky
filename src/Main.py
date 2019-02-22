@@ -2,19 +2,19 @@ import sys
 
 import pygame
 
-from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Camera import Camera
 from src.game.Group import Group
 from src.game.Turn import Turn
-from src.game.World import World
-from src.tools.Data import Data
-from src.tools.Math import Math
-from src.tools.Random import Random
 
 
 class Main:
     def __init__(self):
+        from src.tools.Random import Random
+        from src.tools.Math import Math
+        from src.tools.Data import Data
+        from src.entity.Stock import Stock
+        from src.game.World import World
         pygame.font.init()
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 32)
@@ -22,7 +22,7 @@ class Main:
         Random.init(99999)
         Data.init()
         Stock.init()
-        pygame.display.set_icon(Data.get_image('Icon_1x0', 1))
+        pygame.display.set_icon(Data.get_cache('icon_1x0').image)
         pygame.display.set_caption('Sticky', 'Sticky')
 
         self.world = World()

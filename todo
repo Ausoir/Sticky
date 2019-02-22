@@ -21,22 +21,22 @@ Immortality
 * Charm - Charm, clairvoyance
 * Cast - Cast, glowshot
 * Fire - Ignite, fire brand
-Air - Whirlwind, quick & dissipates, push nearby
-Conjuration - Conjure, create portal, enter to blink
-% Fire Fire - fire immunity, free
-Air Air - dispell, knockdown (15x15), free
-Conjuration Conjuration - barrier, knockdown, free
-* Fire Charm - Brand, lasting fire brand
+* Air - Whirlwind, quick & dissipates
+* Conjuration - Conjure, create portal
+* Fire Fire - combust 5x5
+* Air Air - dispell, knockdown (15x15), free
+* Conjuration Conjuration - summon wood
+* Fire Charm - Fire brand
 * Fire Cast - Fireblast
 * Air Charm - Levitation
-Air Cast - Tornado
-Conjuration Charm - Heal
-Conjuration Cast - Summon clone at portal
-Fire/Air Charm - Auto shock
+* Air Cast - Tornado
+* Conjuration Charm - Shielding
+* Conjuration Cast - Summon clone at portal
+Fire/Air Charm - Shock brand
 Fire/Air Cast - Lightning
 Fire/Conjuration Charm - Fireball (throwable, explode on drop, takes 5x5 item space)
 Fire/Conjuration Cast - Explosion at portal
 Air/Conjuration Charm - 'Teleportation' Blink to portal
-Air/Conjuration Cast - 'Rift' Guided portal placement
+* Air/Conjuration Cast - 'Rift' Guided portal placement
 Fire/Air/Conjuration Charm - Wisp form
 Fire/Air/Conjuration Cast - Thunderstorm near portal

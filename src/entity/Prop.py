@@ -1,5 +1,4 @@
 from src.entity.Object import Object
-from src.entity.unit.Buffs import Buffs
 from src.entity.unit.ai.Faction import Faction
 from src.map.Tile import Tile
 
@@ -7,10 +6,11 @@ from src.map.Tile import Tile
 class Prop(Object):
     def __init__(self, loc):
         super().__init__(loc)
+        from src.entity.unit.Buffs import Buffs
         self.durability = 1
         self.hittable = 1
         self.collide = Tile.COLLIDE_PROP
-        self.faction = Faction(Faction.FFA)
+        self.faction = Faction.FFA
         self.loot = None
         self.states = Buffs(self)
 
@@ -39,7 +39,7 @@ class Prop(Object):
     def die(self):
         if self.loot:
             from src.entity.Stock import Stock
-            Stock.get(self.loot, self.location).add().relocate(self.pos[0].x, self.pos[0].y, force=1)
+            Stock.get(self.loot).add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
     def hit(self, damage):
@@ -49,3 +49,6 @@ class Prop(Object):
                 self.die()
             return 1
         return 0
+
+    def clean_buffs(self, force=0):
+        return self.states.clear(force)

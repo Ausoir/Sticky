@@ -1,2 +1,2 @@
-Material,Item_0x0,0,1,0,[],[1,1],batter //Name,collide,dur,loot,state,size,type
+Material,item_0x0,0,1,0,[],[1,1],batter //Name,collide,dur,loot,state,size,type
 Ladder,data/image/Ladder,32,2,Wood,[],[1,1],batter

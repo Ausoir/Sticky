@@ -1,15 +1,15 @@
+from src.entity.Effect import Effect
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 from src.entity.unit.action.Spells import Spells
-from src.form.Effect import Effect
 from src.map.Tile import Tile
 from src.tools.Random import Random
 
 
-class ActionSet:
+class Actions:
     default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'dead', 'interact', 'use', 'jump', 'sprint',
                'act1', 'act2', 'act3', 'act4', 'act5', 'act6']
-    spell_list = ['fireblast', 'levitate', 'brand']
+    spell_list = ['fireblast', 'levitate', 'brand', 'tornado', 'barrier', 'grapple', 'summon', 'fargate']
 
     def __init__(self, host):
         self.host = host
@@ -17,13 +17,14 @@ class ActionSet:
         self.on_finish = None
         self.last_action = None
         self.time = 0
-        self.spells = []
+        # todo uncomment spells and __str__ in production
+        self.spells = Actions.spell_list  # []
         self.skills = []
         self.auto = 0
         self.exhausted = 0
 
     def __str__(self):
-        return ','.join(self.skills + self.spells)
+        return ','.join(self.skills)  # ','.join(self.skills + self.spells)
 
     def load(self, arg):
         for i in arg:
@@ -33,7 +34,7 @@ class ActionSet:
                 self.skills.append(i)
 
     def attempt(self, action):
-        if action in self.skills or action in ActionSet.default:
+        if action in self.skills or action in Actions.default:
             self.set(action)
 
     def set(self, action, auto=0):
@@ -67,9 +68,6 @@ class ActionSet:
     def exert(self, organ, mag):
         self.exhausted = self.host.attributes.exert(organ, mag)
         return self.exhausted
-
-    def recover(self):
-        self.host.form.set_height()
 
     @staticmethod
     def knockdown(victim):
@@ -132,21 +130,22 @@ class ActionSet:
                 self.make('climb', turn=2)
         else:
             self.make(turn=3)
+            from src.entity.unit.item.Item import Item
             for thing in reversed(self.host.pos[0].things):
-                if thing.interact(self.host):
+                if isinstance(thing, Item):
+                    thing.on_equip(self.host)
+                    return
+                elif isinstance(thing, Unit) and 'grapple' in self.spells and thing.action.current_action == 'down':
+                    # thing.on_equip(self.host) // Pick up and make throwable
                     return
 
     def dead(self):
-        self.host.form.set_height(1)
         self.host.collide = 0
         self.host.location.record.remove(self.host)
-        self.on_finish = self.recover
         self.make(animation='dead' + str(Random.rand_int(1, 3)))
         self.host.delay = -1
 
     def down(self):
-        self.host.form.set_height(1)
-        self.on_finish = self.recover
         self.make(turn=7)
 
     def rest(self):
@@ -195,9 +194,13 @@ class ActionSet:
             self.host.move(0, -1)
             self.make('climb', turn=2)
         else:
-            self.exert(0, 5)
-            self.host.move(self.host.direction*1, -1)
-            self.make(turn=2)
+            if self.host.gravity:
+                self.exert(0, 5)
+                self.host.move(self.host.direction*1, -1)
+                self.make(turn=2)
+            else:
+                self.host.move(0, -1)
+                self.make(animation='swim', turn=4)
 
     def leap(self):
         def fall():
@@ -232,13 +235,20 @@ class ActionSet:
         else:
             self.make(animation='drop', turn=4)
 
+    def flurry(self):
+        self.exert(1, 3)
+        self.exert(2, 3)
+        self.host.weapon.attack(delay=1)
+        self.make(turn=0)
+
     def arch(self):
         def fin():
             def effect(target):
                 if target:
-                    Effect.blood(r.motion_pos)
-            r = Stock.get('Arrow', self.host.location).add_to(self.host.faction, self.host.get_interact_pos())
-            r.fly(dest.x, dest.y-1, 8)
+                    Effect.make('batter', r.pos[0].get_center())
+            r = Stock.project('item_0x0', self.host.get_interact_pos(), 2)
+            r.fly(dest.x, dest.y-1, 8, flag=Tile.CHECK_LARGE)
+            r.fly(dest.x, dest.y-1, 1, flag=[])
             r.crash(callback=effect)
         dest = self.host.next_target * 10
         self.host.form.rotate_appendage(31, 0, self.host.next_target)
@@ -259,10 +269,7 @@ class ActionSet:
         def on_cast():
             Spells.whirlwind(self.host)
         self.on_finish = on_cast
-        self.exert(0, 5)
-        self.exert(1, 5)
-        self.exert(2, 5)
-        self.make(animation='charm', turn=3)
+        self.make(animation='charm', turn=2)
 
     def conjure(self):
         def on_cast():
@@ -289,4 +296,6 @@ class ActionSet:
         self.exert(0, 5)
         self.exert(1, 5)
         self.exert(2, 5)
+        self.host.form.rotate_appendage(28, 0, self.host.next_target)
+        self.host.form.rotate_appendage(28, 5, self.host.next_target)
         self.make(turn=8)

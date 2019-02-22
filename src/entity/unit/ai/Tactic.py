@@ -8,9 +8,9 @@ class Flee:
     def hunt(self, target):
         dist = self.host.pos[0] - target.pos[0]
         if self.host.get_offset_tile(dir, 0).is_land(Tile.CHECK_LARGE):
-            self.host.input('jump', dist.to_list())
+            self.host.input('jump', dist)
         else:
-            self.host.input('walk', dist.to_list())
+            self.host.input('walk', dist)
 
 
 class Melee:
@@ -28,18 +28,18 @@ class Melee:
         direction = 1 if dist.x >= 0 else -1
         blocked = self.host.get_offset_tile(direction, 0).is_land(Tile.CHECK_LARGE)
         if not blocked:
-            self.host.input('walk', dist.to_list())
+            self.host.input('walk', dist)
             return 1
         jumpblock = self.host.get_offset_tile(direction, -1).is_land(Tile.CHECK_LARGE)
         if blocked:
             if not jumpblock:
-                self.host.input('jump', dist.to_list())
+                self.host.input('jump', dist)
                 return 1
             elif not self.host.get_offset_tile(-direction, 0).is_land(Tile.CHECK_LARGE):
-                self.host.input('walk', (-dist).to_list())
+                self.host.input('walk', (-dist))
                 return 1
             elif not self.host.get_offset_tile(-direction, -1).is_land(Tile.CHECK_LARGE):
-                self.host.input('jump', (-dist).to_list())
+                self.host.input('jump', (-dist))
                 return 1
             return 0
         jumpblock_forward = self.host.get_offset_tile(direction*2, -1).is_land(Tile.CHECK_LARGE)
@@ -47,7 +47,7 @@ class Melee:
         if blocked_forward:
             if not jumpblock_forward:
                 if not jumpblock:
-                    self.host.input('jump', dist.to_list())
+                    self.host.input('jump', dist)
                     return 1
         return 0
 
@@ -60,7 +60,7 @@ class Melee:
     def attack(self, target):
         dist = target.pos[0] - self.host.pos[0]
         if abs(dist.x) == 1 and 0 <= dist.y <= 1 and 'kick' in self.host.action.skills:
-            self.host.input('kick', dist.to_list())
+            self.host.input('kick', dist)
             return 1
         longest_range = 0
         for i in self.host.weapon.range:
@@ -71,16 +71,16 @@ class Melee:
         reach = reach - self.host.get_interact_pos()
         if self.in_range(abs(dist.x)) and abs(reach.x) >= abs(dist.x):
             if -1 <= dist.y <= 1:
-                self.host.input('use', dist.to_list())
+                self.host.input('use', dist)
                 return 1
         if -1 <= dist.y <= 0:
             destination = self.host.location.collide_line(self.host.pos[0], dist.x, 0, distance=4, flag=Tile.CHECK_LARGE)
             destination = destination - self.host.pos[0]
             x = min(abs(dist.x), abs(destination.x))
             if x == 1 and 'lunge' in self.host.action.skills:
-                self.host.input('lunge', dist.to_list())
+                self.host.input('lunge', dist)
                 return 1
             if x == 3 and 'dash' in self.host.action.skills:
-                self.host.input('dash', dist.to_list())
+                self.host.input('dash', dist)
                 return 1
         return 0

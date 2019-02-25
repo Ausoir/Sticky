@@ -21,22 +21,22 @@ class Menu:
         self.dialog = Window([400, 300], (300, 120))
         self.dialog.color = Window.fore_color1
         self.dialog_text = []
-        self.changed = 0
+        self.last_input = None
 
     def draw(self, surface):
         if self.visible == 1:
-            self.window.draw(surface)
             self.sub_window.draw(surface)
+            self.window.draw(surface)
 
     def turn(self):
-        if self.changed and self.visible == 1:
+        if self.visible == 1:
             self.state = self.current_state
             self.display(1)
+            self.input(self.last_input)
 
     def input(self, event):
-        if event.type != pygame.MOUSEMOTION\
-                and event.type != pygame.MOUSEBUTTONUP and event.type != pygame.MOUSEBUTTONDOWN:
-            self.changed = 1
+        if event.type == pygame.MOUSEMOTION:
+            self.last_input = event
         if self.window.input(event):
             return 1
         if self.sub_window.input(event):
@@ -52,7 +52,6 @@ class Menu:
         self.sub_window.display(-1)
         self.window.display(-1)
         if self.visible == 1:
-            self.changed = 0
             self.window.flush()
             self.sub_window.flush()
             self.current_state = self.state
@@ -72,14 +71,15 @@ class Menu:
         self.dialog_text = text
         self.state = self.menu_dialog
         self.display(1)
-        self.window.visible = -1
 
     def menu_dialog(self):
-        textbox = Window([400, 300], color=Window.fore_color2)
+        total_size = [self.window.size.x + self.sub_window.size.x - self.window.margin.x * 2, self.window.size.y]
+        textbox = Window(total_size, color=Window.fore_color2)
         textbox.set_text(self.dialog_text)
         textbox.on_click = self.toggle
         textbox.text_spacing = 28
         self.window.add_child(textbox)
+        self.sub_window.display(1)
 
     def menu_main(self):
         def click_character():
@@ -169,16 +169,25 @@ class Menu:
             self.state = self.menu_equipment
             self.display(1)
 
+        def click_r_headgear():
+            self.show_dialog(self.host.headgear.describe().split('\n'))
+
         def click_armor():
             if not self.host.unarmor() and isinstance(self.host.weapon, Armor):
                 self.host.weapon.use(self.host)
             self.state = self.menu_equipment
             self.display(1)
 
+        def click_r_armor():
+            self.show_dialog(self.host.armor.describe().split('\n'))
+
         def click_weapon():
             self.host.drop()
             self.state = self.menu_equipment
             self.display(1)
+
+        def click_r_weapon():
+            self.show_dialog(self.host.weapon.describe().split('\n'))
 
         def make_pocket(x, y):
             def pocket():
@@ -186,19 +195,25 @@ class Menu:
                     weapon = self.host.weapon
                     if self.host.armor.is_vacant(weapon, x, y):
                         self.host.drop()
-                        weapon.remove()
                         self.host.armor.add_inventory(weapon, x, y)
                 else:
                     item = self.host.armor.get_item_at(x, y, pop=1)
                     if item:
-                        item.interact(self.host)
+                        item.on_equip(self.host)
                 self.state = self.menu_equipment
                 self.display(1)
             return pocket
 
-        self.window.add_child(Menu.make_button([self.host.headgear.name], click_headgear, None))
-        self.window.add_child(Menu.make_button([self.host.armor.name], click_armor, None))
-        self.window.add_child(Menu.make_button([self.host.weapon.name], click_weapon, None))
+        def make_pocket_desc(x, y):
+            def pocket():
+                item = self.host.armor.get_item_at(x, y)
+                if item:
+                    self.show_dialog(item.describe().split('\n'))
+            return pocket
+
+        self.window.add_child(Menu.make_button([self.host.headgear.name], click_headgear, click_r_headgear))
+        self.window.add_child(Menu.make_button([self.host.armor.name], click_armor, click_r_armor))
+        self.window.add_child(Menu.make_button([self.host.weapon.name], click_weapon, click_r_weapon))
         for ky, vy in enumerate(self.host.armor.inventory):
             for kx, vx in enumerate(vy):
                 if vx == Armor.VACANT:
@@ -211,6 +226,7 @@ class Menu:
                 slot.vec.x = kx * 48
                 slot.vec.y = ky * 48
                 slot.on_click = make_pocket(kx, ky)
+                slot.on_r_click = make_pocket_desc(kx, ky)
                 self.sub_window.next_y = self.sub_window.vec.y + 8
                 self.sub_window.add_child(slot)
         inventory_items = self.host.armor.items
@@ -218,7 +234,9 @@ class Menu:
             pos = (i.pos[0] * 48)
             pos.x += (48 * i.volume[0]) / 2
             pos.y += (48 * i.volume[1]) / 2
-            item_canvas = CanvasWindow(i.form_name, vec=pos)
+            pos.x -= (i.form.size.x/2 - i.form.pivot.x)
+            pos.y -= (i.form.size.y/2 - i.form.pivot.y)
+            item_canvas = CanvasWindow(i.form, vec=pos)
             self.sub_window.next_y = self.sub_window.vec.y + 8
             self.sub_window.add_child(item_canvas)
             item_canvas.display(1)

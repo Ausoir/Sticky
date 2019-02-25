@@ -18,6 +18,11 @@ class Headgear(Item):
         self.encumbrance = p[index]
         return index + 1
 
+    def die(self):
+        if self.host:
+            self.host.unheadgear()
+        super().die()
+
     def describe(self):
         r = 'Encumbrance: ' + str(self.encumbrance) + '\n'
         return r
@@ -27,7 +32,16 @@ class Headgear(Item):
             host = self.host
         host.headgear = self
         host.face(1)
-        host.form.organs[3].set(self.form)
+        host.form.organs[3].set(self.form, invert=1)
         if host.weapon == self:
             host.drop()
+        self.host = host
         self.remove()
+
+    def get_reduction(self, damage):
+        total = 0
+        final_damage = max(0, min(damage, self.durability))
+        self.durability = self.durability - final_damage
+        damage -= final_damage
+        total += self.durability
+        return total, damage

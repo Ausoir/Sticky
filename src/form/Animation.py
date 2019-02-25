@@ -1,18 +1,17 @@
+from src.entity.Space import Space
+
+
 class Animation:
-    def __init__(self, clips, speed, repeat=1):
+    def __init__(self, args):
         self.visible = 1
-        self.speed = speed
-        self.clips = clips
+        self.clips = args[0]
+        self.speed = args[1]
         self.current = 0
         self.direction = 1
-        self.size = clips[0].size
-        self.repeat = repeat
+        self.repeat = args[2]
         self.ended = 0
-
-    def create(self):
-        self.visible = 1
-        self.current = 0
-        return Animation(self.clips, self.speed, self.repeat)
+        self.size = self.clips[0].size
+        self.pivot = Space(self.size.x / 2, self.size.y / 2)
 
     def draw(self, surface, x, y):
         if self.visible:

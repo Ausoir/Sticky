@@ -7,9 +7,9 @@ from src.tools.Random import Random
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'dead', 'interact', 'use', 'jump', 'sprint',
+    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'dead', 'interact', 'use', 'jump', 'sprint', 'duck',
                'act1', 'act2', 'act3', 'act4', 'act5', 'act6']
-    spell_list = ['fireblast', 'levitate', 'brand', 'tornado', 'barrier', 'grapple', 'summon', 'fargate']
+    spell_list = ['fireblast', 'levitate', 'brand', 'tornado', 'barrier', 'grapple', 'summon', 'fargate', 'teleport']
 
     def __init__(self, host):
         self.host = host
@@ -44,6 +44,7 @@ class Actions:
             self.auto = auto
             self.current_action = action
             if action != self.last_action:
+                self.host.hang = 0
                 self.time = 0
                 if self.on_finish:
                     fn = self.on_finish  # prevent recursion
@@ -75,10 +76,15 @@ class Actions:
             victim.action.set('down')
 
     def idle(self):
-        if self.time > 3:
-            self.make(animation='standby', turn=0)
+        if not self.host.get_offset_tile(0, 1).is_land(Tile.CHECK_LANDABLE) and self.host.pos[0].is_climbable():
+            self.host.hang = 1
+            self.exert(0, 1)
+            self.make(animation='hang', turn=0)
         else:
-            self.make(turn=0)
+            if self.time > 3:
+                self.make(animation='standby', turn=0)
+            else:
+                self.make(turn=0)
 
     def act1(self):
         self.set(self.skills[0])
@@ -116,28 +122,34 @@ class Actions:
     def hit(self):
         self.make(turn=2)
 
-    def climb(self):
-        self.make(turn=0)
-
-    def interact(self):
+    def duck(self):
         def finish():
             self.host.gravity = 1
-        if self.host.get_offset_tile(0, 1).is_land([Tile.COLLIDE_LANDABLE]):
+        ground = self.host.get_offset_tile(0, 1)
+        climbable = ground.is_climbable()
+        if climbable:
             if self.host.gravity or self.host.form.state_name == 'climb':
+                self.exert(0, 2)
                 self.host.gravity = 0
-                self.host.move(0, 1)
+                self.host.move(0, 1, flag=Tile.CHECK_CLIMBABLE)
                 self.on_finish = finish
                 self.make('climb', turn=2)
         else:
-            self.make(turn=3)
+            self.make('interact', turn=2)
+
+    def interact(self):
+        self.make(turn=3)
+        if not self.host.is_armed():
             from src.entity.unit.item.Item import Item
             for thing in reversed(self.host.pos[0].things):
-                if isinstance(thing, Item):
+                if thing != self.host.weapon and isinstance(thing, Item):
                     thing.on_equip(self.host)
                     return
                 elif isinstance(thing, Unit) and 'grapple' in self.spells and thing.action.current_action == 'down':
                     # thing.on_equip(self.host) // Pick up and make throwable
                     return
+        else:
+            self.host.drop()
 
     def dead(self):
         self.host.collide = 0
@@ -161,7 +173,7 @@ class Actions:
         self.host.weapon.use()
 
     def attack(self):
-        self.exert(1, 5)
+        self.exert(1, 5 + self.host.weapon.weight)
         self.host.aim()
         self.host.form.rotate_appendage(30, 0, self.host.next_target)
         self.host.weapon.attack(delay=1)
@@ -190,8 +202,10 @@ class Actions:
         self.make(turn=4)
 
     def jump(self):
-        if self.host.pos[0].is_land([Tile.COLLIDE_LANDABLE]):
+        if self.host.pos[0].is_climbable():
+            self.exert(0, 2)
             self.host.move(0, -1)
+            self.host.hang = 1
             self.make('climb', turn=2)
         else:
             if self.host.gravity:
@@ -208,7 +222,7 @@ class Actions:
         self.exert(0, 10)
         self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*2, 0),
                                            delay=1, type='batter', callback=self.knockdown)
-        self.host.move(self.host.direction * 6, -6)
+        self.host.move(self.host.direction * 3, -2)
         if self.host.gravity:
             self.host.gravity = 0
             self.on_finish = fall
@@ -246,7 +260,7 @@ class Actions:
             def effect(target):
                 if target:
                     Effect.make('batter', r.pos[0].get_center())
-            r = Stock.project('item_0x0', self.host.get_interact_pos(), 2)
+            r = Stock.project('g_2x1', self.host.get_interact_pos(), 2)
             r.fly(dest.x, dest.y-1, 8, flag=Tile.CHECK_LARGE)
             r.fly(dest.x, dest.y-1, 1, flag=[])
             r.crash(callback=effect)

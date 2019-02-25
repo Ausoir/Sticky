@@ -22,7 +22,7 @@ class Main:
         Random.init(99999)
         Data.init()
         Stock.init()
-        pygame.display.set_icon(Data.get_cache('icon_1x0').image)
+        pygame.display.set_icon(Data.get_cache('icon_1x0')[1])
         pygame.display.set_caption('Sticky', 'Sticky')
 
         self.world = World()
@@ -55,7 +55,6 @@ class Main:
         Camera.update()
         Group.update()
         self.screen.fill((255, 255, 255))
-        Group.background.draw(self.screen)
         self.world.map.draw(self.screen)
         Group.objects.draw(self.screen)
         Group.effects.draw(self.screen)

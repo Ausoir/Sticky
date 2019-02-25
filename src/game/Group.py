@@ -2,7 +2,6 @@ from src.form.GroupSprite import GroupSprite
 
 
 class Group:
-    background = GroupSprite()
     objects = GroupSprite()
     effects = GroupSprite()
     updates = []
@@ -15,8 +14,6 @@ class Group:
             Group.objects.remove(arg)
         if arg in Group.updates:
             Group.updates.remove(arg)
-        if arg in Group.background:
-            Group.background.remove(arg)
 
     @staticmethod
     def update():

@@ -85,6 +85,14 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Armors Tool'
+        elif action == 'headgears':
+            self.tool.cancel()
+            self.tool = ToolObject(self.location, action)
+            self.display_text = 'Headgears Tool'
+        elif action == 'others':
+            self.tool.cancel()
+            self.tool = ToolObject(self.location, action)
+            self.display_text = 'Others Tool'
         elif action == 'save':
             self.tool.cancel()
             self.location.turn()

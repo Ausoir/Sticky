@@ -1,5 +1,6 @@
 from src.entity.Space import Space
 from src.game import Global
+from src.game.Tags import Tags
 from src.map.Terrain import Terrain
 from src.tools.List import List
 
@@ -11,9 +12,9 @@ class Tile(Space):
     CHECK_PROJECTILE = [40, 60]
     CHECK_TERRAIN = [10]
     CHECK_LANDABLE = [10, 30, 32, 40]
+    CHECK_CLIMBABLE = [30, 40]
     COLLIDE_TERRAIN = 10
     COLLIDE_OBJECT = 20
-    COLLIDE_LANDABLE = 32
     COLLIDE_PROP = 30
     COLLIDE_UNIT = 40
     COLLIDE_ITEM = 50
@@ -43,6 +44,14 @@ class Tile(Space):
 
     def get_center(self):
         return self.get_vec() + Global.HALF_BLOCK
+
+    def is_climbable(self):
+        if self.terrain and self.terrain.type == 2:
+            return 1
+        for i in self.things:
+            if Tags.climb in i.tags:
+                return 1
+        return 0
 
     def is_land(self, check):
         if self.terrain and self.terrain.type % 2:

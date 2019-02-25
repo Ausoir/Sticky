@@ -86,11 +86,11 @@ class Unit(Prop):
     def hit(self, damage):
         r = super().hit(damage)
         if r and not self.is_dead():
-            self.action.set('hit')
+            self.action.set('hit', auto=1)
         return r
 
     def die(self):
-        self.action.set('dead')
+        self.action.set('dead', auto=1)
 
     def will_hit(self, tile):
         for i in self.pos:

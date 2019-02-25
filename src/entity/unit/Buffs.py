@@ -1,4 +1,5 @@
 from src.entity.Effect import Effect
+from src.game.Tags import Tags
 
 
 class Buffs:
@@ -27,13 +28,13 @@ class Buffs:
     def update(self):
         for k, i in enumerate(self.buffs):
             self.current = i
-            if i[2] > 0:
+            if i[2] == 0:
+                self.perform(i, Buffs.MODE_FINISH)
+                self.buffs.pop(k)
+            else:
                 self.perform(i, Buffs.MODE_UPDATE)
                 i[0]()
                 i[2] -= 1
-            else:
-                self.perform(i, Buffs.MODE_FINISH)
-                self.buffs.pop(k)
 
     def get(self, buff):
         for i in self.buffs:
@@ -81,10 +82,24 @@ class Buffs:
                 self.current[3] = value
             return self.current[3]
 
+    def bleed(self):
+        if self.current_mode == Buffs.MODE_BEGIN or self.current_mode == Buffs.MODE_LOAD:
+            if Tags.flesh not in self.host.tags:
+                self.end()
+                self.var(value=-1)
+        var = self.var()
+        if var > 9:
+            Effect.make('blood', self.host.motion_pos)
+            self.var(value=0)
+        elif var >= 0:
+            self.var(value=var+1)
+        if self.current_mode == Buffs.MODE_FINISH and var >= 0:
+            self.host.hit(1)
+
     def fire(self):
         self.var(value=self.var()+1)
         if not self.var() % 6:
-            Effect.make('burn', self.host.motion_pos)
+            Effect.make('kindle', self.host.motion_pos)
 
     def air(self):
         Effect.make('wind', self.host.pos[0].get_center())

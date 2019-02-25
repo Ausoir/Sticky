@@ -1,5 +1,6 @@
 from src.entity.Object import Object
 from src.entity.unit.ai.Faction import Faction
+from src.game.Tags import Tags
 from src.map.Tile import Tile
 
 
@@ -11,22 +12,18 @@ class Prop(Object):
         self.hittable = 1
         self.collide = Tile.COLLIDE_PROP
         self.faction = Faction.FFA
-        self.loot = None
         self.states = Buffs(self)
+        self.tags = []
 
     def __str__(self):
-        return super().__str__() + ',' + str(self.collide) + ',' + str(self.durability) + ',' + str(self.loot) + ',[' +\
-               self.states.__str__() + ']'
+        tags = ','.join(self.tags)
+        return super().__str__() + ',[' + tags + '],' + str(self.durability) + ',[' + self.states.__str__() + ']'
 
     def load(self, arg):
         index = super().load(arg)
-        if arg[index]:
-            self.collide = arg[index]
-            self.depth = self.collide
+        self.tags = arg[index]
         index += 1
         self.durability = arg[index]
-        index += 1
-        self.loot = arg[index]
         index += 1
         self.states.load(arg[index])
         index += 1
@@ -37,16 +34,17 @@ class Prop(Object):
         self.states.update()
 
     def die(self):
-        if self.loot:
+        if Tags.wood in self.tags:
             from src.entity.Stock import Stock
-            Stock.get(self.loot).add().relocate(self.pos[0].x, self.pos[0].y, force=1)
+            Stock.get('Wood').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
     def hit(self, damage):
         if self.hittable:
-            self.durability -= damage
-            if self.durability <= 0:
-                self.die()
+            if self.durability != -1:
+                self.durability = max(0, self.durability - damage)
+                if self.durability == 0:
+                    self.die()
             return 1
         return 0
 

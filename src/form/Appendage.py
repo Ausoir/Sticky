@@ -10,11 +10,14 @@ class Appendage:
         self.part = part
         self.length = None
         self.rotation = 0
+        self.set(sprite)
 
     def __str__(self):
         return self.upper_joint.__str__() + ',' + self.lower_joint.__str__()
 
-    def set(self, sprite):
+    def set(self, sprite, invert=0):
+        if invert == 1:
+            sprite.flip(1)
         self.form = sprite
         self.form.pivot = Space(self.form.size.x / 2, 0)
         self.length = self.form.size.y

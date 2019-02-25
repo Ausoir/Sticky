@@ -1,14 +1,18 @@
-Fist,none,0,-1,0,[],[1,1],batter,0,[1] //Name, Collision, Durability, Loot, Size, Pivot.x, Range, Type
-Bokken,data/image/Bokken,0,2,Wood,[],[2,1],batter,8,[2]
-Shortsword,data/image/Shortsword,0,2,0,[],[1,1],blood,8,[1]
-Spear,data/image/Spear,0,2,0,[],[3,1],blood,0,[2]
-Broadsword,data/image/Broadsword,0,2,Shortsword,[],[3,1],blood,8,[1,2]
-Dagger,data/image/Dagger,0,2,0,[],[1,1],blood,6,[1]
-Blade,data/image/Blade,0,2,0,[],[1,1],blood,6,[1]
-Greatsword,data/image/Greatsword,0,2,0,[],[3,2],blood,8,[1,2,3]
-Glaive,data/image/Glaive,0,2,0,[],[1,1],blood,0,[3,4]
-Machete,data/image/Machete,0,2,0,[],[2,1],blood,9,[2]
-Scimitar,data/image/Scimitar,0,2,0,[],[2,1],blood,8,[1,2]
-Katana,data/image/Katana,0,2,0,[],[2,1],blood,9,[1,2,3]
-Axe,data/image/Axe,0,2,0,[],[2,1],blood,8,[2,3]
-Baseball Bat,data/image/Baseball Bat,0,2,Wood,[],[2,1],batter,8,[2]
+Fist,none,[],-1,[],[1,1],0,[1],0 //Name, Image, Tags, Durability, State, Size, Pivot, Range, Weight
+Stick,data/image/stick,[],3,[],[1,3],8,[1,2],1
+Parasol,data/image/parasol,[],2,[[levitate,-1,0]],[1,2],8,[1],0
+Dagger,data/image/dagger,[sharp],8,[],[1,1],6,[1],0
+Shortsword,data/image/shortsword,[sharp],15,[],[1,1],8,[1],2
+Pickaxe,data/image/pickaxe,[sharp,scrap],40,[],[2,2],20,[2],4
+Cleaver,data/image/cleaver,[sharp],18,[],[1,1],8,[1],1
+Axe,data/image/axe,[sharp,scrap],40,[],[1,2],18,[1],2
+Rapier,data/image/rapier,[sharp],16,[],[1,2],8,[2],0
+Spear,data/image/spear,[sharp],24,[],[1,3],52,[2,3],1
+Scimitar,data/image/scimitar,[sharp],16,[],[1,2],8,[1,2],2
+Katana,data/image/katana,[sharp],12,[],[1,2],9,[1,2],1
+Greatsword,data/image/greatsword,[armor,scrap,sharp],9,[],[3,2],8,[1,2],7
+Bat,data/image/bat,[],-1,[],[1,2],8,[1,2],1
+Lance,data/image/lance,[sharp],-1,[],[1,2],4,[2],3
+Hammer,data/image/hammer,[],-1,[],[1,1],8,[1],0
+Broadsword,data/image/broadsword,[sharp],-1,[],[1,2],8,[1],4
+Claymore,data/image/claymore,[sharp],-1,[],[1,3],9,[1,2],6

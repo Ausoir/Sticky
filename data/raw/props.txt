@@ -1,4 +1,5 @@
-Force,none,0,999,0,[] //Name, Image, Collision, Durability, Loot, State
-Crate,prop_2x0,0,1,Wood,[]
-Wood,prop_1x0,0,3,0,[]
-Portal,portal,-1,1,0,[[levitate,-1,0]]
+Force,none,[],-1,[] //Name, Image, Collision, Durability, Loot, State
+Portal,portal,[],1,[[levitate,-1,0]]
+Plank,g_1x0,[],3,[]
+Crate,g_2x0,[wood],1,[]
+Steps,g_3x0,[],12,[]

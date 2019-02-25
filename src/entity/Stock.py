@@ -15,9 +15,13 @@ class Stock:
     def init():
         for i in Data.registry_list:
             registry_items = Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt'))
-            for item in registry_items:
-                Stock.registry[item[0]] = [getattr(Stock, i), item]
-            Stock.registry['Projectile'] = [Stock.projectiles, None]
+            if i == 'others':
+                for item in registry_items:
+                    Stock.registry[item[0]] = [getattr(Stock, item[0]), item]
+            else:
+                for item in registry_items:
+                    Stock.registry[item[0]] = [getattr(Stock, i), item]
+        Stock.registry['Projectile'] = [Stock.projectiles, None]
 
     @staticmethod
     def get(name, data=None):
@@ -64,6 +68,19 @@ class Stock:
     @staticmethod
     def weapons(arg):
         r = Weapon(Stock.location)
+        r.load(arg)
+        return r
+
+    @staticmethod
+    def Ladder(arg):
+        r = Item(Stock.location)
+        r.load(arg)
+        r.collide = 32
+        return r
+
+    @staticmethod
+    def Thing(arg):
+        r = Item(Stock.location)
         r.load(arg)
         return r
 

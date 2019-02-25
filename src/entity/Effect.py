@@ -18,7 +18,7 @@ class Effect:
     def __init__(self, animation):
         self.visible = 1
         self.delay = 0
-        self.form = Data.get_cache(animation).create()
+        self.form = Data.run_cache(animation)
         self.at = Space()
         self.lifetime = 2
         self.offset = Space()

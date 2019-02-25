@@ -25,7 +25,7 @@ class Control:
         self.directory = fdir
         control = Data.process_raw(Data.read(fdir))
         for k, v in control:
-            self.keymap[k] = v
+            self.keymap[Control.get_key_code(k)] = v
 
     def change_key(self, key, action):
         self.keymap[key] = action
@@ -44,6 +44,20 @@ class Control:
         return 0
 
     @staticmethod
+    def get_key_code(name):
+        if name == 'LMB':
+            return 501
+        elif name == 'MMB':
+            return 502
+        elif name == 'RMB':
+            return 503
+        elif name == 'Wheel+':
+            return 504
+        elif name == 'Wheel-':
+            return 505
+        return getattr(pygame, 'K_' + str(name))
+
+    @staticmethod
     def get_key_name(key):
         if key == 501:
             return 'LMB'
@@ -56,10 +70,6 @@ class Control:
         elif key == 505:
             return 'Wheel-'
         return pygame.key.name(key)
-
-    @staticmethod
-    def restore():
-        Data.write('data/keymap.txt', Data.read('data/default_keymap.txt'))
 
     @staticmethod
     def get_event_code(event):
@@ -86,6 +96,12 @@ class Control:
                 self.keyrelease.append(-code)
         return 0
 
+    def clear_press(self, code):
+        if code in self.keyrelease:
+            self.keyrelease.remove(code)
+        if code in self.keypress:
+            self.keypress.remove(code)
+
     def turn(self):
         mouse = pygame.mouse.get_pos()
         mouse = Space(Camera.get_relative_tile_pos(mouse[0], mouse[1]))
@@ -98,17 +114,22 @@ class Control:
                     pygame.quit()
                     sys.exit()
                 elif command == 'menu':
-                    if code in self.keyrelease:
-                        self.keyrelease.remove(code)
-                    if code in self.keypress:
-                        self.keypress.remove(code)
-                    if self.menu:
-                        self.menu.toggle()
+                    self.clear_press(code)
+                    self.menu.toggle()
+                elif command == 'character':
+                    self.clear_press(code)
+                    self.menu.state = self.menu.menu_character
+                    self.menu.display(1)
+                elif command == 'skills':
+                    self.clear_press(code)
+                    self.menu.state = self.menu.menu_skills
+                    self.menu.display(1)
+                elif command == 'equipment':
+                    self.clear_press(code)
+                    self.menu.state = self.menu.menu_equipment
+                    self.menu.display(1)
                 elif command == 'switch':
-                    if code in self.keyrelease:
-                        self.keyrelease.remove(code)
-                    if code in self.keypress:
-                        self.keypress.remove(code)
+                    self.clear_press(code)
                     self.player.input(command, mouse)
                     Global.main.world.switch()
                 else:

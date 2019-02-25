@@ -55,11 +55,7 @@ class Object:
 
     def make_form(self, arg):
         self.form_name = arg
-        self.form = Data.get_cache(arg)
-        if self.form:
-            self.form = self.form.create()
-        else:
-            self.form = Data.get_image(arg, 1).create()
+        self.form = Data.run_cache(arg)
 
     def draw(self, surface):
         if self.location.is_in_camera(self.pos[0].x, self.pos[0].y):
@@ -72,8 +68,11 @@ class Object:
                 self.motion_pos.y += y * .1
             self.form.draw(surface, self.motion_pos.x, self.motion_pos.y)
 
+    def is_fall(self):
+        return self.gravity
+
     def turn(self):
-        if self.gravity:
+        if self.is_fall():
             old = self.pos[0]
             new = self.move(0, 4, flag=Tile.CHECK_LANDABLE)
             if new != old:

@@ -7,9 +7,8 @@ from src.game.Camera import Camera
 from src.tools.Math import Math
 
 
-class Sprite(pygame.sprite.Sprite):
-    def __init__(self, image):
-        super().__init__()
+class Sprite:
+    def __init__(self, args):
         self.visible = 1
         self.rotation = 0
         self.direction = 1
@@ -18,9 +17,8 @@ class Sprite(pygame.sprite.Sprite):
         self.size = None
         self.rect = None
         self.pivot = None
-        self.offset = [0, 0]
         self.flipped = 0
-        self.set(image)
+        self.set(args[0])
 
     def set(self, image):
         self.image = image
@@ -28,11 +26,6 @@ class Sprite(pygame.sprite.Sprite):
         self.size = Space(self.image.get_size())
         self.rect = self.size.to_list()
         self.pivot = Space(self.size.x / 2, self.size.y / 2)
-
-    def create(self):
-        self.visible = 1
-        self.rotation = 0
-        return self
 
     def draw(self, surface, x, y):
         if self.size.x != 0 and self.size.y != 0:
@@ -49,7 +42,7 @@ class Sprite(pygame.sprite.Sprite):
             piv = pp.distance()
             ax = Math.cos(-self.rotation + aa) * piv
             ay = Math.sin(-self.rotation + aa) * piv
-            rect = [x + ax + Camera.pos[0] + self.offset[0], y + ay + Camera.pos[1] + self.offset[1]]
+            rect = [x + ax + Camera.pos[0], y + ay + Camera.pos[1]]
             self.rect = self.image.get_rect(center=rect)
             surface.blit(self.image, self.rect)
 
@@ -60,10 +53,8 @@ class Sprite(pygame.sprite.Sprite):
 
     def flip(self, flip):
         if flip == 1 and not self.flipped:
-            self.orig_image = pygame.transform.flip(self.orig_image, 0, 1)
-            self.rotation += 180
+            self.orig_image = pygame.transform.flip(self.orig_image, 1, 1)
             self.flipped = 1
         elif flip == -1 and self.flipped:
-            self.orig_image = pygame.transform.flip(self.orig_image, 0, 1)
-            self.rotation -= 180
+            self.orig_image = pygame.transform.flip(self.orig_image, 1, 1)
             self.flipped = 0

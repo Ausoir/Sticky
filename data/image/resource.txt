@@ -4,5 +4,4 @@ icon,data/Icon,[24,24]
 head,data/image/unit/Head,0
 body,data/image/unit/Body,[16,48]
 gfx,data/image/_effects,[40,40]
-item,data/image/_items,[40,40]
-prop,data/image/_props,[40,40]
+g,data/image/_singles,[40,40]

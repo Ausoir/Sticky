@@ -1,9 +1,0 @@
-282,option
-9,menu
-97,left
-100,right
-115,interact
-32,sprint
-27,quit
-501,use
-503,interact

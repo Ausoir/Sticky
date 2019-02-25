@@ -1,4 +1,5 @@
 from src.entity.Prop import Prop
+from src.game.Global import DEPTH_ITEM
 from src.map.Tile import Tile
 
 
@@ -9,40 +10,43 @@ class Item(Prop):
         self.host = None
         self.range = [1]
         self.volume = [1, 1]
-        self.hit_type = 'batter'
+        self.depth = DEPTH_ITEM
 
     def __str__(self):
-        return super().__str__() + ',[' + str(self.volume[0]) + ',' + str(self.volume[1]) + '],' + self.hit_type
+        return super().__str__() + ',[' + str(self.volume[0]) + ',' + str(self.volume[1]) + ']'
 
     def load(self, arg):
         index = super().load(arg)
         self.volume = arg[index]
-        self.hit_type = arg[index + 1]
-        return index + 2
+        return index + 1
+
+    def die(self):
+        if self.host and self.host.weapon == self:
+            self.host.drop()
+        super().die()
 
     def on_equip(self, host):
         self.host = host
         host.weapon = self
+        self.motion_pos = host.motion_pos
+        self.host.face(self.host.direction)
         self.remove()
 
     def on_unequip(self):
+        self.motion_pos = self.motion_pos + 0
+        self.relocate(self.host.pos[0].x, self.host.pos[0].y, force=1)
         self.host = None
+        self.form.rotation = 0
         self.add()
 
-    def use(self):
-        self.host.action.set('attack')
+    def describe(self):
+        r = self.name
+        r += '\nDurability: ' + str(self.durability)
+        r += '\nVolume: ' + str(self.volume[0]) + 'x' + str(self.volume[1])
+        return r
 
-    def attack(self, delay=0, callback=None):
-        for i in self.range:
-            tile = self.host.location.collide_line(self.host.get_interact_pos(),
-                                                   self.host.next_target.x, self.host.next_target.y,
-                                                   distance=i, flag=Tile.CHECK_NONE)
-            cb = callback
-            if self.states.get('fire'):
-                def burn(target):
-                    target.states.add('burn', 4)
-                    if callback:
-                        callback()
-                cb = burn
-            self.location.attack.register(1, tile, delay, self.hit_type,
-                                          faction=self.host.faction, callback=cb)
+    def use(self):
+        host = self.host
+        self.host.drop()
+        host.armor.add_item(self)
+        host.action.set('rest')

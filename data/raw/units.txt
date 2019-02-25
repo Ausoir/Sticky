@@ -1,4 +1,5 @@
-Peasant,unit/man,0,3,Wood,[],1,Melee,[1,1,1],[sprint],0,0,0,0 //Name,collide,dur,loot,state,faction,pilot,stats,skills,gold,armor,weapon,headgear
-Summon,unit/man,0,3,Wood,[],0,Melee,[1,2,1],[lunge,dash],0,0,0,0
-Rogue,unit/man,0,3,Wood,[],0,Melee,[1,2,1],[lunge,dash],0,0,0,0
-Swordsman,unit/man,0,3,Wood,[],0,Melee,[2,1,1],[lunge,dash],0,0,0,0
+Peasant,unit/man,[humanoid,flesh],3,[],1,Melee,[1,1,1],[sprint],0,0,0,0 //Name,collide,dur,loot,state,faction,pilot,stats,skills,gold,armor,weapon,headgear
+Summon,unit/man,[humanoid,flesh],3,[],0,Melee,[1,2,1],[lunge,dash],0,0,0,0
+Rogue,unit/man,[humanoid,flesh],3,[],0,Melee,[1,3,2],[lunge,dash],0,0,0,0
+Swordsman,unit/man,[humanoid,flesh],3,[],0,Melee,[3,1,1],[lunge],0,0,0,0
+Pyromancer,unit/man,[humanoid,flesh],3,[],0,Melee,[1,1,3],[fireblast],0,0,0,0

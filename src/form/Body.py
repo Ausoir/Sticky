@@ -31,7 +31,7 @@ class Body:
         parent = []
         for x in self.model:
             parent.append(x[0])
-            organ = Appendage(Data.get_cache(x[1]), part=x[2], resize=x[3])
+            organ = Appendage(Data.run_cache(x[1]), part=x[2], resize=x[3])
             self.organs.append(organ)
         for k, x in enumerate(self.organs):
             if x.part == Body.LEG:
@@ -98,13 +98,14 @@ class Body:
 
     def randomize_clip(self, arg, mag):
         for clip in self.motion[arg]:
-            r = []
-            for i in self.animation[clip]:
-                if isinstance(i, list):
-                    r.append([i[0] + Random.rand_int(-mag, mag), i[1] + Random.rand_int(-mag, mag)])
-                else:
-                    r.append(i)
-            self.animation[clip] = r
+            if clip != -1:
+                r = []
+                for i in self.animation[clip]:
+                    if isinstance(i, list):
+                        r.append([i[0] + Random.rand_int(-mag, mag), i[1] + Random.rand_int(-mag, mag)])
+                    else:
+                        r.append(i)
+                self.animation[clip] = r
 
     def randomize_body(self, seed):
         import random

@@ -1,15 +1,14 @@
 import pygame
 
 from src.entity.Space import Space
-from src.form.Sprite import Sprite
 from src.game.Camera import Camera
 
 
-class CanvasWindow(Sprite):
-    def __init__(self, texture_name, vec=(0, 0)):
+class CanvasWindow:
+    def __init__(self, texture, vec=(0, 0)):
         self.vec = Space(vec)
-        super().__init__(texture_name)
-
+        self.sprite = texture
+        self.size = self.sprite.size
         self.children = []
         self.visible = -1
         self.text = []
@@ -28,8 +27,8 @@ class CanvasWindow(Sprite):
         self.children = []
 
     def collide(self, pos):
-        if self.vec.x <= pos[0] <= self.vec.x + self.size.x:
-            if self.vec.y <= pos[1] <= self.vec.y + self.size.y:
+        if self.vec.x <= pos[0] <= self.vec.x + self.sprite.size.x:
+            if self.vec.y <= pos[1] <= self.vec.y + self.sprite.size.y:
                 return 1
         return 0
 
@@ -49,10 +48,10 @@ class CanvasWindow(Sprite):
                     self.on_r_click()
                     return 1
 
-    def draw(self, surface, x=0, y=0):
+    def draw(self, surface):
         self.vec.x -= Camera.pos[0]
         self.vec.y -= Camera.pos[1]
-        super().draw(surface, self.vec.x, self.vec.y)
+        self.sprite.draw(surface, self.vec.x, self.vec.y)
         self.vec.x += Camera.pos[0]
         self.vec.y += Camera.pos[1]
 

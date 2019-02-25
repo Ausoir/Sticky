@@ -17,17 +17,17 @@ class Location:
     OBJECT_ID = 0
 
     def __init__(self, data):
-        Turn.add(self)
         Stock.location = self
+        Turn.add(self)
         from src.entity.unit.action.Attack import Attack
         self.name = data[0]
         self.attack = Attack()
-        self.delay = 0
+        self.delay = 8
         self.tiles = {}
         self.record = List()
-        self.load(list(Data.process_raw(Data.read('save/'+data[0]+'.map'))))
         self.sight_x = math.ceil(Global.DISPLAY[0] / Global.BLOCK / 2)
         self.sight_y = math.ceil(Global.DISPLAY[1] / Global.BLOCK / 2)
+        self.load(list(Data.process_raw(Data.read('save/'+data[0]+'.map'))))
 
     def __str__(self):
         meta = str(Turn.frame) + ',' + str(Location.OBJECT_ID)

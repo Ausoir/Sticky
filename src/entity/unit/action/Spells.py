@@ -21,9 +21,13 @@ class Spells:
 
     @staticmethod
     def charm(host):
-        if 'levitate' in host.action.spells and host.states.get('air'):
+        obj = Spells.check_rift(host)
+        if 'teleport' in host.action.spells and obj and host.states.get('air'):
+            host.relocate(obj.pos[0].x, obj.pos[0].y)
+        elif 'levitate' in host.action.spells and host.states.get('air'):
             host.states.add('levitate', 60)
         elif 'brand' in host.action.spells and host.states.get('fire'):
+            Effect.make('burn', host.motion_pos)
             host.states.add('fire', 120)
             host.weapon.states.add('fire', 120)
         elif 'barrier' in host.action.spells and Spells.check_rift(host):
@@ -48,6 +52,7 @@ class Spells:
             def effect(target):
                 if target:
                     Effect.make('energy', r.motion_pos)
+
             r = Stock.project('energy', host.get_interact_pos(), 2)
             r.fly(host.next_target.x, host.next_target.y, 8)
             r.crash(callback=effect)
@@ -81,10 +86,21 @@ class Spells:
     def conjure(host):
         obj = Spells.check_rift(host)
         if obj:
-            r = Stock.get('Wood').add()
-            r.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
-            r.motion_pos = obj.motion_pos + 0
-            r.states.add('levitate', 8)
+            aoe = host.location.get_area(obj.pos[0], 8)
+            for i in aoe:
+                x = 0
+                y = 0
+                if obj.pos[0].x > i.x:
+                    x = 4
+                elif obj.pos[0].x < i.x:
+                    x = -4
+                if obj.pos[0].y > i.y:
+                    y = 4
+                elif obj.pos[0].y < i.y:
+                    y = -4
+                for thing in i.things:
+                    Effect.make('wind', thing.motion_pos)
+                    thing.move(x, y)
         else:
             Effect.make('barrier', host.motion_pos)
             r = Stock.get('Portal').add()
@@ -97,6 +113,7 @@ class Spells:
             r.fly(host.next_target.x, host.next_target.y, 2, flag=[])
             if r.lifetime <= 1:
                 host.center_camera()
+
         r = Stock.project('none', host.pos[0], 40)
         host.states.add('stun', 40)
         r.lifetime = 40
@@ -109,9 +126,11 @@ class Spells:
             def on_hit(target):
                 Spells.burn(target)
                 r.remove()
+
             r.fly(final_dir, round(Random.gauss(0, 1)), 1)
             r.location.attack.register(1, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
             Effect.make('explode', r.pos[0].get_center(), offset=4).form.face(final_dir)
+
         r = Stock.project('explode', host.get_offset_tile(host.direction, 0), 2)
         r.durability = 10
         r.lifetime = 10
@@ -123,12 +142,14 @@ class Spells:
         def effect():
             def on_hit(target):
                 target.move(final_dir * 4, -4)
-            r.fly(host.next_target.x, host.next_target.y, 1)
+
+            r.fly(host.next_target.x, host.next_target.y, 2)
             r.location.attack.register(1, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
             Effect.make('wind', r.pos[0].get_center(), offset=4)
             if not r.lifetime % 3:
                 Spells.tornado(host).lifetime = max(0, r.lifetime - 1)
-        r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 7)
+
+        r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 6)
         r.durability = 8
         r.lifetime = 8
         final_dir = host.direction
@@ -143,9 +164,10 @@ class Spells:
                 Effect.make('barrier', placer.motion_pos)
                 r = Stock.get('Portal').add()
                 r.relocate(placer.pos[0].x, placer.pos[0].y, force=1)
-                host.states.add('rift', 60, var=r.id)
+                host.states.add('rift', 80, var=r.id)
                 host.center_camera()
                 placer.remove()
+
         placer = Stock.project('portal', host.pos[0], 30)
         host.states.add('stun', 30)
         placer.effect = effect

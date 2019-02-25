@@ -1,2 +1,6 @@
-Material,item_0x0,0,1,0,[],[1,1],batter //Name,collide,dur,loot,state,size,type
-Ladder,data/image/Ladder,32,2,Wood,[],[1,1],batter
+Material,g_0x1,[],1,[],[1,1] //Name,collide,dur,loot,state,size
+Wood,g_1x1,[],2,[],[1,1]
+Metal,g_2x1,[],2,[],[1,1]
+Scrap,g_3x1,[],2,[],[1,1]
+Studding,g_4x1,[armor,scrap],2,[],[2,1]
+Plating,g_5x1,[armor,scrap],6,[],[2,2]

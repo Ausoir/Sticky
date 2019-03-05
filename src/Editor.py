@@ -21,6 +21,7 @@ class Editor:
         Group.effects.append(self)
         control.set_keymap('data/editor_keymap.txt')
         control.player = self
+        self.control = control
         self.location = loc
         self.font = pygame.font.SysFont('Helvetica', 20)
         self.visible = 1
@@ -47,6 +48,7 @@ class Editor:
             self.tool.input(1, self.location.get_tile(vec_x, vec_y))
         elif action == 'delete':
             self.tool.input(2, self.location.get_tile(vec_x, vec_y))
+            self.control.clear_press(self.control.get_key('delete'))
         elif action == 'prev':
             if action != self.prev_command:
                 self.display_text = self.tool.cycle(-1)
@@ -172,13 +174,15 @@ class ToolObject:
             self.selection.relocate(tile.x, tile.y)
             preexisting = 0
             for i in tile.things:
-                if i != self.selection:
+                if i != self.selection and i.name == self.text:
                     preexisting = 1
                     break
             if not preexisting:
                 self.selection = Stock.get(self.text.title()).add()
-                self.selection.relocate(tile.x, tile.y)
+                self.selection.relocate(tile.x, tile.y, force=1)
         else:
             if tile.things:
-                for i in tile.things:
-                    i.remove()
+                for i in reversed(tile.things):
+                    if i != self.selection:
+                        i.remove()
+                        break

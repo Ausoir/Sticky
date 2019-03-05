@@ -3,7 +3,7 @@ from src.entity.unit.ai.Faction import Faction
 from src.game.Turn import Turn
 
 
-class Attack:
+class Field:
     def __init__(self):
         Turn.add(self)
         self.registry = []
@@ -20,14 +20,14 @@ class Attack:
                 new_reg.append(new)
         self.registry = new_reg
 
-    def register(self, damage, pos, delay=0, type=0, faction=Faction.FFA, callback=None):
+    def register(self, damage, pos, delay=1, type=0, faction=0, callback=None):
         self.registry.append([delay, pos, damage, type, faction, callback])
 
     def hit(self, data):
         for thing in data[1].things:
             if Faction.is_against(thing.faction, data[4]):
-                thing.hit(data[2])
-                if data[3]:
-                    Effect.make(data[3], data[1].get_center())
-                if data[5]:
-                    data[5](thing)
+                if thing.hit(data[2]):
+                    if data[3]:
+                        Effect.make(data[3], data[1].get_center())
+                    if data[5]:
+                        data[5](thing)

@@ -1,2 +1,2 @@
 Thing,none,[],2,[],[1,1]
-Ladder,data/image/Ladder,[wood,climb],2,[],[1,1]
+Thing,none,[],2,[],[1,1]

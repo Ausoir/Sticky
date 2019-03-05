@@ -31,18 +31,17 @@ class Weapon(Item):
             r += '\nThis weapon has a sharp edge.'
         return r
 
-    def attack(self, delay=0, callback=None):
+    def attack(self, callback=None):
         def cb(target):
             self.hit(1)
             if self.states.get('fire'):
                 target.states.add('burn', 4)
             if Tags.sharp in self.tags:
-                target.states.add('bleed', 80)
+                target.states.add('bleed', 60)
             if callback:
-                callback()
+                callback(target)
         for i in self.range:
             tile = self.host.location.collide_line(self.host.get_interact_pos(),
                                                    self.host.next_target.x, self.host.next_target.y,
                                                    distance=i, flag=[])
-            self.location.attack.register(1, tile, delay, 'batter',
-                                          faction=self.host.faction, callback=cb)
+            self.location.attack.register(1, tile, type='batter', faction=self.host.faction, callback=cb)

@@ -40,5 +40,17 @@
 2/24. *** 3 workout/week
 2/24 added Stock.other (1), added item descriptions (1), made items stand out (3), items to inventory (1), Armor inventory volume bug (1)
 2/24 added Menu quick access (1), added weapon weight (1), balanced weapons, added Tags.sharp, added descriptions (1)
+2/25 *** 12 pts per unexcused rest day
+2/25. improved Spells.tornado (1)
+2/26.w *** streak 3 success at first, but doesn't stop from doing other things
+2/26 *** streak 4 - 45pts/week goal, ideal 6 pts/day
+2/27
+2/28w redone Pilot (5)
+3/02w climb to jump bugfix (1), tags control collision and depth (1), editor only delete 1 (1), _singles.png re-order (1)
+3/02 wood burn (1), ladder wield&climb bug fix(1), replaced Spells.barrier with crystallize (1)
+3/03 AI.Behavior (1), Task.Move improve (1)
+3/04w Unit seed system (1), modularized Behavior (2), stun animation and Spells.energy redone (1), Task.Travel (3)
+3/04 Task lifetime (1), Bleed bugfix (1), improved Task.Travel (2), Task.Travel memory system (3)
+3/05 *** streak 5 - 15 pts/3 day ideal, 40 pts/week, free social day, workout 1 pt
 
-points 20/24
+points 28/45 by 3/5

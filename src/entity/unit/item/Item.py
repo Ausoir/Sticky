@@ -41,7 +41,11 @@ class Item(Prop):
 
     def describe(self):
         r = self.name
-        r += '\nDurability: ' + str(self.durability)
+        if self.durability == -1:
+            dur = 'Unbreakable'
+        else:
+            dur = str(self.durability)
+        r += '\nDurability: ' + dur
         r += '\nVolume: ' + str(self.volume[0]) + 'x' + str(self.volume[1])
         return r
 

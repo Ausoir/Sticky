@@ -19,14 +19,12 @@ class Location:
     def __init__(self, data):
         Stock.location = self
         Turn.add(self)
-        from src.entity.unit.action.Attack import Attack
+        from src.entity.unit.action.Field import Field
         self.name = data[0]
-        self.attack = Attack()
+        self.attack = Field()
         self.delay = 8
         self.tiles = {}
         self.record = List()
-        self.sight_x = math.ceil(Global.DISPLAY[0] / Global.BLOCK / 2)
-        self.sight_y = math.ceil(Global.DISPLAY[1] / Global.BLOCK / 2)
         self.load(list(Data.process_raw(Data.read('save/'+data[0]+'.map'))))
 
     def __str__(self):
@@ -71,9 +69,9 @@ class Location:
         rel = Camera.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
         depth_3 = []
         for k, v in self.tiles.items():
-            if -rel[0] - self.sight_x < k < -rel[0] + self.sight_x:
+            if -rel[0] - Camera.sight[0] < k < -rel[0] + Camera.sight[0]:
                 for k2, v2 in v.items():
-                    if -rel[1] - self.sight_y < k2 < -rel[1] + self.sight_y:
+                    if -rel[1] - Camera.sight[1] < k2 < -rel[1] + Camera.sight[1]:
                         if v2.terrain and v2.terrain.type > 0:
                             depth_3.append(v2)
                         else:
@@ -91,12 +89,6 @@ class Location:
             if i.id == id:
                 return i
         return None
-
-    def is_in_camera(self, x, y):
-        rel = Camera.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
-        in_x = -rel[0] - self.sight_x < x < -rel[0] + self.sight_x
-        in_y = -rel[1] - self.sight_y < y < -rel[1] + self.sight_y
-        return in_x and in_y
 
     def get_tile(self, x=None, y=None, create=1):
         if y is not None:
@@ -132,9 +124,9 @@ class Location:
 
     def get_area(self, center_tile, aoe):
         tiles = []
-        half = int(aoe/2)
+        vertical = int(aoe*3/2)
         for x in range(-aoe, aoe):
-            for y in range(-half, half):
+            for y in range(-vertical, vertical):
                 tile = self.get_tile(center_tile + (x, y), create=0)
                 if tile:
                     tiles.append(tile)

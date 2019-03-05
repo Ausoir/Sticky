@@ -1,36 +1,33 @@
-from src.entity.unit.ai import Tactic
+from src.entity.unit.ai.Task import Move, Pickup, Attack, Travel, Melee
+from src.entity.unit.item.Weapon import Weapon
 
 
 class Behavior:
-    def __init__(self, host, fight_type):
-        self.host = host
-        self.priority = 5
-        self.behave = None
-        self.tactic = getattr(Tactic, fight_type)(host)
-        self.arguments = None
+    @classmethod
+    def make(cls, pilot, type):
+        if type == 'Melee':
+            move = Travel(pilot, 0)
+            return cls(move, Melee(pilot, move))
+        else:
+            move = Move(pilot, 0)
+            return cls(move, Attack(pilot, move))
 
-    def set(self, behavior, arg):
-        if hasattr(self, behavior):
-            self.behave = getattr(self, behavior)
-            self.arguments = arg
+    def __init__(self, move, hunt):
+        self.move = move
+        self.hunt = hunt
 
-    def perform(self):
-        self.behave()
+    def spot_enemy(self, pilot, targets):
+        pilot.priority = 1
+        pilot.var = pilot.prioritize(targets)
+        pilot.add_task(self.hunt)
 
-    def idle(self):
-        self.priority = 5
-
-    def hunt(self):
-        self.priority = 1
-        nearest_dist = 10
-        nearest = self.arguments[0]
-        for i in self.arguments:
-            if not i.is_dead():
-                t = (i.pos[0] - self.host.pos[0]).distance()
-                if t < nearest_dist:
-                    nearest_dist = t
-                    nearest = i
-        return self.tactic.hunt(nearest)
-
-    def react(self):
-        pass
+    def spot_item(self, pilot, targets):
+        pilot.priority = 2
+        weapons = []
+        for i in targets:
+            if isinstance(i, Weapon):
+                weapons.append(i)
+        if weapons:
+            pilot.var = pilot.prioritize(weapons)
+            pilot.add_task(self.move)
+            pilot.add_task(Pickup(pilot))

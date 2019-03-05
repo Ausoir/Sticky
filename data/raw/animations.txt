@@ -3,8 +3,9 @@ wind,[gfx_1x0,gfx_1x1,gfx_1x2,gfx_1x3],4,0
 explode,[gfx_2x0,gfx_2x1,gfx_2x2,gfx_2x3],5,0
 barrier,[gfx_3x0,gfx_3x1,gfx_3x2,gfx_3x3],5,0
 kindle,[gfx_4x0,gfx_4x1,gfx_4x2,gfx_4x3],5,0
-zip,[gfx_5x0,gfx_5x1,gfx_5x2,gfx_5x3],5,0
+zip,[gfx_5x0,gfx_5x1,gfx_5x2,gfx_5x3],5,1
 batter,[gfx_6x0,gfx_6x1,gfx_6x2,gfx_6x3],5,0
 blood,[gfx_7x0,gfx_7x1,gfx_7x2,gfx_7x3],5,0
 energy,[gfx_8x0,gfx_8x1,gfx_8x2,gfx_8x3],5,0
 portal,[gfx_9x0,gfx_9x1,gfx_9x2,gfx_9x3],5,1
+zap,[gfx_10x0,gfx_10x1,gfx_10x2,gfx_10x3],5,1

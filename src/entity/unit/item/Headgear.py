@@ -43,5 +43,5 @@ class Headgear(Item):
         final_damage = max(0, min(damage, self.durability))
         self.durability = self.durability - final_damage
         damage -= final_damage
-        total += self.durability
+        total = max(0, total + self.durability)
         return total, damage

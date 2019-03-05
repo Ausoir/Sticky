@@ -1,5 +1,6 @@
 from src.entity.Effect import Effect
 from src.entity.Stock import Stock
+from src.entity.unit.Unit import Unit
 from src.entity.unit.ai.Faction import Faction
 from src.tools.Random import Random
 
@@ -30,8 +31,13 @@ class Spells:
             Effect.make('burn', host.motion_pos)
             host.states.add('fire', 120)
             host.weapon.states.add('fire', 120)
-        elif 'barrier' in host.action.spells and Spells.check_rift(host):
-            host.states.add('barrier', 120)
+        elif 'crystallize' in host.action.spells and obj:
+            for i in range(5):
+                r1 = Stock.get('Crystal').add()
+                r1.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
+                r1.states.add('levitate', 1)
+                Effect.make('zip', r1.motion_pos)
+                r1.move(Random.rand_int(-1, 1), Random.rand_int(-1, 0))
         else:
             Spells.scry(host)
 
@@ -39,7 +45,7 @@ class Spells:
     def cast(host):
         obj = Spells.check_rift(host)
         if 'fargate' in host.action.spells and obj and host.states.get('air'):
-            Spells.fargate(host)
+            Spells.fargate(host, obj)
         elif 'fireblast' in host.action.spells and host.states.get('fire'):
             Spells.fireblast(host)
         elif 'tornado' in host.action.spells and host.states.get('air'):
@@ -50,12 +56,12 @@ class Spells:
             Effect.make('zip', r.motion_pos)
         else:
             def effect(target):
-                if target:
-                    Effect.make('energy', r.motion_pos)
+                if target and isinstance(target, Unit):
+                    target.states.add('stun', 40)
 
-            r = Stock.project('energy', host.get_interact_pos(), 2)
+            r = Stock.project('energy', host.get_interact_pos(), 40)
             r.fly(host.next_target.x, host.next_target.y, 8)
-            r.crash(callback=effect)
+            r.crash(damage=0, callback=effect)
 
     @staticmethod
     def ignite(host):
@@ -110,7 +116,8 @@ class Spells:
     @staticmethod
     def scry(host):
         def effect():
-            r.fly(host.next_target.x, host.next_target.y, 2, flag=[])
+            if host.next_target.distance() > 4:
+                r.fly(host.next_target.x, host.next_target.y, 2, flag=[])
             if r.lifetime <= 1:
                 host.center_camera()
 
@@ -141,23 +148,23 @@ class Spells:
     def tornado(host):
         def effect():
             def on_hit(target):
-                target.move(final_dir * 4, -4)
-
-            r.fly(host.next_target.x, host.next_target.y, 2)
-            r.location.attack.register(1, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
+                if r.last_pos.x - r.pos[0].x > 0:
+                    target.move(-4, -4)
+                else:
+                    target.move(4, -4)
+            tgt = host.get_target_tile() - r.pos[0]
+            r.last_pos = r.pos[0] + 0
+            r.fly(tgt.x, tgt.y, 1)
+            r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
             Effect.make('wind', r.pos[0].get_center(), offset=4)
-            if not r.lifetime % 3:
-                Spells.tornado(host).lifetime = max(0, r.lifetime - 1)
-
-        r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 6)
+        r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 16)
         r.durability = 8
-        r.lifetime = 8
-        final_dir = host.direction
+        r.last_pos = r.pos[0]
         r.effect = effect
         return r
 
     @staticmethod
-    def fargate(host):
+    def fargate(host, obj):
         def effect():
             flight = placer.fly(host.next_target.x, host.next_target.y, 2)
             if not flight or placer.lifetime == 1:
@@ -168,7 +175,7 @@ class Spells:
                 host.center_camera()
                 placer.remove()
 
-        placer = Stock.project('portal', host.pos[0], 30)
+        placer = Stock.project('portal', obj.pos[0], 30)
         host.states.add('stun', 30)
         placer.effect = effect
         placer.center_camera()

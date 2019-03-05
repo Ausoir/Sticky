@@ -1,5 +1,4 @@
 from src.entity.Object import Object
-from src.entity.unit.ai.Faction import Faction
 from src.game.Tags import Tags
 from src.map.Tile import Tile
 
@@ -11,7 +10,7 @@ class Prop(Object):
         self.durability = 1
         self.hittable = 1
         self.collide = Tile.COLLIDE_PROP
-        self.faction = Faction.FFA
+        self.faction = 0
         self.states = Buffs(self)
         self.tags = []
 
@@ -27,6 +26,16 @@ class Prop(Object):
         index += 1
         self.states.load(arg[index])
         index += 1
+        if Tags.float in self.tags:
+            self.gravity = 0
+        if Tags.flat in self.tags:
+            self.hittable = 0
+        if Tags.back in self.tags:
+            self.depth = 20
+        if Tags.land in self.tags:
+            self.collide = 32
+        elif Tags.intangible in self.tags:
+            self.collide = Tile.COLLIDE_COVER
         return index
 
     def turn(self):
@@ -36,7 +45,7 @@ class Prop(Object):
     def die(self):
         if Tags.wood in self.tags:
             from src.entity.Stock import Stock
-            Stock.get('Wood').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
+            Stock.get('Planks').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
     def hit(self, damage):
@@ -50,3 +59,6 @@ class Prop(Object):
 
     def clean_buffs(self, force=0):
         return self.states.clear(force)
+
+    def is_dead(self):
+        return False

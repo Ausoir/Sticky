@@ -27,6 +27,11 @@ class Control:
         for k, v in control:
             self.keymap[Control.get_key_code(k)] = v
 
+    def get_key(self, value):
+        for k, v in self.keymap.items():
+            if v == value:
+                return k
+
     def change_key(self, key, action):
         self.keymap[key] = action
         data = Data.process_raw(Data.read(self.directory))

@@ -1,3 +1,5 @@
+import random
+
 from src.form.Appendage import Appendage
 from src.game import Global
 from src.tools.Data import Data
@@ -11,10 +13,10 @@ class Body:
 
     def __init__(self, model_name):
         data = Data.get_cache_clip(model_name).copy()
+        self.seed = 1
         self.model_name = model_name
         self.model = data[0]
         self.animation = data[1]
-        self.randomize_body(0)  # todo unit seed system
         self.motion = {}
         self.organs = []
         self.current_clip = 0
@@ -42,9 +44,9 @@ class Body:
             organ.lower_joint.load(self.animation[0][k][0], self.animation[0][k][1])
         self.set('idle')
 
-    def create(self):
-        self.set('idle')
-        return self
+    def randomize(self, seed):
+        self.seed = seed
+        self.randomize_body(seed)
 
     def draw(self, surface, x, y):
         for i in self.organs:
@@ -102,13 +104,12 @@ class Body:
                 r = []
                 for i in self.animation[clip]:
                     if isinstance(i, list):
-                        r.append([i[0] + Random.rand_int(-mag, mag), i[1] + Random.rand_int(-mag, mag)])
+                        r.append([i[0] + random.randint(-mag, mag), i[1] + random.randint(-mag, mag)])
                     else:
                         r.append(i)
                 self.animation[clip] = r
 
     def randomize_body(self, seed):
-        import random
         random.seed(seed)
         mag = random.gauss(.45, .04)
         mag_x = mag * 1.5

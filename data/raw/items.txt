@@ -1,6 +1,7 @@
-Material,g_0x1,[],1,[],[1,1] //Name,collide,dur,loot,state,size
-Wood,g_1x1,[],2,[],[1,1]
-Metal,g_2x1,[],2,[],[1,1]
-Scrap,g_3x1,[],2,[],[1,1]
-Studding,g_4x1,[armor,scrap],2,[],[2,1]
-Plating,g_5x1,[armor,scrap],6,[],[2,2]
+Material,g_0x2,[],1,[],[1,1] //Name,collide,dur,loot,state,size
+Planks,g_1x2,[],2,[],[1,1]
+Metal,g_2x2,[],2,[],[1,1]
+Scrap,g_3x2,[],2,[],[1,1]
+Studding,g_4x2,[amr,is],2,[],[2,1]
+Plating,g_5x2,[amr,is],6,[],[2,2]
+Ladder,data/image/Ladder,[iw,cli,lnd],2,[],[1,1]

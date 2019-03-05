@@ -1,5 +1,6 @@
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
+from src.game.Camera import Camera
 
 
 class Humanoid(Unit):
@@ -25,9 +26,9 @@ class Humanoid(Unit):
     def load(self, p):
         index = super().load(p)
         self.form.randomize_clip('hit', 4)
-        self.form.randomize_clip('dead1', 16)
-        self.form.randomize_clip('dead2', 16)
-        self.form.randomize_clip('dead3', 16)
+        self.form.randomize_clip('dead1', 12)
+        self.form.randomize_clip('dead2', 12)
+        self.form.randomize_clip('dead3', 12)
         self.gold = p[index]
         if p[index + 1]:
             weapon = Stock.get(p[index + 1][2], p[index + 1])
@@ -56,7 +57,7 @@ class Humanoid(Unit):
     def relocate(self, x, y, force=0):
         super().relocate(x, y, force)
         if self.is_armed():
-            self.weapon.relocate(x, y, force)
+            self.weapon.pos[0] = self.pos[0]
 
     def is_fall(self):
         return self.gravity and not self.hang
@@ -78,16 +79,22 @@ class Humanoid(Unit):
         self.update_durability(damage)
         return r
 
+    def die(self):
+        self.drop()
+        super().die()
+
     def face(self, direction):
         self.weapon.form.face(direction)
-        self.weapon.form.rotation = 120 * direction
+        self.weapon.form.rotation = 100 * direction
         super().face(direction)
 
     def draw(self, surface):
-        x = self.motion_pos.x + self.form.organs[0].lower_joint.x
-        y = self.motion_pos.y + self.form.organs[0].lower_joint.y - self.form.height
-        self.weapon.form.draw(surface, x, y)
-        super().draw(surface)
+        if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y):
+            x = self.motion_pos.x + self.form.organs[0].lower_joint.x
+            y = self.motion_pos.y + self.form.organs[0].lower_joint.y - self.form.height
+            self.weapon.form.draw(surface, x, y)
+            return super().draw(surface)
+        return 0
 
     def clean_buffs(self, force=0):
         r = super().clean_buffs(force)

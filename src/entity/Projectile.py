@@ -33,8 +33,8 @@ class Projectile(Prop):
     def effect(self):
         pass
 
-    def crash(self, callback=None):
-        self.location.attack.register(1, self.pos[0], 1, faction=Faction.PROJECTILE, callback=callback)
+    def crash(self, damage=1, callback=None):
+        self.location.attack.register(damage, self.pos[0], faction=Faction.PROJECTILE, callback=callback)
 
     def fly(self, tx, ty, distance, flag=Tile.CHECK_TERRAIN):
         self.form.rotation = Space(tx, ty).get_atan() + 180

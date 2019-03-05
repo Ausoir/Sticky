@@ -38,7 +38,8 @@ class Armor(Item):
             self.inventory.append(row)
         self.items = []
         for i in p[index + 2]:
-            self.items.append(Stock.get(i[2], i))
+            item = Stock.get(i[2], i)
+            self.items.append(item)
         return index + 3
 
     def make_form(self, arg):
@@ -57,7 +58,7 @@ class Armor(Item):
         while self.items:
             item = self.items.pop(0)
             item.relocate(pos.x, pos.y, force=1)
-            item.on_unequip()
+            item.add()
         super().die()
 
     def on_unequip(self):
@@ -154,7 +155,7 @@ class Armor(Item):
         final_damage = max(0, min(damage, self.durability))
         self.durability = self.durability - final_damage
         damage -= final_damage
-        total += self.durability
+        total = max(0, total + self.durability)
         for i in armors:
             x, y = i.pos[0].x, i.pos[0].y
             scrap = Tags.scrap in i.tags

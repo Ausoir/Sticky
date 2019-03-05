@@ -58,7 +58,7 @@ class Object:
         self.form = Data.run_cache(arg)
 
     def draw(self, surface):
-        if self.location.is_in_camera(self.pos[0].x, self.pos[0].y):
+        if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y):
             pos = self.pos[0].get_center()
             self.motion_pos.x += (pos.x - self.motion_pos.x) * .1
             y = pos.y - self.motion_pos.y
@@ -67,6 +67,8 @@ class Object:
             else:
                 self.motion_pos.y += y * .1
             self.form.draw(surface, self.motion_pos.x, self.motion_pos.y)
+            return 1
+        return 0
 
     def is_fall(self):
         return self.gravity

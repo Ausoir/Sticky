@@ -1,10 +1,8 @@
-from src.game.Global import DEPTH_UNIT
 from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.Attribute import Attribute
 from src.form.Body import Body
-
-
+from src.game.Global import DEPTH_UNIT
 # has Body form, is movable
 from src.map.Tile import Tile
 
@@ -37,6 +35,7 @@ class Unit(Prop):
         index += 1
         self.action.load(p[index])
         index += 1
+        self.form.randomize(self.attributes.gene)
         return index
 
     def make_form(self, arg):
@@ -44,13 +43,16 @@ class Unit(Prop):
         self.form = Body(arg)
 
     def draw(self, surface):
-        super().draw(surface)
-        self.form.update()
+        if super().draw(surface):
+            self.form.update()
+            return 1
+        return 0
 
     def turn(self):
         super().turn()
         if self.delay == 0:
             self.attributes.rest()
+            self.pilot.update()
             if self.next_target.x > 0 and self.direction != 1:
                 self.face(1)
             elif self.next_target.x < 0 and self.direction != -1:
@@ -86,6 +88,7 @@ class Unit(Prop):
     def hit(self, damage):
         r = super().hit(damage)
         if r and not self.is_dead():
+            self.pilot.hit()
             self.action.set('hit', auto=1)
         return r
 

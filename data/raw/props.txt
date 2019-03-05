@@ -1,5 +1,8 @@
-Force,none,[],-1,[] //Name, Image, Collision, Durability, Loot, State
+Force,none,[],-1,[] //Name, Image, Flag, Durability, State
 Portal,portal,[],1,[[levitate,-1,0]]
-Plank,g_1x0,[],3,[]
-Crate,g_2x0,[wood],1,[]
-Steps,g_3x0,[],12,[]
+Wood,g_1x0,[xg,iw],16,[]
+Tile,g_2x0,[xg,bg,xc,xh,cli],40,[]
+Crystal,g_3x0,[],2,[]
+Wall,g_4x0,[xg,bg,xc,xh,cli],10,[]
+Water,g_5x0,[xc],-1,[]
+Crate,g_0x1,[iw],1,[]

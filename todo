@@ -1,19 +1,18 @@
-Level up - trainer (money, hours)
+-- AI
+Pilot str and load
 
+
+Level up - trainer (money, hours)
 Food - eat or sell
 
 -- Passive Item
 Insulation - 2x1, burn immune, medium
 Jump boost - 1x2, expensive
--- Active Item
-Material Placer - 1x1, medium
-Ladders - 1x1, cheap
 -- Unique Item
 Raise dead
 Control target
 Charm target
 Immortality
-
 -- Helmets
 Regen scrap to studding
 

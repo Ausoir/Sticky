@@ -34,7 +34,8 @@ class Buffs:
             else:
                 self.perform(i, Buffs.MODE_UPDATE)
                 i[0]()
-                i[2] -= 1
+                if i[2] > 0:
+                    i[2] -= 1
 
     def get(self, buff):
         for i in self.buffs:
@@ -112,6 +113,9 @@ class Buffs:
         if not self.var() % 4:
             self.host.hit(1)
         Effect.make('burn', self.host.motion_pos)
+        if self.current_mode == Buffs.MODE_BEGIN:
+            if Tags.wood in self.host.tags:
+                self.current[2] = 40
 
     def levitate(self):
         if self.current_mode == Buffs.MODE_BEGIN or self.current_mode == Buffs.MODE_LOAD:
@@ -134,12 +138,16 @@ class Buffs:
         if self.current_mode == Buffs.MODE_BEGIN or self.current_mode == Buffs.MODE_LOAD:
             self.host.action.set('hit')
             self.host.delay = self.current[2]
+        else:
+            self.var(value=self.var()+1)
+            if not self.var() % 6:
+                Effect.make('zap', self.host.motion_pos, offset=0)
 
     def barrier(self):
         if self.current_mode == Buffs.MODE_BEGIN:
             self.host.durability += 3
         elif self.current_mode == Buffs.MODE_FINISH:
-            self.host.durability -= 4
+            self.host.durability -= 3
             self.host.hit(0)
         self.var(value=self.var()+1)
         if not self.var() % 10:

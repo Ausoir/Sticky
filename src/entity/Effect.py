@@ -1,4 +1,5 @@
 from src.entity.Space import Space
+from src.game.Camera import Camera
 from src.game.Global import DEPTH_EFFECT
 from src.game.Group import Group
 from src.game.Turn import Turn
@@ -40,6 +41,7 @@ class Effect:
 
     def draw(self, surface):
         pos = self.at + self.offset
-        self.form.draw(surface, pos.x, pos.y)
-        if self.form.ended:
-            self.remove()
+        if Camera.in_camera(pos.x, pos.y):
+            self.form.draw(surface, pos.x, pos.y)
+            if self.form.ended:
+                self.remove()

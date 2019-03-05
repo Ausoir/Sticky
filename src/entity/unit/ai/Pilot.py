@@ -1,7 +1,7 @@
 from src.entity.unit.Unit import Unit
 from src.entity.unit.ai.Behavior import Behavior
-from src.entity.unit.ai.Faction import Faction
-from src.game.Turn import Turn
+from src.entity.unit.ai.Task import *
+from src.entity.unit.item.Item import Item
 from src.map.Tile import Tile
 from src.tools.Random import Random
 
@@ -10,41 +10,77 @@ class Pilot:
     def __init__(self, host, fight_type):
         self.host = host
         self.fight_type = fight_type
-        if fight_type != 'Manual':
-            Turn.add(self)
+        self.task = Idle(self)
+        self.var = None
+        if fight_type == 'Manual':
+            def none():
+                pass
+            self.hit = none
+            self.update = none
+        else:
+            self.priority = 5
             self.delay = 0
             self.range = 4
-            self.behavior = Behavior(host, fight_type)
-            self.behavior.set('idle', None)
+            self.behavior = Behavior.make(self, fight_type)
 
     def __str__(self):
         return self.fight_type
 
-    def turn(self):
-        if not self.dodge():
-            if not self.delay:
-                behavior, arguments = self.perceive()
-                self.behavior.set(behavior, arguments)
-                self.behavior.perform()
+    def update(self):
+        if self.host.delay == 0:
+            if not self.dodge():
+                if not self.delay:
+                    self.perceive()
+                    self.perform()
+
+    def in_range(self, x):
+        return x <= 1
+
+    def add_task(self, task):
+        task.next = self.task
+        self.task = task
+
+    def perform(self):
+        self.task.perform()
+        if self.task.is_done():
+            self.task = self.task.next
+
+    def hit(self):
+        self.priority = 3
+        self.perceive()
 
     def perceive(self):
-        perceived = []
-        aoe = self.host.location.get_area(self.host.pos[0], self.range)
-        for i in aoe:
-            for thing in i.things:
-                if thing != self.host:
-                    perceived.append(thing)
-        if self.behavior.priority >= 2:
-            targets = []
-            for thing in perceived:
-                if isinstance(thing, Unit) and Faction.is_against(self.host.faction, thing.faction):
-                    targets.append(thing)
-            if targets:
-                return 'hunt', targets
-        if self.behavior.priority >= 3:
-            if perceived:
-                return 'react', perceived[Random.rand_int(0, perceived.__len__()-1)]
-        return 'idle', None
+        if self.priority > 1:
+            perceived = []
+            aoe = self.host.location.get_area(self.host.pos[0], self.range)
+            for i in aoe:
+                for thing in i.things:
+                    if thing != self.host:
+                        perceived.append(thing)
+            if self.priority > 2:
+                targets = []
+                items = []
+                for thing in perceived:
+                    if isinstance(thing, Unit):
+                        if Faction.is_against(self.host.faction, thing.faction) and not thing.is_dead():
+                            targets.append(thing)
+                    elif isinstance(thing, Item):
+                        items.append(thing)
+                if targets:
+                    self.behavior.spot_enemy(self, targets)
+                elif items:
+                    self.behavior.spot_item(self, items)
+
+    def prioritize(self, targets):
+        nearest_dist = 10
+        nearest = targets[0]
+        for i in targets:
+            if not i.is_dead():
+                t = (i.pos[0] - self.host.pos[0]).distance()
+                if t < nearest_dist:
+                    nearest_dist = t
+                    nearest = i
+        return nearest
 
     def dodge(self):
         for i in self.host.location.attack.registry:

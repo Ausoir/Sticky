@@ -9,7 +9,8 @@ from src.tools.Random import Random
 class Actions:
     default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'dead', 'interact', 'use', 'jump', 'sprint', 'duck',
                'act1', 'act2', 'act3', 'act4', 'act5', 'act6']
-    spell_list = ['fireblast', 'levitate', 'brand', 'tornado', 'barrier', 'grapple', 'summon', 'fargate', 'teleport']
+    spell_list = ['fireblast', 'levitate', 'brand', 'tornado', 'crystallize', 'grapple', 'summon', 'fargate',
+                  'teleport']
 
     def __init__(self, host):
         self.host = host
@@ -17,14 +18,13 @@ class Actions:
         self.on_finish = None
         self.last_action = None
         self.time = 0
-        # todo uncomment spells and __str__ in production
-        self.spells = Actions.spell_list  # []
+        self.spells = []
         self.skills = []
         self.auto = 0
         self.exhausted = 0
 
     def __str__(self):
-        return ','.join(self.skills)  # ','.join(self.skills + self.spells)
+        return ','.join(self.skills + self.spells)
 
     def load(self, arg):
         for i in arg:
@@ -32,6 +32,7 @@ class Actions:
                 self.spells.append(i)
             else:
                 self.skills.append(i)
+        self.spells = Actions.spell_list
 
     def attempt(self, action):
         if action in self.skills or action in Actions.default:
@@ -81,7 +82,7 @@ class Actions:
             self.exert(0, 1)
             self.make(animation='hang', turn=0)
         else:
-            if self.time > 3:
+            if self.time > 0 and self.host.attributes.is_rested():
                 self.make(animation='standby', turn=0)
             else:
                 self.make(turn=0)
@@ -122,21 +123,6 @@ class Actions:
     def hit(self):
         self.make(turn=2)
 
-    def duck(self):
-        def finish():
-            self.host.gravity = 1
-        ground = self.host.get_offset_tile(0, 1)
-        climbable = ground.is_climbable()
-        if climbable:
-            if self.host.gravity or self.host.form.state_name == 'climb':
-                self.exert(0, 2)
-                self.host.gravity = 0
-                self.host.move(0, 1, flag=Tile.CHECK_CLIMBABLE)
-                self.on_finish = finish
-                self.make('climb', turn=2)
-        else:
-            self.make('interact', turn=2)
-
     def interact(self):
         self.make(turn=3)
         if not self.host.is_armed():
@@ -150,6 +136,40 @@ class Actions:
                     return
         else:
             self.host.drop()
+
+    def duck(self):
+        def finish():
+            self.host.gravity = 1
+        ground = self.host.get_offset_tile(0, 1)
+        climbable = ground.is_climbable()
+        if climbable:
+            if self.host.gravity or self.host.form.state_name == 'climb':
+                self.exert(0, 2)
+                self.host.gravity = 0
+                self.host.move(0, 1, flag=Tile.CHECK_BREAKABLE)
+                self.on_finish = finish
+                self.make('climb', turn=2)
+            elif not self.host.gravity:
+                self.host.move(0, 1)
+                self.make(animation='swim', turn=4)
+        else:
+            self.make('interact', turn=2)
+
+    def jump(self):
+        if self.host.pos[0].is_climbable():
+            self.host.hang = 1
+            if self.host.pos[0] != self.host.move(0, -1):
+                self.exert(0, 2)
+                self.make('climb', turn=2)
+        else:
+            if self.host.gravity:
+                self.host.hang = 0
+                self.exert(0, 5)
+                self.host.move(self.host.direction*1, -1)
+                self.make(turn=2)
+            else:
+                self.host.move(0, -1)
+                self.make(animation='swim', turn=4)
 
     def dead(self):
         self.host.collide = 0
@@ -173,21 +193,24 @@ class Actions:
         self.host.weapon.use()
 
     def attack(self):
-        self.exert(1, 5 + self.host.weapon.weight)
+        self.exert(1, 4 + self.host.weapon.weight)
         self.host.aim()
         self.host.form.rotate_appendage(30, 0, self.host.next_target)
-        self.host.weapon.attack(delay=1)
+        self.host.weapon.attack()
         self.make(turn=4)
 
     def dash(self):
-        self.exert(0, 10)
+        self.exert(2, 4 + self.host.weapon.weight)
+        self.exert(0, 12)
         self.host.aim()
         self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction, 0),
-                                           delay=1, type=self.host.weapon.hit_type, callback=self.knockdown)
+                                           type='batter', faction=self.host.faction, callback=self.knockdown)
         self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*2, 0),
-                                           delay=1, type=self.host.weapon.hit_type, callback=self.knockdown)
+                                           type='batter', faction=self.host.faction, callback=self.knockdown)
+        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*3, 0),
+                                           type='batter', faction=self.host.faction, callback=self.knockdown)
         self.host.move(self.host.direction*3, 0, flag=Tile.CHECK_TERRAIN)
-        self.host.weapon.attack(delay=1, callback=self.knockdown)
+        self.host.weapon.attack(callback=self.knockdown)
         self.make(turn=6)
 
     def kick(self):
@@ -195,43 +218,26 @@ class Actions:
             victim.move(direction, 0)
             if isinstance(victim, Unit):
                 victim.action.set('down')
-        self.exert(0, 10)
+        self.exert(0, 8)
         direction = self.host.direction
         self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0),
-                                           delay=1, type='batter', callback=on_hit)
+                                           type='batter', callback=on_hit)
         self.make(turn=4)
-
-    def jump(self):
-        if self.host.pos[0].is_climbable():
-            self.exert(0, 2)
-            self.host.move(0, -1)
-            self.host.hang = 1
-            self.make('climb', turn=2)
-        else:
-            if self.host.gravity:
-                self.exert(0, 5)
-                self.host.move(self.host.direction*1, -1)
-                self.make(turn=2)
-            else:
-                self.host.move(0, -1)
-                self.make(animation='swim', turn=4)
 
     def leap(self):
         def fall():
             self.host.gravity = 1
-        self.exert(0, 10)
-        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*2, 0),
-                                           delay=1, type='batter', callback=self.knockdown)
-        self.host.move(self.host.direction * 3, -2)
+        self.exert(0, 5)
+        self.host.move(self.host.direction * 2, -2)
         if self.host.gravity:
             self.host.gravity = 0
             self.on_finish = fall
         self.make(animation='jump', turn=1)
 
     def lunge(self):
-        self.exert(2, 5)
+        self.exert(2, 8 + self.host.weapon.weight)
         if self.host.pos[0] != self.host.move(self.host.direction, 0):
-            self.host.weapon.attack(delay=2, callback=self.knockdown)
+            self.host.weapon.attack(callback=self.knockdown)
             self.make(turn=4)
         else:
             self.make(animation='drop', turn=4)
@@ -239,10 +245,10 @@ class Actions:
     def underhand(self):
         def fin():
             self.host.hittable = 1
-        self.exert(2, 5)
+        self.exert(2, 8)
         if self.host.pos[0] != self.host.move(-self.host.direction, 0):
             self.host.form.rotate_appendage(41, 0, self.host.next_target)
-            self.host.weapon.attack(delay=1)
+            self.host.weapon.attack()
             self.host.hittable = 0
             self.on_finish = fin
             self.make(turn=5)
@@ -252,7 +258,7 @@ class Actions:
     def flurry(self):
         self.exert(1, 3)
         self.exert(2, 3)
-        self.host.weapon.attack(delay=1)
+        self.host.weapon.attack()
         self.make(turn=0)
 
     def arch(self):
@@ -274,9 +280,9 @@ class Actions:
         def on_cast():
             Spells.ignite(self.host)
         self.on_finish = on_cast
-        self.exert(0, 5)
-        self.exert(1, 5)
-        self.exert(2, 5)
+        self.exert(0, 4)
+        self.exert(1, 4)
+        self.exert(2, 4)
         self.make(animation='conjure', turn=8)
 
     def whirlwind(self):
@@ -289,27 +295,27 @@ class Actions:
         def on_cast():
             Spells.conjure(self.host)
         self.on_finish = on_cast
-        self.exert(0, 5)
-        self.exert(1, 5)
-        self.exert(2, 5)
+        self.exert(0, 4)
+        self.exert(1, 4)
+        self.exert(2, 4)
         self.make(animation='charm', turn=12)
 
     def charm(self):
         def on_cast():
             Spells.charm(self.host)
         self.on_finish = on_cast
-        self.exert(0, 5)
-        self.exert(1, 5)
-        self.exert(2, 5)
+        self.exert(0, 4)
+        self.exert(1, 4)
+        self.exert(2, 4)
         self.make(turn=5)
 
     def cast(self):
         def on_cast():
             Spells.cast(self.host)
         self.on_finish = on_cast
-        self.exert(0, 5)
-        self.exert(1, 5)
-        self.exert(2, 5)
+        self.exert(0, 4)
+        self.exert(1, 4)
+        self.exert(2, 4)
         self.host.form.rotate_appendage(28, 0, self.host.next_target)
         self.host.form.rotate_appendage(28, 5, self.host.next_target)
         self.make(turn=8)

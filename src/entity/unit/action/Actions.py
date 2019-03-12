@@ -114,11 +114,18 @@ class Actions:
         self.set('walk')
 
     def walk(self):
-        self.host.move(self.host.direction, 0)
-        if self.host.gravity:
-            self.make(turn=2)
+        if not self.host.get_offset_tile(0, 1).is_land(Tile.CHECK_LANDABLE) and self.host.pos[0].is_climbable():
+            self.exert(0, 1)
+            self.host.move(self.host.direction, 0)
+            if self.host.pos[0].is_climbable():
+                self.host.hang = 1
+                self.make(animation='hike', turn=6)
         else:
-            self.make(animation='swim', turn=4)
+            self.host.move(self.host.direction, 0)
+            if self.host.gravity:
+                self.make(turn=2)
+            else:
+                self.make(animation='swim', turn=4)
 
     def hit(self):
         self.make(turn=2)
@@ -159,7 +166,7 @@ class Actions:
         if self.host.pos[0].is_climbable():
             self.host.hang = 1
             if self.host.pos[0] != self.host.move(0, -1):
-                self.exert(0, 2)
+                self.exert(0, 1)
                 self.make('climb', turn=2)
         else:
             if self.host.gravity:

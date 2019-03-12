@@ -25,6 +25,7 @@ class Spells:
         obj = Spells.check_rift(host)
         if 'teleport' in host.action.spells and obj and host.states.get('air'):
             host.relocate(obj.pos[0].x, obj.pos[0].y)
+            host.center_camera()
         elif 'levitate' in host.action.spells and host.states.get('air'):
             host.states.add('levitate', 60)
         elif 'brand' in host.action.spells and host.states.get('fire'):

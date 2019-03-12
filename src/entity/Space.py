@@ -111,7 +111,7 @@ class Space:
     def distance(self):
         return math.sqrt((self.x * self.x) + (self.y * self.y))
 
-    def sum(self):
+    def difference(self):
         return abs(self.x) + abs(self.y)
 
     def to_int(self):

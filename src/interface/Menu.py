@@ -22,6 +22,7 @@ class Menu:
         self.dialog.color = Window.fore_color1
         self.dialog_text = []
         self.last_input = None
+        self.var = 0
 
     def draw(self, surface):
         if self.visible == 1:
@@ -129,23 +130,9 @@ class Menu:
     def menu_skills(self):
         def make_on_click(outer_index):
             def assign():
-                def make_assign_click(inner_index):
-                    def assign_click():
-                        skills = self.host.action.skills
-                        skills[outer_index], skills[inner_index] = skills[inner_index], skills[outer_index]
-                        self.state = self.menu_skills
-                        self.display(1)
-                    return assign_click
-                first = self.host.action.skills[:6]
-                second = self.host.action.skills[6:]
-                self.window.flush()
-                for first_key, i in enumerate(first):
-                    self.window.add_child(Menu.make_button([i.title()], make_assign_click(first_key), None))
-                self.sub_window.flush()
-                for second_key, i in enumerate(second):
-                    self.sub_window.add_child(Menu.make_button([i.title()], make_assign_click(second_key + 6), None))
-                self.window.display(1)
-                self.sub_window.display(1)
+                self.var = outer_index
+                self.state = self.menu_skills_reassign
+                self.display(1)
             return assign
         control = Global.main.world.control
         key_buttons = []
@@ -160,6 +147,25 @@ class Menu:
             action_button = Menu.make_button([v.title()], None, None)
             action_button.on_click = make_on_click(k)
             self.sub_window.add_child(action_button)
+        self.sub_window.display(1)
+
+    def menu_skills_reassign(self):
+        def make_assign_click(inner_index):
+            def assign_click():
+                skills = self.host.action.skills
+                skills[self.var], skills[inner_index] = skills[inner_index], skills[self.var]
+                self.state = self.menu_skills
+                self.display(1)
+            return assign_click
+        first = self.host.action.skills[:6]
+        second = self.host.action.skills[6:]
+        self.window.flush()
+        for first_key, i in enumerate(first):
+            self.window.add_child(Menu.make_button([i.title()], make_assign_click(first_key), None))
+        self.sub_window.flush()
+        for second_key, i in enumerate(second):
+            self.sub_window.add_child(Menu.make_button([i.title()], make_assign_click(second_key + 6), None))
+        self.window.display(1)
         self.sub_window.display(1)
 
     def menu_equipment(self):

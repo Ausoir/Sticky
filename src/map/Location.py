@@ -124,9 +124,8 @@ class Location:
 
     def get_area(self, center_tile, aoe):
         tiles = []
-        vertical = int(aoe*3/2)
-        for x in range(-aoe, aoe):
-            for y in range(-vertical, vertical):
+        for x in range(-aoe, aoe+1):
+            for y in range(-aoe, aoe+1):
                 tile = self.get_tile(center_tile + (x, y), create=0)
                 if tile:
                     tiles.append(tile)

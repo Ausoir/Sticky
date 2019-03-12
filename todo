@@ -1,4 +1,5 @@
 -- AI
+Travel pathfinding - triggers when target out of collide_line (sight), reach destination and recurse
 Pilot str and load
 
 

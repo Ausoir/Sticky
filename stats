@@ -18,15 +18,11 @@
 2/12 Menu.status (1), Attack.dealer removed (1), lists turned to Space as much as possible (2), fixed projectile (1)
 2/13. Spells.brand and Spells.insulation changed, Spells.conjuration implemented, Spells.summon crate, Spells.dispell done (4)
 2/13 Body.height is now auto (1), redone Faction and changed Fireblast (1)
--- Rest
+2/14 Rest Begin
 2/14. replaced insulation with combust and added Location aoe fn (1), added Spells.tornado (1), fixed remaining lists (1)
 2/14 modified _effects wind and extended _effects (1)
-2/15.
-2/16.
 2/17. added Animation and made Sprite receive Data.cache directly (1)
-2/18.
-2/19.w
--- End
+2/18 Rest End
 2/20. Form.create to clone Animation (1), Effect offset (1), separated Effect from Projectile again (3)
 2/20 *** 1pt = 1 debugging or 1 feature, 3pt = 1 comprehensive debug follow, 5pt = difficult debugging, 1:4 ratio
 2/21.w Added conjure unit (1), resources to lower case (1), Projectile motion_pos bugfix (1), added Spells.fargate (1)
@@ -44,13 +40,23 @@
 2/25. improved Spells.tornado (1)
 2/26.w *** streak 3 success at first, but doesn't stop from doing other things
 2/26 *** streak 4 - 45pts/week goal, ideal 6 pts/day
-2/27
 2/28w redone Pilot (5)
 3/02w climb to jump bugfix (1), tags control collision and depth (1), editor only delete 1 (1), _singles.png re-order (1)
 3/02 wood burn (1), ladder wield&climb bug fix(1), replaced Spells.barrier with crystallize (1)
 3/03 AI.Behavior (1), Task.Move improve (1)
 3/04w Unit seed system (1), modularized Behavior (2), stun animation and Spells.energy redone (1), Task.Travel (3)
 3/04 Task lifetime (1), Bleed bugfix (1), improved Task.Travel (2), Task.Travel memory system (3)
-3/05 *** streak 5 - 15 pts/3 day ideal, 40 pts/week, free social day, workout 1 pt
+---- PUSH
+3/05 Humanoid share fist bugfix (1), fixed Menu.skills.reassign (1)
+3/05 *** streak 4 failed (30/45), goal too high and procrastination and distraction
+3/06 *** streak 5 - 15 pts/3 day ideal, 30 pts/week, free social day, workout 1 pt, save pts
+3/06 hike (1)
+3/07 A* pathfinding (5)
+3/08 Travel implement (3)
+3/08 *** streak 5 early fail (9 pt at 2nd day), doesn't prevent from doing other things and procrastinating like #4
+3/09 *** streak 6 2day/week rest,3pt:1hr fun,min-5
+3/09 *** feature or bugfix - 1, comprehensive follow - 6, difficult problem solving - 24
+3/11 combined Pilot.Behavior into Pilot (1), Task.Pathing implemented (5), Pathing delay removed (1), Pathing diagonal downs (1)
+3/12 Pathing concurrent updates (1), Freeze on death bugfix (1),
 
-points 28/45 by 3/5
+3/09 :20

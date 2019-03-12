@@ -50,9 +50,9 @@ class Unit(Prop):
 
     def turn(self):
         super().turn()
+        self.pilot.update()
         if self.delay == 0:
             self.attributes.rest()
-            self.pilot.update()
             if self.next_target.x > 0 and self.direction != 1:
                 self.face(1)
             elif self.next_target.x < 0 and self.direction != -1:
@@ -93,6 +93,7 @@ class Unit(Prop):
         return r
 
     def die(self):
+        self.pilot.on_dead()
         self.action.set('dead', auto=1)
 
     def will_hit(self, tile):

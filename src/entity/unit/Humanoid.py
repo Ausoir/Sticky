@@ -4,10 +4,6 @@ from src.game.Camera import Camera
 
 
 class Humanoid(Unit):
-    fist = Stock.get('Fist')
-    body = Stock.get('Body')
-    head = Stock.get('Head')
-
     def __init__(self, loc):
         super().__init__(loc)
         self.weapon = None
@@ -16,6 +12,9 @@ class Humanoid(Unit):
         self.aim_angle = 0
         self.gold = 0
         self.hang = 0
+        self.fist = Stock.get('Fist')
+        self.body = Stock.get('Body')
+        self.head = Stock.get('Head')
 
     def __str__(self):
         weapon = '['+self.weapon.__str__()+']'
@@ -35,8 +34,8 @@ class Humanoid(Unit):
             weapon.on_equip(self)
         else:
             self.make_fist()
-        self.armor = Humanoid.body
-        self.headgear = Humanoid.head
+        self.armor = self.body
+        self.headgear = self.head
         if p[index + 2]:
             armor = Stock.get(p[index + 2][2], p[index + 2])
             armor.use(self)
@@ -103,14 +102,14 @@ class Humanoid(Unit):
         return r
 
     def make_fist(self):
-        Humanoid.fist.on_equip(self)
+        self.fist.on_equip(self)
 
     def make_armor(self):
-        self.armor = Humanoid.body
+        self.armor = self.body
         self.armor.use(self)
 
     def make_headgear(self):
-        self.headgear = Humanoid.head
+        self.headgear = self.head
         self.headgear.use(self)
 
     def drop(self):

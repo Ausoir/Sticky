@@ -11,6 +11,7 @@ w,jump
 LMB,use
 RMB,interact
 Wheel+,interact
+z,interact
 SPACE,sprint
 1,act1
 2,act2

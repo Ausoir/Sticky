@@ -67,7 +67,7 @@ class Body:
         self.state_name = state
         self.current_clip = 0
         self.update_clip()
-        self.height = -1000
+        self.height = -200
         for i in self.leg:
             self.height = max(self.height, self.current_animation[i][1] - Global.HALF_BLOCK - 1)
 
@@ -85,9 +85,10 @@ class Body:
         self.current_clip += 1
 
     def face(self, direction):
-        self.direction = direction
-        for x in self.organs:
-            x.form.face(direction)
+        if self.direction != direction:
+            self.direction = direction
+            for x in self.organs:
+                x.form.flip(1, 0)
 
     def randomize_once(self, mag):
         r = []
@@ -111,14 +112,13 @@ class Body:
 
     def randomize_body(self, seed):
         random.seed(seed)
-        mag = random.gauss(.45, .04)
-        mag_x = mag * 1.5
+        mag = random.gauss(.9, .08)
         r = []
         for clip in self.animation:
             r1 = []
             for i in clip:
                 if isinstance(i, list):
-                    r1.append([int(i[0] * mag_x), int(i[1] * mag)])
+                    r1.append([int(i[0] * mag), int(i[1] * mag)])
                 else:
                     r1.append(i)
             r.append(r1)
@@ -128,5 +128,5 @@ class Body:
         animation = Data.get_cache_clip(self.model_name)[1]
         length = abs(animation[frame][organ][0]) + abs(animation[frame][organ][1])
         atan = target.to_int().get_atan()
-        self.animation[frame][organ][0] = length*Math.cos(atan)*-self.direction
+        self.animation[frame][organ][0] = length*Math.cos(atan)*self.direction
         self.animation[frame][organ][1] = length*Math.sin(atan)

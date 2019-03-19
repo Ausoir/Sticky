@@ -54,9 +54,17 @@
 3/07 A* pathfinding (5)
 3/08 Travel implement (3)
 3/08 *** streak 5 early fail (9 pt at 2nd day), doesn't prevent from doing other things and procrastinating like #4
-3/09 *** streak 6 2day/week rest,3pt:1hr fun,min-5
-3/09 *** feature or bugfix - 1, comprehensive follow - 6, difficult problem solving - 24
+3/09 *** streak 6 2day/week rest,2pt:1hr any fun,min0
+3/09 *** feature or bugfix - 1, comprehensive follow - 5, difficult problem solving - 24
 3/11 combined Pilot.Behavior into Pilot (1), Task.Pathing implemented (5), Pathing delay removed (1), Pathing diagonal downs (1)
-3/12 Pathing concurrent updates (1), Freeze on death bugfix (1),
+3/12 Pathing concurrent updates (1), Freeze on death bugfix (1), Buffs.Banishment (1), Spells.shock (1), Editor multi delete fix (1)
+3/13 Burning spreads (1), Building Tiles (2), Space operations use floats too (1), fixed Space.get_atan (3)
+3/14 Sprite.draw optimized (3), pygame smoothscale <1 ratio crash fix (3), added panorama (3), added Archer (1), Projectile fast fire (3)
+3/14 collide_land into edge (1), archer AI (2), optimize FPS using get_time (1), added Bridge (1)
+3/15 Buffs overhaul, added Buff (5), added Ragdoll (3), added Skeleton (1), -1 headgears (1), added Weapon Speed (2)
+3/16 ID int to hex (1), scaled Man.2d (1), Sprite face direction fix (1), Clone instead of appendages sharing sprites (1)
+3/17 collide_line takes functions (1), Weapon pivot changing bugfix (1), Weapon added accuracy (1), added Man.proficiency (1)
+3/18 Spell success (1), Head flip bugfix (1), added Actions.flurry (1), Spells overhaul (1), Task.Chase bugfix (1)
+3/19
 
-3/09 :20
++:00

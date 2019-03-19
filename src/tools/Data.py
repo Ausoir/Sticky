@@ -57,11 +57,9 @@ class Data:
     @staticmethod
     def run_cache(fdir):
         t = Data.get_cache(fdir)
-        if t:
-            return t[0](t[1:])
-        else:
-            Data.get_image(fdir, 1)
-            return Data.run_cache(fdir)
+        if not t:
+            t = Data.get_image(fdir, 1)
+        return t[0](t[1:])
 
     @staticmethod
     def process_raw(data):
@@ -107,10 +105,10 @@ class Data:
     @staticmethod
     def get_image(fdir, cache):
         if cache:
-            Data.cache[fdir] = [Sprite, pygame.image.load(Data.direct(fdir + '.png'))]
+            Data.cache[fdir] = [Sprite, pygame.image.load(Data.direct(fdir + '.png')).convert_alpha()]
             return Data.cache[fdir]
         else:
-            return pygame.image.load(Data.direct(fdir + '.png'))
+            return pygame.image.load(Data.direct(fdir + '.png')).convert_alpha()
 
     @staticmethod
     def get_cache_file(fdir):

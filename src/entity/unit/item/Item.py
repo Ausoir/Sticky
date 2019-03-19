@@ -33,10 +33,11 @@ class Item(Prop):
         self.remove()
 
     def on_unequip(self):
+        self.form.rotate(0)
         self.motion_pos = self.motion_pos + 0
         self.relocate(self.host.pos[0].x, self.host.pos[0].y, force=1)
         self.host = None
-        self.form.rotation = 0
+        self.form.rotate(0)
         self.add()
 
     def describe(self):

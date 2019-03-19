@@ -9,3 +9,6 @@ blood,[gfx_7x0,gfx_7x1,gfx_7x2,gfx_7x3],5,0
 energy,[gfx_8x0,gfx_8x1,gfx_8x2,gfx_8x3],5,0
 portal,[gfx_9x0,gfx_9x1,gfx_9x2,gfx_9x3],5,1
 zap,[gfx_10x0,gfx_10x1,gfx_10x2,gfx_10x3],5,1
+zwip,[gfx_11x0,gfx_11x1,gfx_11x2,gfx_11x3],5,1
+shock,[gfx_0x4,gfx_0x5,gfx_0x6,gfx_0x7],5,0
+fail,[gfx_1x4,gfx_1x5,gfx_1x6,gfx_1x7],6,1

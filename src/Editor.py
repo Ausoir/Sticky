@@ -42,13 +42,13 @@ class Editor:
         vec_y = Camera.target.y / Global.BLOCK + target.y
         if action == 'idle':
             self.tool.input(0, self.location.get_tile(vec_x, vec_y))
+            self.tool.last = None
         elif action == 'switch':
             self.tool.cancel()
         elif action == 'use':
             self.tool.input(1, self.location.get_tile(vec_x, vec_y))
         elif action == 'delete':
             self.tool.input(2, self.location.get_tile(vec_x, vec_y))
-            self.control.clear_press(self.control.get_key('delete'))
         elif action == 'prev':
             if action != self.prev_command:
                 self.display_text = self.tool.cycle(-1)
@@ -117,6 +117,7 @@ class ToolTerrain:
         self.tile = loc.get_tile(0, 0)
         self.prev_tile = None
         self.current = 0
+        self.last = None  # unused
 
     def cancel(self):
         self.tile.terrain = self.prev_tile
@@ -138,7 +139,7 @@ class ToolTerrain:
         if not button:
             self.cancel()
         elif button != 1:
-            text = ''
+            self.tile.set_terrain('')
         self.tile = tile
         self.prev_tile = tile.terrain
         self.tile.set_terrain(text)
@@ -152,6 +153,7 @@ class ToolObject:
         self.tile = loc.get_tile(0, 0)
         self.object_list = list(Data.get_cache(object_type))
         self.current = 0
+        self.last = None
 
     def cancel(self):
         self.selection.remove()
@@ -171,7 +173,7 @@ class ToolObject:
         if not button:
             self.selection.relocate(tile.x, tile.y)
         elif button == 1:
-            self.selection.relocate(tile.x, tile.y)
+            self.selection.relocate(tile.x, tile.y, force=1)
             preexisting = 0
             for i in tile.things:
                 if i != self.selection and i.name == self.text:
@@ -181,8 +183,10 @@ class ToolObject:
                 self.selection = Stock.get(self.text.title()).add()
                 self.selection.relocate(tile.x, tile.y, force=1)
         else:
-            if tile.things:
-                for i in reversed(tile.things):
-                    if i != self.selection:
-                        i.remove()
-                        break
+            if self.last != tile:
+                if tile.things:
+                    for i in reversed(tile.things):
+                        if i != self.selection:
+                            i.remove()
+                            break
+                self.last = tile

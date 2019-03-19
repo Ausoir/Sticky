@@ -7,10 +7,10 @@ from src.tools.Random import Random
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'dead', 'interact', 'use', 'jump', 'sprint', 'duck',
+    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'sprint', 'duck',
                'act1', 'act2', 'act3', 'act4', 'act5', 'act6']
     spell_list = ['fireblast', 'levitate', 'brand', 'tornado', 'crystallize', 'grapple', 'summon', 'fargate',
-                  'teleport']
+                  'teleport', 'shock']
 
     def __init__(self, host):
         self.host = host
@@ -39,22 +39,25 @@ class Actions:
             self.set(action)
 
     def set(self, action, auto=0):
-        if not self.host.is_dead():
-            if self.exhausted and not auto:
-                action = 'rest'
-            self.auto = auto
-            self.current_action = action
-            if action != self.last_action:
-                self.host.hang = 0
-                self.time = 0
-                if self.on_finish:
-                    fn = self.on_finish  # prevent recursion
-                    self.on_finish = None
-                    fn()
+        if self.exhausted and not auto:
+            action = 'rest'
+        self.auto = auto
+        self.current_action = action
+        self.host.hang = 0
+        if action != self.last_action:
+            self.time = 0
+        else:
+            self.time += 1
+        if self.on_finish:
+            if self.host.delay:
+                self.on_finish = None
             else:
-                self.time += 1
-            getattr(self, action)()
-            self.last_action = action
+                fn = self.on_finish  # prevent recursion
+                self.on_finish = None
+                fn()
+        getattr(self, action)()
+        self.last_action = action
+        return 1
 
     def set_animation(self, arg):
         if self.host.form.state_name != arg or self.host.form.animation_ended:
@@ -74,7 +77,7 @@ class Actions:
     @staticmethod
     def knockdown(victim):
         if isinstance(victim, Unit):
-            victim.action.set('down')
+            victim.action.set('down', auto=1)
 
     def idle(self):
         if not self.host.get_offset_tile(0, 1).is_land(Tile.CHECK_LANDABLE) and self.host.pos[0].is_climbable():
@@ -178,12 +181,6 @@ class Actions:
                 self.host.move(0, -1)
                 self.make(animation='swim', turn=4)
 
-    def dead(self):
-        self.host.collide = 0
-        self.host.location.record.remove(self.host)
-        self.make(animation='dead' + str(Random.rand_int(1, 3)))
-        self.host.delay = -1
-
     def down(self):
         self.make(turn=7)
 
@@ -200,35 +197,35 @@ class Actions:
         self.host.weapon.use()
 
     def attack(self):
-        self.exert(1, 4 + self.host.weapon.weight)
+        self.exert(1, self.host.weapon.weight)
         self.host.aim()
         self.host.form.rotate_appendage(30, 0, self.host.next_target)
-        self.host.weapon.attack()
-        self.make(turn=4)
+        self.host.weapon.attack(1 + self.host.get_proficiency(self.current_action))
+        self.make(turn=3 + self.host.weapon.speed)
 
     def dash(self):
         self.exert(2, 4 + self.host.weapon.weight)
         self.exert(0, 12)
         self.host.aim()
-        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction, 0),
-                                           type='batter', faction=self.host.faction, callback=self.knockdown)
-        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*2, 0),
-                                           type='batter', faction=self.host.faction, callback=self.knockdown)
-        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*3, 0),
-                                           type='batter', faction=self.host.faction, callback=self.knockdown)
+        prof = self.host.get_proficiency(self.current_action)
+        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction, 0), type='batter',
+                                           faction=self.host.faction, chance=prof - 1, callback=self.knockdown)
+        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*2, 0), type='batter',
+                                           faction=self.host.faction, chance=prof - 1, callback=self.knockdown)
+        self.host.location.attack.register(1, self.host.get_offset_tile(self.host.direction*3, 0), type='batter',
+                                           faction=self.host.faction, chance=prof - 1, callback=self.knockdown)
         self.host.move(self.host.direction*3, 0, flag=Tile.CHECK_TERRAIN)
-        self.host.weapon.attack(callback=self.knockdown)
+        self.host.weapon.attack(1 + prof, callback=self.knockdown)
         self.make(turn=6)
 
     def kick(self):
         def on_hit(victim):
             victim.move(direction, 0)
-            if isinstance(victim, Unit):
-                victim.action.set('down')
+            self.knockdown(victim)
         self.exert(0, 8)
         direction = self.host.direction
         self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0),
-                                           type='batter', callback=on_hit)
+                                           chance=1, type='batter', callback=on_hit)
         self.make(turn=4)
 
     def leap(self):
@@ -244,7 +241,7 @@ class Actions:
     def lunge(self):
         self.exert(2, 8 + self.host.weapon.weight)
         if self.host.pos[0] != self.host.move(self.host.direction, 0):
-            self.host.weapon.attack(callback=self.knockdown)
+            self.host.weapon.attack(1 + self.host.get_proficiency(self.current_action), callback=self.knockdown)
             self.make(turn=4)
         else:
             self.make(animation='drop', turn=4)
@@ -255,7 +252,7 @@ class Actions:
         self.exert(2, 8)
         if self.host.pos[0] != self.host.move(-self.host.direction, 0):
             self.host.form.rotate_appendage(41, 0, self.host.next_target)
-            self.host.weapon.attack()
+            self.host.weapon.attack(1 + self.host.get_proficiency(self.current_action))
             self.host.hittable = 0
             self.on_finish = fin
             self.make(turn=5)
@@ -263,63 +260,85 @@ class Actions:
             self.make(animation='drop', turn=4)
 
     def flurry(self):
-        self.exert(1, 3)
+        self.exert(1, max(0, self.host.weapon.weight - 1))
         self.exert(2, 3)
-        self.host.weapon.attack()
-        self.make(turn=0)
+        if Random.rand_bool():
+            self.host.weapon.attack(self.host.get_proficiency(self.current_action) - 1)
+        angle = self.host.next_target.get_atan() + (Random.rand_int(-15, 15))
+        self.host.weapon.form.rotate(-angle + 90)
+        self.host.form.rotate_appendage(55, 0, self.host.next_target)
+        self.host.form.rotate_appendage(55, 5, self.host.next_target)
+        self.make(animation='flurry', turn=0)
 
     def arch(self):
         def fin():
             def effect(target):
                 if target:
                     Effect.make('batter', r.pos[0].get_center())
-            r = Stock.project('g_2x1', self.host.get_interact_pos(), 2)
-            r.fly(dest.x, dest.y-1, 8, flag=Tile.CHECK_LARGE)
-            r.fly(dest.x, dest.y-1, 1, flag=[])
-            r.crash(callback=effect)
+            r = Stock.project('g_0x2', self.host.get_interact_pos(), 2)
+            r.faction = self.host.faction
+            r.chance = self.host.get_proficiency(self.current_action)
+            r.fly(dest.x, dest.y, 9, flag=Tile.CHECK_LARGE)
+            r.crash(delay=0, callback=effect)
+        self.exert(2, 7)
         dest = self.host.next_target * 10
         self.host.form.rotate_appendage(31, 0, self.host.next_target)
         self.host.form.rotate_appendage(32, 0, self.host.next_target)
         self.on_finish = fin
+        self.host.aim()
         self.make(turn=7)
 
+    def on_cast(self, spell):
+        def cast():
+            return spell(self.host)
+        self.on_finish = cast
+
+    def fail(self):
+        Effect.make('fail', self.host.pos[0].get_center(), lifetime=16)
+        self.host.action.set('hit', auto=1)
+
     def ignite(self):
-        def on_cast():
-            Spells.ignite(self.host)
-        self.on_finish = on_cast
+        if Random.roll(self.host.get_proficiency('pyromancy') + 4):
+            self.on_cast(Spells.ignite)
+        else:
+            self.on_finish = self.fail
         self.exert(0, 4)
         self.exert(1, 4)
         self.exert(2, 4)
         self.make(animation='conjure', turn=8)
 
     def whirlwind(self):
-        def on_cast():
-            Spells.whirlwind(self.host)
-        self.on_finish = on_cast
-        self.make(animation='charm', turn=2)
+        if Random.roll(self.host.get_proficiency('aeromancy') + 4):
+            self.on_cast(Spells.whirlwind)
+            self.make(animation='charm', turn=2)
+        else:
+            self.on_finish = self.fail
 
     def conjure(self):
-        def on_cast():
-            Spells.conjure(self.host)
-        self.on_finish = on_cast
+        if Random.roll(self.host.get_proficiency('conjuration') + 4):
+            self.on_cast(Spells.conjure)
+        else:
+            self.on_finish = self.fail
         self.exert(0, 4)
         self.exert(1, 4)
         self.exert(2, 4)
         self.make(animation='charm', turn=12)
 
     def charm(self):
-        def on_cast():
-            Spells.charm(self.host)
-        self.on_finish = on_cast
+        if Random.roll(self.host.get_proficiency('charm') + 4):
+            self.on_cast(Spells.charm)
+        else:
+            self.on_finish = self.fail
         self.exert(0, 4)
         self.exert(1, 4)
         self.exert(2, 4)
         self.make(turn=5)
 
     def cast(self):
-        def on_cast():
-            Spells.cast(self.host)
-        self.on_finish = on_cast
+        if Random.roll(self.host.get_proficiency('cast') + 4):
+            self.on_cast(Spells.cast)
+        else:
+            self.on_finish = self.fail
         self.exert(0, 4)
         self.exert(1, 4)
         self.exert(2, 4)

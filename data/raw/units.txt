@@ -1,5 +1,6 @@
-Peasant,unit/man,[hum,if],1,[],1,Melee,[0,1,1,1],[sprint],0,0,0,0 //Name,image,tags,hp=1,state,faction,pilot,stats,skills,gold,armor,weapon,headgear
-Summon,unit/man,[hum,if],1,[],1,Melee,[0,1,2,1],[lunge,dash],0,0,0,0
-Rogue,unit/man,[hum,if],1,[],5,Melee,[0,1,3,2],[lunge,dash],0,[0,[[0,7]],Dagger,data/image/dagger,[shp],8,[],[1,1],6,[1],0],[0,[[0,0]],Leather,data/image/unit/leather,[],3,[],[3,2],2,[111,111,212,212],[]],0
-Swordsman,unit/man,[hum,if],1,[],5,Melee,[0,3,1,1],[lunge],0,0,0,0
-Pyromancer,unit/man,[hum,if],1,[],5,Melee,[0,1,1,3],[fireblast],0,0,0,0
+Peasant,unit/man,[hum,if],1,[],1,Melee,[0,1,1,1],[],0,0,0,0,[] //Name,image,tags,hp=1,state,faction,pilot,stats,skills,gold,armor,weapon,headgear
+Summon,unit/man,[hum,if],1,[],0,Melee,[0,5,1,1],[],[],0,0,[#0,[[0,0]],Skeleton,data/image/unit/skeleton,[],3,[],[3,3],2,[111,111,111,111],[]],[#0,[[0,0]],Skull,data/image/unit/skull,[],-1,[],[2,1],1]
+Rogue,unit/man,[hum,if],1,[],5,Melee,[0,1,3,1],[dash],[dodge,dagger,dash],0,[#0,[[0,0]],Dagger,data/image/dagger,[shp],16,[],[1,1],6,[1],9,0,1],[#0,[[0,0]],Leather,data/image/unit/leather,[],3,[],[3,2],2,[111,111,212,212],[]],0
+Swordsman,unit/man,[hum,if],1,[],5,Melee,[0,3,2,1],[lunge],[],0,[#0,[[0,0]],Broadsword,data/image/broadsword,[shp],-1,[],[1,2],8,[1],6,2,2],[#0,[[0,0]],Chainmail,data/image/unit/Chainmail,[],8,[],[3,3],4,[111,121,222,212],[]],0
+Archer,unit/man,[hum,if],1,[],5,Archer,[0,3,3,1],[arch],[],0,[#0,[[0,0]],Bow,data/image/bow,[iw],18,[],[1,3],14,[1],6,0,0],[#0,[[0,0]],Chainmail,data/image/unit/Chainmail,[],8,[],[3,3],4,[111,121,222,212],[]],0
+Pyromancer,unit/man,[hum,if],1,[],5,Melee,[0,1,1,3],[fireblast],[],0,0,[#0,[[0,0]],Robe,data/image/unit/robe,[],1,[],[3,3],3,[212,222,222,212],[]],0

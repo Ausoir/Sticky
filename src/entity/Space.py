@@ -19,20 +19,20 @@ class Space:
             if isinstance(arg, Space):
                 self.x = arg.x
                 self.y = arg.y
-            elif isinstance(arg, int):
-                self.x = arg
-                self.y = arg
             elif isinstance(arg, tuple) or isinstance(arg, list):
                 self.x = arg[0]
                 self.y = arg[1]
+            else:
+                self.x = arg
+                self.y = arg
 
     def __eq__(self, arg):
         if isinstance(arg, Space):
             return self.x == arg.x and self.y == arg.y
-        elif isinstance(arg, int):
-            return self.x == arg and self.y == arg
         elif isinstance(arg, tuple) or isinstance(arg, list):
             return self.x == arg[0] and self.y == arg[1]
+        else:
+            return self.x == arg and self.y == arg
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -41,21 +41,21 @@ class Space:
         if isinstance(arg, Space):
             self.x += arg.x
             self.y += arg.y
-        elif isinstance(arg, int):
-            self.x += arg
-            self.y += arg
         elif isinstance(arg, tuple) or isinstance(arg, list):
             self.x += arg[0]
             self.y += arg[1]
+        else:
+            self.x += arg
+            self.y += arg
         return self
 
     def __add__(self, arg):
         if isinstance(arg, Space):
             return Space(self.x + arg.x, self.y + arg.y)
-        elif isinstance(arg, int):
-            return Space(self.x + arg, self.y + arg)
         elif isinstance(arg, tuple) or isinstance(arg, list):
             return Space(self.x + arg[0], self.y + arg[1])
+        else:
+            return Space(self.x + arg, self.y + arg)
 
     def __radd__(self, arg):
         return self.__add__(arg)
@@ -63,21 +63,21 @@ class Space:
     def __sub__(self, arg):
         if isinstance(arg, Space):
             return Space(self.x - arg.x, self.y - arg.y)
-        elif isinstance(arg, int):
-            return Space(self.x - arg, self.y - arg)
         elif isinstance(arg, tuple) or isinstance(arg, list):
             return Space(self.x - arg[0], self.y - arg[1])
+        else:
+            return Space(self.x - arg, self.y - arg)
 
     def __rsub__(self, arg):
         if isinstance(arg, Space):
             self.x -= arg.x
             self.y -= arg.y
-        elif isinstance(arg, int):
-            self.x -= arg
-            self.y -= arg
         elif isinstance(arg, tuple) or isinstance(arg, list):
             self.x -= arg[0]
             self.y -= arg[1]
+        else:
+            self.x -= arg
+            self.y -= arg
 
     def __neg__(self):
         return Space(-self.x, -self.y)
@@ -86,24 +86,24 @@ class Space:
         if isinstance(arg, Space):
             self.x *= arg.x
             self.y *= arg.y
-        elif isinstance(arg, int):
-            self.x *= arg
-            self.y *= arg
         elif isinstance(arg, tuple) or isinstance(arg, list):
             self.x *= arg[0]
             self.y *= arg[1]
+        else:
+            self.x *= arg
+            self.y *= arg
         return self
 
     def __mul__(self, arg):
         if isinstance(arg, Space):
             return Space(self.x * arg.x, self.y * arg.y)
-        elif isinstance(arg, int):
-            return Space(self.x * arg, self.y * arg)
         elif isinstance(arg, tuple) or isinstance(arg, list):
             return Space(self.x * arg[0], self.y * arg[1])
+        else:
+            return Space(self.x * arg, self.y * arg)
 
     def get_atan(self):  # left is 0, clockwise to 360
-        return math.degrees(math.atan2(-self.y, self.x)) + 180
+        return math.degrees(math.atan2(self.y, self.x))
 
     def abs(self):
         return Space(abs(self.x), abs(self.y))

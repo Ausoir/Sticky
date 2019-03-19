@@ -3,8 +3,8 @@ from src.entity.Space import Space
 from src.entity.unit.Attribute import Attribute
 from src.form.Body import Body
 from src.game.Global import DEPTH_UNIT
-# has Body form, is movable
 from src.map.Tile import Tile
+from src.tools.Random import Random
 
 
 class Unit(Prop):
@@ -12,6 +12,7 @@ class Unit(Prop):
         super().__init__(loc)
         from src.entity.unit.action.Actions import Actions
         self.action = Actions(self)
+        self.proficiency = []
         self.next_action = 'idle'
         self.next_target = Space()
         self.direction = 1
@@ -19,10 +20,11 @@ class Unit(Prop):
         self.attributes = Attribute()
         self.pilot = None
         self.depth = DEPTH_UNIT
+        self.standables = Tile.CHECK_LANDABLE
 
     def __str__(self):
-        return super().__str__() + ',' + str(self.faction) + ',' + self.pilot.__str__() +\
-               ',[' + self.attributes.__str__() + '],[' + self.action.__str__() + ']'
+        att = '[' + self.attributes.__str__() + '],[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
+        return super().__str__() + ',' + str(self.faction) + ',' + self.pilot.__str__() + ',' + att
 
     def load(self, p):
         from src.entity.unit.ai.Pilot import Pilot
@@ -35,7 +37,9 @@ class Unit(Prop):
         index += 1
         self.action.load(p[index])
         index += 1
+        self.proficiency = p[index]
         self.form.randomize(self.attributes.gene)
+        index += 1
         return index
 
     def make_form(self, arg):
@@ -70,31 +74,33 @@ class Unit(Prop):
     def get_interact_pos(self):
         return self.pos[0]
 
-    def get_offset_tile(self, x, y):
-        return self.location.get_tile(self.pos[0] + (x, y))
-
     def face(self, direction):
         self.direction = direction
         self.form.face(direction)
 
     def on_fall(self, distance):
-        if not self.is_dead():
-            if distance > 1:
-                self.action.set('down', auto=1)
-            else:
-                if not self.action.auto:
-                    self.form.set('drop')
+        if distance > 1:
+            self.action.set('down', auto=1)
+        else:
+            if not self.action.auto:
+                self.form.set('drop')
+
+    def is_hit(self, chance, faction=0):
+        if super().is_hit(chance, faction):
+            if Random.roll(chance-self.get_proficiency('dodge')):
+                return 1
 
     def hit(self, damage):
-        r = super().hit(damage)
-        if r and not self.is_dead():
-            self.pilot.hit()
-            self.action.set('hit', auto=1)
-        return r
+        self.pilot.hit()
+        self.action.set('hit', auto=1)
+        return super().hit(damage)
 
     def die(self):
-        self.pilot.on_dead()
-        self.action.set('dead', auto=1)
+        from src.entity.Stock import Stock
+        r = Stock.get('Ragdoll')
+        r.relocate(self.pos[0].x, self.pos[0].y, force=1)
+        r.set(self.form)
+        self.remove()
 
     def will_hit(self, tile):
         for i in self.pos:
@@ -102,5 +108,20 @@ class Unit(Prop):
                 return 1
         return 0
 
-    def is_dead(self):
-        return self.action.current_action == 'dead'
+    def get_proficiency(self, school):
+        return 1 if school in self.proficiency else 0
+
+    @staticmethod
+    def describe_proficiency(prof):
+        if prof == 0:
+            return 'Untrained'
+        if prof == 1:
+            return 'Familiar'
+        if prof == 2:
+            return 'Trained'
+        if prof == 3:
+            return 'Skilled'
+        if prof == 4:
+            return 'Expert'
+        if prof >= 5:
+            return 'Mastered'

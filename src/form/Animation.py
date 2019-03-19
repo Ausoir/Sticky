@@ -7,17 +7,22 @@ class Animation:
         self.clips = args[0]
         self.speed = args[1]
         self.current = 0
-        self.direction = 1
         self.repeat = args[2]
         self.ended = 0
         self.size = self.clips[0].size
         self.pivot = Space(self.size.x / 2, self.size.y / 2)
+        self.direction = 1
+        self.rotation = 0
 
     def draw(self, surface, x, y):
         if self.visible:
             frame = self.get_current_frame()
-            self.clips[frame].face(self.direction)
             self.clips[frame].draw(surface, x, y)
+
+    def rotate(self, angle):
+        self.rotation = angle
+        for i in self.clips:
+            i.rotate(angle)
 
     def get_current_frame(self):
         r = int(self.current/self.speed)
@@ -35,4 +40,6 @@ class Animation:
         return r
 
     def face(self, direction):
-        self.direction = direction
+        if self.direction != direction:
+            self.direction = direction
+            self.rotate(self.rotation + 180)

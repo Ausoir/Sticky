@@ -7,12 +7,12 @@ from src.tools.Random import Random
 
 
 class Pilot:
-    def __init__(self, host, fight_type):
+    def __init__(self, host, style):
         self.host = host
-        self.fight_type = fight_type
+        self.style = style
         self.task = Idle(self)
         self.var = None
-        if fight_type == 'Manual':
+        if style == 'Manual':
             def none():
                 pass
             self.hit = none
@@ -21,43 +21,46 @@ class Pilot:
             self.priority = 5
             self.range = 6
             self.move = Path(self)
-            self.passive_task = None
-            if fight_type == 'Melee':
-                self.hunt = Melee(self)
-            else:
-                self.hunt = Attack(self)
+            self.hunt = Chase(self)
+            self.hunt.move = self.move
+            self.set(style)
 
     def __str__(self):
-        return self.fight_type
+        return self.style
+
+    def set(self, style):
+        if style == 'Manual':
+            def none():
+                pass
+            self.hit = none
+            self.update = none
+        elif style == 'Melee':
+            self.hunt.attack = Melee(self, 1)
+        elif style == 'Archer':
+            self.hunt.attack = Range(self)
 
     def update(self):
         self.task.update()
         if self.host.delay == 0:
             if not self.dodge():
-                if not self.passive_task or not self.passive_task.perform():
-                    self.perceive()
-                    self.task.perform()
-                    if self.task.is_done():
-                        self.task = self.task.next
-
-    def on_dead(self):
-        self.task = Idle(self)
-
-    def in_range(self, x):
-        return x <= 1
+                self.perceive(self.range)
+                if self.task.is_done():
+                    self.task = self.task.next
+                self.task.perform()
 
     def add_task(self, task):
         task.next = self.task
         self.task = task
 
     def hit(self):
-        self.priority = 3
-        self.perceive()
+        if self.priority > 1:
+            self.priority = 3
+            self.add_task(Search(self))
 
-    def perceive(self):
+    def perceive(self, sight, offset=(0, 0)):
         if self.priority > 1:
             perceived = []
-            aoe = self.host.location.get_area(self.host.pos[0] + (self.range/2, 0), self.range)
+            aoe = self.host.location.get_area(self.host.pos[0] + (offset[0], 0), sight + offset[1])
             for i in aoe:
                 for thing in i.things:
                     if thing != self.host:
@@ -67,24 +70,23 @@ class Pilot:
                 items = []
                 for thing in perceived:
                     if isinstance(thing, Unit):
-                        if Faction.is_against(self.host.faction, thing.faction) and not thing.is_dead():
+                        if Faction.is_against(self.host.faction, thing.faction):
                             targets.append(thing)
                     elif isinstance(thing, Item) and not thing.host:
                         items.append(thing)
                 if targets:
                     self.spot_enemy(targets)
-                elif items:
+                elif items and self.priority > 3:
                     self.spot_item(items)
 
     def prioritize(self, targets):
         nearest_dist = 10
         nearest = targets[0]
         for i in targets:
-            if not i.is_dead():
-                t = (i.pos[0] - self.host.pos[0]).distance()
-                if t < nearest_dist:
-                    nearest_dist = t
-                    nearest = i
+            t = (i.pos[0] - self.host.pos[0]).distance()
+            if t < nearest_dist:
+                nearest_dist = t
+                nearest = i
         return nearest
 
     def dodge(self):
@@ -114,8 +116,7 @@ class Pilot:
     def spot_enemy(self, targets):
         self.priority = 1
         self.var = self.prioritize(targets)
-        self.add_task(self.move)
-        self.passive_task = self.hunt
+        self.add_task(self.hunt)
 
     def spot_item(self, targets):
         self.priority = 3
@@ -123,8 +124,8 @@ class Pilot:
         for i in targets:
             if isinstance(i, Weapon):
                 weapons.append(i)
-        if weapons:
+        if weapons and not self.host.is_armed():
             self.var = self.prioritize(weapons)
-            self.add_task(self.move)
             self.add_task(Pickup(self))
-        self.passive_task = None
+            self.add_task(Move(self, 1))
+            self.add_task(self.move)

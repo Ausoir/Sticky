@@ -15,21 +15,20 @@ class Appendage:
     def __str__(self):
         return self.upper_joint.__str__() + ',' + self.lower_joint.__str__()
 
-    def set(self, sprite, invert=0):
-        if invert == 1:
-            sprite.flip(1)
+    def set(self, sprite):
         self.form = sprite
         self.form.pivot = Space(self.form.size.x / 2, 0)
         self.length = self.form.size.y
 
     def update(self):
+        diff = self.lower_joint - self.upper_joint
+        self.rotation = -diff.get_atan() + 90
         if self.resize:
-            self.length = int((self.lower_joint - self.upper_joint).distance() * 1.5)
-        self.rotation = (self.lower_joint - self.upper_joint).get_atan() - 90
+            self.length = int(diff.distance() * 1.5)
 
     def draw(self, surface, x, y):
         self.form.size.y = self.length
-        self.form.rotation = self.rotation
+        self.form.rotate(self.rotation)
         self.form.draw(surface, x + self.upper_joint.x, y + self.upper_joint.y)
 
     def set_parent(self, parent, tip):

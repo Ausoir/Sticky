@@ -1,4 +1,5 @@
 from src.entity.Object import Object
+from src.entity.unit.ai.Faction import Faction
 from src.game.Tags import Tags
 from src.map.Tile import Tile
 
@@ -28,13 +29,15 @@ class Prop(Object):
         index += 1
         if Tags.float in self.tags:
             self.gravity = 0
-        if Tags.flat in self.tags:
+        if Tags.intangible in self.tags:
             self.hittable = 0
         if Tags.back in self.tags:
             self.depth = 20
         if Tags.land in self.tags:
-            self.collide = 32
-        elif Tags.intangible in self.tags:
+            self.collide = Tile.COLLIDE_DOODAD
+        elif Tags.support in self.tags:
+            self.collide = Tile.COLLIDE_SUPPORT
+        elif Tags.cover in self.tags:
             self.collide = Tile.COLLIDE_COVER
         return index
 
@@ -48,17 +51,19 @@ class Prop(Object):
             Stock.get('Planks').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
-    def hit(self, damage):
-        if self.hittable:
-            if self.durability != -1:
-                self.durability = max(0, self.durability - damage)
-                if self.durability == 0:
-                    self.die()
+    def is_hit(self, chance, faction=0):
+        if self.hittable and Faction.is_against(self.faction, faction):
             return 1
-        return 0
+
+    def hit(self, damage):
+        if self.durability != -1:
+            self.durability = max(0, self.durability - damage)
+            if self.durability == 0:
+                self.die()
+                return 1
+
+    def get_offset_tile(self, x, y):
+        return self.location.get_tile(self.pos[0] + (x, y))
 
     def clean_buffs(self, force=0):
-        return self.states.clear(force)
-
-    def is_dead(self):
-        return False
+        return self.states.clear(force=force)

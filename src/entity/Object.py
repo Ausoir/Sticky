@@ -11,7 +11,7 @@ class Object:
     BLOCK = 40
 
     def __init__(self, loc):
-        self.id = 0
+        self.id = '0'
         self.name = None
         self.form_name = ''
         self.form = None
@@ -23,6 +23,8 @@ class Object:
         self.collide = Tile.COLLIDE_OBJECT
         self.depth = DEPTH_OBJECT
         self.visible = 1
+        self.standables = Tile.CHECK_SUPPORTED
+        self.removed = 0
 
     def __str__(self):
         r = []
@@ -40,13 +42,15 @@ class Object:
         return 4
 
     def add(self):
+        self.removed = 0
         Group.objects.add(self)
         Turn.add(self)
-        self.relocate(self.pos[0].x, self.pos[0].y, 1)
+        self.relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.location.record.append(self)
         return self
 
     def remove(self):
+        self.removed = 1
         Group.remove(self)
         Turn.remove(self)
         self.location.record.remove(self)
@@ -59,13 +63,12 @@ class Object:
 
     def draw(self, surface):
         if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y):
-            pos = self.pos[0].get_center()
-            self.motion_pos.x += (pos.x - self.motion_pos.x) * .1
-            y = pos.y - self.motion_pos.y
-            if y > 0 and self.gravity:
-                self.motion_pos.y += min(16, y)
+            diff = self.pos[0].get_center() - self.motion_pos
+            self.motion_pos.x += diff.x * .1
+            if diff.y > 0 and self.gravity:
+                self.motion_pos.y += min(16, diff.y)
             else:
-                self.motion_pos.y += y * .1
+                self.motion_pos.y += diff.y * .1
             self.form.draw(surface, self.motion_pos.x, self.motion_pos.y)
             return 1
         return 0
@@ -76,9 +79,11 @@ class Object:
     def turn(self):
         if self.is_fall():
             old = self.pos[0]
-            new = self.move(0, 4, flag=Tile.CHECK_LANDABLE)
+            new = self.move(0, 4, flag=self.standables)
             if new != old:
                 self.on_fall(new.y - old.y)
+                if self.pos[0].y > 2000:
+                    self.remove()
 
     def relocate(self, x, y, force=0):
         if force or x != self.pos[0].x or y != self.pos[0].y:
@@ -96,7 +101,7 @@ class Object:
         return 0
 
     def move(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
-        new_pos = self.location.collide_line(self.pos[0], x, y, distance=distance, flag=flag)
+        new_pos = self.location.collide_land(self.pos[0], x, y, distance=distance, flag=flag)
         self.relocate(new_pos.x, new_pos.y)
         return new_pos
 

@@ -37,7 +37,8 @@ class Main:
         dt = 0
         fps = 60
         while not self.pause:
-            dt = self.clock.tick(fps + dt)
+            self.clock.tick(fps + dt)
+            dt = self.clock.get_time()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -54,7 +55,7 @@ class Main:
     def draw(self):
         Camera.update()
         Group.update()
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((220, 250, 250))
         self.world.map.draw(self.screen)
         Group.objects.draw(self.screen)
         Group.effects.draw(self.screen)

@@ -13,8 +13,10 @@ class Armor(Item):
         self.encumbrance = None
         self.items = []
         self.inventory = []
-        self.form_arm = None
-        self.form_leg = None
+        self.form_armL = None
+        self.form_armR = None
+        self.form_legL = None
+        self.form_legR = None
 
     def __str__(self):
         r = super().__str__()
@@ -45,10 +47,12 @@ class Armor(Item):
     def make_form(self, arg):
         Data.initialize_image(self.name, arg, (16, 48))
         super().make_form(self.name + '_0x0')
-        self.form_arm = Data.run_cache(self.name + '_1x0')
-        self.form_leg = Data.run_cache(self.name + '_2x0')
+        self.form_armL = Data.run_cache(self.name + '_1x0')
+        self.form_armR = self.form_armL.clone()
+        self.form_legL = Data.run_cache(self.name + '_2x0')
+        self.form_legR = self.form_legL.clone()
         self.form_name = arg
-        self.form.rotation = 180
+        self.form.rotate(180)
 
     def die(self):
         pos = self.pos[0]
@@ -63,7 +67,7 @@ class Armor(Item):
 
     def on_unequip(self):
         super().on_unequip()
-        self.form.rotation = 180
+        self.form.rotate(180)
         self.form.size.y = 48
         self.form.pivot.y = 24
 
@@ -87,13 +91,10 @@ class Armor(Item):
             if host.weapon == self:
                 host.drop()
             host.face(1)
-            for i in host.form.organs:
-                if i.part == 0:
-                    i.set(self.form)
-                elif i.part == 1:
-                    i.set(self.form_arm)
-                elif i.part == 2:
-                    i.set(self.form_leg)
+            forms = [self.form_armL, self.form_legL, self.form_legR, None, self.form, self.form_armR]
+            for k, i in enumerate(host.form.organs):
+                if forms[k]:
+                    i.set(forms[k])
             self.host = host
             self.remove()
             self.host.update_durability()
@@ -158,7 +159,7 @@ class Armor(Item):
         total = max(0, total + self.durability)
         for i in armors:
             x, y = i.pos[0].x, i.pos[0].y
-            scrap = Tags.scrap in i.tags
+            scrap = Tags.metal in i.tags
             self.get_item_at(x, y, pop=1)
             if scrap:
                 from src.entity.Stock import Stock

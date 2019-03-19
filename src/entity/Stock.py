@@ -1,9 +1,11 @@
 from src.entity.Projectile import Projectile
 from src.entity.Prop import Prop
+from src.entity.unit.Ragdoll import Ragdoll
 from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
+from src.map.Tile import Tile
 from src.tools.Data import Data
 
 
@@ -72,15 +74,35 @@ class Stock:
         return r
 
     @staticmethod
-    def Ladder(arg):
-        r = Item(Stock.location)
+    def Ragdoll(arg):
+        r = Ragdoll(Stock.location)
         r.load(arg)
-        r.collide = 32
         return r
 
     @staticmethod
-    def Thing(arg):
-        r = Item(Stock.location)
+    def Bridge(arg):
+        def turn():
+            support = 0
+            adj = [r.get_offset_tile(-1, 0), r.get_offset_tile(1, 0)]
+            for i in adj:
+                if i.is_land(Tile.CHECK_FIRM):
+                    support += 2
+                elif i.is_land(Tile.CHECK_SUPPORTED):
+                    support += 1
+            if support < 2:
+                r.die()
+        r = Prop(Stock.location)
+        r.turn = turn
+        r.load(arg)
+        r.gravity = 0
+        return r
+
+    @staticmethod
+    def Bow(arg):
+        def use():
+            r.host.action.set('arch')
+        r = Weapon(Stock.location)
+        r.use = use
         r.load(arg)
         return r
 

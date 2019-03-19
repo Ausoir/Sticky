@@ -1,42 +1,21 @@
--- AI
-Travel pathfinding - triggers when target out of collide_line (sight), reach destination and recurse
-Pilot str and load
+Skill Spec, Weapon Spec, Dodge, Adv Armor
 
+Incantation uses shards, Charm requires shards
 
 Level up - trainer (money, hours)
 Food - eat or sell
 
--- Passive Item
-Insulation - 2x1, burn immune, medium
-Jump boost - 1x2, expensive
+white line through terrain glitch
+
 -- Unique Item
 Raise dead
 Control target
 Charm target
 Immortality
--- Helmets
-Regen scrap to studding
 
 -- Spell
-* Charm - Charm, clairvoyance
-* Cast - Cast, glowshot
-* Fire - Ignite, fire brand
-* Air - Whirlwind, quick & dissipates
-* Conjuration - Conjure, create portal
-* Fire Fire - combust 5x5
-* Air Air - dispell, knockdown (15x15), free
-* Conjuration Conjuration - summon wood
-* Fire Charm - Fire brand
-* Fire Cast - Fireblast
-* Air Charm - Levitation
-* Air Cast - Tornado
-* Conjuration Charm - Shielding
-* Conjuration Cast - Summon clone at portal
-Fire/Air Charm - Shock brand
 Fire/Air Cast - Lightning
 Fire/Conjuration Charm - Fireball (throwable, explode on drop, takes 5x5 item space)
 Fire/Conjuration Cast - Explosion at portal
-* Air/Conjuration Charm - 'Teleportation' Blink to portal
-* Air/Conjuration Cast - 'Rift' Guided portal placement
 Fire/Air/Conjuration Charm - Wisp form
 Fire/Air/Conjuration Cast - Thunderstorm near portal

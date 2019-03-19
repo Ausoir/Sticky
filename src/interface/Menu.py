@@ -100,8 +100,8 @@ class Menu:
         self.window.add_child(Menu.make_button(['Equipment'], click_equipment, None))
 
     def menu_character(self):
-        def click_mastery():
-            self.state = self.menu_mastery
+        def click_proficiency():
+            self.state = self.menu_proficiency
             self.display(1)
 
         def click_status():
@@ -123,7 +123,7 @@ class Menu:
         panel.depth = 2
         panel.redraw()
         self.window.add_child(panel)
-        self.sub_window.add_child(Menu.make_button(['Mastery'], click_mastery, None))
+        self.sub_window.add_child(Menu.make_button(['Proficiency'], click_proficiency, None))
         self.sub_window.add_child(Menu.make_button(['Status'], click_status, None))
         self.sub_window.display(1)
 
@@ -252,11 +252,19 @@ class Menu:
         self.window.add_child(textbox)
         self.sub_window.display(1)
 
-    def menu_mastery(self):
-        self.window.add_child(Menu.make_button(['Mastery'], None, None))
+    def menu_proficiency(self):
+        count = 0
+        for i in self.host.proficiency:
+            button = Menu.make_button([i], None, None)
+            if count < 6:
+                self.window.add_child(button)
+            else:
+                self.sub_window.add_child(button)
+            count += 1
+        self.sub_window.display(1)
 
     def menu_status(self):
         for i in self.host.states.buffs:
-            self.window.add_child(Menu.make_button([i[1].title()], None, None, color=Window.fore_color0))
-            self.sub_window.add_child(Menu.make_button([str(i[2])], None, None, color=Window.fore_color0))
+            self.window.add_child(Menu.make_button([i.name.title()], None, None, color=Window.fore_color0))
+            self.sub_window.add_child(Menu.make_button([str(i.duration)], None, None, color=Window.fore_color0))
         self.sub_window.display(1)

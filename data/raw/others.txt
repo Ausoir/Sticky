@@ -1,2 +1,3 @@
-Thing,none,[],2,[],[1,1]
-Thing,none,[],2,[],[1,1]
+Ragdoll,g_1x0,[hum,if],8,[]
+Bow,data/image/bow,[iw],18,[],[1,3],6,[1],6,1,0
+Bridge,g_5x0,[cd,iw],8,[]

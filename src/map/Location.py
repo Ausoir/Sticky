@@ -26,6 +26,10 @@ class Location:
         self.tiles = {}
         self.record = List()
         self.load(list(Data.process_raw(Data.read('save/'+data[0]+'.map'))))
+        self.bg = [Data.run_cache('data/image/background/desert_1'),
+                   Data.run_cache('data/image/background/desert_2')]
+        for i in self.bg:
+            i.resize(Global.DISPLAY)
 
     def __str__(self):
         meta = str(Turn.frame) + ',' + str(Location.OBJECT_ID)
@@ -67,6 +71,16 @@ class Location:
 
     def draw(self, surface):
         rel = Camera.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])
+        mag = .1
+        for i in self.bg:
+            y = Global.CENTER[1] + 200 - Camera.pos[1] + max(-400/mag, min(1600, Camera.pos[1]))*mag*.5
+            x = (Camera.pos[0]*mag) % Global.DISPLAY[0]
+            i.draw(surface, x - Camera.pos[0], y)
+            if x > -Global.CENTER[0]:
+                i.draw(surface, x - Global.DISPLAY[0] - Camera.pos[0], y)
+            if x < Global.CENTER[0]:
+                i.draw(surface, x + Global.DISPLAY[0] - Camera.pos[0], y)
+            mag *= 2
         depth_3 = []
         for k, v in self.tiles.items():
             if -rel[0] - Camera.sight[0] < k < -rel[0] + Camera.sight[0]:
@@ -82,7 +96,7 @@ class Location:
     @staticmethod
     def get_id():
         Location.OBJECT_ID += 1
-        return Location.OBJECT_ID
+        return '#' + str(format(Location.OBJECT_ID, 'x'))
 
     def get_object(self, id):
         for i in self.record:
@@ -108,19 +122,27 @@ class Location:
     def get_tile_from_vec(self, x, y):
         return self.get_tile(math.floor(x / Global.BLOCK), math.floor(y / Global.BLOCK))
 
-    def collide_line(self, vec_from, x, y, distance=10, flag=Tile.CHECK_TERRAIN):
-        target_pos = vec_from + (x, y)
-        degree = Space(x, y).get_atan()
-        current = ((vec_from * Global.BLOCK)+(Global.BLOCK/2, Global.BLOCK/2)).to_list()
+    def collide_line(self, vec_from, x, y, function, distance=10):
+        space = Space(x, y)
+        target_pos = vec_from + space
+        degree = space.get_atan()
+        current = ((vec_from * Global.BLOCK) + (Global.BLOCK / 2, Global.BLOCK / 2)).to_list()
         prev_tile = vec_from
         while distance > 0 and (prev_tile.x != target_pos.x or prev_tile.y != target_pos.y):
             distance -= 1
-            current = [current[0] - Math.cos(degree)*Global.BLOCK, current[1] + Math.sin(degree)*Global.BLOCK]
+            current = [current[0] + Math.cos(degree) * Global.BLOCK, current[1] + Math.sin(degree) * Global.BLOCK]
             tile = self.get_tile_from_vec(current[0], current[1])
-            if tile.is_land(flag):
-                return prev_tile
+            r = function(prev_tile, tile)
+            if r:
+                return r
             prev_tile = tile
         return prev_tile
+
+    def collide_land(self, vec_from, x, y, distance=10, flag=Tile.CHECK_TERRAIN):
+        def fn(prev, tile):
+            if tile.is_land(flag):
+                return prev
+        return self.collide_line(vec_from, x, y, fn, distance)
 
     def get_area(self, center_tile, aoe):
         tiles = []

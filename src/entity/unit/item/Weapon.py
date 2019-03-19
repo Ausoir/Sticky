@@ -6,10 +6,12 @@ class Weapon(Item):
     def __init__(self, loc):
         super().__init__(loc)
         self.weight = 0
+        self.speed = 1
+        self.accuracy = 0
 
     def __str__(self):
         return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + ','.join(str(x) for x in self.range) + '],'\
-               + str(self.weight)
+               + str(self.weight) + ',' + str(self.speed) + ',' + str(self.accuracy)
 
     def load(self, arg):
         index = super().load(arg)
@@ -18,6 +20,10 @@ class Weapon(Item):
         self.range = arg[index]
         index += 1
         self.weight = arg[index]
+        index += 1
+        self.speed = arg[index]
+        index += 1
+        self.accuracy = arg[index]
         return index + 1
 
     def use(self):
@@ -25,23 +31,61 @@ class Weapon(Item):
 
     def describe(self):
         r = super().describe()
-        r += '\nWeight: ' + str(self.weight)
         r += '\nRange: ' + ','.join(str(x) for x in self.range)
+        r += '\nStamina Use: ' + str(self.weight)
+        r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
+        r += '\nAccuracy: ' + Weapon.describe_accuracy(self.accuracy)
         if Tags.sharp in self.tags:
             r += '\nThis weapon has a sharp edge.'
         return r
 
-    def attack(self, callback=None):
+    @staticmethod
+    def describe_speed(speed):
+        if speed < 0:
+            return 'Flurry'
+        elif speed == 0:
+            return 'Fast'
+        elif speed == 1:
+            return 'Normal'
+        elif speed == 2:
+            return 'Slow'
+        else:
+            return 'Burdening'
+
+    @staticmethod
+    def describe_accuracy(acc):
+        if acc == 1:
+            return 'Normal'
+        elif acc == 2:
+            return 'Accurate'
+        elif acc >= 3:
+            return 'Precise'
+        else:
+            return 'Cumbersome'
+
+    def die(self):
+        if Tags.sharp in self.tags:
+            self.tags.remove(Tags.sharp)
+            self.durability = 8
+        else:
+            super().die()
+
+    def attack(self, chance, callback=None):
         def cb(target):
             self.hit(1)
-            if self.states.get('fire'):
-                target.states.add('burn', 4)
+            if self.states.get('Fire'):
+                target.states.add('Burn', 8)
+            if self.states.get('Shock'):
+                target.states.add('Stun', 40)
+                self.states.get('Shock').end()
             if Tags.sharp in self.tags:
-                target.states.add('bleed', 60)
+                target.states.add('Bleed', 60)
             if callback:
                 callback(target)
+        accuracy = chance + self.host.get_proficiency(self.name.lower()) + self.accuracy
         for i in self.range:
-            tile = self.host.location.collide_line(self.host.get_interact_pos(),
+            tile = self.host.location.collide_land(self.host.get_interact_pos(),
                                                    self.host.next_target.x, self.host.next_target.y,
                                                    distance=i, flag=[])
-            self.location.attack.register(1, tile, type='batter', faction=self.host.faction, callback=cb)
+            self.location.attack.register(1, tile, type='batter', faction=self.host.faction,
+                                          chance=accuracy, callback=cb)

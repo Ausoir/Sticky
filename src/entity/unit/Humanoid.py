@@ -20,14 +20,12 @@ class Humanoid(Unit):
         weapon = '['+self.weapon.__str__()+']'
         armor = '['+self.armor.__str__()+']'
         headgear = '['+self.headgear.__str__()+']'
-        return super().__str__() + ',' + str(self.gold) + ',' + weapon + ',' + armor + ',' + headgear
+        gear = weapon + ',' + armor + ',' + headgear
+        return super().__str__() + ',' + str(self.gold) + ',' + gear
 
     def load(self, p):
         index = super().load(p)
         self.form.randomize_clip('hit', 4)
-        self.form.randomize_clip('dead1', 12)
-        self.form.randomize_clip('dead2', 12)
-        self.form.randomize_clip('dead3', 12)
         self.gold = p[index]
         if p[index + 1]:
             weapon = Stock.get(p[index + 1][2], p[index + 1])
@@ -63,11 +61,9 @@ class Humanoid(Unit):
 
     def update_durability(self, damage=0):
         head_armor, damage = self.headgear.get_reduction(damage)
-        if 0 < damage >= head_armor == 0:
+        if 0 < damage >= head_armor == 0 and self.headgear.durability != -1:
             self.headgear.die()
         armor, damage = self.armor.get_reduction(damage)
-        if 0 < damage >= armor == 0:
-            self.armor.die()
         if self.weapon.durability == 0:
             self.weapon.die()
         self.durability = head_armor + armor + 1
@@ -75,7 +71,8 @@ class Humanoid(Unit):
     def hit(self, damage):
         r = super().hit(damage)
         self.form.randomize_once(18)
-        self.update_durability(damage)
+        if self.durability > 0:
+            self.update_durability(damage)
         return r
 
     def die(self):
@@ -83,8 +80,9 @@ class Humanoid(Unit):
         super().die()
 
     def face(self, direction):
-        self.weapon.form.face(direction)
-        self.weapon.form.rotation = 100 * direction
+        if self.direction != direction:
+            self.weapon.form.flip(1, 0)
+        self.weapon.form.rotate(100 * direction)
         super().face(direction)
 
     def draw(self, surface):
@@ -145,4 +143,4 @@ class Humanoid(Unit):
 
     def aim(self):
         angle = self.next_target.get_atan()
-        self.weapon.form.rotation = angle - 90
+        self.weapon.form.rotate(-angle + 90)

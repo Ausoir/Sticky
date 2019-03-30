@@ -5,7 +5,6 @@ from src.game.Tags import Tags
 class Weapon(Item):
     def __init__(self, loc):
         super().__init__(loc)
-        self.weight = 0
         self.speed = 1
         self.accuracy = 0
 
@@ -61,7 +60,28 @@ class Weapon(Item):
         elif acc >= 3:
             return 'Precise'
         else:
-            return 'Cumbersome'
+            return 'Inaccurate'
+
+    def get_value(self):
+        if self.durability == -1:
+            hp = 3
+        elif self.durability > 32:
+            hp = 2
+        elif self.durability > 16:
+            hp = 1
+        else:
+            hp = 0
+        range = len(self.range)
+        if 1 in self.range:
+            range += 1
+        other = 0
+        if 'shp' in self.tags:
+                other += 1
+        if 'is' in self.tags:
+                other += 1
+        weight = int((self.weight + 3) / 4)
+        score = hp + other + range + self.accuracy - weight - self.speed
+        return score
 
     def die(self):
         if Tags.sharp in self.tags:

@@ -255,7 +255,7 @@ class Menu:
     def menu_proficiency(self):
         count = 0
         for i in self.host.proficiency:
-            button = Menu.make_button([i], None, None)
+            button = Menu.make_button([i.title()], None, None)
             if count < 6:
                 self.window.add_child(button)
             else:

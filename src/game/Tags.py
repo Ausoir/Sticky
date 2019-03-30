@@ -13,3 +13,5 @@ class Tags:
     flesh = 'if'
     metal = 'im'
     wood = 'iw'
+    jewel = 'ij'
+    silver = 'is'

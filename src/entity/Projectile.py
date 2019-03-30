@@ -11,10 +11,11 @@ class Projectile(Prop):
     def __init__(self, loc):
         super().__init__(loc)
         self.faction = Faction.PROJECTILE
+        self.collide = 0
         self.lifetime = 2
         self.gravity = 0
         self.hittable = 0
-        self.durability = 999
+        self.durability = -1
         self.speed = 24
         self.depth = DEPTH_EFFECT
         self.fast = 1
@@ -54,19 +55,23 @@ class Projectile(Prop):
     def effect(self):
         pass
 
-    def crash(self, damage=1, delay=1, callback=None):
-        self.location.attack.register(damage, self.pos[0], delay=delay, faction=self.faction,
-                                      chance=self.chance, callback=callback)
-
     def move(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
         def fn(prev, tile):
-            for thing in tile.things:
-                if thing.is_hit(self.chance, self.faction):
-                    return tile
+            if tile.is_land(flag):
+                return prev
+        self.form.rotate(Space(x, -y).get_atan())
         new_pos = self.location.collide_line(self.pos[0], x, y, fn, distance=distance)
         self.relocate(new_pos.x, new_pos.y)
         return new_pos
 
-    def fly(self, tx, ty, distance, flag=Tile.CHECK_TERRAIN):
-        self.form.rotate(Space(tx, -ty).get_atan())
-        return self.move(tx, ty, distance=distance, flag=flag)
+    def shoot(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
+        def fn(prev, tile):
+            if tile.is_land(flag):
+                return tile
+            for thing in tile.things:
+                if thing.is_hit(self.chance, self.faction):
+                    return tile
+        self.form.rotate(Space(x, -y).get_atan())
+        new_pos = self.location.collide_line(self.pos[0], x, y, fn, distance=distance)
+        self.relocate(new_pos.x, new_pos.y)
+        return new_pos

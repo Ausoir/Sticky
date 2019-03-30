@@ -13,7 +13,7 @@ class Buffs:
 
     def load(self, buffs):
         for i in buffs:
-            self.add(i[0], i[1], i[2])  # fn, duration, var
+            self.add(i[0], i[1], i[2], load=True)  # fn, duration, var
 
     def update(self):
         for k, i in enumerate(self.buffs):
@@ -30,7 +30,7 @@ class Buffs:
                 return i
         return None
 
-    def add(self, buff, duration, var=0):
+    def add(self, buff, duration, var=0, load=False):
         preexisting = self.get(buff)
         if not preexisting:
             for i in Buff.__subclasses__():
@@ -39,9 +39,12 @@ class Buffs:
                     break
             if buff.is_valid():
                 self.buffs.append(buff)
-                buff.on_start(0)
+                if load:
+                    buff.on_load()
+                else:
+                    buff.on_start()
         else:
-            preexisting.on_start(1)
+            preexisting.on_stack(duration, var)
 
     def clear(self, force=0):
         r = 0

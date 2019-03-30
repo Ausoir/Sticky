@@ -1,11 +1,10 @@
+from src.entity.Other import *
 from src.entity.Projectile import Projectile
 from src.entity.Prop import Prop
-from src.entity.unit.Ragdoll import Ragdoll
 from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
-from src.map.Tile import Tile
 from src.tools.Data import Data
 
 
@@ -17,13 +16,8 @@ class Stock:
     def init():
         for i in Data.registry_list:
             registry_items = Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt'))
-            if i == 'others':
-                for item in registry_items:
-                    Stock.registry[item[0]] = [getattr(Stock, item[0]), item]
-            else:
-                for item in registry_items:
-                    Stock.registry[item[0]] = [getattr(Stock, i), item]
-        Stock.registry['Projectile'] = [Stock.projectiles, None]
+            for item in registry_items:
+                Stock.registry[item[0]] = [getattr(Stock, i), item]
 
     @staticmethod
     def get(name, data=None):
@@ -74,47 +68,27 @@ class Stock:
         return r
 
     @staticmethod
-    def Ragdoll(arg):
-        r = Ragdoll(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def Bridge(arg):
-        def turn():
-            support = 0
-            adj = [r.get_offset_tile(-1, 0), r.get_offset_tile(1, 0)]
-            for i in adj:
-                if i.is_land(Tile.CHECK_FIRM):
-                    support += 2
-                elif i.is_land(Tile.CHECK_SUPPORTED):
-                    support += 1
-            if support < 2:
-                r.die()
-        r = Prop(Stock.location)
-        r.turn = turn
-        r.load(arg)
-        r.gravity = 0
-        return r
-
-    @staticmethod
-    def Bow(arg):
-        def use():
-            r.host.action.set('arch')
-        r = Weapon(Stock.location)
-        r.use = use
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def projectiles(arg):
-        arg[2] = 'Projectile'
-        r = Projectile(Stock.location)
+    def others(arg):
+        if arg[2] == 'Travel':
+            r = Travel(Stock.location)
+        elif arg[2] == 'Bridge':
+            r = Bridge(Stock.location)
+        elif arg[2] == 'Hammer':
+            r = Hammer(Stock.location)
+        elif arg[2] == 'Bow':
+            r = Bow(Stock.location)
+        elif arg[2] == 'Ragdoll':
+            r = Ragdoll(Stock.location)
+        elif arg[2] == 'Projectile':
+            r = Projectile(Stock.location)
+        else:
+            r = Prop(Stock.location)
         r.load(arg)
         return r
 
     @staticmethod
     def project(form, pos, lifetime):
-        r = Stock.projectiles([0, [pos]] + Stock.registry['Force'][1] + [lifetime])
+        data = [0, [pos], 'Projectile'] + Stock.registry['Force'][1][1:] + [lifetime]
+        r = Stock.others(data)
         r.make_form(form)
         return r.add()

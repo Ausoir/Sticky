@@ -18,12 +18,15 @@ class Spells:
             incantation += 't'
         else:
             incantation += 'c'
-        spell = spellbook[incantation]
-        if Random.roll(host.get_proficiency(spell.__name__) + 4):
-            spell(host)
-        else:
+        if incantation not in spellbook:
             Effect.make('fail', host.pos[0].get_center())
-            miscast[incantation](host)
+        else:
+            spell = spellbook[incantation]
+            if host.is_casted(spell.__name__):
+                spell(host)
+            else:
+                Effect.make('fail', host.pos[0].get_center())
+                miscast[incantation](host)
 
     @staticmethod
     def charm(host):
@@ -57,11 +60,11 @@ class Spells:
         if host.states.get('Fire'):
             Spells.combust(host)
         else:
-            host.states.add('Fire', 8)
-            host.weapon.states.add('Fire', 8)
+            host.states.add('Fire', 120)
 
     @staticmethod
     def combust(host):
+        host.states.get('Fire').end()
         aoe = host.location.get_area(host.pos[0], 3)
         for i in aoe:
             for thing in i.things:
@@ -90,8 +93,7 @@ class Spells:
         Effect.make('barrier', host.motion_pos)
         r = Stock.get('Portal').add()
         r.relocate(host.pos[0].x, host.pos[0].y - 1, force=1)
-        r.states.add('Banish', 60)
-        host.states.add('Rift', 60, var=r.id)
+        host.states.add('Rift', 160, var=r.id)
 
     @staticmethod
     def pull(host):
@@ -117,7 +119,7 @@ class Spells:
     def scry(host):
         def effect():
             if host.next_target.distance() > 4:
-                r.fly(host.next_target.x, host.next_target.y, 2, flag=[])
+                r.move(host.next_target.x, host.next_target.y, 2, flag=[])
             if r.lifetime <= 1:
                 host.center_camera()
 
@@ -132,14 +134,26 @@ class Spells:
     def fireblast(host):
         def effect():
             def on_hit(target):
-                target.states.add('Burn', 8)
+                aoe = r.location.get_area(target.pos[0], 1)
+                for i in aoe:
+                    Effect.make('burn', i.get_center(), offset=4, lifetime=40)
+                    for thing in i.things:
+                        thing.states.add('Burn', 16)
                 r.remove()
-            r.fly(final_dir, round(Random.gauss(0, 1)), 1)
-            r.location.attack.register(1, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
-            Effect.make('explode', r.pos[0].get_center(), offset=4, lifetime=40)
-        r = Stock.project('explode', host.get_offset_tile(host.direction, 0), 2)
+            if host.next_target.y > 0:
+                y = 1
+            elif host.next_target.y < 0:
+                y = -1
+            else:
+                y = 0
+            if r.pos[0] == r.move(final_dir, y):
+                on_hit(r)
+            else:
+                r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
+                Effect.make('explode', r.pos[0].get_center(), offset=4).form.face(final_dir)
+        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 2)
         r.durability = 10
-        r.lifetime = 10
+        r.lifetime = 8
         final_dir = host.direction
         r.effect = effect
 
@@ -153,7 +167,7 @@ class Spells:
                     target.move(4, -4)
             tgt = host.get_target_tile() - r.pos[0]
             r.last_pos = r.pos[0] + 0
-            r.fly(tgt.x, tgt.y, 1)
+            r.move(tgt.x, tgt.y, 1)
             r.location.attack.register(0, r.get_offset_tile(0, -1), faction=Faction.PROJECTILE, callback=on_hit)
             r.location.attack.register(0, r.get_offset_tile(0, 1), faction=Faction.PROJECTILE, callback=on_hit)
             r.location.attack.register(0, r.get_offset_tile(1, 0), faction=Faction.PROJECTILE, callback=on_hit)
@@ -167,16 +181,18 @@ class Spells:
         return r
 
     @staticmethod
-    def summon(obj):
-        r = Stock.get('Summon').add()
-        r.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
-        r.states.add('Banish', 100)
-        Effect.make('zip', r.motion_pos)
+    def summon(host):
+        obj = Spells.check_rift(host)
+        if obj:
+            r = Stock.get('Summon').add()
+            r.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
+            r.states.add('Banish', 100)
+            Effect.make('zip', r.motion_pos)
 
     @staticmethod
     def fargate(host):
         def effect():
-            flight = placer.pos[0] != placer.fly(host.next_target.x, host.next_target.y, 2)
+            flight = placer.pos[0] != placer.move(host.next_target.x, host.next_target.y, 2)
             if not flight or placer.lifetime == 1:
                 Effect.make('barrier', placer.motion_pos)
                 r = Stock.get('Portal').add()
@@ -204,9 +220,9 @@ class Spells:
 
     @staticmethod
     def brand(host):
-        Effect.make('burn', host.motion_pos)
-        host.states.add('Fire', 100)
-        host.weapon.states.add('Fire', 100)
+        Effect.make('burn', host.weapon.motion_pos, offset=0)
+        host.states.add('Fire', 400)
+        host.weapon.states.add('Fire', 400)
 
     @staticmethod
     def teleport(host):

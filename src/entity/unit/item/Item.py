@@ -10,6 +10,7 @@ class Item(Prop):
         self.host = None
         self.range = [1]
         self.volume = [1, 1]
+        self.weight = 8  # not recorded
         self.depth = DEPTH_ITEM
 
     def __str__(self):
@@ -55,3 +56,15 @@ class Item(Prop):
         self.host.drop()
         host.armor.add_item(self)
         host.action.set('rest')
+
+    def attack(self, chance, callback=None):
+        def cb(target):
+            self.hit(1)
+            if callback:
+                callback(target)
+        for i in self.range:
+            tile = self.host.location.collide_land(self.host.get_interact_pos(),
+                                                   self.host.next_target.x, self.host.next_target.y,
+                                                   distance=i, flag=[])
+            self.location.attack.register(1, tile, type='batter', faction=self.host.faction,
+                                          chance=2, callback=cb)

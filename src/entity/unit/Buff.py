@@ -17,7 +17,8 @@ class Buff:
     def update(self):
         if self.duration == 0:
             return 1
-        self.duration -= 1
+        elif self.duration > 0:
+            self.duration -= 1
 
     def effect(self, frame):
         self.frame += 1
@@ -29,7 +30,13 @@ class Buff:
     def is_valid(self):
         return 1
 
-    def on_start(self, load):
+    def on_start(self):
+        pass
+
+    def on_load(self):
+        pass
+
+    def on_stack(self, duration, var):
         pass
 
     def on_finish(self):
@@ -46,6 +53,9 @@ class Bleed(Buff):
 
     def on_finish(self):
         self.host.hit(1)
+
+    def on_stack(self, duration, var):
+        self.duration = int(self.duration / 2)
 
     def on_update(self):
         if self.effect(9):
@@ -64,10 +74,16 @@ class Air(Buff):
 
 
 class Rift(Buff):
+    def on_stack(self, duration, var):
+        self.on_finish()
+        self.var = var
+
     def on_finish(self):
         obj = self.host.location.get_object(self.var)
         if obj:
+            Effect.make('zwip', obj.pos[0].get_center(), offset=24)
             Effect.make('zwip', self.host.pos[0].get_center(), offset=24)
+            obj.remove()
 
 
 class Shock(Buff):
@@ -81,10 +97,9 @@ class Burn(Buff):
         if Tags.metal not in self.host.tags:
             return 1
 
-    def on_start(self, load):
-        if not load:
-            if Tags.wood in self.host.tags:
-                self.duration = 40
+    def on_start(self):
+        if Tags.wood in self.host.tags:
+            self.duration = 40
 
     def on_update(self):
         self.var += 1
@@ -102,7 +117,10 @@ class Levitate(Buff):
         if self.host.gravity:
             return 1
 
-    def on_start(self, load):
+    def on_start(self):
+        self.host.gravity = 0
+
+    def on_load(self):
         self.host.gravity = 0
 
     def on_finish(self):
@@ -127,7 +145,11 @@ class Stun(Buff):
         if isinstance(self.host, Unit):
             return 1
 
-    def on_start(self, load):
+    def on_start(self):
+        if self.host.action.set('hit', auto=1):
+            self.host.delay = self.duration
+
+    def on_load(self):
         if self.host.action.set('hit', auto=1):
             self.host.delay = self.duration
 

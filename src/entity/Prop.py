@@ -29,11 +29,12 @@ class Prop(Object):
         index += 1
         if Tags.float in self.tags:
             self.gravity = 0
-        if Tags.intangible in self.tags:
-            self.hittable = 0
         if Tags.back in self.tags:
             self.depth = 20
-        if Tags.land in self.tags:
+        if Tags.intangible in self.tags:
+            self.hittable = 0
+            self.collide = 0
+        elif Tags.land in self.tags:
             self.collide = Tile.COLLIDE_DOODAD
         elif Tags.support in self.tags:
             self.collide = Tile.COLLIDE_SUPPORT
@@ -49,6 +50,9 @@ class Prop(Object):
         if Tags.wood in self.tags:
             from src.entity.Stock import Stock
             Stock.get('Planks').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
+        if Tags.metal in self.tags:
+            from src.entity.Stock import Stock
+            Stock.get('Scrap').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
     def is_hit(self, chance, faction=0):

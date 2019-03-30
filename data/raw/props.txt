@@ -1,8 +1,7 @@
 Force,g_0x0,[],-1,[] //Name, Image, Flag, Durability, State
 Portal,portal,[],1,[[Levitate,-1,0]]
-Wall,g_2x0,[iw],8,[]
-Tile,g_3x0,[bg,cs,cli,iw],8,[]
-Scaffold,g_4x0,[bg,cs,cli,iw],4,[]
-Water,g_6x0,[xc],-1,[]
-Crystal,g_7x0,[],2,[]
+Wall,g_1x1,[iw],8,[]
+Tile,g_2x1,[bg,cs,iw],8,[]
+Water,g_6x1,[xc],-1,[]
+Crystal,g_5x1,[],2,[]
 Crate,g_0x1,[iw],1,[]

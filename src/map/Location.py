@@ -138,7 +138,7 @@ class Location:
             prev_tile = tile
         return prev_tile
 
-    def collide_land(self, vec_from, x, y, distance=10, flag=Tile.CHECK_TERRAIN):
+    def collide_land(self, vec_from, x, y, distance=10, flag=(Tile.COLLIDE_TERRAIN)):
         def fn(prev, tile):
             if tile.is_land(flag):
                 return prev

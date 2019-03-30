@@ -11,7 +11,6 @@ class Tile(Space):
     CHECK_FIRM = [10, 30]
     CHECK_LARGE = [10, 30, 40]
     CHECK_PROJECTILE = [40, 60]
-    CHECK_TERRAIN = [10]
     CHECK_LANDABLE = [10, 30, 35, 40]
     CHECK_SUPPORTED = [10, 25, 30, 35]
     CHECK_BREAKABLE = [30, 40]

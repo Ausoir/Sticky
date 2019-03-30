@@ -26,6 +26,7 @@ class World:
         player.durability = 8
         player.load(data)
         player.add()
+        player.delay = 4  # starting delay to prevent cheat
         loc.record.remove(player)
         return player
 

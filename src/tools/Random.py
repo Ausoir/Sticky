@@ -25,7 +25,3 @@ class Random:
     @staticmethod
     def gauss(arg1, arg2):
         return random.gauss(arg1, arg2)
-
-    @staticmethod
-    def roll(chance):
-        return max(0, chance) + 1 >= random.randint(1, 6)

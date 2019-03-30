@@ -41,18 +41,22 @@ class Attribute:
             if self.biceps > stamina:
                 return 1
         elif muscle == 2:
-            self.triceps += mag
-            if self.triceps > stamina:
+            if self.triceps > stamina * 2:
                 return 1
+            else:
+                self.triceps += mag
         return 0
 
     def is_rested(self):
         return self.leg == 0 and self.biceps == 0 and self.triceps == 0
 
-    def rest(self, mag=1):
+    def rest(self):
+        mag = 1
         if self.leg > 0:
             self.leg -= mag
         if self.biceps > 0:
             self.biceps -= mag
+
+    def rest_triceps(self):
         if self.triceps > 0:
-            self.triceps -= mag
+            self.triceps -= 1

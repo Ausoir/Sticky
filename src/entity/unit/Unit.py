@@ -79,7 +79,7 @@ class Unit(Prop):
         self.form.face(direction)
 
     def on_fall(self, distance):
-        if distance > 1:
+        if distance > 1 + self.get_proficiency('fall'):
             self.action.set('down', auto=1)
         else:
             if not self.action.auto:
@@ -87,8 +87,15 @@ class Unit(Prop):
 
     def is_hit(self, chance, faction=0):
         if super().is_hit(chance, faction):
-            if Random.roll(chance-self.get_proficiency('dodge')):
+            if self.action.current_action == 'down':
                 return 1
+            elif max(0, chance - self.get_dodge()) + 1 >= Random.rand_int(1, 6):
+                return 1
+            else:
+                self.form.set('interact')
+
+    def get_dodge(self):
+        return self.get_proficiency('dodge')
 
     def hit(self, damage):
         self.pilot.hit()

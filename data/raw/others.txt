@@ -1,3 +1,6 @@
+Projectile,g_0x0,[],-1,[]
+Travel,g_2x0,[bg,cs,xc,cc],-1,[],overmap,[16,4]
 Ragdoll,g_1x0,[hum,if],8,[]
-Bow,data/image/bow,[iw],18,[],[1,3],6,[1],6,1,0
-Bridge,g_5x0,[cd,iw],8,[]
+Bow,data/image/bow,[],16,[],[1,3],6,[1],6,1,0
+Bridge,g_5x0,[cd,iw],8,[],[1,1]
+Hammer,data/image/hammer,[im],16,[],[1,1],14,[1],5,0,0

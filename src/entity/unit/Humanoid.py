@@ -1,6 +1,7 @@
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 from src.game.Camera import Camera
+from src.tools.Random import Random
 
 
 class Humanoid(Unit):
@@ -59,6 +60,12 @@ class Humanoid(Unit):
     def is_fall(self):
         return self.gravity and not self.hang
 
+    def get_dodge(self):
+        return self.get_proficiency('dodge') - self.armor.encumbrance
+
+    def is_casted(self, school):
+        return 5 + self.get_proficiency(school) >= Random.rand_int(1, 6)
+
     def update_durability(self, damage=0):
         head_armor, damage = self.headgear.get_reduction(damage)
         if 0 < damage >= head_armor == 0 and self.headgear.durability != -1:
@@ -66,7 +73,7 @@ class Humanoid(Unit):
         armor, damage = self.armor.get_reduction(damage)
         if self.weapon.durability == 0:
             self.weapon.die()
-        self.durability = head_armor + armor + 1
+        self.durability = head_armor + armor + self.get_proficiency('toughness')
 
     def hit(self, damage):
         r = super().hit(damage)

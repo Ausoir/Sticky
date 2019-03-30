@@ -50,7 +50,7 @@ class Move(Task):
         direction = 1 if dist.x >= 0 else -1
         if dist.y > 1 and dist.x == 0:
             land = self.host.get_offset_tile(0, 1)
-            if not land.is_land(Tile.CHECK_TERRAIN):
+            if not land.is_land([Tile.COLLIDE_TERRAIN]):
                 self.host.input('use', land - self.host.pos[0])
             return 0
         front = self.host.get_offset_tile(direction, 0)
@@ -59,9 +59,9 @@ class Move(Task):
             self.host.input('walk', dist)
         elif not top.is_land(Tile.CHECK_LARGE):
             self.host.input('jump', dist)
-        elif not top.is_land(Tile.CHECK_TERRAIN):
+        elif not top.is_land([Tile.COLLIDE_TERRAIN]):
             self.host.input('use', top - self.host.pos[0])
-        elif not front.is_land(Tile.CHECK_TERRAIN):
+        elif not front.is_land([Tile.COLLIDE_TERRAIN]):
             self.host.input('use', front - self.host.pos[0])
         return 0
 
@@ -110,30 +110,29 @@ class Path(Task):  # path finding A*
         if achieved < 2:
             return node
         options = []
-        right = not self.get_pos(node.node.x + 1, node.node.y).is_land(Tile.CHECK_LARGE)
-        left = not self.get_pos(node.node.x - 1, node.node.y).is_land(Tile.CHECK_LARGE)
-        if node.node.is_climbable():
-            if not self.get_pos(node.node.x, node.node.y - 1).is_land(Tile.CHECK_LARGE):
+        right = self.get_pos(node.node.x + 1, node.node.y)
+        left = self.get_pos(node.node.x - 1, node.node.y)
+        ground = self.get_pos(node.node.x, node.node.y + 1)
+        air = self.get_pos(node.node.x, node.node.y - 1)
+        if ground.is_land(Tile.CHECK_LANDABLE) or node.node.is_climbable():
+            if not air.is_land(Tile.CHECK_LARGE) and air.is_climbable():
                 options.append((0, -1))
-            if right:
-                options.append((1, 0))
-            if left:
-                options.append((-1, 0))
-        if self.get_pos(node.node.x, node.node.y + 1).is_land(Tile.CHECK_LANDABLE):
-            if right:
-                if self.get_pos(node.node.x + 1, node.node.y + 1).is_land(Tile.CHECK_LANDABLE):
+            if not right.is_land(Tile.CHECK_LARGE):
+                if self.get_pos(node.node.x + 1, node.node.y + 1).is_land(Tile.CHECK_LANDABLE) or right.is_climbable():
                     options.append((1, 0))
                 else:
                     options.append((1, 1))
             elif not self.get_pos(node.node.x + 1, node.node.y - 1).is_land(Tile.CHECK_LARGE):
                     options.append((1, -1))
-            if left:
-                if self.get_pos(node.node.x - 1, node.node.y + 1).is_land(Tile.CHECK_LANDABLE):
+            if not left.is_land(Tile.CHECK_LARGE):
+                if self.get_pos(node.node.x - 1, node.node.y + 1).is_land(Tile.CHECK_LANDABLE) or left.is_climbable():
                     options.append((-1, 0))
                 else:
                     options.append((-1, 1))
             elif not self.get_pos(node.node.x - 1, node.node.y - 1).is_land(Tile.CHECK_LARGE):
                 options.append((-1, -1))
+            if not ground.is_land(Tile.CHECK_LARGE) and ground.is_climbable():
+                options.append((0, 1))
         else:
             options.append((0, 1))
         for i in options:
@@ -180,7 +179,10 @@ class Path(Task):  # path finding A*
             elif dist.y < 0:
                 self.host.input('jump', dist)
             else:
-                self.host.input('walk', dist)
+                if dist.x == 0:
+                    self.host.input('duck', dist)
+                else:
+                    self.host.input('walk', dist)
 
     def update(self):
         for times in range(3):
@@ -243,6 +245,7 @@ class Melee(Task):
     def __init__(self, pilot, special):
         super().__init__(pilot)
         self.special = special
+        self.triceps = 1
 
     def is_done(self):
         return super().is_done() or self.pilot.var.removed
@@ -253,7 +256,7 @@ class Melee(Task):
                 return 1
         return 0
 
-    def perform_skill(self, dist):
+    def perform_gapcloser(self, dist):
         if self.special and not self.host.hang and -1 <= dist.y <= 0:
             if abs(dist.x) == 1 and dist.y == 0 and 'kick' in self.host.action.skills:
                 self.host.input('kick', dist)
@@ -269,10 +272,22 @@ class Melee(Task):
                 self.host.input('dash', dist)
                 return 1
 
+    def perform_attack(self, diff):
+        if self.host.attributes.triceps > (self.host.attributes.strength - 1) * 8:
+            self.triceps = 0
+        elif self.host.attributes.triceps == 0:
+            self.triceps = 1
+        if 'flurry' in self.host.action.skills and self.triceps:
+            self.host.input('flurry', diff)
+        elif 'stab' in self.host.action.skills and self.triceps:
+            self.host.input('stab', diff)
+        else:
+            self.host.input('use', diff)
+
     def perform(self):
         if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
             diff = self.pilot.var.pos[0] - self.host.pos[0]
-            if self.perform_skill(diff):
+            if self.perform_gapcloser(diff):
                 return 1
             longest_range = 0
             for i in self.host.weapon.range:
@@ -281,8 +296,11 @@ class Melee(Task):
             dist = round(diff.distance())
             if self.in_range(dist):
                 if -1 <= diff.y <= 1:
-                    self.host.input('use', diff)
+                    self.perform_attack(diff)
                     return 1
+            elif dist <= 1:
+                self.host.next_target.x *= -1
+                self.host.input('walk', self.host.next_target)
 
 
 class Range(Task):
@@ -292,9 +310,11 @@ class Range(Task):
 
     def perform(self):
         if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
+            if self.host.weapon.name != 'Bow':
+                self.pilot.hunt.attack = Melee(self.pilot, 1)
             diff = self.pilot.var.pos[0] - self.host.pos[0]
             reach = self.host.location.collide_land(self.host.get_interact_pos(), diff.x, diff.y,
-                                                    distance=9, flag=Tile.CHECK_TERRAIN)
+                                                    distance=9, flag=[Tile.COLLIDE_TERRAIN])
             if reach == self.pilot.var.pos[0]:
                 dist = diff.distance()
                 if dist == 1 and diff.y == 0:
@@ -318,6 +338,24 @@ class Search(Task):
 
 
 class Chase(Task):
+    def __init__(self, pilot):
+        super().__init__(pilot)
+        self.attack = None
+        self.move = None
+
+    def is_done(self):
+        return self.attack.is_done()
+
+    def perform(self):
+        super().perform()
+        if not self.attack.perform():
+            self.move.perform()
+
+    def update(self):
+        self.move.update()
+
+
+class Repair(Task):
     def __init__(self, pilot):
         super().__init__(pilot)
         self.attack = None

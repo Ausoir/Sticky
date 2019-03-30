@@ -1,6 +1,14 @@
-Skill Spec, Weapon Spec, Dodge, Adv Armor
-
-Incantation uses shards, Charm requires shards
+Find 5x3 spot -> record 5x3 air tiles
+Build, priority 3:
+  Find scaffold in stock -> Move to -> Pickup
+  Move to nearest and highest recorded air tile -> Drop -> record tile as scaffolding
+  Build()
+Construct, priority 3:
+  Find hammer in stock -> Move to -> Pickup
+  Find highest recorded scaffolding -> Move to -> Build -> record tile as building -> repeat
+Repair, priority 2:
+  Find building tile without building -> record as air tiles
+  Build()
 
 Level up - trainer (money, hours)
 Food - eat or sell

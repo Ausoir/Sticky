@@ -106,7 +106,7 @@ class Path(Task):  # path finding A*
                 node = v
         self.open.pop(index)
         self.closed.append(node)
-        achieved = (node.node - self.pilot.var.pos[0]).difference()
+        achieved = (node.node - self.pilot.var.pos[0]).distance()
         if achieved < 2:
             return node
         options = []
@@ -140,15 +140,16 @@ class Path(Task):  # path finding A*
             if self.check_loop(self.closed, pos):
                 continue
             conflict = self.check_loop(self.open, pos)
+            mod = 1 if i[1] == -1 else 0
             if conflict:
-                if node.g + 1 <= conflict.g:
+                if node.g + 1 + mod <= conflict.g:
                     conflict.parent = node
-                    conflict.g = node.g + 1
+                    conflict.g = node.g + 1 + mod
                     conflict.set_h(self.pilot.var.pos[0])
                     conflict.f = conflict.h + conflict.g
                 continue
             new = Path.Node(node, pos)
-            new.g = node.g + 1
+            new.g = node.g + 1 + mod
             new.set_h(self.pilot.var.pos[0])
             new.f = new.h + new.g
             if new.h < self.heuristic_threshold:
@@ -188,6 +189,9 @@ class Path(Task):  # path finding A*
         for times in range(3):
             self.counter += 1
             if self.open:
+                from src.entity.Effect import Effect
+                for i in self.open:
+                    Effect.make('blood', i.node.get_center())
                 done = self.iterate(self.open[0])
                 if done:
                     result = [done.node]
@@ -199,7 +203,6 @@ class Path(Task):  # path finding A*
                     self.result = result
                     self.result.pop(0)
                     self.reset()
-                    return
                 elif self.counter > 40:
                     self.reset()
             else:

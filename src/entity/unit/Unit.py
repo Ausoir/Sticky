@@ -56,7 +56,6 @@ class Unit(Prop):
         super().turn()
         self.pilot.update()
         if self.delay == 0:
-            self.attributes.rest()
             if self.next_target.x > 0 and self.direction != 1:
                 self.face(1)
             elif self.next_target.x < 0 and self.direction != -1:
@@ -87,15 +86,14 @@ class Unit(Prop):
 
     def is_hit(self, chance, faction=0):
         if super().is_hit(chance, faction):
-            if self.action.current_action == 'down':
-                return 1
-            elif max(0, chance - self.get_dodge()) + 1 >= Random.rand_int(1, 6):
+            if max(0, chance - self.get_dodge()) + 1 >= Random.rand_int(1, 6):
                 return 1
             else:
-                self.form.set('interact')
+                self.action.set('dodge', auto=1)
 
     def get_dodge(self):
-        return self.get_proficiency('dodge')
+        mod = 2 if self.action.current_action else 0
+        return self.get_proficiency('dodge') - mod
 
     def hit(self, damage):
         self.pilot.hit()

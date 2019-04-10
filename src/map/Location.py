@@ -67,7 +67,9 @@ class Location:
             self.record.remove(arg)
 
     def turn(self):
-        Data.write('save/map.map', self.__str__())
+        if not self.delay:
+            self.delay = 200
+            Data.write('save/' + self.name + '.map', self.__str__())
 
     def draw(self, surface):
         rel = Camera.get_relative_tile_pos(Camera.pos[0], Camera.pos[1])

@@ -64,7 +64,9 @@ class Spells:
 
     @staticmethod
     def combust(host):
-        host.states.get('Fire').end()
+        fire = host.states.get('Fire')
+        if fire:
+            fire.end()
         aoe = host.location.get_area(host.pos[0], 3)
         for i in aoe:
             for thing in i.things:
@@ -131,6 +133,18 @@ class Spells:
         r.effect = effect
 
     @staticmethod
+    def scorch(host):
+        def effect():
+            if not r.lifetime % 2:
+                Effect.make('scorch', r.pos[0].get_center(), offset=6)
+            for thing in r.pos[0].things:
+                if thing != r:
+                    thing.states.add('Burn', 8)
+        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 80)
+        r.fast = 0
+        r.effect = effect
+
+    @staticmethod
     def fireblast(host):
         def effect():
             def on_hit(target):
@@ -151,9 +165,7 @@ class Spells:
             else:
                 r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
                 Effect.make('explode', r.pos[0].get_center(), offset=4).form.face(final_dir)
-        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 2)
-        r.durability = 10
-        r.lifetime = 8
+        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 6)
         final_dir = host.direction
         r.effect = effect
 
@@ -175,7 +187,6 @@ class Spells:
             r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
             Effect.make('wind', r.pos[0].get_center(), offset=4)
         r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 16)
-        r.durability = 8
         r.last_pos = r.pos[0]
         r.effect = effect
         return r
@@ -248,10 +259,11 @@ class Spells:
 
 
 spellbook = {'arc': Spells.teleport,
-             'afc': Spells.shock,
              'art': Spells.fargate,
+             'afc': Spells.shock,
+             'aft': Spells.fireblast,
              'fc': Spells.brand,
-             'ft': Spells.fireblast,
+             'ft': Spells.scorch,
              'ac': Spells.levitate,
              'at': Spells.tornado,
              'rc': Spells.crystallize,
@@ -263,8 +275,9 @@ spellbook = {'arc': Spells.teleport,
              't': Spells.sonic}
 
 miscast = {'arc': Spells.pull,
-           'afc': Spells.combust,
            'art': Spells.summon,
+           'afc': Spells.combust,
+           'aft': Spells.combust,
            'fc': Spells.combust,
            'ft': Spells.combust,
            'ac': Spells.torrent,
@@ -274,5 +287,8 @@ miscast = {'arc': Spells.pull,
            'ff': Spells.combust,
            'aa': Spells.dispell,
            'rr': Spells.pull,
+           'f': Spells.combust,
+           'a': Spells.dispell,
+           'r': Spells.summon,
            'c': Spells.sonic,
            't': Spells.sonic}

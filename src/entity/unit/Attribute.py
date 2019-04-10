@@ -9,9 +9,12 @@ class Attribute:
         self.agility = 1
         self.intelligence = 1
 
+        self.speed = 0
+
         self.leg = 0
         self.biceps = 0
         self.triceps = 0
+        self.rest_time = 0
 
     def __str__(self):
         return str(self.gene) + ',' + str(self.strength) + ',' + str(self.agility) + ',' + str(self.intelligence)\
@@ -31,7 +34,7 @@ class Attribute:
             self.triceps = arg[6]
 
     def exert(self, muscle, mag):
-        stamina = self.strength * 4
+        stamina = self.strength * 2
         if muscle == 0:
             self.leg += mag
             if self.leg > stamina:
@@ -41,22 +44,18 @@ class Attribute:
             if self.biceps > stamina:
                 return 1
         elif muscle == 2:
-            if self.triceps > stamina * 2:
+            self.triceps += mag
+            if self.triceps > stamina:
                 return 1
-            else:
-                self.triceps += mag
         return 0
 
     def is_rested(self):
         return self.leg == 0 and self.biceps == 0 and self.triceps == 0
 
-    def rest(self):
-        mag = 1
-        if self.leg > 0:
-            self.leg -= mag
-        if self.biceps > 0:
-            self.biceps -= mag
-
-    def rest_triceps(self):
-        if self.triceps > 0:
-            self.triceps -= 1
+    def rest(self, mag=1):
+        self.rest_time += mag
+        if self.rest_time >= 8:
+            self.rest_time = 0
+            self.leg = 0
+            self.biceps = 0
+            self.triceps = 0

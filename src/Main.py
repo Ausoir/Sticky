@@ -41,8 +41,7 @@ class Main:
             dt = self.clock.get_time()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    self.world.control.quit()
                 elif event.type == pygame.VIDEORESIZE:
                     Global.DISPLAY = (event.w, event.h)
                     Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 32)

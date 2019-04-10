@@ -5,12 +5,11 @@ from src.game.Tags import Tags
 class Weapon(Item):
     def __init__(self, loc):
         super().__init__(loc)
-        self.speed = 1
         self.accuracy = 0
 
     def __str__(self):
         return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + ','.join(str(x) for x in self.range) + '],'\
-               + str(self.weight) + ',' + str(self.speed) + ',' + str(self.accuracy)
+               + str(self.weight) + ',' + str(self.accuracy)
 
     def load(self, arg):
         index = super().load(arg)
@@ -19,8 +18,6 @@ class Weapon(Item):
         self.range = arg[index]
         index += 1
         self.weight = arg[index]
-        index += 1
-        self.speed = arg[index]
         index += 1
         self.accuracy = arg[index]
         return index + 1
@@ -32,7 +29,6 @@ class Weapon(Item):
         r = super().describe()
         r += '\nRange: ' + ','.join(str(x) for x in self.range)
         r += '\nStamina Use: ' + str(self.weight)
-        r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
         r += '\nAccuracy: ' + Weapon.describe_accuracy(self.accuracy)
         if Tags.sharp in self.tags:
             r += '\nThis weapon has a sharp edge.'
@@ -40,13 +36,13 @@ class Weapon(Item):
 
     @staticmethod
     def describe_speed(speed):
-        if speed < 0:
+        if speed < 3:
             return 'Flurry'
-        elif speed == 0:
+        elif speed == 3:
             return 'Fast'
-        elif speed == 1:
+        elif speed == 4:
             return 'Normal'
-        elif speed == 2:
+        elif speed == 5:
             return 'Slow'
         else:
             return 'Burdening'
@@ -79,8 +75,8 @@ class Weapon(Item):
                 other += 1
         if 'is' in self.tags:
                 other += 1
-        weight = int((self.weight + 3) / 4)
-        score = hp + other + range + self.accuracy - weight - self.speed
+        weight = int((self.weight + 1) / 2)
+        score = hp + other + range + self.accuracy - weight
         return score
 
     def die(self):

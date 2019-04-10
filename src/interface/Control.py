@@ -107,6 +107,12 @@ class Control:
         if code in self.keypress:
             self.keypress.remove(code)
 
+    def quit(self):
+        self.player.location.delay = 0
+        self.player.location.turn()
+        pygame.quit()
+        sys.exit()
+
     def turn(self):
         mouse = pygame.mouse.get_pos()
         mouse = Space(Camera.get_relative_tile_pos(mouse[0], mouse[1]))
@@ -116,8 +122,7 @@ class Control:
             if code in self.keymap:
                 command = self.keymap[code]
                 if command == 'quit':
-                    pygame.quit()
-                    sys.exit()
+                    self.quit()
                 elif command == 'menu':
                     self.clear_press(code)
                     self.menu.toggle()

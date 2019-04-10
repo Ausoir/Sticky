@@ -49,8 +49,10 @@ class Projectile(Prop):
         if self.lifetime == 0:
             self.remove()
         else:
+            super().turn()
             self.effect()
-        self.lifetime -= 1
+            if self.lifetime > 0:
+                self.lifetime -= 1
 
     def effect(self):
         pass

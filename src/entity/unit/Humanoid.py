@@ -61,7 +61,7 @@ class Humanoid(Unit):
         return self.gravity and not self.hang
 
     def get_dodge(self):
-        return self.get_proficiency('dodge') - self.armor.encumbrance
+        return super().get_dodge() - self.armor.encumbrance
 
     def is_casted(self, school):
         return 5 + self.get_proficiency(school) >= Random.rand_int(1, 6)

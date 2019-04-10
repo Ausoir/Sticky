@@ -2,9 +2,15 @@ from src.form.GroupSprite import GroupSprite
 
 
 class Group:
-    objects = GroupSprite()
-    effects = GroupSprite()
-    updates = []
+    objects = None
+    effects = None
+    updates = None
+
+    @staticmethod
+    def init():
+        Group.objects = GroupSprite()
+        Group.effects = GroupSprite()
+        Group.updates = []
 
     @staticmethod
     def remove(arg):

@@ -28,6 +28,12 @@ class Travel(Prop):
     def trigger(self, host):
         from src.game.World import World
         from src.game import Global
+        host.location.delay = 0
+        host.location.turn()
+        host.action.set('idle')
+        host.form.set('interact')
+        host.relocate(self.to_pos.x, self.to_pos.y, force=1)
+        self.remove()
         Global.main.world.map.name = self.to_map
         Global.main.world.turn()
         Global.main.world = World()

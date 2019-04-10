@@ -1,7 +1,13 @@
 class Turn:
-    queue = [[], [], [], [], [], [], [], [], [], []]
+    queue = None
     frame = 0
     queue_turn = 0
+
+    @staticmethod
+    def init():
+        Turn.queue = [[], [], [], [], [], [], [], [], [], []]
+        Turn.frame = 0
+        Turn.queue_turn = 0
 
     @staticmethod
     def update():

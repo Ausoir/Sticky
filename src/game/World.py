@@ -1,4 +1,5 @@
 from src.Editor import Editor
+from src.game.Group import Group
 from src.game.Turn import Turn
 from src.map.Location import Location
 from src.tools.Data import Data
@@ -6,6 +7,8 @@ from src.tools.Data import Data
 
 class World:
     def __init__(self):
+        Group.init()
+        Turn.init()
         Turn.add(self)
         self.control = None
         data = Data.process_raw(Data.read('save/player'))

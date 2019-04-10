@@ -85,7 +85,7 @@ class Armor(Item):
     def use(self, host=None):
         if not host:
             host = self.host
-        host.action.set('rest')
+        host.action.set('idle')
         if not host.is_armored():
             host.armor = self
             if host.weapon == self:

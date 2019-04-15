@@ -63,9 +63,6 @@ class Humanoid(Unit):
     def get_dodge(self):
         return super().get_dodge() - self.armor.encumbrance
 
-    def is_casted(self, school):
-        return 5 + self.get_proficiency(school) >= Random.rand_int(1, 6)
-
     def update_durability(self, damage=0):
         head_armor, damage = self.headgear.get_reduction(damage)
         if 0 < damage >= head_armor == 0 and self.headgear.durability != -1:
@@ -94,8 +91,8 @@ class Humanoid(Unit):
 
     def draw(self, surface):
         if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y):
-            x = self.motion_pos.x + self.form.organs[0].lower_joint.x
-            y = self.motion_pos.y + self.form.organs[0].lower_joint.y - self.form.height
+            x = self.vec.x + self.form.organs[0].lower_joint.x
+            y = self.vec.y + self.form.organs[0].lower_joint.y - self.form.height
             self.weapon.form.draw(surface, x, y)
             return super().draw(surface)
         return 0

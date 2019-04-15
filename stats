@@ -25,7 +25,7 @@
 2/18 Rest End
 2/20. Form.create to clone Animation (1), Effect offset (1), separated Effect from Projectile again (3)
 2/20 *** 1pt = 1 debugging or 1 feature, 3pt = 1 comprehensive debug follow, 5pt = difficult debugging, 1:4 ratio
-2/21.w Added conjure unit (1), resources to lower case (1), Projectile motion_pos bugfix (1), added Spells.fargate (1)
+2/21.w Added conjure unit (1), resources to lower case (1), Projectile vec bugfix (1), added Spells.fargate (1)
 2/21 fixed Projectile to be loadable (2), fixed Editor object double placement bug (3)
 2/22. keymap now accepts strings as key (2)
 2/22 *** 4 workout/week, 1 pt per any workout/day
@@ -74,5 +74,10 @@
 4/07 redone combat and weapon weight (2), Unit pathing discourages jumping (1), weapon value system (1)
 4/07 travel system +5, fixed travel memory leak +1
 4/08 pathing didn't reach target bc target makes pos Tile.LARGE +1
+---- PUSH
+4/13 projectile.shoot checks every thing fix (1)
+4/14 adjusted combat for combo limited by stamina, also now harder to run from fights (1)
+4/15 terrains now images not shapes (1)
+---- PUSH
 
 +:00

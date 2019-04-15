@@ -59,13 +59,13 @@ class Bleed(Buff):
 
     def on_update(self):
         if self.effect(9):
-            Effect.make('blood', self.host.motion_pos)
+            Effect.make('blood', self.host.vec)
 
 
 class Fire(Buff):
     def on_update(self):
         if self.effect(6):
-            Effect.make('kindle', self.host.motion_pos)
+            Effect.make('kindle', self.host.vec)
 
 
 class Air(Buff):
@@ -89,7 +89,7 @@ class Rift(Buff):
 class Shock(Buff):
     def on_update(self):
         if self.effect(6):
-            Effect.make('shock', self.host.motion_pos)
+            Effect.make('shock', self.host.vec)
 
 
 class Burn(Buff):
@@ -109,7 +109,7 @@ class Burn(Buff):
             y = Random.rand_int(-1, 1)
             for thing in self.host.get_offset_tile(x, y).things:
                 thing.states.add('Burn', 8)
-        Effect.make('burn', self.host.motion_pos)
+        Effect.make('burn', self.host.vec)
 
 
 class Levitate(Buff):
@@ -136,7 +136,7 @@ class Banish(Buff):
 
     def on_update(self):
         if self.effect(2):
-            Effect.make('zwip', self.host.motion_pos, offset=8)
+            Effect.make('zwip', self.host.vec, offset=8)
 
 
 class Stun(Buff):

@@ -29,13 +29,13 @@ class Item(Prop):
     def on_equip(self, host):
         self.host = host
         host.weapon = self
-        self.motion_pos = host.motion_pos
+        self.vec = host.vec
         self.host.face(self.host.direction)
         self.remove()
 
     def on_unequip(self):
         self.form.rotate(0)
-        self.motion_pos = self.motion_pos + 0
+        self.vec = self.vec + 0
         self.relocate(self.host.pos[0].x, self.host.pos[0].y, force=1)
         self.host = None
         self.form.rotate(0)

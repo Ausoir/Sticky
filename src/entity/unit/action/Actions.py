@@ -1,7 +1,7 @@
 from src.entity.Effect import Effect
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
-from src.entity.unit.action.Spells import Spells, miscast
+from src.entity.unit.action.Spells import Spells
 from src.map.Tile import Tile
 from src.tools.Random import Random
 
@@ -81,6 +81,7 @@ class Actions:
             self.host.hang = 1
             self.make(animation='hang', turn=0)
         else:
+            self.exhausted = self.exert(0, 0) or self.exert(1, 0) or self.exert(2, 0)
             if self.host.attributes.is_rested():
                 if self.last_action == 'idle':
                     self.make(animation='standby', turn=0)
@@ -88,7 +89,6 @@ class Actions:
                     self.make(turn=0)
             else:
                 self.host.attributes.rest()
-                self.exhausted = self.exert(0, 0) or self.exert(1, 0) or self.exert(2, 0)
                 self.make(animation='rest', interrupt=0)
 
     def act1(self):
@@ -118,8 +118,6 @@ class Actions:
         self.set('walk')
 
     def walk(self):
-        if not self.host.attributes.is_rested():
-            self.exert(0, 2)
         if self.host.pos[0].is_climbable() and\
                 not self.host.get_offset_tile(self.host.direction, 1).is_land(Tile.CHECK_LANDABLE):
             self.host.move(self.host.direction, 0)
@@ -129,6 +127,8 @@ class Actions:
             else:
                 self.make(turn=2 - self.host.attributes.speed)
         else:
+            if not self.host.attributes.is_rested():
+                self.exert(0, 2)
             self.host.move(self.host.direction, 0)
             if self.host.gravity:
                 self.make(turn=2 - self.host.attributes.speed)
@@ -136,7 +136,8 @@ class Actions:
                 self.make(animation='swim', turn=4 - self.host.attributes.speed)
 
     def hit(self):
-        self.host.attributes.rest()
+        if self.host.attributes.is_rested():
+            self.exert(0, 1)
         self.make(turn=5, interrupt=0)
 
     def interact(self):
@@ -309,52 +310,29 @@ class Actions:
     def ignite(self):
         self.exert(1, 3)
         self.exert(2, 3)
-        if self.host.is_casted('pyromancy'):
-            self.on_cast(Spells.ignite)
-            self.make(animation='charm', turn=8)
-        else:
-            Effect.make('fail', self.host.pos[0].get_center(), lifetime=16)
-            self.host.action.set('hit', auto=4)
-            miscast['f'](self.host)
+        self.on_cast(Spells.ignite)
+        self.make(animation='charm', turn=8)
 
     def whirlwind(self):
         self.exert(1, 3)
         self.exert(2, 3)
-        if self.host.is_casted('aeromancy'):
-            self.on_cast(Spells.whirlwind)
-            self.make(animation='charm', turn=2)
-        else:
-            Effect.make('fail', self.host.pos[0].get_center(), lifetime=16)
-            self.host.action.set('hit', auto=4)
-            miscast['a'](self.host)
+        self.on_cast(Spells.whirlwind)
+        self.make(animation='charm', turn=2)
 
     def conjure(self):
         self.exert(1, 3)
         self.exert(2, 3)
-        if self.host.is_casted('conjuration'):
-            self.on_cast(Spells.conjure)
-            self.make(animation='charm', turn=12)
-        else:
-            Effect.make('fail', self.host.pos[0].get_center(), lifetime=16)
-            self.host.action.set('hit', auto=4)
-            miscast['r'](self.host)
+        self.on_cast(Spells.conjure)
+        self.make(animation='charm', turn=12)
 
     def charm(self):
         self.exert(0, 3)
-        if self.host.is_casted('charm'):
-            self.on_cast(Spells.charm)
-            self.make(turn=8)
-        else:
-            Effect.make('fail', self.host.pos[0].get_center(), lifetime=16)
-            self.host.action.set('hit', auto=4)
+        self.on_cast(Spells.charm)
+        self.make(turn=8)
 
     def cast(self):
         self.exert(0, 3)
-        if self.host.is_casted('cast'):
-            self.on_cast(Spells.cast)
-            self.host.form.rotate_appendage(28, 0, self.host.next_target)
-            self.host.form.rotate_appendage(28, 5, self.host.next_target)
-            self.make(turn=6)
-        else:
-            Effect.make('fail', self.host.pos[0].get_center(), lifetime=16)
-            self.host.action.set('hit', auto=4)
+        self.on_cast(Spells.cast)
+        self.host.form.rotate_appendage(28, 0, self.host.next_target)
+        self.host.form.rotate_appendage(28, 5, self.host.next_target)
+        self.make(turn=6)

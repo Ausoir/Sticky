@@ -21,12 +21,7 @@ class Spells:
         if incantation not in spellbook:
             Effect.make('fail', host.pos[0].get_center())
         else:
-            spell = spellbook[incantation]
-            if host.is_casted(spell.__name__):
-                spell(host)
-            else:
-                Effect.make('fail', host.pos[0].get_center())
-                miscast[incantation](host)
+            spellbook[incantation](host)
 
     @staticmethod
     def charm(host):
@@ -85,14 +80,14 @@ class Spells:
         aoe = host.location.get_area(host.pos[0], 8)
         for i in aoe:
             for thing in i.things:
-                Effect.make('energy', thing.motion_pos)
+                Effect.make('energy', thing.vec)
                 if isinstance(thing, Prop):
                     thing.hit(0)
                     thing.clean_buffs()
 
     @staticmethod
     def conjure(host):
-        Effect.make('barrier', host.motion_pos)
+        Effect.make('barrier', host.vec)
         r = Stock.get('Portal').add()
         r.relocate(host.pos[0].x, host.pos[0].y - 1, force=1)
         host.states.add('Rift', 160, var=r.id)
@@ -114,7 +109,7 @@ class Spells:
                 elif obj.pos[0].y < i.y:
                     y = -4
                 for thing in i.things:
-                    Effect.make('wind', thing.motion_pos)
+                    Effect.make('wind', thing.vec)
                     thing.move(x, y)
 
     @staticmethod
@@ -198,14 +193,14 @@ class Spells:
             r = Stock.get('Summon').add()
             r.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
             r.states.add('Banish', 100)
-            Effect.make('zip', r.motion_pos)
+            Effect.make('zip', r.vec)
 
     @staticmethod
     def fargate(host):
         def effect():
             flight = placer.pos[0] != placer.move(host.next_target.x, host.next_target.y, 2)
             if not flight or placer.lifetime == 1:
-                Effect.make('barrier', placer.motion_pos)
+                Effect.make('barrier', placer.vec)
                 r = Stock.get('Portal').add()
                 r.relocate(placer.pos[0].x, placer.pos[0].y, force=1)
                 host.states.add('Rift', 80, var=r.id)
@@ -231,7 +226,7 @@ class Spells:
 
     @staticmethod
     def brand(host):
-        Effect.make('burn', host.weapon.motion_pos, offset=0)
+        Effect.make('burn', host.weapon.vec, offset=0)
         host.states.add('Fire', 400)
         host.weapon.states.add('Fire', 400)
 
@@ -249,7 +244,7 @@ class Spells:
             r1.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
             r1.states.add('Levitate', 1)
             r1.states.add('Banish', 80)
-            Effect.make('zip', r1.motion_pos)
+            Effect.make('zip', r1.vec)
             r1.move(Random.rand_int(-1, 1), Random.rand_int(-1, 0))
 
     @staticmethod
@@ -273,22 +268,3 @@ spellbook = {'arc': Spells.teleport,
              'rr': Spells.pull,
              'c': Spells.scry,
              't': Spells.sonic}
-
-miscast = {'arc': Spells.pull,
-           'art': Spells.summon,
-           'afc': Spells.combust,
-           'aft': Spells.combust,
-           'fc': Spells.combust,
-           'ft': Spells.combust,
-           'ac': Spells.torrent,
-           'at': Spells.torrent,
-           'rc': Spells.pull,
-           'rt': Spells.pull,
-           'ff': Spells.combust,
-           'aa': Spells.dispell,
-           'rr': Spells.pull,
-           'f': Spells.combust,
-           'a': Spells.dispell,
-           'r': Spells.summon,
-           'c': Spells.sonic,
-           't': Spells.sonic}

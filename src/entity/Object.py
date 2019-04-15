@@ -1,3 +1,4 @@
+from src.entity.Image import Image
 from src.game.Global import DEPTH_OBJECT
 from src.entity.Space import Space
 from src.game.Camera import Camera
@@ -7,17 +8,13 @@ from src.map.Tile import Tile
 from src.tools.Data import Data
 
 
-class Object:
+class Object(Image):
     BLOCK = 40
 
     def __init__(self, loc):
-        self.id = '0'
-        self.name = None
-        self.form_name = ''
-        self.form = None
+        super().__init__(Space())
         self.location = loc
         self.pos = [self.location.get_tile(0, 0)]
-        self.motion_pos = Space()
         self.delay = 0
         self.gravity = 1
         self.collide = Tile.COLLIDE_OBJECT
@@ -30,16 +27,19 @@ class Object:
         r = []
         for i in self.pos:
             r.append('[' + str(i.x) + ',' + str(i.y) + ']')
-        return str(self.id) + ',[' + (','.join(r)) + '],' + self.name + ',' + self.form_name
+        return super().__str__() + ',[' + (','.join(r)) + '],' + self.name + ',' + self.form_name
 
     def load(self, p):
-        self.id = p[0]
+        index = super().load(p)
         self.pos = []
-        for i in p[1]:
+        for i in p[index]:
             self.pos.append(self.location.get_tile(i))
-        self.name = p[2]
-        self.make_form(p[3])
-        return 4
+        index += 1
+        self.name = p[index]
+        index += 1
+        self.make_form(p[index])
+        index += 1
+        return index
 
     def add(self):
         self.removed = 0
@@ -63,13 +63,13 @@ class Object:
 
     def draw(self, surface):
         if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y):
-            diff = self.pos[0].get_center() - self.motion_pos
-            self.motion_pos.x += diff.x * .1
+            diff = self.pos[0].get_center() - self.vec
+            self.vec.x += diff.x * .1
             if diff.y > 0 and self.gravity:
-                self.motion_pos.y += min(16, diff.y)
+                self.vec.y += min(16, diff.y)
             else:
-                self.motion_pos.y += diff.y * .1
-            self.form.draw(surface, self.motion_pos.x, self.motion_pos.y)
+                self.vec.y += diff.y * .1
+            self.form.draw(surface, self.vec.x, self.vec.y)
             return 1
         return 0
 
@@ -96,7 +96,7 @@ class Object:
                 new_pos.append(new)
             self.pos = new_pos
             if force:
-                self.motion_pos.load(self.pos[0].get_center())
+                self.vec.load(self.pos[0].get_center())
             return abs(diff[0]), abs(diff[1])
         return 0
 
@@ -109,4 +109,4 @@ class Object:
         pass
 
     def center_camera(self):
-        Camera.target = self.motion_pos
+        Camera.target = self.vec

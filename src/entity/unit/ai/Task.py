@@ -189,9 +189,9 @@ class Path(Task):  # path finding A*
         for times in range(3):
             self.counter += 1
             if self.open:
-                from src.entity.Effect import Effect
-                for i in self.open:
-                    Effect.make('blood', i.node.get_center())
+                # from src.entity.Effect import Effect
+                # for i in self.open:
+                #     Effect.make('blood', i.node.get_center())
                 done = self.iterate(self.open[0])
                 if done:
                     result = [done.node]
@@ -317,7 +317,7 @@ class Range(Task):
                 self.pilot.hunt.attack = Melee(self.pilot, 1)
             diff = self.pilot.var.pos[0] - self.host.pos[0]
             reach = self.host.location.collide_land(self.host.get_interact_pos(), diff.x, diff.y,
-                                                    distance=9, flag=[Tile.COLLIDE_TERRAIN])
+                                                    distance=9, flag=Tile.CHECK_FIRM)
             if reach == self.pilot.var.pos[0]:
                 dist = diff.distance()
                 if dist == 1 and diff.y == 0:
@@ -358,7 +358,7 @@ class Chase(Task):
         self.move.update()
 
 
-class Repair(Task):
+class Build(Task):
     def __init__(self, pilot):
         super().__init__(pilot)
         self.attack = None

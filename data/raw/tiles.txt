@@ -1,12 +1,5 @@
-mark,0,[215,215,215],1 //name,type,color,width
-black,0,[0,0,0],0
-filler,0,[0,0,0],0
-filler,0,[0,0,0],0
-filler,0,[0,0,0],0
-dirt,11,[180,120,90],0
-wood,1,[130,80,50],0
-stone,1,[100,100,100],0
-plank,2,[200,160,110],0
-plate,2,[180,180,180],0
-concrete,2,[200,180,160],0
-mud,10,[160,110,20],0
+black,g_0x1,0 //name,image,type
+filler,g_0x1,0
+dirt,g_1x1,1
+stone,g_2x1,1
+rock,g_3x1,2

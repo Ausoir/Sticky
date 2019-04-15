@@ -54,11 +54,13 @@ class Location:
             arg = arg + [[]]
         Turn.frame = arg[0][0]
         Location.OBJECT_ID = arg[0][1]
+        tiles = Data.get_cache('tiles')
         for i in arg[1]:
             x = i[0][0]
             y = i[0][1]
             tile = self.get_tile(x, y)
-            tile.terrain = Terrain.load(tile * [Global.BLOCK, Global.BLOCK], i[1])
+            data = tiles[i[1]]
+            tile.terrain = Terrain(i[1], tile * [Global.BLOCK, Global.BLOCK], data[0], data[1], data[2])
         for i in arg[2]:
             Stock.get(i[2], i).add()
 

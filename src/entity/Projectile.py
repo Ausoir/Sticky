@@ -32,13 +32,13 @@ class Projectile(Prop):
     def draw(self, surface):
         if self.fast:
             if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y) or \
-                    Camera.in_camera(self.motion_pos.x, self.motion_pos.y):
-                diff = self.pos[0].get_center() - self.motion_pos
-                da = (self.pos[0].get_center() - self.motion_pos).get_atan()
-                self.motion_pos += (Math.cos(da)*self.speed, Math.sin(da)*self.speed)
-                ndiff = self.pos[0].get_center() - self.motion_pos
+                    Camera.in_camera(self.vec.x, self.vec.y):
+                diff = self.pos[0].get_center() - self.vec
+                da = (self.pos[0].get_center() - self.vec).get_atan()
+                self.vec += (Math.cos(da)*self.speed, Math.sin(da)*self.speed)
+                ndiff = self.pos[0].get_center() - self.vec
                 if (diff.x > 0) == (ndiff.x > 0) and (diff.y > 0) == (ndiff.y > 0):
-                    self.form.draw(surface, self.motion_pos.x, self.motion_pos.y)
+                    self.form.draw(surface, self.vec.x, self.vec.y)
                 else:
                     self.form.size.x = 0
                 return 1
@@ -70,9 +70,6 @@ class Projectile(Prop):
         def fn(prev, tile):
             if tile.is_land(flag):
                 return tile
-            for thing in tile.things:
-                if thing.is_hit(self.chance, self.faction):
-                    return tile
         self.form.rotate(Space(x, -y).get_atan())
         new_pos = self.location.collide_line(self.pos[0], x, y, fn, distance=distance)
         self.relocate(new_pos.x, new_pos.y)

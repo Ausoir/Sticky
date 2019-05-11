@@ -5,7 +5,7 @@ from src.game import Global
 
 class Camera:
     pos = [0, 0]
-    sight = [math.ceil(Global.DISPLAY[0] / Global.BLOCK / 2), math.ceil(Global.DISPLAY[1] / Global.BLOCK / 2)]
+    sight = [math.ceil(Global.DISPLAY[0] / Global.BLOCK / 2) + 1, math.ceil(Global.DISPLAY[1] / Global.BLOCK / 2) + 1]
     target = None
 
     @staticmethod

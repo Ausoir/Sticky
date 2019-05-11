@@ -1,3 +1,4 @@
+from src.entity.Effect import Effect
 from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.item.Weapon import Weapon
@@ -59,9 +60,9 @@ class Bridge(Prop):
 
 class Hammer(Weapon):
     def use(self):
+        from src.entity.Stock import Stock
         for thing in self.pos[0].things:
             if thing.name == 'Scaffold':
-                from src.entity.Stock import Stock
                 top = not thing.get_offset_tile(0, -1).is_land(Tile.CHECK_SUPPORTED)
                 topleft = not thing.get_offset_tile(-1, -1).is_land(Tile.CHECK_SUPPORTED)
                 topright = not thing.get_offset_tile(1, -1).is_land(Tile.CHECK_SUPPORTED)
@@ -79,9 +80,20 @@ class Hammer(Weapon):
                 building = Stock.get(construct)
                 building.pos[0] = thing.pos[0]
                 building.add()
+                self.host.action.set('hit')
                 self.host.form.set('interact')
                 self.hit(1)
                 return
+            if thing.name == 'Planks':
+                thing.remove()
+                scaffold = Stock.get('Scaffold')
+                scaffold.pos[0] = thing.pos[0]
+                scaffold.add()
+                self.host.action.set('hit')
+                self.host.form.set('interact')
+                self.hit(1)
+                return
+        super().use()
 
 
 class Bow(Weapon):
@@ -118,7 +130,7 @@ class Ragdoll(Prop):
         self.add()
         self.form = form
         self.durability = 8
-        dead = 'dead' + str(Random.rand_int(1, 3))
+        dead = 'dead' + str(Random.rand_int(1, 2))
         self.form.randomize_clip(dead, 12)
         self.form.set(dead)
         self.form.set = invalid
@@ -130,7 +142,7 @@ class Ragdoll(Prop):
             return 1
         return 0
 
-    def is_hit(self, chance, faction=0):
+    def is_hit(self, faction=0):
         if self.hittable:
             return 1
 
@@ -140,3 +152,97 @@ class Ragdoll(Prop):
 
     def die(self):
         self.remove()
+
+
+class Command(Prop):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.frame = 0
+        self.state = 'start'
+        self.open = []
+        self.closed = []
+        self.construct = []
+        self.units = []
+        self.houses = []
+        self.warehouses = []
+
+    def __str__(self):
+        r = super().__str__()
+        unit = ','.join(i.id for i in self.units)
+        return r + ',[' + unit + ']'
+
+    def load(self, p):
+        super().load(p)
+        self.open.append(self.pos[0])
+
+    def turn(self):
+        super().turn()
+        self.frame += 1
+        if not self.frame % 3:
+            if not self.construct:
+                self.build()
+            elif not self.frame % 24:
+                if self.frame > 40:
+                    self.frame = 0
+                    if len(self.houses) >= len(self.units):
+                        from src.entity.Stock import Stock
+                        Effect.make('zip', self.pos[0].get_center())
+                        for i in range(12 * (1 + len(self.warehouses))):
+                            res = Stock.get("Planks")
+                            res.pos[0] = self.pos[0]
+                            res.add()
+                        unit = Stock.get("Worker")
+                        unit.pos[0] = self.pos[0]
+                        unit.faction = self.faction
+                        unit.add()
+                        unit.pilot.task.command = self
+                        self.units.append(unit)
+
+    def build(self):
+        if len(self.closed) < 64:
+            new = []
+            sites = []
+            while self.open:
+                pos = self.open.pop()
+                if pos not in self.closed:
+                    self.closed.append(pos)
+                    options = self.location.get_routes(pos)
+                    for option in options:
+                        tile = self.location.get_tile(pos.x + option[0], pos.y + option[1])
+                        if tile not in self.open:
+                            new.append(tile)
+                            sites.append(self.get_clearing(tile, 7))
+            self.open += new
+            self.construct = sites[Random.rand_int(0, len(sites) - 1)]
+            for cols in self.construct:
+                for rows in cols:
+                    Effect.make('blood', rows.get_center())
+        else:
+            self.open = [self.pos[0]]
+            self.closed = []
+
+    def get_clearing(self, tile, size):
+        sites = []
+        site = 1
+        count = 0
+        radius = int(size/2)
+        while site and count <= radius:
+            site = self.check_clearing(tile, count)
+            count += 1
+            if site:
+                sites += site
+        return sites
+
+    def check_clearing(self, tile, x):
+        r = []
+        ranges = [1] if x == 0 else [-1, 1]
+        for i in ranges:
+            pos_x = tile.x + (x * i)
+            ground = self.location.get_tile(pos_x, tile.y + 1)
+            space = self.location.get_tile(pos_x, tile.y)
+            air = self.location.get_tile(pos_x, tile.y - 1)
+            ceiling = self.location.get_tile(pos_x, tile.y - 2)
+            if ground.is_land(Tile.CHECK_FIRM) and not space.is_land(Tile.CHECK_FIRM)\
+                    and not air.is_land(Tile.CHECK_FIRM) and not ceiling.is_land(Tile.CHECK_FIRM):
+                r.append([space, air, ceiling])
+        return r

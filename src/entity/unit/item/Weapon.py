@@ -3,13 +3,12 @@ from src.game.Tags import Tags
 
 
 class Weapon(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.accuracy = 0
-
     def __str__(self):
-        return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + ','.join(str(x) for x in self.range) + '],'\
-               + str(self.weight) + ',' + str(self.accuracy)
+        r = []
+        for i in self.range:
+            r.append('[' + str(i[0]) + ',' + str(i[1]) + ']')
+        return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + (','.join(r)) + '],' + str(self.weight) + ','\
+            + str(self.damage) + ',' + str(self.speed)
 
     def load(self, arg):
         index = super().load(arg)
@@ -19,7 +18,9 @@ class Weapon(Item):
         index += 1
         self.weight = arg[index]
         index += 1
-        self.accuracy = arg[index]
+        self.damage = arg[index]
+        index += 1
+        self.speed = arg[index]
         return index + 1
 
     def use(self):
@@ -28,8 +29,9 @@ class Weapon(Item):
     def describe(self):
         r = super().describe()
         r += '\nRange: ' + ','.join(str(x) for x in self.range)
-        r += '\nStamina Use: ' + str(self.weight)
-        r += '\nAccuracy: ' + Weapon.describe_accuracy(self.accuracy)
+        r += '\nWeight: ' + str(self.weight)
+        r += '\nDamage: ' + str(self.damage)
+        r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
         if Tags.sharp in self.tags:
             r += '\nThis weapon has a sharp edge.'
         return r
@@ -47,17 +49,6 @@ class Weapon(Item):
         else:
             return 'Burdening'
 
-    @staticmethod
-    def describe_accuracy(acc):
-        if acc == 1:
-            return 'Normal'
-        elif acc == 2:
-            return 'Accurate'
-        elif acc >= 3:
-            return 'Precise'
-        else:
-            return 'Inaccurate'
-
     def get_value(self):
         if self.durability == -1:
             hp = 3
@@ -72,11 +63,11 @@ class Weapon(Item):
             range += 1
         other = 0
         if 'shp' in self.tags:
-                other += 1
+            other += 1
         if 'is' in self.tags:
-                other += 1
+            other += 1
         weight = int((self.weight + 1) / 2)
-        score = hp + other + range + self.accuracy - weight
+        score = hp + other + range + self.damage - weight
         return score
 
     def die(self):
@@ -85,23 +76,3 @@ class Weapon(Item):
             self.durability = 8
         else:
             super().die()
-
-    def attack(self, chance, callback=None):
-        def cb(target):
-            self.hit(1)
-            if self.states.get('Fire'):
-                target.states.add('Burn', 8)
-            if self.states.get('Shock'):
-                target.states.add('Stun', 40)
-                self.states.get('Shock').end()
-            if Tags.sharp in self.tags:
-                target.states.add('Bleed', 60)
-            if callback:
-                callback(target)
-        accuracy = chance + self.host.get_proficiency(self.name.lower()) + self.accuracy
-        for i in self.range:
-            tile = self.host.location.collide_land(self.host.get_interact_pos(),
-                                                   self.host.next_target.x, self.host.next_target.y,
-                                                   distance=i, flag=[])
-            self.location.attack.register(1, tile, type='batter', faction=self.host.faction,
-                                          chance=accuracy, callback=cb)

@@ -24,6 +24,7 @@ class Location:
         self.attack = Field()
         self.delay = 8
         self.tiles = {}
+        self.edge = 0
         self.record = List()
         self.load(list(Data.process_raw(Data.read('save/'+data[0]+'.map'))))
         self.bg = [Data.run_cache('data/image/background/desert_1'),
@@ -60,7 +61,9 @@ class Location:
             y = i[0][1]
             tile = self.get_tile(x, y)
             data = tiles[i[1]]
-            tile.terrain = Terrain(i[1], tile * [Global.BLOCK, Global.BLOCK], data[0], data[1], data[2])
+            tile.terrain = Terrain(i[1], tile * [Global.BLOCK, Global.BLOCK], data[0], data[1], data[2], data[3])
+            if y > self.edge:
+                self.edge = y
         for i in arg[2]:
             Stock.get(i[2], i).add()
 
@@ -70,7 +73,7 @@ class Location:
 
     def turn(self):
         if not self.delay:
-            self.delay = 200
+            self.delay = 40
             Data.write('save/' + self.name + '.map', self.__str__())
 
     def draw(self, surface):
@@ -148,11 +151,40 @@ class Location:
                 return prev
         return self.collide_line(vec_from, x, y, fn, distance)
 
-    def get_area(self, center_tile, aoe):
+    def get_area(self, center_tile, range_x, range_y):
         tiles = []
-        for x in range(-aoe, aoe+1):
-            for y in range(-aoe, aoe+1):
+        for x in range(-range_x, range_x+1):
+            for y in range(-range_y, range_y+1):
                 tile = self.get_tile(center_tile + (x, y), create=0)
                 if tile:
                     tiles.append(tile)
         return tiles
+
+    def get_routes(self, pos):
+        options = []
+        right = self.get_tile(pos.x + 1, pos.y)
+        left = self.get_tile(pos.x - 1, pos.y)
+        ground = self.get_tile(pos.x, pos.y + 1)
+        air = self.get_tile(pos.x, pos.y - 1)
+        if ground.is_land(Tile.CHECK_LANDABLE) or pos.is_climbable():
+            if not air.is_land(Tile.CHECK_LARGE) and air.is_climbable():
+                options.append((0, -1))
+            if not right.is_land(Tile.CHECK_LARGE):
+                if self.get_tile(pos.x + 1, pos.y + 1).is_land(Tile.CHECK_LANDABLE) or right.is_climbable():
+                    options.append((1, 0))
+                else:
+                    options.append((1, 1))
+            elif not self.get_tile(pos.x + 1, pos.y - 1).is_land(Tile.CHECK_LARGE):
+                options.append((1, -1))
+            if not left.is_land(Tile.CHECK_LARGE):
+                if self.get_tile(pos.x - 1, pos.y + 1).is_land(Tile.CHECK_LANDABLE) or left.is_climbable():
+                    options.append((-1, 0))
+                else:
+                    options.append((-1, 1))
+            elif not self.get_tile(pos.x - 1, pos.y - 1).is_land(Tile.CHECK_LARGE):
+                options.append((-1, -1))
+            if not ground.is_land(Tile.CHECK_LARGE) and ground.is_climbable() and ground.y < self.edge:
+                options.append((0, 1))
+        else:
+            options.append((0, 1))
+        return options

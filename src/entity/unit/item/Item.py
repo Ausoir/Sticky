@@ -1,5 +1,6 @@
 from src.entity.Prop import Prop
 from src.game.Global import DEPTH_ITEM
+from src.game.Tags import Tags
 from src.map.Tile import Tile
 
 
@@ -8,10 +9,13 @@ class Item(Prop):
         super().__init__(loc)
         self.collide = Tile.COLLIDE_ITEM
         self.host = None
-        self.range = [1]
+        self.depth = DEPTH_ITEM
+        self.rotation = 60
+        self.range = [[1, 0]]
         self.volume = [1, 1]
         self.weight = 8  # not recorded
-        self.depth = DEPTH_ITEM
+        self.speed = 5
+        self.damage = 1
 
     def __str__(self):
         return super().__str__() + ',[' + str(self.volume[0]) + ',' + str(self.volume[1]) + ']'
@@ -57,14 +61,19 @@ class Item(Prop):
         host.armor.add_item(self)
         host.action.set('rest')
 
-    def attack(self, chance, callback=None):
+    def attack(self, damage=None, callback=None):
         def cb(target):
-            self.hit(1)
+            if self.states.get('Fire'):
+                target.states.add('Burn', 8)
+            if self.states.get('Shock'):
+                target.states.add('Stun', 40)
+                self.states.get('Shock').end()
+            if Tags.sharp in self.tags:
+                target.states.add('Bleed', 60)
             if callback:
                 callback(target)
         for i in self.range:
-            tile = self.host.location.collide_land(self.host.get_interact_pos(),
-                                                   self.host.next_target.x, self.host.next_target.y,
-                                                   distance=i, flag=[])
-            self.location.attack.register(1, tile, type='batter', faction=self.host.faction,
-                                          chance=2, callback=cb)
+            if damage is None:
+                damage = self.damage
+            self.location.attack.register(damage, self.host.get_offset_tile(i[0] * self.host.direction, i[1]),
+                                          type='batter', faction=self.host.faction, callback=cb)

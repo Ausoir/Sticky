@@ -67,7 +67,7 @@ class Body:
         self.state_name = state
         self.current_clip = 0
         self.update_clip()
-        self.height = -200
+        self.height = -999
         for i in self.leg:
             self.height = max(self.height, self.current_animation[i][1] - Global.HALF_BLOCK - 1)
 

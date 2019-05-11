@@ -1,13 +1,13 @@
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 from src.game.Camera import Camera
-from src.tools.Random import Random
 
 
 class Humanoid(Unit):
     def __init__(self, loc):
         super().__init__(loc)
         self.weapon = None
+        self.offhand = None
         self.armor = None
         self.headgear = None
         self.aim_angle = 0
@@ -19,34 +19,52 @@ class Humanoid(Unit):
 
     def __str__(self):
         weapon = '['+self.weapon.__str__()+']'
+        offhand = '['+self.offhand.__str__()+']'
         armor = '['+self.armor.__str__()+']'
         headgear = '['+self.headgear.__str__()+']'
-        gear = weapon + ',' + armor + ',' + headgear
+        gear = weapon + ',' + offhand + ',' + armor + ',' + headgear
         return super().__str__() + ',' + str(self.gold) + ',' + gear
 
     def load(self, p):
         index = super().load(p)
         self.form.randomize_clip('hit', 4)
         self.gold = p[index]
-        if p[index + 1]:
-            weapon = Stock.get(p[index + 1][2], p[index + 1])
+        index += 1
+        if p[index]:
+            weapon = Stock.get(p[index][2], p[index])
             weapon.on_equip(self)
         else:
             self.make_fist()
+        index += 1
+        if p[index]:
+            offhand = Stock.get(p[index][2], p[index])
+            weapon = self.weapon
+            offhand.on_equip(self)
+            self.offhand = self.weapon
+            self.weapon = weapon
+        else:
+            weapon = self.weapon
+            self.make_fist()
+            self.offhand = self.weapon
+            self.weapon = weapon
         self.armor = self.body
         self.headgear = self.head
-        if p[index + 2]:
-            armor = Stock.get(p[index + 2][2], p[index + 2])
+        index += 1
+        if p[index]:
+            armor = Stock.get(p[index][2], p[index])
             armor.use(self)
         else:
             self.make_armor()
-        if p[index + 3]:
-            headgear = Stock.get(p[index + 3][2], p[index + 3])
+        index += 1
+        if p[index]:
+            headgear = Stock.get(p[index][2], p[index])
             headgear.use(self)
         else:
             self.make_headgear()
         self.update_durability()
-        return index + 4
+        self.pilot.strategize()
+        index += 1
+        return index
 
     def turn(self):
         super().turn()
@@ -60,9 +78,6 @@ class Humanoid(Unit):
     def is_fall(self):
         return self.gravity and not self.hang
 
-    def get_dodge(self):
-        return super().get_dodge() - self.armor.encumbrance
-
     def update_durability(self, damage=0):
         head_armor, damage = self.headgear.get_reduction(damage)
         if 0 < damage >= head_armor == 0 and self.headgear.durability != -1:
@@ -70,11 +85,19 @@ class Humanoid(Unit):
         armor, damage = self.armor.get_reduction(damage)
         if self.weapon.durability == 0:
             self.weapon.die()
-        self.durability = head_armor + armor + self.get_proficiency('toughness')
+        self.durability = head_armor + armor + 1
+
+    def is_hit(self, faction=0):
+        if super().is_hit(faction):
+            if self.action.current_action != 'dodge':
+                return 1
+            else:
+                self.action.exert(1, 1)
+                self.form.randomize_once(16)
 
     def hit(self, damage):
         r = super().hit(damage)
-        self.form.randomize_once(18)
+        self.form.randomize_once(16)
         if self.durability > 0:
             self.update_durability(damage)
         return r
@@ -93,8 +116,16 @@ class Humanoid(Unit):
         if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y):
             x = self.vec.x + self.form.organs[0].lower_joint.x
             y = self.vec.y + self.form.organs[0].lower_joint.y - self.form.height
+            arm = -(self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
+            self.weapon.form.rotate(arm + 90 + (self.weapon.rotation * self.direction))
             self.weapon.form.draw(surface, x, y)
-            return super().draw(surface)
+            r = super().draw(surface)
+            x = self.vec.x + self.form.organs[5].lower_joint.x
+            y = self.vec.y + self.form.organs[5].lower_joint.y - self.form.height
+            arm = -(self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
+            self.offhand.form.rotate(arm + 110 + (self.offhand.rotation * self.direction))
+            self.offhand.form.draw(surface, x, y)
+            return r
         return 0
 
     def clean_buffs(self, force=0):
@@ -144,7 +175,3 @@ class Humanoid(Unit):
 
     def is_headgeared(self):
         return self.headgear.name != 'Head'
-
-    def aim(self):
-        angle = self.next_target.get_atan()
-        self.weapon.form.rotate(-angle + 90)

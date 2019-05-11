@@ -2,5 +2,6 @@ error,data/Error,0 //Name, Directory, Subset
 icon,data/Icon,[24,24]
 head,data/image/unit/Head,0
 body,data/image/unit/Body,[16,48]
-gfx,data/image/_effects,[40,40]
-g,data/image/_singles,[40,40]
+gfx,data/image/_effect,[40,40]
+g,data/image/_single,[40,40]
+gl,data/image/_oversize,[42,43]

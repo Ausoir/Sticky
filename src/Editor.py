@@ -114,8 +114,9 @@ class ToolTerrain:
     def __init__(self, loc):
         self.tile_list = Data.get_cache('tiles')
         self.text = 'dirt'
+        self.location = loc
         self.tile = loc.get_tile(0, 0)
-        self.prev_tile = None
+        self.prev_tile = loc.get_tile(0, 0).terrain
         self.current = 0
         self.last = None  # unused
 
@@ -143,6 +144,37 @@ class ToolTerrain:
         self.tile = tile
         self.prev_tile = tile.terrain
         self.tile.set_terrain(text)
+        self.update(self.tile.x, self.tile.y)
+
+    def is_terrain(self, x, y, terrain):
+        r = self.location.get_tile(self.tile.x + x, self.tile.y + y).terrain
+        if r:
+            return 1 if r.name.split(' ')[0] == terrain else 0
+        return 0
+
+    def update(self, x, y):
+        tile = self.location.get_tile(x, y)
+        if tile.terrain:
+            name_type = tile.terrain.name.split(' ')[0]
+            if name_type in ['dirt']:
+                grid = [self.is_terrain(0, -1, name_type), self.is_terrain(-1, 0, name_type),
+                        self.is_terrain(1, 0, name_type), self.is_terrain(0, 1, name_type)]
+                if grid in [[1, 1, 1, 1], [1, 1, 0, 1], [1, 0, 1, 1]]:
+                    tile.set_terrain(name_type)
+                if grid in [[0, 1, 1, 1], [0, 1, 1, 0]]:
+                    tile.set_terrain(name_type + ' top')
+                if grid in [[0, 1, 0, 1]]:
+                    tile.set_terrain(name_type + ' left')
+                if grid in [[0, 0, 1, 1]]:
+                    tile.set_terrain(name_type + ' right')
+                if grid in [[0, 1, 0, 0]]:
+                    tile.set_terrain(name_type + ' edge left')
+                if grid in [[0, 0, 1, 0]]:
+                    tile.set_terrain(name_type + ' edge right')
+                if grid in [[1, 1, 0, 0]]:
+                    tile.set_terrain(name_type + ' corner left')
+                if grid in [[1, 0, 1, 0]]:
+                    tile.set_terrain(name_type + ' corner right')
 
 
 class ToolObject:

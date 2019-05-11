@@ -31,8 +31,9 @@ class Prop(Object):
             self.gravity = 0
         if Tags.back in self.tags:
             self.depth = 20
-        if Tags.intangible in self.tags:
+        if Tags.indestructible in self.tags:
             self.hittable = 0
+        if Tags.intangible in self.tags:
             self.collide = 0
         elif Tags.land in self.tags:
             self.collide = Tile.COLLIDE_DOODAD
@@ -55,7 +56,7 @@ class Prop(Object):
             Stock.get('Scrap').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
-    def is_hit(self, chance, faction=0):
+    def is_hit(self, faction=0):
         if self.hittable and Faction.is_against(self.faction, faction):
             return 1
 

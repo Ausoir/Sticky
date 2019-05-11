@@ -4,6 +4,7 @@ class Tags:
     back = 'bg'
     float = 'xg'
     intangible = 'xc'
+    indestructible = 'xh'
     land = 'cd'
     cover = 'cc'
     support = 'cs'

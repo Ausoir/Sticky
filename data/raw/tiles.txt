@@ -1,5 +1,12 @@
-black,g_0x1,0 //name,image,type
-filler,g_0x1,0
-dirt,g_1x1,1
-stone,g_2x1,1
-rock,g_3x1,2
+black,g_0x1,0,0 //name,image,type,flip
+filler,g_0x1,0,0
+dirt,g_1x1,1,0
+rock,g_2x1,2,0
+dirt,g_1x1,1,0
+dirt top,g_3x1,1,0
+dirt left,g_4x1,1,1
+dirt right,g_4x1,1,0
+dirt edge left,g_5x1,1,1
+dirt edge right,g_5x1,1,0
+dirt corner left,g_6x1,1,1
+dirt corner right,g_6x1,1,0

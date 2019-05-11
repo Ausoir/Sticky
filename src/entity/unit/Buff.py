@@ -159,3 +159,23 @@ class Stun(Buff):
     def on_update(self):
         if self.effect(6):
             Effect.make('zap', self.host.pos[0].get_center())
+
+
+class Haste(Buff):
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return 1
+
+    def on_start(self):
+        self.host.attributes.speed += 1
+
+    def on_load(self):
+        self.host.attributes.speed += 1
+
+    def on_finish(self):
+        self.host.attributes.speed -= 1
+
+    def on_update(self):
+        if self.effect(6):
+            Effect.make('barrier', self.host.pos[0].get_center())

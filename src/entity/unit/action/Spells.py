@@ -44,8 +44,9 @@ class Spells:
 
     @staticmethod
     def sonic(host):
-        Effect.make('energy', host.get_target_tile().get_center())
-        aoe = host.location.get_area(host.get_target_tile(), 4)
+        tgt = host.get_offset_tile(host.direction * 8, 0)
+        Effect.make('energy', tgt.get_center())
+        aoe = host.location.get_area(tgt, 4, 4)
         for i in aoe:
             for thing in i.things:
                 thing.hit(0)
@@ -62,7 +63,7 @@ class Spells:
         fire = host.states.get('Fire')
         if fire:
             fire.end()
-        aoe = host.location.get_area(host.pos[0], 3)
+        aoe = host.location.get_area(host.pos[0], 3, 3)
         for i in aoe:
             for thing in i.things:
                 thing.states.add('Burn', 8)
@@ -77,7 +78,7 @@ class Spells:
     @staticmethod
     def dispell(host):
         from src.entity.Prop import Prop
-        aoe = host.location.get_area(host.pos[0], 8)
+        aoe = host.location.get_area(host.pos[0], 8, 8)
         for i in aoe:
             for thing in i.things:
                 Effect.make('energy', thing.vec)
@@ -87,16 +88,20 @@ class Spells:
 
     @staticmethod
     def conjure(host):
-        Effect.make('barrier', host.vec)
-        r = Stock.get('Portal').add()
-        r.relocate(host.pos[0].x, host.pos[0].y - 1, force=1)
-        host.states.add('Rift', 160, var=r.id)
+        rift = host.states.get('Rift')
+        if rift:
+            Spells.teleport(host)
+        else:
+            Effect.make('barrier', host.vec)
+            r = Stock.get('Portal').add()
+            r.relocate(host.pos[0].x, host.pos[0].y - 1, force=1)
+            host.states.add('Rift', 160, var=r.id)
 
     @staticmethod
     def pull(host):
         obj = Spells.check_rift(host)
         if obj:
-            aoe = host.location.get_area(obj.pos[0], 8)
+            aoe = host.location.get_area(obj.pos[0], 8, 8)
             for i in aoe:
                 x = 0
                 y = 0
@@ -143,11 +148,9 @@ class Spells:
     def fireblast(host):
         def effect():
             def on_hit(target):
-                aoe = r.location.get_area(target.pos[0], 1)
-                for i in aoe:
-                    Effect.make('burn', i.get_center(), offset=4, lifetime=40)
-                    for thing in i.things:
-                        thing.states.add('Burn', 16)
+                Effect.make('burn', target.pos[0].get_center(), offset=4, lifetime=40)
+                for thing in target.pos[0].things:
+                    thing.states.add('Burn', 16)
                 r.remove()
             if host.next_target.y > 0:
                 y = 1
@@ -165,6 +168,10 @@ class Spells:
         r.effect = effect
 
     @staticmethod
+    def haste(host):
+        host.states.add('Haste', 50)
+
+    @staticmethod
     def tornado(host):
         def effect():
             def on_hit(target):
@@ -172,16 +179,15 @@ class Spells:
                     target.move(-4, -4)
                 else:
                     target.move(4, -4)
-            tgt = host.get_target_tile() - r.pos[0]
             r.last_pos = r.pos[0] + 0
-            r.move(tgt.x, tgt.y, 1)
+            r.move(host.direction, 0, 1)
             r.location.attack.register(0, r.get_offset_tile(0, -1), faction=Faction.PROJECTILE, callback=on_hit)
             r.location.attack.register(0, r.get_offset_tile(0, 1), faction=Faction.PROJECTILE, callback=on_hit)
             r.location.attack.register(0, r.get_offset_tile(1, 0), faction=Faction.PROJECTILE, callback=on_hit)
             r.location.attack.register(0, r.get_offset_tile(-1, 0), faction=Faction.PROJECTILE, callback=on_hit)
             r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
             Effect.make('wind', r.pos[0].get_center(), offset=4)
-        r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 16)
+        r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 20)
         r.last_pos = r.pos[0]
         r.effect = effect
         return r
@@ -192,7 +198,6 @@ class Spells:
         if obj:
             r = Stock.get('Summon').add()
             r.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
-            r.states.add('Banish', 100)
             Effect.make('zip', r.vec)
 
     @staticmethod
@@ -243,7 +248,6 @@ class Spells:
             r1 = Stock.get('Crystal').add()
             r1.relocate(obj.pos[0].x, obj.pos[0].y, force=1)
             r1.states.add('Levitate', 1)
-            r1.states.add('Banish', 80)
             Effect.make('zip', r1.vec)
             r1.move(Random.rand_int(-1, 1), Random.rand_int(-1, 0))
 
@@ -253,18 +257,15 @@ class Spells:
         Spells.dispell(host)
 
 
-spellbook = {'arc': Spells.teleport,
+spellbook = {'arc': Spells.levitate,
              'art': Spells.fargate,
              'afc': Spells.shock,
              'aft': Spells.fireblast,
              'fc': Spells.brand,
              'ft': Spells.scorch,
-             'ac': Spells.levitate,
+             'ac': Spells.haste,
              'at': Spells.tornado,
              'rc': Spells.crystallize,
              'rt': Spells.summon,
-             'ff': Spells.combust,
-             'aa': Spells.dispell,
-             'rr': Spells.pull,
              'c': Spells.scry,
              't': Spells.sonic}

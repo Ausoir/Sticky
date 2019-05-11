@@ -23,6 +23,7 @@ class Menu:
         self.dialog_text = []
         self.last_input = None
         self.var = 0
+        self.selected = [0, 0]
 
     def draw(self, surface):
         if self.visible == 1:
@@ -33,16 +34,49 @@ class Menu:
         if self.visible == 1:
             self.state = self.current_state
             self.display(1)
-            self.input(self.last_input)
+            if self.selected[0] == 1:
+                self.window.children[self.selected[1]].glow(True)
+            elif self.selected[0] == 2:
+                self.sub_window.children[self.selected[1]].glow(True)
 
     def input(self, event):
         if event.type == pygame.MOUSEMOTION:
             self.last_input = event
+        elif event.type == pygame.KEYDOWN:
+            keymap = Global.main.world.control.keymap
+            if self.visible == 1 and event.key in keymap:
+                if keymap[event.key] == 'use':
+                    if self.selected[0] == 1:
+                        self.window.children[self.selected[1]].on_click()
+                    if self.selected[0] == 2:
+                        self.sub_window.children[self.selected[1]].on_click()
+                    return 1
+                elif keymap[event.key] == 'left':
+                    self.select(1, self.selected[1])
+                    return 1
+                elif keymap[event.key] == 'right':
+                    self.select(2, self.selected[1])
+                    return 1
+                elif keymap[event.key] == 'jump':
+                    self.select(self.selected[0], self.selected[1] - 1)
+                    return 1
+                elif keymap[event.key] == 'duck':
+                    self.select(self.selected[0], self.selected[1] + 1)
+                    return 1
         if self.window.input(event):
             return 1
         if self.sub_window.input(event):
             return 1
         return 0
+
+    def select(self, window, element):
+        if window == 1 and len(self.window.children) > 0:
+            element = min(len(self.window.children) - 1, max(0, element))
+        elif window == 2 and len(self.sub_window.children) > 0:
+            element = min(len(self.sub_window.children) - 1, max(0, element))
+        else:
+            window = 0
+        self.selected = [window, element]
 
     def toggle(self):
         self.visible *= -1
@@ -53,6 +87,7 @@ class Menu:
         self.sub_window.display(-1)
         self.window.display(-1)
         if self.visible == 1:
+            self.select(self.selected[0], self.selected[1])
             self.window.flush()
             self.sub_window.flush()
             self.current_state = self.state

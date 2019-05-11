@@ -19,7 +19,6 @@ class Projectile(Prop):
         self.speed = 24
         self.depth = DEPTH_EFFECT
         self.fast = 1
-        self.chance = 9
 
     def __str__(self):
         return super().__str__() + ',' + str(self.lifetime)

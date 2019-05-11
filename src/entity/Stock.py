@@ -81,6 +81,8 @@ class Stock:
             r = Ragdoll(Stock.location)
         elif arg[2] == 'Projectile':
             r = Projectile(Stock.location)
+        elif arg[2] == 'Command':
+            r = Command(Stock.location)
         else:
             r = Prop(Stock.location)
         r.load(arg)

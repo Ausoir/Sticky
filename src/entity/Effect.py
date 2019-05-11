@@ -9,7 +9,7 @@ from src.tools.Random import Random
 
 class Effect:
     @classmethod
-    def make(cls, arg, pos, lifetime=-1, offset=16):
+    def make(cls, arg, pos, lifetime=10, offset=16):
         r = cls(arg)
         r.lifetime = lifetime
         r.at = pos

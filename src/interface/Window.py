@@ -53,11 +53,7 @@ class Window(Shape):
         if event.type == pygame.MOUSEMOTION:
             mouse = pygame.mouse.get_pos()
             if self.text:
-                if self.collide(mouse):
-                    if self.hover_font_color:
-                        self.font_color = self.hover_font_color
-                else:
-                    self.font_color = self.normal_font_color
+                self.glow(self.collide(mouse))
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse = pygame.mouse.get_pos()
             if self.collide(mouse):
@@ -68,6 +64,13 @@ class Window(Shape):
                     self.on_r_click()
                     return 1
         return 0
+
+    def glow(self, on):
+        if on:
+            if self.hover_font_color:
+                self.font_color = self.hover_font_color
+        else:
+            self.font_color = self.normal_font_color
 
     def draw(self, surface):
         if self.visible == 1:

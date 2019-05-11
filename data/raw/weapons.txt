@@ -1,20 +1,6 @@
-Fist,g_0x0,[],-1,[],[1,1],0,[1],3,0 //Name, Image, Tags, Durability, State, Size, Pivot, Range, Weight, Accuracy
-Parasol,data/image/parasol,[],4,[],[1,2],4,[1],1,0
-Bottle,data/image/bottle,[],4,[],[1,2],6,[1],1,0
-Rock,data/image/rock,[],-1,[],[1,2],12,[1],5,1
-Stick,data/image/stick,[iw],8,[],[1,2],8,[1,2],2,0
-Bat,data/image/bat,[iw],16,[],[1,2],8,[1,2],3,1
-Mace,data/image/mace,[im],64,[],[1,2],8,[1],4,2
-Pickaxe,data/image/pickaxe,[shp,im],16,[],[2,2],20,[2],4,1
-Axe,data/image/axe,[shp],16,[],[1,2],18,[1],4,1
-Spear,data/image/spear,[shp,iw],16,[],[1,3],40,[2,3],2,1
-Dagger,data/image/dagger,[shp,im],16,[],[1,1],6,[1],1,0
-Cleaver,data/image/cleaver,[shp,is],16,[],[1,1],8,[1],3,1
-Rapier,data/image/rapier,[shp,im],8,[],[1,2],9,[2],4,2
-Shortsword,data/image/shortsword,[shp,im],32,[],[1,2],8,[1],3,1
-Scimitar,data/image/scimitar,[shp],32,[],[1,2],16,[1,2],3,1
-Lance,data/image/lance,[shp,im],64,[],[1,3],4,[2],5,2
-Broadsword,data/image/broadsword,[shp,im],32,[],[1,3],8,[1],5,2
-Katana,data/image/katana,[shp,is],16,[],[1,3],4,[1,2],3,1
-Claymore,data/image/claymore,[shp,im,is],64,[],[1,3],9,[1,2],5,1
-Greatsword,data/image/greatsword,[im,shp,is],-1,[],[3,2],8,[1,2],10,3
+Fist,g_0x0,[],-1,[],[1,1],0,[[1,0]],1,1,4 //Name, Image, Tags, Durability, State, Size, Pivot, Range, Weight, Damage, Speed
+Bat,data/image/bat,[iw],16,[],[1,2],8,[[1,0],[2,0]],2,2,4 //Blunt - heavy, damaging, slow
+Axe,data/image/axe,[shp],16,[],[1,2],18,[[1,0]],2,3,5
+Dagger,data/image/dagger,[shp,im],16,[],[1,1],6,[[1,0]],1,1,3 //Small - light, harmless, fast
+Katana,data/image/katana,[shp,is],16,[],[1,3],4,[[1,0],[2,0]],2,2,3
+Broadsword,data/image/broadsword,[shp,im],16,[],[1,3],8,[[1,0]],3,4,4 //Bladed - normal

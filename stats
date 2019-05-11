@@ -79,5 +79,10 @@
 4/14 adjusted combat for combo limited by stamina, also now harder to run from fights (1)
 4/15 terrains now images not shapes (1)
 ---- PUSH
+4/17 added grass (1), added Commander (1), added Buff.haste (1), added Location.edge (1)
+4/19 editor deletes [0,0] tile terrain at start fix (1)
+4/25 removed Commander replaced with Other.command (1)
+5/10 switched to action style combat (3), terrain details (1), terrain auto adaptation in Editor (3)
+5/11 switched to key controls (3), menu key accessible (1)
 
 +:00

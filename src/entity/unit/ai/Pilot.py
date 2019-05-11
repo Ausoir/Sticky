@@ -17,40 +17,40 @@ class Pilot:
                 pass
             self.hit = none
             self.update = none
+            self.strategize = none
         else:
             self.priority = 5
             self.range = 6
             self.move = Path(self)
             self.hunt = Chase(self)
             self.hunt.move = self.move
-            self.set(style)
+            if style == 'Worker':
+                self.task = Work(self)
+                self.task.move = self.move
 
     def __str__(self):
         return self.style
 
-    def set(self, style):
-        if style == 'Manual':
-            def none():
-                pass
-            self.hit = none
-            self.update = none
-        elif style == 'Melee':
-            self.hunt.attack = Melee(self, 1)
-        elif style == 'Archer':
+    def strategize(self):
+        if self.host.weapon.name == 'Bow':
             self.hunt.attack = Range(self)
+        else:
+            self.hunt.attack = Melee(self, 1)
 
     def update(self):
         self.task.update()
         if self.host.delay == 0:
             if not self.dodge():
                 self.perceive(self.range)
-                if self.task.is_done():
+                if self.task.is_done() and self.task.next:
                     self.task = self.task.next
+                    self.task.on_set()
                 self.task.perform()
 
     def add_task(self, task):
         task.next = self.task
         self.task = task
+        self.task.on_set()
 
     def hit(self):
         if self.priority > 1:
@@ -60,7 +60,7 @@ class Pilot:
     def perceive(self, sight, offset=(0, 0)):
         if self.priority > 1:
             perceived = []
-            aoe = self.host.location.get_area(self.host.pos[0] + (offset[0], 0), sight + offset[1])
+            aoe = self.host.location.get_area(self.host.pos[0] + (offset[0], 0), sight + offset[1], sight + offset[1])
             for i in aoe:
                 for thing in i.things:
                     if thing != self.host:

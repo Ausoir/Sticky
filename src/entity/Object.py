@@ -1,7 +1,7 @@
 from src.entity.Image import Image
-from src.game.Global import DEPTH_OBJECT
 from src.entity.Space import Space
 from src.game.Camera import Camera
+from src.game.Global import DEPTH_OBJECT
 from src.game.Group import Group
 from src.game.Turn import Turn
 from src.map.Tile import Tile
@@ -76,14 +76,18 @@ class Object(Image):
     def is_fall(self):
         return self.gravity
 
+    def on_fall(self, distance):
+        pass
+
     def turn(self):
         if self.is_fall():
             old = self.pos[0]
             new = self.move(0, 4, flag=self.standables)
             if new != old:
-                self.on_fall(new.y - old.y)
-                if self.pos[0].y > 2000:
+                if self.pos[0].y > self.location.edge:
                     self.remove()
+                else:
+                    self.on_fall(new.y - old.y)
 
     def relocate(self, x, y, force=0):
         if force or x != self.pos[0].x or y != self.pos[0].y:
@@ -104,9 +108,6 @@ class Object(Image):
         new_pos = self.location.collide_land(self.pos[0], x, y, distance=distance, flag=flag)
         self.relocate(new_pos.x, new_pos.y)
         return new_pos
-
-    def on_fall(self, distance):
-        pass
 
     def center_camera(self):
         Camera.target = self.vec

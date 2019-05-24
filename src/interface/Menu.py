@@ -34,10 +34,7 @@ class Menu:
         if self.visible == 1:
             self.state = self.current_state
             self.display(1)
-            if self.selected[0] == 1:
-                self.window.children[self.selected[1]].glow(True)
-            elif self.selected[0] == 2:
-                self.sub_window.children[self.selected[1]].glow(True)
+            self.input(self.last_input)
 
     def input(self, event):
         if event.type == pygame.MOUSEMOTION:
@@ -67,7 +64,6 @@ class Menu:
             return 1
         if self.sub_window.input(event):
             return 1
-        return 0
 
     def select(self, window, element):
         if window == 1 and len(self.window.children) > 0:
@@ -210,25 +206,16 @@ class Menu:
             self.state = self.menu_equipment
             self.display(1)
 
-        def click_r_headgear():
-            self.show_dialog(self.host.headgear.describe().split('\n'))
-
         def click_armor():
             if not self.host.unarmor() and isinstance(self.host.weapon, Armor):
                 self.host.weapon.use(self.host)
             self.state = self.menu_equipment
             self.display(1)
 
-        def click_r_armor():
-            self.show_dialog(self.host.armor.describe().split('\n'))
-
         def click_weapon():
             self.host.drop()
             self.state = self.menu_equipment
             self.display(1)
-
-        def click_r_weapon():
-            self.show_dialog(self.host.weapon.describe().split('\n'))
 
         def make_pocket(x, y):
             def pocket():
@@ -252,9 +239,12 @@ class Menu:
                     self.show_dialog(item.describe().split('\n'))
             return pocket
 
-        self.window.add_child(Menu.make_button([self.host.headgear.name], click_headgear, click_r_headgear))
-        self.window.add_child(Menu.make_button([self.host.armor.name], click_armor, click_r_armor))
-        self.window.add_child(Menu.make_button([self.host.weapon.name], click_weapon, click_r_weapon))
+        rmb = self.get_message(self.host.headgear.describe().split('\n'))
+        self.window.add_child(Menu.make_button([self.host.headgear.name], click_headgear, rmb))
+        rmb = self.get_message(self.host.armor.describe().split('\n'))
+        self.window.add_child(Menu.make_button([self.host.armor.name], click_armor, rmb))
+        rmb = self.get_message(self.host.weapon.describe().split('\n'))
+        self.window.add_child(Menu.make_button([self.host.weapon.name], click_weapon, rmb))
         for ky, vy in enumerate(self.host.armor.inventory):
             for kx, vx in enumerate(vy):
                 if vx == Armor.VACANT:
@@ -300,6 +290,16 @@ class Menu:
 
     def menu_status(self):
         for i in self.host.states.buffs:
-            self.window.add_child(Menu.make_button([i.name.title()], None, None, color=Window.fore_color0))
-            self.sub_window.add_child(Menu.make_button([str(i.duration)], None, None, color=Window.fore_color0))
+            rmb = self.get_message(i.describe().split('\n'))
+            self.window.add_child(Menu.make_button([i.name.title()], rmb, rmb, color=Window.fore_color0))
+            if i.duration == -1:
+                dur = 'Persistent'
+            else:
+                dur = str(i.duration)
+            self.sub_window.add_child(Menu.make_button([dur], None, None, color=Window.fore_color0))
         self.sub_window.display(1)
+
+    def get_message(self, msg):
+        def message():
+            self.show_dialog(msg)
+        return message

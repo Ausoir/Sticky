@@ -1,7 +1,7 @@
 from src.entity.Prop import Prop
-from src.game.Global import DEPTH_ITEM
 from src.game.Tags import Tags
 from src.map.Tile import Tile
+from src.tools.Random import Random
 
 
 class Item(Prop):
@@ -9,8 +9,8 @@ class Item(Prop):
         super().__init__(loc)
         self.collide = Tile.COLLIDE_ITEM
         self.host = None
-        self.depth = DEPTH_ITEM
         self.rotation = 60
+        self.direction = 1
         self.range = [[1, 0]]
         self.volume = [1, 1]
         self.weight = 8  # not recorded
@@ -30,15 +30,20 @@ class Item(Prop):
             self.host.drop()
         super().die()
 
+    def face(self, direction):
+        if self.direction != direction:
+            self.direction = direction
+            self.form.flip(1, 0)
+
     def on_equip(self, host):
+        self.face(host.direction)
+        self.rotation = 60
         self.host = host
         host.weapon = self
         self.vec = host.vec
-        self.host.face(self.host.direction)
         self.remove()
 
     def on_unequip(self):
-        self.form.rotate(0)
         self.vec = self.vec + 0
         self.relocate(self.host.pos[0].x, self.host.pos[0].y, force=1)
         self.host = None
@@ -59,21 +64,22 @@ class Item(Prop):
         host = self.host
         self.host.drop()
         host.armor.add_item(self)
-        host.action.set('rest')
 
-    def attack(self, damage=None, callback=None):
-        def cb(target):
-            if self.states.get('Fire'):
-                target.states.add('Burn', 8)
-            if self.states.get('Shock'):
-                target.states.add('Stun', 40)
-                self.states.get('Shock').end()
-            if Tags.sharp in self.tags:
-                target.states.add('Bleed', 60)
-            if callback:
-                callback(target)
+    def attack(self, damage=0, callback=None):
+        dmg = self.damage + damage + self.host.get_proficiency(self.name)
         for i in self.range:
-            if damage is None:
-                damage = self.damage
-            self.location.attack.register(damage, self.host.get_offset_tile(i[0] * self.host.direction, i[1]),
-                                          type='batter', faction=self.host.faction, callback=cb)
+            tile = self.host.location.collide_land(self.host.get_interact_pos(),
+                                                   self.host.next_target.x, self.host.next_target.y,
+                                                   distance=i, flag=[])
+            self.location.attack.register(1, tile, chance=dmg, type='batter', faction=self.host.faction,
+                                          callback=self.on_attack)
+            if callback:
+                self.location.attack.register(0, tile, chance=dmg, faction=self.host.faction, callback=callback)
+
+    def on_attack(self, target):
+        if Random.rand_int(1, 16) == 1:
+            self.hit(1)
+        if self.states.get('Fire'):
+            target.states.add('Burn', 8)
+        if Tags.sharp in self.tags:
+            target.states.add('Bleed', 40)

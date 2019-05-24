@@ -57,18 +57,18 @@ class Move(Task):
         if dist.y > 1 and dist.x == 0:
             land = self.host.get_offset_tile(0, 1)
             if not land.is_land([Tile.COLLIDE_TERRAIN]):
-                self.host.input('use', None)
+                self.host.input('use', land - self.host.pos[0])
             return 0
         front = self.host.get_offset_tile(direction, 0)
         top = self.host.get_offset_tile(direction, -1)
         if not front.is_land(Tile.CHECK_LARGE):
-            self.host.input('walk', None)
+            self.host.input('walk', dist)
         elif not top.is_land(Tile.CHECK_LARGE):
-            self.host.input('jump', None)
+            self.host.input('jump', dist)
         elif not top.is_land([Tile.COLLIDE_TERRAIN]):
-            self.host.input('use', None)
+            self.host.input('use', top - self.host.pos[0])
         elif not front.is_land([Tile.COLLIDE_TERRAIN]):
-            self.host.input('use', None)
+            self.host.input('use', front - self.host.pos[0])
         return 0
 
 
@@ -159,16 +159,12 @@ class Path(Task):  # path finding A*
                 self.result = []
                 self.reset()
             elif dist.y < 0:
-                self.host.input('jump', None)
+                self.host.input('jump', dist)
             else:
                 if dist.x == 0:
-                    self.host.input('duck', None)
-                elif dist.x < 0:
-                    self.host.face(-1)
-                    self.host.input('walk', None)
-                elif dist.x > 0:
-                    self.host.face(1)
-                    self.host.input('walk', None)
+                    self.host.input('duck', dist)
+                else:
+                    self.host.input('walk', dist)
 
     def update(self):
         for times in range(3):
@@ -211,7 +207,7 @@ class Pickup(Task):
     def perform(self):
         super().perform()
         if not self.host.is_armed():
-            self.host.input('interact', None)
+            self.host.input('interact', self.host.next_target)
         else:
             self.pilot.strategize()
             self.lifetime = 0
@@ -228,7 +224,7 @@ class Attack(Task):
         if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
             dist = self.pilot.var.pos[0] - self.host.pos[0]
             if -1 <= dist.y <= 1 and -1 <= dist.x <= 1:
-                self.host.input('use', None)
+                self.host.input('use', dist)
                 return 1
 
 
@@ -243,53 +239,53 @@ class Melee(Task):
     def is_done(self):
         return super().is_done() or self.pilot.var.removed
 
+    def in_range(self, x):
+        for i in self.host.weapon.range:
+            if i == x:
+                return 1
+        return 0
+
     def perform_gapcloser(self, dist):
         if self.special and not self.host.hang and -1 <= dist.y <= 0:
             if abs(dist.x) == 1 and dist.y == 0 and 'kick' in self.host.action.skills:
-                self.host.input('kick', None)
+                self.host.input('kick', dist)
                 return 1
             destination = self.host.location.collide_land(self.host.pos[0], dist.x, 0,
                                                           distance=4, flag=Tile.CHECK_LARGE)
             destination = destination - self.host.pos[0]
             x = min(abs(dist.x), abs(destination.x))
             if x == 1 and 'lunge' in self.host.action.skills:
-                self.host.input('lunge', None)
+                self.host.input('lunge', dist)
                 return 1
             if 2 <= x <= 3 and 'dash' in self.host.action.skills:
-                self.host.input('dash', None)
+                self.host.input('dash', dist)
                 return 1
 
-    def perform_attack(self):
+    def perform_attack(self, diff):
         if 'flurry' in self.host.action.skills:
-            self.host.input('flurry', None)
+            self.host.input('flurry', diff)
         elif 'stab' in self.host.action.skills:
-            self.host.input('stab', None)
+            self.host.input('stab', diff)
         else:
-            self.host.input('use', None)
+            self.host.input('use', diff)
 
     def perform(self):
         if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
             diff = self.pilot.var.pos[0] - self.host.pos[0]
-            if diff.x < 0:
-                self.host.face(-1)
-            else:
-                self.host.face(1)
             if self.perform_gapcloser(diff):
                 return 1
+            longest_range = 0
+            for i in self.host.weapon.range:
+                if i > longest_range:
+                    longest_range = i
             dist = round(diff.distance())
-            if self.in_range():
+            if self.in_range(dist):
                 if -1 <= diff.y <= 1:
-                    self.perform_attack()
+                    self.perform_attack(diff)
                     return 1
             elif dist <= 1:
-                self.host.face(-self.host.direction)
-                self.host.input('walk', None)
-
-    def in_range(self):
-        for i in self.host.weapon.range:
-            if self.host.get_offset_tile(i[0], i[1]) == self.pilot.var.pos[0]:
-                return 1
-        return 0
+                self.host.next_target.x *= -1
+                self.host.input('walk', self.host.next_target)
 
 
 class Range(Task):
@@ -310,9 +306,9 @@ class Range(Task):
             if reach == self.pilot.var.pos[0]:
                 dist = diff.distance()
                 if dist == 1 and diff.y == 0:
-                    self.host.input('kick', None)
+                    self.host.input('kick', diff)
                 elif dist > 4:
-                    self.host.input('use', None)
+                    self.host.input('use', diff)
                 else:
                     self.move.perform()
                 return 1

@@ -84,5 +84,10 @@
 4/25 removed Commander replaced with Other.command (1)
 5/10 switched to action style combat (3), terrain details (1), terrain auto adaptation in Editor (3)
 5/11 switched to key controls (3), menu key accessible (1)
-
-+:00
+---- PUSH
+5/11 switched to mouse/key or key controls (1)
+5/17 implemented sight (5), implemented frame benchmark counter (1), fixed tile gap graphical glitch - rounded Camera.pos (2)
+5/18 completed sight (5)
+5/20 LSHIFT controls (1), martial techniques - sprint,block,leap,lunge,flurry,offhand (1), injuries (1)
+5/21 blocking overhaul (1), optimize fog/background (1)
+5/24 added basic armors (3), martial techniques and proficiencies are non-spell and str based (2)

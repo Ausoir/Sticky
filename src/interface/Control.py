@@ -60,6 +60,8 @@ class Control:
             return 504
         elif name == 'Wheel-':
             return 505
+        elif str(name).startswith('LS+'):
+            return 2000 + Control.get_key_code(name[3:])
         return getattr(pygame, 'K_' + str(name))
 
     @staticmethod
@@ -74,6 +76,8 @@ class Control:
             return 'Wheel+'
         elif key == 505:
             return 'Wheel-'
+        elif key > 2000:
+            return 'LS+' + Control.get_key_name(key - 2000)
         return pygame.key.name(key)
 
     @staticmethod
@@ -95,10 +99,28 @@ class Control:
         code = Control.get_event_code(event)
         if code > 0:
             if code not in self.keypress:
-                self.keypress.append(code)
+                if code == 304:
+                    for k, v in enumerate(self.keypress):
+                        if self.keypress[k] not in self.keyrelease:
+                            self.keypress[k] = 2000 + v
+                    self.keypress.insert(0, 304)
+                else:
+                    if 304 in self.keypress:
+                        self.keypress.append(2000 + code)
+                    else:
+                        self.keypress.append(code)
         elif code < 0:
             if -code not in self.keyrelease:
-                self.keyrelease.append(-code)
+                if 304 in self.keypress:
+                    if (2000 - code) in self.keypress:
+                        self.keypress.remove(2000 - code)
+                else:
+                    self.keyrelease.append(-code)
+                if -code == 304:
+                    self.keypress.remove(-code)
+                    for k, v in enumerate(self.keypress):
+                        if v > 2000:
+                            self.keypress[k] = v - 2000
         return 0
 
     def clear_press(self, code):
@@ -150,3 +172,7 @@ class Control:
             self.keyrelease.remove(i)
             if i in self.keypress:
                 self.keypress.remove(i)
+            if i > 2000:
+                realkey = i - 2000
+                if realkey in self.keypress:
+                    self.keypress.remove(realkey)

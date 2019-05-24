@@ -6,32 +6,6 @@ from src.tools.Random import Random
 
 class Spells:
     @staticmethod
-    def spellcast(host, cast):
-        incantation = ''
-        if host.states.get('Air') or host.states.get('Levitate'):
-            incantation += 'a'
-        if host.states.get('Fire') or host.states.get('Burn'):
-            incantation += 'f'
-        if host.states.get('Rift'):
-            incantation += 'r'
-        if cast:
-            incantation += 't'
-        else:
-            incantation += 'c'
-        if incantation not in spellbook:
-            Effect.make('fail', host.pos[0].get_center())
-        else:
-            spellbook[incantation](host)
-
-    @staticmethod
-    def charm(host):
-        Spells.spellcast(host, False)
-
-    @staticmethod
-    def cast(host):
-        Spells.spellcast(host, True)
-
-    @staticmethod
     def check_rift(host):
         rift = host.states.get('Rift')
         if rift:
@@ -41,50 +15,6 @@ class Spells:
                 rift.end()
                 return obj
         return None
-
-    @staticmethod
-    def sonic(host):
-        tgt = host.get_offset_tile(host.direction * 8, 0)
-        Effect.make('energy', tgt.get_center())
-        aoe = host.location.get_area(tgt, 4, 4)
-        for i in aoe:
-            for thing in i.things:
-                thing.hit(0)
-
-    @staticmethod
-    def ignite(host):
-        if host.states.get('Fire'):
-            Spells.combust(host)
-        else:
-            host.states.add('Fire', 120)
-
-    @staticmethod
-    def combust(host):
-        fire = host.states.get('Fire')
-        if fire:
-            fire.end()
-        aoe = host.location.get_area(host.pos[0], 3, 3)
-        for i in aoe:
-            for thing in i.things:
-                thing.states.add('Burn', 8)
-
-    @staticmethod
-    def whirlwind(host):
-        if host.states.get('Air') or host.states.get('Levitate'):
-            Spells.dispell(host)
-        else:
-            host.states.add('Air', 10)
-
-    @staticmethod
-    def dispell(host):
-        from src.entity.Prop import Prop
-        aoe = host.location.get_area(host.pos[0], 8, 8)
-        for i in aoe:
-            for thing in i.things:
-                Effect.make('energy', thing.vec)
-                if isinstance(thing, Prop):
-                    thing.hit(0)
-                    thing.clean_buffs()
 
     @staticmethod
     def conjure(host):
@@ -130,41 +60,6 @@ class Spells:
         host.states.add('Stun', 40)
         r.lifetime = 40
         r.center_camera()
-        r.effect = effect
-
-    @staticmethod
-    def scorch(host):
-        def effect():
-            if not r.lifetime % 2:
-                Effect.make('scorch', r.pos[0].get_center(), offset=6)
-            for thing in r.pos[0].things:
-                if thing != r:
-                    thing.states.add('Burn', 8)
-        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 80)
-        r.fast = 0
-        r.effect = effect
-
-    @staticmethod
-    def fireblast(host):
-        def effect():
-            def on_hit(target):
-                Effect.make('burn', target.pos[0].get_center(), offset=4, lifetime=40)
-                for thing in target.pos[0].things:
-                    thing.states.add('Burn', 16)
-                r.remove()
-            if host.next_target.y > 0:
-                y = 1
-            elif host.next_target.y < 0:
-                y = -1
-            else:
-                y = 0
-            if r.pos[0] == r.move(final_dir, y):
-                on_hit(r)
-            else:
-                r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
-                Effect.make('explode', r.pos[0].get_center(), offset=4).form.face(final_dir)
-        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 6)
-        final_dir = host.direction
         r.effect = effect
 
     @staticmethod
@@ -255,17 +150,3 @@ class Spells:
     def torrent(host):
         host.move(Random.rand_int(-4, 4), Random.rand_int(-4, 4))
         Spells.dispell(host)
-
-
-spellbook = {'arc': Spells.levitate,
-             'art': Spells.fargate,
-             'afc': Spells.shock,
-             'aft': Spells.fireblast,
-             'fc': Spells.brand,
-             'ft': Spells.scorch,
-             'ac': Spells.haste,
-             'at': Spells.tornado,
-             'rc': Spells.crystallize,
-             'rt': Spells.summon,
-             'c': Spells.scry,
-             't': Spells.sonic}

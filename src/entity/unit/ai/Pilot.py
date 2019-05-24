@@ -68,12 +68,16 @@ class Pilot:
             if self.priority > 2:
                 targets = []
                 items = []
+                host_pos = self.host.pos[0].get_center().to_list()
                 for thing in perceived:
-                    if isinstance(thing, Unit):
-                        if Faction.is_against(self.host.faction, thing.faction):
-                            targets.append(thing)
-                    elif isinstance(thing, Item) and not thing.host:
-                        items.append(thing)
+                    to = (thing.pos[0] - self.host.pos[0]).to_list()
+                    sight = self.host.location.collide_sight(host_pos, to)
+                    if sight:
+                        if isinstance(thing, Unit):
+                            if Faction.is_against(self.host.faction, thing.faction):
+                                targets.append(thing)
+                        elif isinstance(thing, Item) and not thing.host:
+                            items.append(thing)
                 if targets:
                     self.spot_enemy(targets)
                 elif items and self.priority > 3:
@@ -92,26 +96,8 @@ class Pilot:
     def dodge(self):
         for i in self.host.location.attack.registry:
             if self.host.will_hit(i[1]):
-                if self.roll(2):
-                    return 1
-        return 0
-
-    def roll(self, num):
-        for i in range(1, num):
-            rand = Random.rand_int(1, 4)
-            if rand == 1 and not self.host.location.get_tile(self.host.pos[0] + (1, 0)).is_land(Tile.CHECK_ANY):
-                self.host.input('right', (self.host.pos[0] + (1, 0)))
-                return 1
-            elif rand == 2 and not self.host.location.get_tile(self.host.pos[0] + (-1, 0)).is_land(Tile.CHECK_ANY):
-                self.host.input('left', (self.host.pos[0] + (-1, 0)))
-                return 1
-            elif rand == 3 and not self.host.location.get_tile(self.host.pos[0] + (1, -1)).is_land(Tile.CHECK_ANY):
-                self.host.input('jump', self.host.location.get_tile(self.host.pos[0] + (1, -1)))
-                return 1
-            elif rand == 4 and not self.host.location.get_tile(self.host.pos[0] + (-1, -1)).is_land(Tile.CHECK_ANY):
-                self.host.input('jump', self.host.location.get_tile(self.host.pos[0] + (-1, -1)))
-                return 1
-        return 0
+                self.host.input('block', None)
+                return True
 
     def spot_enemy(self, targets):
         self.priority = 1

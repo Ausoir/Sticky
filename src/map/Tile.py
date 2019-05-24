@@ -1,5 +1,7 @@
 from src.entity.Space import Space
+from src.form.Shape import Shape
 from src.game import Global
+from src.game.Camera import Camera
 from src.game.Tags import Tags
 from src.map.Terrain import Terrain
 from src.tools.List import List
@@ -22,6 +24,11 @@ class Tile(Space):
     COLLIDE_UNIT = 40
     COLLIDE_ITEM = 50
     COLLIDE_COVER = 60
+    fog = None
+
+    @staticmethod
+    def init():
+        Tile.fog = Shape(None, (0, 0, 0, 255), Shape.make_rect([Global.BLOCK, Global.BLOCK]))
 
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -37,10 +44,18 @@ class Tile(Space):
 
     def set_terrain(self, terrain):
         self.terrain = Terrain.load_from_name(self * [Global.BLOCK, Global.BLOCK], terrain)
+        return self.terrain
 
     def draw(self, surface):
+        pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
+        surface.blit(Global.main.bg.image, pos,
+                     (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
         if self.terrain:
             self.terrain.draw(surface)
+
+    def draw_fog(self, surface):
+        Tile.fog.vec = self.get_vec()
+        Tile.fog.draw(surface)
 
     def get_vec(self):
         return self * Global.BLOCK
@@ -57,8 +72,8 @@ class Tile(Space):
         return 0
 
     def is_land(self, check):
-        if self.terrain and self.terrain.type % 2:
-            if Tile.COLLIDE_TERRAIN in check:
+        if self.terrain:
+            if self.terrain.type % 2 and Tile.COLLIDE_TERRAIN in check:
                 return 1
         for i in self.things:
             if i.collide in check:

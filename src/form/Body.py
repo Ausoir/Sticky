@@ -124,9 +124,9 @@ class Body:
             r.append(r1)
         self.animation = r
 
-    def rotate_appendage(self, frame, organ, target):
+    def rotate_appendage(self, frame, organ, target, offset=0):
         animation = Data.get_cache_clip(self.model_name)[1]
         length = abs(animation[frame][organ][0]) + abs(animation[frame][organ][1])
-        atan = target.to_int().get_atan()
+        atan = target.to_int().get_atan() + (offset * self.direction)
         self.animation[frame][organ][0] = length*Math.cos(atan)*self.direction
         self.animation[frame][organ][1] = length*Math.sin(atan)

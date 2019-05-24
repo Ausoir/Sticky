@@ -2,6 +2,7 @@ from src.Editor import Editor
 from src.game.Group import Group
 from src.game.Turn import Turn
 from src.map.Location import Location
+from src.map.Tile import Tile
 from src.tools.Data import Data
 
 
@@ -29,18 +30,22 @@ class World:
         player.durability = 8
         player.load(data)
         player.add()
-        player.delay = 4  # starting delay to prevent cheat
+        player.delay = 4
         loc.record.remove(player)
         return player
 
     def switch(self):
         if self.player == self.control.player:
             self.editor = Editor(self.map, self.control)
+            self.map.sight_block = []
+            self.map.turn()
         else:
             self.editor.remove()
             self.control.set_keymap('data/keymap.txt')
             self.control.player = self.player
             self.player.center_camera()
+            self.map.sight_block = Tile.CHECK_FIRM
+            self.map.turn()
 
     def turn(self):
         r = self.map.name + '\n'

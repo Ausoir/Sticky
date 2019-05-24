@@ -14,6 +14,7 @@ class Prop(Object):
         self.faction = 0
         self.states = Buffs(self)
         self.tags = []
+        self.depth = 2
 
     def __str__(self):
         tags = ','.join(self.tags)
@@ -30,7 +31,7 @@ class Prop(Object):
         if Tags.float in self.tags:
             self.gravity = 0
         if Tags.back in self.tags:
-            self.depth = 20
+            self.depth = 1
         if Tags.indestructible in self.tags:
             self.hittable = 0
         if Tags.intangible in self.tags:
@@ -56,8 +57,12 @@ class Prop(Object):
             Stock.get('Scrap').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
-    def is_hit(self, faction=0):
+    def is_hit(self, chance, faction=0):
         if self.hittable and Faction.is_against(self.faction, faction):
+            if Tags.metal in self.tags:
+                return chance > 3
+            elif Tags.wood in self.tags:
+                return chance > 1
             return 1
 
     def hit(self, damage):
@@ -66,9 +71,3 @@ class Prop(Object):
             if self.durability == 0:
                 self.die()
                 return 1
-
-    def get_offset_tile(self, x, y):
-        return self.location.get_tile(self.pos[0] + (x, y))
-
-    def clean_buffs(self, force=0):
-        return self.states.clear(force=force)

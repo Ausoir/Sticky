@@ -48,7 +48,7 @@ class Attribute:
 
     def rest(self, mag=1):
         self.rest_time += mag
-        if self.rest_time >= 8:
+        if self.rest_time >= 5:
             self.rest_time = 0
             self.body = 0
             self.leg = 0

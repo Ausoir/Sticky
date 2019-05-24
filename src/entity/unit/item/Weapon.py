@@ -4,11 +4,8 @@ from src.game.Tags import Tags
 
 class Weapon(Item):
     def __str__(self):
-        r = []
-        for i in self.range:
-            r.append('[' + str(i[0]) + ',' + str(i[1]) + ']')
-        return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + (','.join(r)) + '],' + str(self.weight) + ','\
-            + str(self.damage) + ',' + str(self.speed)
+        return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + ','.join(str(x) for x in self.range) + '],' \
+               + str(self.weight) + ',' + str(self.damage) + ',' + str(self.speed)
 
     def load(self, arg):
         index = super().load(arg)
@@ -52,12 +49,8 @@ class Weapon(Item):
     def get_value(self):
         if self.durability == -1:
             hp = 3
-        elif self.durability > 32:
-            hp = 2
-        elif self.durability > 16:
-            hp = 1
         else:
-            hp = 0
+            hp = min(2, int(self.durability / 8))
         range = len(self.range)
         if 1 in self.range:
             range += 1

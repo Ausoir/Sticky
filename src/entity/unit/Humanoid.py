@@ -87,14 +87,6 @@ class Humanoid(Unit):
             self.weapon.die()
         self.durability = head_armor + armor + 1
 
-    def is_hit(self, faction=0):
-        if super().is_hit(faction):
-            if self.action.current_action != 'dodge':
-                return 1
-            else:
-                self.action.exert(1, 1)
-                self.form.randomize_once(16)
-
     def hit(self, damage):
         r = super().hit(damage)
         self.form.randomize_once(16)
@@ -107,9 +99,8 @@ class Humanoid(Unit):
         super().die()
 
     def face(self, direction):
-        if self.direction != direction:
-            self.weapon.form.flip(1, 0)
-        self.weapon.form.rotate(100 * direction)
+        self.weapon.face(direction)
+        self.offhand.face(direction)
         super().face(direction)
 
     def draw(self, surface):
@@ -127,6 +118,10 @@ class Humanoid(Unit):
             self.offhand.form.draw(surface, x, y)
             return r
         return 0
+
+    def on_block(self):
+        self.action.exert(1, self.offhand.damage)
+        return self.offhand.weight + 1
 
     def clean_buffs(self, force=0):
         r = super().clean_buffs(force)

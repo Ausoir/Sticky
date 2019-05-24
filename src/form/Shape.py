@@ -34,7 +34,8 @@ class Shape:
             high_x = max(high_x, i[0])
             high_y = max(high_y, i[1])
         self.lines.append(Line(Space(prev_pt), Space(self.vertices[0])))
-        self.canvas = pygame.Surface((high_x+1, high_y+1), pygame.SRCALPHA, 32)
+        self.canvas = pygame.Surface((high_x+1, high_y+1), pygame.SRCALPHA, 16)
+        self.canvas = self.canvas.convert_alpha(self.canvas)
         pygame.draw.polygon(self.canvas, self.color, self.vertices)
         if self.border:
             pygame.draw.polygon(self.canvas, (0, 0, 0), self.vertices, self.border)

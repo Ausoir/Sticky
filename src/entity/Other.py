@@ -3,11 +3,22 @@ from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.item.Weapon import Weapon
 from src.form.Body import Body
-from src.game.Global import DEPTH_UNIT
-from src.game.Group import Group
 from src.game.Turn import Turn
 from src.map.Tile import Tile
 from src.tools.Random import Random
+
+
+class Light(Prop):
+    def turn(self):
+        if Random.rand_int(0, 80) == 0:
+            self.remove()
+        else:
+            Effect.make('energy', self.get_offset_tile(Random.rand_int(-3, 3), Random.rand_int(-3, 3)).get_center())
+            for x in range(-3, 4):
+                for y in range(-3, 4):
+                    if Random.rand_int(0, 1) == 0:
+                        pos = str(self.pos[0].x + x) + ',' + str(self.pos[0].y + y)
+                        self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
 
 
 class Travel(Prop):
@@ -38,6 +49,23 @@ class Travel(Prop):
         Global.main.world.map.name = self.to_map
         Global.main.world.turn()
         Global.main.world = World()
+
+
+class Portal(Prop):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.to_map = ''
+        self.to_pos = Space(0, 0)
+
+    def __str__(self):
+        return super().__str__() + ',' + self.to_map + ',' + self.to_pos.__str__()
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.to_map = arg[index]
+        index += 1
+        self.to_pos.load(arg[index])
+        return index + 1
 
 
 class Bridge(Prop):
@@ -77,21 +105,20 @@ class Hammer(Weapon):
                     construct = 'Wall'
                 else:
                     construct = 'Tile'
-                building = Stock.get(construct)
-                building.pos[0] = thing.pos[0]
-                building.add()
+                    for thing2 in self.pos[0].things:
+                        if thing2.name == 'Tile':
+                            thing2.remove()
+                            construct = 'Wall'
+                            break
+                Stock.make(construct, thing.pos[0])
                 self.host.action.set('hit')
                 self.host.form.set('interact')
-                self.hit(1)
                 return
             if thing.name == 'Planks':
                 thing.remove()
-                scaffold = Stock.get('Scaffold')
-                scaffold.pos[0] = thing.pos[0]
-                scaffold.add()
+                Stock.make('Scaffold', thing.pos[0])
                 self.host.action.set('hit')
                 self.host.form.set('interact')
-                self.hit(1)
                 return
         super().use()
 
@@ -109,11 +136,10 @@ class Ragdoll(Prop):
         super().__init__(loc)
         self.direction = 1
         self.collide = Tile.COLLIDE_COVER
-        self.depth = DEPTH_UNIT
+        self.depth = 3
         self.standables = Tile.CHECK_LANDABLE
 
     def add(self):
-        Group.objects.add(self)
         Turn.add(self)
         self.relocate(self.pos[0].x, self.pos[0].y, force=1)
         return self
@@ -142,7 +168,7 @@ class Ragdoll(Prop):
             return 1
         return 0
 
-    def is_hit(self, faction=0):
+    def is_hit(self, chance, faction=0):
         if self.hittable:
             return 1
 
@@ -246,3 +272,28 @@ class Command(Prop):
                     and not air.is_land(Tile.CHECK_FIRM) and not ceiling.is_land(Tile.CHECK_FIRM):
                 r.append([space, air, ceiling])
         return r
+
+
+class Zapper(Weapon):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.charge = 0
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.charge)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.charge = arg[index]
+        return index + 1
+
+    def attack(self, damage=0, callback=None):
+        self.charge += 1
+        if self.charge > 3:
+            super().attack(damage + 2, callback)
+            self.charge = -1
+
+    def on_attack(self, target):
+        super().on_attack(target)
+        if self.charge == -1:
+            target.states.add('Stun', 16)

@@ -11,13 +11,11 @@ from src.tools.Data import Data
 
 
 class Editor:
-    scroll = 20
+    scroll = 40
 
     def __init__(self, loc, control):
-        def update():
-            control.turn()
         self.backup = Turn.update
-        Turn.update = update
+        Turn.update = self.update
         Group.effects.append(self)
         control.set_keymap('data/editor_keymap.txt')
         control.player = self
@@ -31,6 +29,13 @@ class Editor:
         self.enter = 0
         self.prev_command = None
         Camera.target = Camera.target + 0
+        self.fog_update = True
+
+    def update(self):
+        self.control.turn()
+        if self.fog_update:
+            self.location.update_fog()
+            self.fog_update = False
 
     def remove(self):
         Turn.remove(self)
@@ -57,12 +62,16 @@ class Editor:
                 self.display_text = self.tool.cycle(1)
         elif action == 'up':
             Camera.target.load(Camera.target.x, Camera.target.y - Editor.scroll)
+            self.fog_update = True
         elif action == 'down':
             Camera.target.load(Camera.target.x, Camera.target.y + Editor.scroll)
+            self.fog_update = True
         elif action == 'left':
             Camera.target.load(Camera.target.x - Editor.scroll, Camera.target.y)
+            self.fog_update = True
         elif action == 'right':
             Camera.target.load(Camera.target.x + Editor.scroll, Camera.target.y)
+            self.fog_update = True
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -107,7 +116,7 @@ class Editor:
 
     def draw(self, surface):
         if self.display_text:
-            surface.blit(self.font.render(self.display_text, 1, (0, 0, 0)), (16, 16))
+            surface.blit(self.font.render(self.display_text, 1, (255, 255, 255)), (16, 16))
 
 
 class ToolTerrain:
@@ -127,8 +136,10 @@ class ToolTerrain:
         self.current += inc
         if self.current >= self.tile_list.__len__():
             self.current = 0
-        if self.current < 0:
+        elif self.current < 0:
             self.current = self.tile_list.__len__() - 1
+        elif self.tile_list[self.current][0].find(' ') >= 0:
+            return self.cycle(inc)
         self.text = self.tile_list[self.current][0]
         return self.text
 
@@ -156,25 +167,27 @@ class ToolTerrain:
         tile = self.location.get_tile(x, y)
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
-            if name_type in ['dirt']:
+            if name_type in ['dirt', 'rock']:
                 grid = [self.is_terrain(0, -1, name_type), self.is_terrain(-1, 0, name_type),
                         self.is_terrain(1, 0, name_type), self.is_terrain(0, 1, name_type)]
-                if grid in [[1, 1, 1, 1], [1, 1, 0, 1], [1, 0, 1, 1]]:
+                if grid in [[0, 1, 1, 1], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' top'):
+                    return
+                elif grid in [[1, 1, 1, 0], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' bottom'):
+                    return
+                elif grid in [[0, 1, 0, 1]] and tile.set_terrain(name_type + ' left'):
+                    return
+                elif grid in [[0, 0, 1, 1]] and tile.set_terrain(name_type + ' right'):
+                    return
+                elif grid in [[0, 1, 0, 0]] and tile.set_terrain(name_type + ' edge left'):
+                    return
+                elif grid in [[0, 0, 1, 0]] and tile.set_terrain(name_type + ' edge right'):
+                    return
+                elif grid in [[1, 1, 0, 0]] and tile.set_terrain(name_type + ' corner left'):
+                    return
+                elif grid in [[1, 0, 1, 0]] and tile.set_terrain(name_type + ' corner right'):
+                    return
+                else:
                     tile.set_terrain(name_type)
-                if grid in [[0, 1, 1, 1], [0, 1, 1, 0]]:
-                    tile.set_terrain(name_type + ' top')
-                if grid in [[0, 1, 0, 1]]:
-                    tile.set_terrain(name_type + ' left')
-                if grid in [[0, 0, 1, 1]]:
-                    tile.set_terrain(name_type + ' right')
-                if grid in [[0, 1, 0, 0]]:
-                    tile.set_terrain(name_type + ' edge left')
-                if grid in [[0, 0, 1, 0]]:
-                    tile.set_terrain(name_type + ' edge right')
-                if grid in [[1, 1, 0, 0]]:
-                    tile.set_terrain(name_type + ' corner left')
-                if grid in [[1, 0, 1, 0]]:
-                    tile.set_terrain(name_type + ' corner right')
 
 
 class ToolObject:

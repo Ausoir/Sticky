@@ -1,6 +1,5 @@
 from src.entity.Space import Space
 from src.game.Camera import Camera
-from src.game.Global import DEPTH_EFFECT
 from src.game.Group import Group
 from src.game.Turn import Turn
 from src.tools.Data import Data
@@ -23,10 +22,10 @@ class Effect:
         self.at = Space()
         self.lifetime = 2
         self.offset = Space()
-        self.depth = DEPTH_EFFECT
+        self.depth = 4
 
     def add(self):
-        Group.objects.add(self)
+        Group.effects.add(self)
         Turn.add(self)
         return self
 

@@ -4,15 +4,18 @@ from src.tools.Data import Data
 
 
 class Terrain(Image):
-    def __init__(self, id, pos, name, image, type, flip):
+    def __init__(self, id, pos, name, image, type, flip_x, flip_y):
         super().__init__(pos)
         self.name = name
         self.id = id
         self.form = Data.run_cache(image)
         self.form_name = image
         self.type = type
-        if flip == 1:
+        if flip_x == 1:
             self.form.flip(1, 0)
+        if flip_y == 1:
+            self.form.flip(0, 1)
+        if flip_x == 1 or flip_y == 1:
             self.form.resize()
 
     @classmethod
@@ -20,7 +23,7 @@ class Terrain(Image):
         args = Data.get_cache('tiles')
         for k, i in enumerate(args):
             if i[0] == name:
-                return cls(k, pos, i[0], i[1], i[2], i[3])
+                return cls(k, pos, i[0], i[1], i[2], i[3], i[4])
         return None
 
     def draw(self, surface):

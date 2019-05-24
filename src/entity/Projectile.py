@@ -2,7 +2,6 @@ from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.ai.Faction import Faction
 from src.game.Camera import Camera
-from src.game.Global import DEPTH_EFFECT
 from src.map.Tile import Tile
 from src.tools.Math import Math
 
@@ -17,7 +16,7 @@ class Projectile(Prop):
         self.hittable = 0
         self.durability = -1
         self.speed = 24
-        self.depth = DEPTH_EFFECT
+        self.depth = 4
         self.fast = 1
 
     def __str__(self):

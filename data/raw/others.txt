@@ -1,7 +1,9 @@
-Projectile,g_0x0,[],-1,[],10
+Light,g_0x0,[],-1,[[Levitate,-1,0]]
 Travel,g_2x0,[bg,cs,xc,xh,cc],-1,[],overmap,[16,4]
+Portal,portal,[],-1,[[Levitate,-1,0]]
 Ragdoll,g_1x0,[hum,if],8,[]
-Bow,data/image/bow,[],16,[],[1,3],6,[1],6,1,0
-Bridge,g_4x2,[cd,iw],8,[],[1,1]
-Hammer,data/image/hammer,[im],16,[],[1,1],14,[1],5,0,0
+Bow,data/image/bow,[],16,[],[1,3],6,[[1,0]],6,1,0
+Bridge,g_4x4,[cd,iw],8,[],[1,1]
+Hammer,data/image/hammer,[im],16,[],[1,1],14,[[1,0]],5,0,0
 Command,g_3x0,[],6,[]
+Zapper,data/image/dagger,[shp,im],16,[],[1,3],8,[1],1,2,4,0

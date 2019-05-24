@@ -1,8 +1,6 @@
 from src.entity.Image import Image
 from src.entity.Space import Space
 from src.game.Camera import Camera
-from src.game.Global import DEPTH_OBJECT
-from src.game.Group import Group
 from src.game.Turn import Turn
 from src.map.Tile import Tile
 from src.tools.Data import Data
@@ -18,10 +16,10 @@ class Object(Image):
         self.delay = 0
         self.gravity = 1
         self.collide = Tile.COLLIDE_OBJECT
-        self.depth = DEPTH_OBJECT
         self.visible = 1
         self.standables = Tile.CHECK_SUPPORTED
         self.removed = 0
+        self.depth = 1
 
     def __str__(self):
         r = []
@@ -43,7 +41,6 @@ class Object(Image):
 
     def add(self):
         self.removed = 0
-        Group.objects.add(self)
         Turn.add(self)
         self.relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.location.record.append(self)
@@ -51,7 +48,6 @@ class Object(Image):
 
     def remove(self):
         self.removed = 1
-        Group.remove(self)
         Turn.remove(self)
         self.location.record.remove(self)
         for i in self.pos:
@@ -88,6 +84,9 @@ class Object(Image):
                     self.remove()
                 else:
                     self.on_fall(new.y - old.y)
+
+    def get_offset_tile(self, x, y):
+        return self.location.get_tile(self.pos[0] + (x, y))
 
     def relocate(self, x, y, force=0):
         if force or x != self.pos[0].x or y != self.pos[0].y:

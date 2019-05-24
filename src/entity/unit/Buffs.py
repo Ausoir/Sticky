@@ -46,10 +46,10 @@ class Buffs:
         else:
             preexisting.on_stack(duration, var)
 
-    def clear(self, force=0):
+    def clear(self, fn):
         r = 0
         for i in self.buffs:
-            if force or i.duration >= 0:
+            if fn(i):
                 i.end()
                 r = 1
         return r

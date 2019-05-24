@@ -1,4 +1,3 @@
-from src.entity.Other import *
 from src.entity.Projectile import Projectile
 from src.entity.Prop import Prop
 from src.entity.unit.item.Armor import Armor
@@ -18,6 +17,7 @@ class Stock:
             registry_items = Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt'))
             for item in registry_items:
                 Stock.registry[item[0]] = [getattr(Stock, i), item]
+        Stock.registry['projectile'] = [Stock.projectile, 'Projectile,g_0x0,[],-1,[],10']
 
     @staticmethod
     def get(name, data=None):
@@ -29,6 +29,13 @@ class Stock:
                 data = [object_id, pos] + record[1]
             r = record[0](data)
             return r
+
+    @staticmethod
+    def make(name, pos):
+        r = Stock.get(name)
+        r.pos[0] = pos
+        r.add()
+        return r
 
     @staticmethod
     def props(arg):
@@ -68,21 +75,17 @@ class Stock:
         return r
 
     @staticmethod
+    def projectile(arg):
+        r = Projectile(Stock.location)
+        r.load(arg)
+        return r
+
+    @staticmethod
     def others(arg):
-        if arg[2] == 'Travel':
-            r = Travel(Stock.location)
-        elif arg[2] == 'Bridge':
-            r = Bridge(Stock.location)
-        elif arg[2] == 'Hammer':
-            r = Hammer(Stock.location)
-        elif arg[2] == 'Bow':
-            r = Bow(Stock.location)
-        elif arg[2] == 'Ragdoll':
-            r = Ragdoll(Stock.location)
-        elif arg[2] == 'Projectile':
-            r = Projectile(Stock.location)
-        elif arg[2] == 'Command':
-            r = Command(Stock.location)
+        from src.entity import Other
+        unique = getattr(Other, arg[2])
+        if unique:
+            r = unique(Stock.location)
         else:
             r = Prop(Stock.location)
         r.load(arg)

@@ -1,9 +1,23 @@
 Level up - trainer (money, hours)
 Food - eat or sell
 
-white line through terrain glitch
+** -- proficiency - weapon, flurry, lunge, dodge, constitution
 
--- Unique Item
-Raise dead
-Control target
-Charm target
+-- specs
+Vampirism
+Nova
+Drain
+Weaken
+
+-- classes
+Blacksmith - forge armor/weapon
+Sorcerer - ritual scribing (long casting but free)
+Wizard - scribing (scroll, talisman, wand, staff)
+Monk - fist & all weapon skill - weight 0, speed 5, damage 3
+Scout - run/jump cost 0
+Witch - charm & control target
+Summoner - summon perma 1
+Necromancer - raise dead
+Hexer - cause buff
+Rogue - hiding
+Warrior - blocking free

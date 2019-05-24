@@ -19,15 +19,15 @@ class Field:
                 new_reg.append(new)
         self.registry = new_reg
 
-    def register(self, damage, pos, delay=1, type=0, faction=0, callback=None):
-        self.registry.append([delay, pos, damage, type, faction, callback])
+    def register(self, damage, pos, chance=4, delay=1, type=0, faction=0, callback=None):
+        self.registry.append([delay, pos, damage, chance, type, faction, callback])
 
     @staticmethod
     def hit(data):
         for thing in data[1].things:
-            if thing.is_hit(faction=data[4]):
-                if data[3]:
-                    Effect.make(data[3], data[1].get_center())
+            if thing.is_hit(data[3], faction=data[5]):
+                if data[4]:
+                    Effect.make(data[4], data[1].get_center())
                 if not thing.hit(data[2]):
-                    if data[5]:
-                        data[5](thing)
+                    if data[6]:
+                        data[6](thing)

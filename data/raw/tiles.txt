@@ -1,12 +1,20 @@
-black,g_0x1,0,0 //name,image,type,flip
-filler,g_0x1,0,0
-dirt,g_1x1,1,0
-rock,g_2x1,2,0
-dirt,g_1x1,1,0
-dirt top,g_3x1,1,0
-dirt left,g_4x1,1,1
-dirt right,g_4x1,1,0
-dirt edge left,g_5x1,1,1
-dirt edge right,g_5x1,1,0
-dirt corner left,g_6x1,1,1
-dirt corner right,g_6x1,1,0
+black,g_0x1,0,0,0 //name,image,type,flip
+filler,g_0x1,0,0,0
+vine,g_1x0,2,0,0
+dirt,g_0x2,1,0,0
+dirt top,g_1x2,1,0,0
+dirt left,g_2x2,1,1,0
+dirt right,g_2x2,1,0,0
+dirt edge left,g_3x2,1,1,0
+dirt edge right,g_3x2,1,0,0
+dirt corner left,g_4x2,1,1,0
+dirt corner right,g_4x2,1,0,0
+rock,g_5x2,2,0,0
+rock top,g_6x2,2,0,0
+rock bottom,g_6x2,2,0,1
+rock left,g_7x2,2,1,0
+rock right,g_7x2,2,0,0
+rock edge left,g_8x2,2,1,0
+rock edge right,g_8x2,2,0,0
+rock corner left,g_7x2,2,1,1
+rock corner right,g_7x2,2,0,1

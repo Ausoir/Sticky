@@ -11,25 +11,26 @@ from src.tools.Data import Data
 
 
 class Editor:
-    scroll = 40
+    scroll = 2
 
     def __init__(self, loc, control):
         self.backup = Turn.update
         Turn.update = self.update
         Group.effects.append(self)
         control.set_keymap('data/editor_keymap.txt')
-        control.player = self
         self.control = control
         self.location = loc
-        self.font = pygame.font.SysFont('Helvetica', 20)
         self.visible = 1
         self.mouse = [0, 0]
         self.tool = ToolTerrain(self.location)
         self.display_text = ''
+        self.display_subtext = ''
         self.enter = 0
         self.prev_command = None
-        Camera.target = Camera.target + 0
         self.fog_update = True
+        self.selection = None
+        Camera.target = Stock.make('Force', Global.main.player.character.pos[0])
+        Camera.target.location.remove(Camera.target)
 
     def update(self):
         self.control.turn()
@@ -38,40 +39,70 @@ class Editor:
             self.fog_update = False
 
     def remove(self):
+        self.tool.cancel()
+        Camera.target.remove()
         Turn.remove(self)
         Group.remove(self)
         Turn.update = self.backup
 
     def input(self, action, target):
-        vec_x = Camera.target.x / Global.BLOCK + target.x
-        vec_y = Camera.target.y / Global.BLOCK + target.y
+        m = Camera.target.pos[0] + target
+        self.display_subtext = 'X:' + str(m.x) + ' Y:' + str(m.y)
         if action == 'idle':
-            self.tool.input(0, self.location.get_tile(vec_x, vec_y))
+            self.tool.input(0, self.location.get_tile(m))
             self.tool.last = None
-        elif action == 'switch':
-            self.tool.cancel()
         elif action == 'use':
-            self.tool.input(1, self.location.get_tile(vec_x, vec_y))
+            self.tool.input(1, self.location.get_tile(m))
+        elif action == 'special':
+            self.tool.input(4, self.location.get_tile(m))
         elif action == 'delete':
-            self.tool.input(2, self.location.get_tile(vec_x, vec_y))
+            self.tool.input(2, self.location.get_tile(m))
         elif action == 'prev':
             if action != self.prev_command:
                 self.display_text = self.tool.cycle(-1)
         elif action == 'next':
             if action != self.prev_command:
                 self.display_text = self.tool.cycle(1)
+        elif action == 's_prev':
+            if action != self.prev_command:
+                self.display_text = self.tool.cycle(-1, specific=True)
+        elif action == 's_next':
+            if action != self.prev_command:
+                self.display_text = self.tool.cycle(1, specific=True)
         elif action == 'up':
-            Camera.target.load(Camera.target.x, Camera.target.y - Editor.scroll)
+            Camera.target.move(0, -1, Editor.scroll, [])
             self.fog_update = True
         elif action == 'down':
-            Camera.target.load(Camera.target.x, Camera.target.y + Editor.scroll)
+            Camera.target.move(0, 1, Editor.scroll, [])
             self.fog_update = True
         elif action == 'left':
-            Camera.target.load(Camera.target.x - Editor.scroll, Camera.target.y)
+            Camera.target.move(-1, 0, Editor.scroll, [])
             self.fog_update = True
         elif action == 'right':
-            Camera.target.load(Camera.target.x + Editor.scroll, Camera.target.y)
+            Camera.target.move(1, 0, Editor.scroll, [])
             self.fog_update = True
+        elif action == 'sample':
+            if action != self.prev_command:
+                self.tool.cancel()
+                objs = self.location.get_tile(m).things
+                if objs:
+                    self.tool = ToolObject(self.location, 'props')
+                    self.tool.select(objs[0].name)
+                else:
+                    self.tool = ToolTerrain(self.location)
+                    terrain = self.location.get_tile(m).terrain
+                    if terrain:
+                        self.tool.select(terrain.name)
+        elif action == 'select':
+            self.tool.cancel()
+            if self.selection:
+                self.selection.relocate(m.x, m.y)
+                self.selection = None
+            else:
+                objs = self.location.get_tile(m).things
+                if objs:
+                    self.display_text = 'Selected ID ' + str(objs[0].id)
+                    self.selection = objs[0]
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -80,6 +111,10 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Props Tool'
+        elif action == 'containers':
+            self.tool.cancel()
+            self.tool = ToolObject(self.location, action)
+            self.display_text = 'Containers Tool'
         elif action == 'items':
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
@@ -100,15 +135,29 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Headgears Tool'
+        elif action == 'spells':
+            self.tool.cancel()
+            self.tool = ToolObject(self.location, action)
+            self.display_text = 'Spells Tool'
         elif action == 'others':
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Others Tool'
+        elif action == 'load':
+            if len(Global.main.textbox.display_text) > 0:
+                Global.main.player.switch()
+                travel = Stock.make('Travel', m)
+                travel.remove()
+                travel.to_map = Global.main.textbox.display_text
+                travel.trigger(Global.main.player.character)
+                Global.main.player.switch()
         elif action == 'save':
             self.tool.cancel()
+            self.location.delay = 0
             self.location.turn()
             self.display_text = 'saved'
         elif action == 'quit':
+            self.tool.cancel()
             pygame.quit()
             sys.exit()
         self.prev_command = action
@@ -116,7 +165,8 @@ class Editor:
 
     def draw(self, surface):
         if self.display_text:
-            surface.blit(self.font.render(self.display_text, 1, (255, 255, 255)), (16, 16))
+            surface.blit(Global.font.render(self.display_text, 1, (255, 255, 255)), (16, 16))
+            surface.blit(Global.font.render(self.display_subtext, 1, (255, 255, 255)), (320, 16))
 
 
 class ToolTerrain:
@@ -124,24 +174,27 @@ class ToolTerrain:
         self.tile_list = Data.get_cache('tiles')
         self.text = 'dirt'
         self.location = loc
-        self.tile = loc.get_tile(0, 0)
-        self.prev_tile = loc.get_tile(0, 0).terrain
+        self.tile = loc.get_tile(0)
+        self.prev_tile = loc.get_tile(0).terrain
         self.current = 0
         self.last = None  # unused
 
     def cancel(self):
         self.tile.terrain = self.prev_tile
 
-    def cycle(self, inc):
+    def cycle(self, inc, specific=False):
         self.current += inc
         if self.current >= self.tile_list.__len__():
             self.current = 0
         elif self.current < 0:
             self.current = self.tile_list.__len__() - 1
-        elif self.tile_list[self.current][0].find(' ') >= 0:
+        elif not specific and self.tile_list[self.current][0].find(' ') >= 0:
             return self.cycle(inc)
-        self.text = self.tile_list[self.current][0]
+        self.select(self.tile_list[self.current][0])
         return self.text
+
+    def select(self, text):
+        self.text = text
 
     def enter(self, text):
         self.text = text
@@ -150,26 +203,31 @@ class ToolTerrain:
         text = self.text
         if not button:
             self.cancel()
-        elif button != 1:
+        elif button == 2:
             self.tile.set_terrain('')
         self.tile = tile
         self.prev_tile = tile.terrain
         self.tile.set_terrain(text)
-        self.update(self.tile.x, self.tile.y)
+        if button == 1:
+            self.update(self.tile.x - 1, self.tile.y)
+            self.update(self.tile.x + 1, self.tile.y)
+            self.update(self.tile.x, self.tile.y - 1)
+            self.update(self.tile.x, self.tile.y + 1)
+            self.update(self.tile.x, self.tile.y)
 
     def is_terrain(self, x, y, terrain):
-        r = self.location.get_tile(self.tile.x + x, self.tile.y + y).terrain
+        r = self.location.get_tile([x, y]).terrain
         if r:
             return 1 if r.name.split(' ')[0] == terrain else 0
         return 0
 
     def update(self, x, y):
-        tile = self.location.get_tile(x, y)
+        tile = self.location.get_tile([x, y])
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
             if name_type in ['dirt', 'rock']:
-                grid = [self.is_terrain(0, -1, name_type), self.is_terrain(-1, 0, name_type),
-                        self.is_terrain(1, 0, name_type), self.is_terrain(0, 1, name_type)]
+                grid = [self.is_terrain(x, y - 1, name_type), self.is_terrain(x - 1, y, name_type),
+                        self.is_terrain(x + 1, y, name_type), self.is_terrain(x, y + 1, name_type)]
                 if grid in [[0, 1, 1, 1], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' top'):
                     return
                 elif grid in [[1, 1, 1, 0], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' bottom'):
@@ -195,7 +253,7 @@ class ToolObject:
         self.location = loc
         self.text = 'Crate'
         self.selection = Stock.get('Crate').add()
-        self.tile = loc.get_tile(0, 0)
+        self.tile = loc.get_tile(0)
         self.object_list = list(Data.get_cache(object_type))
         self.current = 0
         self.last = None
@@ -203,16 +261,21 @@ class ToolObject:
     def cancel(self):
         self.selection.remove()
 
-    def cycle(self, inc):
+    def cycle(self, inc, specific=False):
         self.current += inc
         if self.current >= self.object_list.__len__():
             self.current = 0
         if self.current < 0:
             self.current = self.object_list.__len__() - 1
-        self.text = self.object_list[self.current][0]
-        self.selection.remove()
-        self.selection = Stock.get(self.text.title()).add()
+        self.select(self.object_list[self.current][0])
         return self.text
+
+    def select(self, text):
+        self.text = text
+        self.selection.remove()
+        self.selection = Stock.get(self.text.title())
+        if self.selection:
+            self.selection.add()
 
     def input(self, button, tile):
         if not button:

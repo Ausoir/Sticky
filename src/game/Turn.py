@@ -13,8 +13,6 @@ class Turn:
     def update():
         for i in Turn.queue[Turn.frame]:
             i.turn()
-            if i.delay > 0:
-                i.delay -= 1
         Turn.frame += 1
         if Turn.frame >= 10:
             Turn.frame = 0

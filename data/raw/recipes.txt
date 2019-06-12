@@ -1,0 +1,7 @@
+Ladder,1,[#iw,#ps] //Result, Time, Tools, Ingredients, Description
+Sonic Scroll,0,[#pw,#ip]
+Scorch Scroll,0,[#pw,#ip]
+Levitate Scroll,0,[#pw,#ip]
+Dispell Scroll,0,[#pw,#ip]
+Scry Scroll,0,[#pw,#ip]
+Scorch Staff,0,[#ifi,#ps,Plank]

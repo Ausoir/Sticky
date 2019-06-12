@@ -1,4 +1,5 @@
 main = None
+font = None
 DISPLAY = (1200, 680)
 BLOCK = 40
 HALF_BLOCK = int(BLOCK / 2)

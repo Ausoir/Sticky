@@ -9,7 +9,7 @@ from src.tools.Random import Random
 class Unit(Prop):
     def __init__(self, loc):
         super().__init__(loc)
-        from src.entity.unit.action.Actions import Actions
+        from src.entity.unit.Actions import Actions
         self.action = Actions(self)
         self.proficiency = []
         self.next_action = 'idle'
@@ -18,7 +18,8 @@ class Unit(Prop):
         self.collide = Tile.COLLIDE_UNIT
         self.attributes = Attribute()
         self.pilot = None
-        self.depth = 3
+        self.depth = 4
+        self.delay = 0
         self.standables = Tile.CHECK_LANDABLE
 
     def __str__(self):
@@ -46,10 +47,8 @@ class Unit(Prop):
         self.form = Body(arg)
 
     def draw(self, surface):
-        if super().draw(surface):
-            self.form.update()
-            return 1
-        return 0
+        super().draw(surface)
+        self.form.update()
 
     def turn(self):
         super().turn()
@@ -64,7 +63,9 @@ class Unit(Prop):
                 self.attributes.exert(1, 2)
                 self.move(0, 1, flag=Tile.CHECK_FIRM)
         self.pilot.update()
-        if self.delay == 0:
+        if self.delay > 0:
+            self.delay -= 1
+        elif self.delay == 0:
             if self.next_target.x > 0 and self.direction != 1:
                 self.face(1)
             elif self.next_target.x < 0 and self.direction != -1:
@@ -78,7 +79,7 @@ class Unit(Prop):
             self.next_target = target
 
     def get_target_tile(self):
-        return self.location.get_tile(self.pos[0].x + self.next_target.x, self.pos[0].y + self.next_target.y)
+        return self.location.get_tile(self.pos[0] + self.next_target)
 
     def get_interact_pos(self):
         return self.pos[0]
@@ -105,7 +106,7 @@ class Unit(Prop):
                     self.die()
                 return 1
             else:
-                self.form.randomize_once(12)
+                self.form.randomize_once(14)
 
     def on_block(self):
         self.action.exert(1, 1)

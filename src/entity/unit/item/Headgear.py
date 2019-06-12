@@ -31,15 +31,12 @@ class Headgear(Item):
         r = 'Encumbrance: ' + str(self.encumbrance) + '\n'
         return r
 
-    def use(self, host=None):
-        if not host:
-            host = self.host
-        host.headgear = self
-        host.face(1)
-        host.form.organs[3].set(self.form)
-        if host.weapon == self:
-            host.drop()
-        self.host = host
+    def use(self):
+        self.host.headgear = self
+        self.host.face(1)
+        self.host.form.organs[3].set(self.form)
+        if self.host.weapon == self:
+            self.host.drop()
         self.remove()
 
     def get_reduction(self, damage):

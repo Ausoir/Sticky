@@ -5,6 +5,8 @@ from src.tools.Random import Random
 
 
 class Item(Prop):
+    description = {}
+
     def __init__(self, loc):
         super().__init__(loc)
         self.collide = Tile.COLLIDE_ITEM
@@ -26,8 +28,15 @@ class Item(Prop):
         return index + 1
 
     def die(self):
-        if self.host and self.host.weapon == self:
-            self.host.drop()
+        if self.host:
+            if self.host.weapon == self:
+                self.host.drop()
+            elif self.host.offhand == self:
+                self.host.swap()
+                self.host.drop()
+                self.host.swap()
+            elif self in self.host.armor.items:
+                self.host.armor.get_item(self.host.armor.items.index(self))
         super().die()
 
     def face(self, direction):
@@ -52,21 +61,20 @@ class Item(Prop):
 
     def describe(self):
         r = self.name
+        if r in Item.description:
+            r += '\n' + Item.description[r]
         if self.durability == -1:
-            dur = 'Unbreakable'
+            r += '\nDurability: Unbreakable'
         else:
-            dur = str(self.durability)
-        r += '\nDurability: ' + dur
+            r += '\nDurability: ' + str(self.durability)
         r += '\nVolume: ' + str(self.volume[0]) + 'x' + str(self.volume[1])
         return r
 
     def use(self):
-        host = self.host
-        self.host.drop()
-        host.armor.add_item(self)
+        self.host.action.set('idle')
 
-    def attack(self, damage=0, callback=None):
-        dmg = self.damage + damage + self.host.get_proficiency(self.name)
+    def attack(self, chance=0, callback=None):
+        dmg = self.damage + chance + self.host.get_proficiency(self.name)
         for i in self.range:
             tile = self.host.location.collide_land(self.host.get_interact_pos(),
                                                    self.host.next_target.x, self.host.next_target.y,

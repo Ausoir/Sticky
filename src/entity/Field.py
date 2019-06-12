@@ -6,7 +6,6 @@ class Field:
     def __init__(self):
         Turn.add(self)
         self.registry = []
-        self.delay = 0
 
     def turn(self):
         new_reg = []

@@ -12,12 +12,12 @@ class Object(Image):
     def __init__(self, loc):
         super().__init__(Space())
         self.location = loc
-        self.pos = [self.location.get_tile(0, 0)]
+        self.pos = [self.location.get_tile(0)]
         self.delay = 0
         self.gravity = 1
         self.collide = Tile.COLLIDE_OBJECT
         self.visible = 1
-        self.standables = Tile.CHECK_SUPPORTED
+        self.standables = Tile.CHECK_SUPPORTED.copy()
         self.removed = 0
         self.depth = 1
 
@@ -58,16 +58,13 @@ class Object(Image):
         self.form = Data.run_cache(arg)
 
     def draw(self, surface):
-        if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y):
-            diff = self.pos[0].get_center() - self.vec
-            self.vec.x += diff.x * .1
-            if diff.y > 0 and self.gravity:
-                self.vec.y += min(16, diff.y)
-            else:
-                self.vec.y += diff.y * .1
-            self.form.draw(surface, self.vec.x, self.vec.y)
-            return 1
-        return 0
+        diff = self.pos[0].get_center() - self.vec
+        self.vec.x += diff.x * .07
+        if 0 < diff.y and self.gravity:
+            self.vec.y += min(16, diff.y)
+        else:
+            self.vec.y += diff.y * .07
+        self.form.draw(surface, self.vec.x, self.vec.y)
 
     def is_fall(self):
         return self.gravity
@@ -109,4 +106,4 @@ class Object(Image):
         return new_pos
 
     def center_camera(self):
-        Camera.target = self.vec
+        Camera.target = self

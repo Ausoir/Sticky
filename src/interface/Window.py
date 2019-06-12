@@ -2,6 +2,7 @@ import pygame
 
 from src.entity.Space import Space
 from src.form.Shape import Shape
+from src.game import Global
 from src.game.Camera import Camera
 
 
@@ -9,7 +10,7 @@ class Window(Shape):
     fore_color0 = (0, 0, 0, 0)
     fore_color1 = (68, 102, 120, 200)
     fore_color2 = (95, 112, 120, 220)
-    fore_color3 = (210, 220, 240, 40)
+    fore_color3 = (210, 220, 240, 60)
     font_color1 = (205, 209, 227, 255)
     font_color2 = (120, 180, 140, 200)
     font_color3 = (60, 80, 80, 220)
@@ -26,7 +27,6 @@ class Window(Shape):
         self.on_click = None
         self.on_r_click = None
         self.margin = Space(8, 8)
-        self.font = pygame.font.SysFont('Helvetica', 20)
         self.normal_font_color = Window.font_color1
         self.hover_font_color = Window.font_color2
         self.font_color = self.normal_font_color
@@ -81,7 +81,7 @@ class Window(Shape):
             self.vec.y += Camera.pos[1]
             position = [self.vec.x + self.margin.x, self.vec.y + self.margin.y]
             for i in self.text:
-                surface.blit(self.font.render(i, 1, self.font_color), position)
+                surface.blit(Global.font.render(i, 1, self.font_color), position)
                 position[1] += self.text_spacing
             for i in self.children:
                 i.draw(surface)

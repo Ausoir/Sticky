@@ -17,7 +17,6 @@ class Effect:
 
     def __init__(self, animation):
         self.visible = 1
-        self.delay = 0
         self.form = Data.run_cache(animation)
         self.at = Space()
         self.lifetime = 2
@@ -42,5 +41,3 @@ class Effect:
         pos = self.at + self.offset
         if Camera.in_camera(pos.x, pos.y):
             self.form.draw(surface, pos.x, pos.y)
-            if self.form.ended:
-                self.remove()

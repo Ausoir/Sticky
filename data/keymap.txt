@@ -1,9 +1,6 @@
 ESCAPE,quit
 F1,switch
 TAB,menu
-z,character
-x,skills
-c,equipment
 w,jump
 s,duck
 a,left
@@ -16,9 +13,9 @@ LMB,use
 LS+LMB,flurry
 RMB,interact
 LS+RMB,offhand
-1,act1
-2,act2
-3,act3
-4,act4
-q,act5
-e,act6
+1,item1
+2,item2
+3,item3
+4,item4
+q,item5
+e,item6

@@ -12,10 +12,10 @@ class Tile(Space):
     CHECK_ANY = [10, 20, 30, 40]
     CHECK_FIRM = [10, 30]
     CHECK_LARGE = [10, 30, 40]
-    CHECK_PROJECTILE = [40, 60]
     CHECK_LANDABLE = [10, 30, 35, 40]
     CHECK_SUPPORTED = [10, 25, 30, 35]
     CHECK_BREAKABLE = [30, 40]
+    COLLIDE_FOG = 9
     COLLIDE_TERRAIN = 10
     COLLIDE_OBJECT = 20
     COLLIDE_SUPPORT = 25
@@ -23,7 +23,6 @@ class Tile(Space):
     COLLIDE_DOODAD = 35
     COLLIDE_UNIT = 40
     COLLIDE_ITEM = 50
-    COLLIDE_COVER = 60
     fog = None
 
     @staticmethod
@@ -64,8 +63,6 @@ class Tile(Space):
         return self.get_vec() + Global.HALF_BLOCK
 
     def is_climbable(self):
-        if self.terrain and self.terrain.type == 2:
-            return 1
         for i in self.things:
             if Tags.climb in i.tags:
                 return 1
@@ -73,7 +70,9 @@ class Tile(Space):
 
     def is_land(self, check):
         if self.terrain:
-            if self.terrain.type % 2 and Tile.COLLIDE_TERRAIN in check:
+            if self.terrain.type == 1 and Tile.COLLIDE_TERRAIN in check:
+                return 1
+            elif self.terrain.type == 3 and Tile.COLLIDE_FOG in check:
                 return 1
         for i in self.things:
             if i.collide in check:

@@ -51,16 +51,16 @@ class Weapon(Item):
             hp = 3
         else:
             hp = min(2, int(self.durability / 8))
-        range = len(self.range)
+        reach = len(self.range)
         if 1 in self.range:
-            range += 1
+            reach += 1
         other = 0
-        if 'shp' in self.tags:
+        if 'ps' in self.tags:
             other += 1
         if 'is' in self.tags:
             other += 1
         weight = int((self.weight + 1) / 2)
-        score = hp + other + range + self.damage - weight
+        score = hp + other + reach + self.damage - weight
         return score
 
     def die(self):

@@ -2,6 +2,8 @@ import math
 
 
 class Space:
+    reusable = None
+
     def __init__(self, arg=None, arg2=None):
         self.x = 0
         self.y = 0
@@ -115,7 +117,8 @@ class Space:
         return abs(self.x) + abs(self.y)
 
     def to_int(self):
-        return Space(math.floor(self.x), math.floor(self.y))
+        self.load(math.floor(self.x), math.floor(self.y))
+        return self
 
     def to_list(self):
         return [self.x, self.y]

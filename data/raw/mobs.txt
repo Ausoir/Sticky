@@ -1,0 +1,1 @@
+Undead,3,[[Skeleton],[Skeleton,Skeleton,Skeleton]],[0,Broadsword,Mace] //Name, stat variance, possible mobs, possible weapons

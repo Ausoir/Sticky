@@ -11,13 +11,13 @@ class Attribute:
 
         self.speed = 0
 
-        self.rest_time = 0
+        self.breath = 0
         self.body = 0
         self.leg = 0
 
     def __str__(self):
         return str(self.gene) + ',' + str(self.strength) + ',' + str(self.agility) + ',' + str(self.intelligence)\
-               + ',' + str(self.rest_time) + ',' + str(self.body) + ',' + str(self.leg)
+               + ',' + str(self.breath) + ',' + str(self.body) + ',' + str(self.leg)
 
     def load(self, arg):
         if arg[0]:
@@ -28,7 +28,7 @@ class Attribute:
         self.agility = arg[2]
         self.intelligence = arg[3]
         if len(arg) > 4:
-            self.rest_time = arg[4]
+            self.breath = arg[4]
             self.body = arg[5]
             self.leg = arg[6]
 
@@ -47,8 +47,8 @@ class Attribute:
         return self.leg == 0 and self.body == 0
 
     def rest(self, mag=1):
-        self.rest_time += mag
-        if self.rest_time >= 5:
-            self.rest_time = 0
+        self.breath += mag
+        if self.breath >= 5:
+            self.breath = 0
             self.body = 0
             self.leg = 0

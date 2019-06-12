@@ -1,7 +1,6 @@
 from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.ai.Faction import Faction
-from src.game.Camera import Camera
 from src.map.Tile import Tile
 from src.tools.Math import Math
 
@@ -11,64 +10,46 @@ class Projectile(Prop):
         super().__init__(loc)
         self.faction = Faction.PROJECTILE
         self.collide = 0
-        self.lifetime = 2
-        self.gravity = 0
+        self.lifetime = 9
+        self.gravity = 1
         self.hittable = 0
         self.durability = -1
         self.speed = 24
-        self.depth = 4
+        self.chance = 4
+        self.depth = 5
         self.fast = 1
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.lifetime)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.lifetime = arg[index]
-        return index + 1
+        self.vel = Space()
+        self.start = Space()
 
     def draw(self, surface):
-        if self.fast:
-            if Camera.tile_in_camera(self.pos[0].x, self.pos[0].y) or \
-                    Camera.in_camera(self.vec.x, self.vec.y):
-                diff = self.pos[0].get_center() - self.vec
-                da = (self.pos[0].get_center() - self.vec).get_atan()
-                self.vec += (Math.cos(da)*self.speed, Math.sin(da)*self.speed)
-                ndiff = self.pos[0].get_center() - self.vec
-                if (diff.x > 0) == (ndiff.x > 0) and (diff.y > 0) == (ndiff.y > 0):
-                    self.form.draw(surface, self.vec.x, self.vec.y)
-                else:
-                    self.form.size.x = 0
-                return 1
-        else:
-            super().draw(surface)
+        if not self.removed:
+            self.vel *= .98
+            if self.is_fall():
+                self.vel.y += .5
+            if self.pos[0].is_land(Tile.CHECK_LARGE) and self.pos[0] != self.start:
+                self.location.attack.register(1, self.pos[0], delay=0, chance=self.chance,
+                                              type='batter', faction=self.faction)
+                self.remove()
+            else:
+                self.vec += self.vel
+                self.form.rotate(-self.vel.get_atan())
+                self.pos[0] = self.location.get_tile_from_vec(self.vec.x, self.vec.y)
+            self.form.draw(surface, self.vec.x, self.vec.y)
 
     def turn(self):
         if self.lifetime == 0:
             self.remove()
         else:
-            super().turn()
-            self.effect()
             if self.lifetime > 0:
                 self.lifetime -= 1
 
     def effect(self):
         pass
 
-    def move(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
-        def fn(prev, tile):
-            if tile.is_land(flag):
-                return prev
-        self.form.rotate(Space(x, -y).get_atan())
-        new_pos = self.location.collide_line(self.pos[0], x, y, fn, distance=distance)
-        self.relocate(new_pos.x, new_pos.y)
-        return new_pos
-
-    def shoot(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
-        def fn(prev, tile):
-            if tile.is_land(flag):
-                return tile
-        self.form.rotate(Space(x, -y).get_atan())
-        new_pos = self.location.collide_line(self.pos[0], x, y, fn, distance=distance)
-        self.relocate(new_pos.x, new_pos.y)
-        return new_pos
+    def shoot(self, x, y):
+        from src.tools.Random import Random
+        offset = min(4, abs(int(x / 4)))
+        rand = Random.rand_int(15, 25) + offset
+        atan = Space(x, y - offset).get_atan()
+        self.vel.load(rand * Math.cos(atan), rand * Math.sin(atan))
+        self.start = self.pos[0]

@@ -117,7 +117,7 @@ class Path(Task):  # path finding A*
             return node
         options = self.host.location.get_routes(node.node)
         for i in options:
-            pos = self.pilot.var.location.get_tile(node.node.x + i[0], node.node.y + i[1])
+            pos = self.pilot.var.location.get_tile(node.node + i)
             if self.check_loop(self.closed, pos):
                 continue
             conflict = self.check_loop(self.open, pos)
@@ -246,7 +246,7 @@ class Melee(Task):
         return 0
 
     def perform_gapcloser(self, dist):
-        if self.special and not self.host.hang and -1 <= dist.y <= 0:
+        if self.special and -1 <= dist.y <= 0:
             if abs(dist.x) == 1 and dist.y == 0 and 'kick' in self.host.action.skills:
                 self.host.input('kick', dist)
                 return 1

@@ -1,6 +1,7 @@
 from src.entity.Effect import Effect
 from src.entity.Prop import Prop
 from src.entity.Space import Space
+from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
 from src.form.Body import Body
 from src.game.Turn import Turn
@@ -24,6 +25,7 @@ class Light(Prop):
 class Travel(Prop):
     def __init__(self, loc):
         super().__init__(loc)
+        self.depth = 3
         self.to_map = ''
         self.to_pos = Space(0, 0)
 
@@ -37,8 +39,11 @@ class Travel(Prop):
         self.to_pos.load(arg[index])
         return index + 1
 
+    def draw(self, surface):
+        super().draw(surface)
+
     def trigger(self, host):
-        from src.game.World import World
+        from src.game.Player import Player
         from src.game import Global
         host.location.delay = 0
         host.location.turn()
@@ -46,9 +51,9 @@ class Travel(Prop):
         host.form.set('interact')
         host.relocate(self.to_pos.x, self.to_pos.y, force=1)
         self.remove()
-        Global.main.world.map.name = self.to_map
-        Global.main.world.turn()
-        Global.main.world = World()
+        Global.main.player.map.name = self.to_map
+        Global.main.player.turn()
+        Global.main.player = Player()
 
 
 class Portal(Prop):
@@ -86,6 +91,125 @@ class Bridge(Prop):
             self.die()
 
 
+class Ragdoll(Prop):
+    template = None
+
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.direction = 1
+        self.collide = 0
+        self.depth = 3
+        self.standables = Tile.CHECK_LANDABLE
+
+    def add(self):
+        Turn.add(self)
+        self.relocate(self.pos[0].x, self.pos[0].y, force=1)
+        return self
+
+    def make_form(self, arg):
+        self.form_name = arg
+        if not Ragdoll.template:
+            Ragdoll.template = Body('unit/man')
+        self.form = Ragdoll.template
+
+    def set(self, form):
+        def invalid(str):
+            pass
+        self.add()
+        self.form = form
+        self.durability = 8
+        dead = 'dead' + str(Random.rand_int(1, 2))
+        self.form.randomize_clip(dead, 12)
+        self.form.set(dead)
+        self.form.set = invalid
+        return self
+
+    def draw(self, surface):
+        super().draw(surface)
+        self.form.update()
+
+    def is_hit(self, chance, faction=0):
+        if self.hittable:
+            return 1
+
+    def hit(self, damage):
+        self.form.randomize_once(18)
+        return super().hit(damage)
+
+    def die(self):
+        self.remove()
+
+
+class Estate(Prop):
+    def build(self, theme):
+        from src.tools.Data import Data
+        if self.durability == 2:
+            size = 'L'
+        else:
+            size = 'S'
+        maps = Data.get_files('data/map/' + theme, lambda x: x.startswith(size) and x.endswith('.map'))
+        chosen = maps[Random.rand_int(0, len(maps) - 1)]
+        building = Data.process_raw(Data.read('data/map/' + theme + '/' + chosen))
+        return self.location.load_map(building, new=True, offset=(self.pos[0].x, self.pos[0].y))
+
+
+class Goldbag(Item):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.gold = 0
+        self.jewel = 0
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.gold) + ',' + str(self.jewel)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.gold = arg[index]
+        index += 1
+        self.jewel = arg[index]
+        return index + 1
+
+    def describe(self):
+        return super().describe() + '\nGold: ' + str(self.gold) + '\nJewels: ' + str(self.jewel)
+
+
+class Backpack(Item):
+    def describe(self):
+        if self.host.is_armored() and self.host.armor.inventory[1][1] == 1:
+            return super().describe() + '\nBackpack cannot be attached to your current armor.'
+        return super().describe()
+
+    def use(self):
+        if self.host.is_armored():
+            if self.host.armor.inventory[1][1] == 1:
+                self.host.armor.inventory[1][1] = 2
+                self.host.action.set('block')
+                self.die()
+
+
+class Food(Item):
+    def describe(self):
+        if not self.host.states.get('Hunger'):
+            return super().describe() + '\nItem cannot be used because you are not hungry.'
+        return super().describe()
+
+    def use(self):
+        hunger = self.host.states.get('Hunger')
+        if hunger:
+            hunger.end()
+            self.host.action.set('block')
+            self.hit(1)
+        else:
+            super().use()
+
+
+class Break(Prop):
+    def die(self):
+        super().die()
+        if self.pos[0].terrain:
+            self.pos[0].terrain = None
+
+
 class Hammer(Weapon):
     def use(self):
         from src.entity.Stock import Stock
@@ -114,7 +238,7 @@ class Hammer(Weapon):
                 self.host.action.set('hit')
                 self.host.form.set('interact')
                 return
-            if thing.name == 'Planks':
+            if thing.name == 'Plank':
                 thing.remove()
                 Stock.make('Scaffold', thing.pos[0])
                 self.host.action.set('hit')
@@ -127,151 +251,6 @@ class Bow(Weapon):
     def use(self):
         self.host.action.set('arch')
         self.hit(1)
-
-
-class Ragdoll(Prop):
-    template = None
-
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.direction = 1
-        self.collide = Tile.COLLIDE_COVER
-        self.depth = 3
-        self.standables = Tile.CHECK_LANDABLE
-
-    def add(self):
-        Turn.add(self)
-        self.relocate(self.pos[0].x, self.pos[0].y, force=1)
-        return self
-
-    def make_form(self, arg):
-        self.form_name = arg
-        if not Ragdoll.template:
-            Ragdoll.template = Body('unit/man')
-        self.form = Ragdoll.template
-
-    def set(self, form):
-        def invalid(str):
-            pass
-        self.add()
-        self.form = form
-        self.durability = 8
-        dead = 'dead' + str(Random.rand_int(1, 2))
-        self.form.randomize_clip(dead, 12)
-        self.form.set(dead)
-        self.form.set = invalid
-        return self
-
-    def draw(self, surface):
-        if super().draw(surface):
-            self.form.update()
-            return 1
-        return 0
-
-    def is_hit(self, chance, faction=0):
-        if self.hittable:
-            return 1
-
-    def hit(self, damage):
-        self.form.randomize_once(18)
-        return super().hit(damage)
-
-    def die(self):
-        self.remove()
-
-
-class Command(Prop):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.frame = 0
-        self.state = 'start'
-        self.open = []
-        self.closed = []
-        self.construct = []
-        self.units = []
-        self.houses = []
-        self.warehouses = []
-
-    def __str__(self):
-        r = super().__str__()
-        unit = ','.join(i.id for i in self.units)
-        return r + ',[' + unit + ']'
-
-    def load(self, p):
-        super().load(p)
-        self.open.append(self.pos[0])
-
-    def turn(self):
-        super().turn()
-        self.frame += 1
-        if not self.frame % 3:
-            if not self.construct:
-                self.build()
-            elif not self.frame % 24:
-                if self.frame > 40:
-                    self.frame = 0
-                    if len(self.houses) >= len(self.units):
-                        from src.entity.Stock import Stock
-                        Effect.make('zip', self.pos[0].get_center())
-                        for i in range(12 * (1 + len(self.warehouses))):
-                            res = Stock.get("Planks")
-                            res.pos[0] = self.pos[0]
-                            res.add()
-                        unit = Stock.get("Worker")
-                        unit.pos[0] = self.pos[0]
-                        unit.faction = self.faction
-                        unit.add()
-                        unit.pilot.task.command = self
-                        self.units.append(unit)
-
-    def build(self):
-        if len(self.closed) < 64:
-            new = []
-            sites = []
-            while self.open:
-                pos = self.open.pop()
-                if pos not in self.closed:
-                    self.closed.append(pos)
-                    options = self.location.get_routes(pos)
-                    for option in options:
-                        tile = self.location.get_tile(pos.x + option[0], pos.y + option[1])
-                        if tile not in self.open:
-                            new.append(tile)
-                            sites.append(self.get_clearing(tile, 7))
-            self.open += new
-            self.construct = sites[Random.rand_int(0, len(sites) - 1)]
-            for cols in self.construct:
-                for rows in cols:
-                    Effect.make('blood', rows.get_center())
-        else:
-            self.open = [self.pos[0]]
-            self.closed = []
-
-    def get_clearing(self, tile, size):
-        sites = []
-        site = 1
-        count = 0
-        radius = int(size/2)
-        while site and count <= radius:
-            site = self.check_clearing(tile, count)
-            count += 1
-            if site:
-                sites += site
-        return sites
-
-    def check_clearing(self, tile, x):
-        r = []
-        ranges = [1] if x == 0 else [-1, 1]
-        for i in ranges:
-            pos_x = tile.x + (x * i)
-            ground = self.location.get_tile(pos_x, tile.y + 1)
-            space = self.location.get_tile(pos_x, tile.y)
-            air = self.location.get_tile(pos_x, tile.y - 1)
-            ceiling = self.location.get_tile(pos_x, tile.y - 2)
-            if ground.is_land(Tile.CHECK_FIRM) and not space.is_land(Tile.CHECK_FIRM)\
-                    and not air.is_land(Tile.CHECK_FIRM) and not ceiling.is_land(Tile.CHECK_FIRM):
-                r.append([space, air, ceiling])
-        return r
 
 
 class Zapper(Weapon):
@@ -287,10 +266,10 @@ class Zapper(Weapon):
         self.charge = arg[index]
         return index + 1
 
-    def attack(self, damage=0, callback=None):
+    def attack(self, chance=0, callback=None):
         self.charge += 1
         if self.charge > 3:
-            super().attack(damage + 2, callback)
+            super().attack(chance + 2, callback)
             self.charge = -1
 
     def on_attack(self, target):

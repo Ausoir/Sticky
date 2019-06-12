@@ -32,16 +32,21 @@ class Prop(Object):
             self.gravity = 0
         if Tags.back in self.tags:
             self.depth = 1
+        if Tags.front in self.tags:
+            self.depth = 5
+        if Tags.fog in self.tags:
+            self.collide = Tile.COLLIDE_FOG
         if Tags.indestructible in self.tags:
             self.hittable = 0
+        if Tags.furniture in self.tags:
+            if Tile.COLLIDE_SUPPORT in self.standables:
+                self.standables.remove(Tile.COLLIDE_SUPPORT)
         if Tags.intangible in self.tags:
             self.collide = 0
         elif Tags.land in self.tags:
             self.collide = Tile.COLLIDE_DOODAD
         elif Tags.support in self.tags:
             self.collide = Tile.COLLIDE_SUPPORT
-        elif Tags.cover in self.tags:
-            self.collide = Tile.COLLIDE_COVER
         return index
 
     def turn(self):
@@ -51,7 +56,7 @@ class Prop(Object):
     def die(self):
         if Tags.wood in self.tags:
             from src.entity.Stock import Stock
-            Stock.get('Planks').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
+            Stock.get('Plank').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         if Tags.metal in self.tags:
             from src.entity.Stock import Stock
             Stock.get('Scrap').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
@@ -61,6 +66,8 @@ class Prop(Object):
         if self.hittable and Faction.is_against(self.faction, faction):
             if Tags.metal in self.tags:
                 return chance > 3
+            elif Tags.terrain in self.tags:
+                return chance > 2
             elif Tags.wood in self.tags:
                 return chance > 1
             return 1

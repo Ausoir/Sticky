@@ -16,36 +16,33 @@ from src.tools.Math import Math
 class Location:
     OBJECT_ID = 0
 
-    def __init__(self, data):
+    def __init__(self, name, data):
         Stock.location = self
         Turn.add(self)
-        from src.entity.unit.action.Field import Field
-        self.name = data[0]
+        from src.entity.Field import Field
+        self.name = name
         self.attack = Field()
         self.delay = 8
         self.tiles = {}
         self.edge = 0
         self.record = List()
+        self.header = None
         self.draw_tiles = {}
-        self.sight_block = Tile.CHECK_FIRM
+        self.sight_block = [Tile.COLLIDE_FOG, Tile.COLLIDE_PROP, Tile.COLLIDE_TERRAIN]
         self.last_pos = None
-        self.load(list(Data.process_raw(Data.read('save/'+data[0]+'.map'))))
+        self.load(data)
         self.display_tiles_x = None
         self.display_tiles_y = None
         self.sight_tiles = []
         self.resize()
 
     def __str__(self):
-        meta = str(Turn.frame) + ',' + str(Location.OBJECT_ID)
-        ry = []
-        for tile_row in self.tiles.values():
-            rx = []
-            for tile in tile_row.values():
-                if tile.terrain:
-                    rx.append(tile.__str__())
-            if rx:
-                ry.append(','.join(rx))
-        tiles = ','.join(ry)
+        meta = str(Turn.frame) + ',' + str(Location.OBJECT_ID) + ',' + self.header[2] + ',' + self.header[3]
+        rt = []
+        for tile in self.tiles.values():
+            if tile.terrain:
+                rt.append(tile.__str__())
+        tiles = ','.join(rt)
 
         r = []
         for i in self.record:
@@ -56,19 +53,31 @@ class Location:
     def load(self, arg):
         while len(arg) < 3:
             arg = arg + [[]]
+        self.header = arg[0]
         Turn.frame = arg[0][0]
         Location.OBJECT_ID = arg[0][1]
+        from src.map import Script
+        script = getattr(Script, arg[0][2])
+        objects = self.load_map(arg)
+        for i in script(arg[0][3], self, objects):
+            i.add()
+
+    def load_map(self, arg, new=False, offset=(0, 0)):
         tiles = Data.get_cache('tiles')
         for i in arg[1]:
-            x = i[0][0]
-            y = i[0][1]
-            tile = self.get_tile(x, y)
             data = tiles[i[1]]
+            tile = self.get_tile((i[0][0] + offset[0], i[0][1] + offset[1]))
             tile.terrain = Terrain(i[1], tile * Global.BLOCK, data[0], data[1], data[2], data[3], data[4])
-            if y > self.edge:
-                self.edge = y
+            if tile.y > self.edge:
+                self.edge = tile.y
+        objects = []
         for i in arg[2]:
-            Stock.get(i[2], i).add()
+            obj = Stock.get(i[2], i)
+            if new:
+                obj.id = self.get_id()
+            obj.relocate(obj.pos[0].x + offset[0], obj.pos[0].y + offset[1], force=1)
+            objects.append(obj)
+        return objects
 
     def resize(self):
         self.display_tiles_x = min(int(Global.SCREEN_TILES[0] / 2), 14)
@@ -90,10 +99,10 @@ class Location:
         self.update_fog()
 
     def update_fog(self):
-        x = Location.get_pos_from_vec(int(Camera.target.x))
-        y = Location.get_pos_from_vec(int(Camera.target.y))
-        self.draw_tiles = {str(x) + ',' + str(y): self.get_tile(x, y)}
-        direction = Global.main.world.player.direction
+        x = Camera.target.pos[0].x
+        y = Camera.target.pos[0].y
+        self.draw_tiles = {str(x) + ',' + str(y): self.get_tile(Camera.target.pos[0])}
+        direction = Global.main.player.character.direction
         start = (x * Global.BLOCK + Global.HALF_BLOCK + (direction*Global.HALF_BLOCK - direction), y * Global.BLOCK + 1)
         for i in self.sight_tiles:
             sight = self.collide_sight(start, i)
@@ -101,7 +110,7 @@ class Location:
                 self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
 
     def draw(self, surface):
-        objects = [[], [], [], []]
+        objects = [[], [], [], [], [], []]
         for k, v in self.draw_tiles.items():
             v.draw(surface)
             for thing in v.things:
@@ -115,29 +124,24 @@ class Location:
         Location.OBJECT_ID += 1
         return '#' + str(format(Location.OBJECT_ID, 'x'))
 
-    def get_object(self, id):
+    def get_object(self, oid):
         for i in self.record:
-            if i.id == id:
+            if i.id == oid:
                 return i
         return None
 
-    def get_tile(self, x=None, y=None, create=1):
-        if y is not None:
-            tmp = Space(x, y).to_int()
-        else:
-            tmp = Space(x).to_int()
-        if tmp.x not in self.tiles:
+    def get_tile(self, arg, create=1):
+        Space.reusable.load(arg)
+        pos = Space.reusable.to_int()
+        key = str(pos.x) + ',' + str(pos.y)
+        if key not in self.tiles:
             if not create:
                 return None
-            self.tiles[tmp.x] = {}
-        if tmp.y not in self.tiles[tmp.x]:
-            if not create:
-                return None
-            self.tiles[tmp.x][tmp.y] = Tile(tmp.x, tmp.y)
-        return self.tiles[tmp.x][tmp.y]
+            self.tiles[key] = Tile(pos.x, pos.y)
+        return self.tiles[key]
 
     def get_tile_from_vec(self, x, y):
-        return self.get_tile(Location.get_pos_from_vec(x), Location.get_pos_from_vec(y))
+        return self.get_tile([Location.get_pos_from_vec(x), Location.get_pos_from_vec(y)])
 
     @staticmethod
     def get_pos_from_vec(i):
@@ -202,24 +206,24 @@ class Location:
 
     def get_routes(self, pos):
         options = []
-        right = self.get_tile(pos.x + 1, pos.y)
-        upright = self.get_tile(pos.x + 1, pos.y - 1)
-        left = self.get_tile(pos.x - 1, pos.y)
-        upleft = self.get_tile(pos.x - 1, pos.y - 1)
-        ground = self.get_tile(pos.x, pos.y + 1)
-        air = self.get_tile(pos.x, pos.y - 1)
+        right = self.get_tile(pos + (1, 0))
+        upright = self.get_tile(pos + (1, -1))
+        left = self.get_tile(pos + (-1, 0))
+        upleft = self.get_tile(pos + (-1, -1))
+        ground = self.get_tile(pos + (0, 1))
+        air = self.get_tile(pos + (0, -1))
         if ground.is_land(Tile.CHECK_LANDABLE) or pos.is_climbable():
             if not air.is_land(Tile.CHECK_LARGE) and air.is_climbable():
                 options.append((0, -1))
             if not right.is_land(Tile.CHECK_LARGE):
-                if self.get_tile(pos.x + 1, pos.y + 1).is_land(Tile.CHECK_LANDABLE) or right.is_climbable():
+                if self.get_tile(pos + (1, 1)).is_land(Tile.CHECK_LANDABLE) or right.is_climbable():
                     options.append((1, 0))
                 else:
                     options.append((1, 1))
             elif not upright.is_land(Tile.CHECK_LARGE):
                 options.append((1, -1))
             if not left.is_land(Tile.CHECK_LARGE):
-                if self.get_tile(pos.x - 1, pos.y + 1).is_land(Tile.CHECK_LANDABLE) or left.is_climbable():
+                if self.get_tile(pos + (-1, 1)).is_land(Tile.CHECK_LANDABLE) or left.is_climbable():
                     options.append((-1, 0))
                 else:
                     options.append((-1, 1))

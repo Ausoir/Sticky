@@ -17,7 +17,6 @@ class Control:
         self.keypress = []
         self.keyrelease = []
         self.keymap = {}
-        self.delay = 0
         self.directory = 'data/keymap.txt'
         self.set_keymap(self.directory)
 
@@ -93,7 +92,7 @@ class Control:
         return 0
 
     def input(self, event):
-        if self.menu:
+        if self.menu.visible == 1:
             if self.menu.input(event):
                 return 1
         code = Control.get_event_code(event)
@@ -130,6 +129,9 @@ class Control:
             self.keypress.remove(code)
 
     def quit(self):
+        mouse = pygame.mouse.get_pos()
+        mouse = Space(Camera.get_relative_tile_pos(mouse[0], mouse[1]))
+        self.player.input('quit', mouse)
         self.player.location.delay = 0
         self.player.location.turn()
         pygame.quit()
@@ -160,10 +162,13 @@ class Control:
                     self.clear_press(code)
                     self.menu.state = self.menu.menu_equipment
                     self.menu.display(1)
+                elif command == 'text':
+                    self.clear_press(code)
+                    Global.main.textbox.display_text = ''
+                    Global.main.text_mode = True
                 elif command == 'switch':
                     self.clear_press(code)
-                    self.player.input(command, mouse)
-                    Global.main.world.switch()
+                    Global.main.player.switch()
                 else:
                     self.player.input(command, mouse)
         else:

@@ -3,6 +3,7 @@ import pygame
 from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Headgear import Headgear
 from src.game import Global
+from src.game.Crafting import Crafting
 from src.game.Turn import Turn
 from src.interface.CanvasWindow import CanvasWindow
 from src.interface.Window import Window
@@ -11,7 +12,6 @@ from src.interface.Window import Window
 class Menu:
     def __init__(self, host):
         Turn.add(self)
-        self.delay = 1
         self.host = host
         self.visible = -1
         self.state = self.menu_main
@@ -22,8 +22,8 @@ class Menu:
         self.dialog.color = Window.fore_color1
         self.dialog_text = []
         self.last_input = None
+        self.history = []
         self.var = 0
-        self.selected = [0, 0]
 
     def draw(self, surface):
         if self.visible == 1:
@@ -34,47 +34,28 @@ class Menu:
         if self.visible == 1:
             self.state = self.current_state
             self.display(1)
-            self.input(self.last_input)
+            if self.last_input:
+                self.input(self.last_input)
 
     def input(self, event):
         if event.type == pygame.MOUSEMOTION:
             self.last_input = event
-        elif event.type == pygame.KEYDOWN:
-            keymap = Global.main.world.control.keymap
-            if self.visible == 1 and event.key in keymap:
-                if keymap[event.key] == 'use':
-                    if self.selected[0] == 1:
-                        self.window.children[self.selected[1]].on_click()
-                    if self.selected[0] == 2:
-                        self.sub_window.children[self.selected[1]].on_click()
-                    return 1
-                elif keymap[event.key] == 'left':
-                    self.select(1, self.selected[1])
-                    return 1
-                elif keymap[event.key] == 'right':
-                    self.select(2, self.selected[1])
-                    return 1
-                elif keymap[event.key] == 'jump':
-                    self.select(self.selected[0], self.selected[1] - 1)
-                    return 1
-                elif keymap[event.key] == 'duck':
-                    self.select(self.selected[0], self.selected[1] + 1)
-                    return 1
         if self.window.input(event):
             return 1
         if self.sub_window.input(event):
             return 1
-
-    def select(self, window, element):
-        if window == 1 and len(self.window.children) > 0:
-            element = min(len(self.window.children) - 1, max(0, element))
-        elif window == 2 and len(self.sub_window.children) > 0:
-            element = min(len(self.sub_window.children) - 1, max(0, element))
-        else:
-            window = 0
-        self.selected = [window, element]
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 3:
+                self.history.pop()
+                if self.history:
+                    self.state = self.history[len(self.history) - 1]
+                else:
+                    self.toggle()
+                self.display(1)
+            return 1
 
     def toggle(self):
+        self.history = [self.menu_main]
         self.visible *= -1
         self.display(self.visible)
 
@@ -83,13 +64,17 @@ class Menu:
         self.sub_window.display(-1)
         self.window.display(-1)
         if self.visible == 1:
-            self.select(self.selected[0], self.selected[1])
             self.window.flush()
             self.sub_window.flush()
             self.current_state = self.state
             self.state()
             self.state = self.menu_main
             self.window.display(1)
+
+    def direct(self, page):
+        self.history.append(page)
+        self.state = page
+        self.display(1)
 
     @staticmethod
     def make_button(text, callback, r_callback, color=Window.fore_color2):
@@ -100,44 +85,50 @@ class Menu:
         return button
 
     def show_dialog(self, text):
-        self.dialog_text = text
-        self.state = self.menu_dialog
-        self.display(1)
+        r = []
+        for line in text:
+            length = 0
+            newline = ''
+            for char in line:
+                newline += char
+                length += self.window.font.size(char)[0]
+                if length >= self.window.size.x + self.sub_window.size.x - self.window.margin.x * 5:
+                    r.append(newline)
+                    newline = ''
+                    length = 0
+            r.append(newline)
+        self.dialog_text = r
+        self.direct(self.menu_dialog)
 
     def menu_dialog(self):
-        total_size = [self.window.size.x + self.sub_window.size.x - self.window.margin.x * 2, self.window.size.y]
-        textbox = Window(total_size, color=Window.fore_color2)
-        textbox.set_text(self.dialog_text)
-        textbox.on_click = self.toggle
-        textbox.text_spacing = 28
+        x = self.window.size.x + self.sub_window.size.x - self.window.margin.x * 2
+        textbox = Window([x, 1], color=Window.fore_color2)
+        textbox.text_spacing = textbox.font.size('A')[1] + 2
+        textbox.set_text(self.dialog_text + [' '])
+        textbox.hover_font_color = textbox.normal_font_color
         self.window.add_child(textbox)
         self.sub_window.display(1)
 
     def menu_main(self):
         def click_character():
-            self.state = self.menu_character
-            self.display(1)
-
-        def click_skills():
-            self.state = self.menu_skills
-            self.display(1)
+            self.direct(self.menu_character)
 
         def click_equipment():
-            self.state = self.menu_equipment
-            self.display(1)
+            self.direct(self.menu_equipment)
+
+        def click_knowledge():
+            self.direct(self.menu_knowledge)
 
         self.window.add_child(Menu.make_button(['Character'], click_character, None))
-        self.window.add_child(Menu.make_button(['Skills'], click_skills, None))
         self.window.add_child(Menu.make_button(['Equipment'], click_equipment, None))
+        self.window.add_child(Menu.make_button(['Knowledge'], click_knowledge, None))
 
     def menu_character(self):
         def click_proficiency():
-            self.state = self.menu_proficiency
-            self.display(1)
+            self.direct(self.menu_proficiency)
 
         def click_status():
-            self.state = self.menu_status
-            self.display(1)
+            self.direct(self.menu_status)
 
         def describe():
             self.show_dialog(['Something HP', 'Some long dialog text.....', 'And your choice'])
@@ -146,76 +137,97 @@ class Menu:
         st1 = str(self.host.attributes.strength)
         st2 = str(self.host.attributes.agility)
         st3 = str(self.host.attributes.intelligence)
-        text = ['HP - ' + hp, 'Str - ' + st1, 'Agi - ' + st2, 'Int - ' + st3, 'Nutrition - 5/5']
+        text = ['HP - ' + hp, 'Str - ' + st1, 'Agi - ' + st2, 'Int - ' + st3]
         panel = Menu.make_button(text, describe, None)
         panel.color = Window.fore_color3
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
-        panel.depth = 2
         panel.redraw()
         self.window.add_child(panel)
         self.sub_window.add_child(Menu.make_button(['Proficiency'], click_proficiency, None))
         self.sub_window.add_child(Menu.make_button(['Status'], click_status, None))
         self.sub_window.display(1)
 
+    def menu_knowledge(self):
+        def add_button(window, text):
+            def craft():
+                Crafting.craft(self.host, text)
+                self.host.action.set('block')
+                self.toggle()
+            if Crafting.is_craftable(self.host, text):
+                rmb = self.get_message(Crafting.describe(text).split('\n'))
+                button = Menu.make_button([text], craft, rmb)
+            else:
+                rmb = self.get_message((Crafting.describe(text) + '\nRequirements not met.').split('\n'))
+                button = Menu.make_button([text], None, rmb, color=Window.fore_color0)
+                button.hover_font_color = window.normal_font_color
+            window.add_child(button)
+
+        for i in Global.main.player.knowledge[:6]:
+            add_button(self.window, i)
+        for i in Global.main.player.knowledge[6:]:
+            add_button(self.sub_window, i)
+        self.window.display(1)
+        self.sub_window.display(1)
+
     def menu_skills(self):
         def make_on_click(outer_index):
             def assign():
                 self.var = outer_index
-                self.state = self.menu_skills_reassign
-                self.display(1)
+                self.direct(self.menu_slot_reassign)
             return assign
-        control = Global.main.world.control
+        control = Global.main.player.control
         key_buttons = []
         for k, v in control.keymap.items():
-            if v[:3] == 'act':
+            if v[:4] == 'item':
                 button = Menu.make_button(['Key [' + control.get_key_name(k) + ']'], None, None, color=(0, 0, 0, 0))
                 button.hover_font_color = None
                 key_buttons.append(button)
                 self.window.add_child(button)
-        abilities = self.host.action.skills[:6]
-        for k, v in enumerate(abilities):
-            action_button = Menu.make_button([v.title()], None, None)
-            action_button.on_click = make_on_click(k)
+        for k, v in enumerate(self.host.armor.pockets):
+            if v == -1:
+                desc = self.get_message(['Click to assign item.'])
+                action_button = Menu.make_button(['<Assign>'], make_on_click(k), desc)
+            else:
+                action_button = Menu.make_button([self.host.armor.items[v].name], make_on_click(k), None)
             self.sub_window.add_child(action_button)
         self.sub_window.display(1)
 
-    def menu_skills_reassign(self):
+    def menu_slot_reassign(self):
         def make_assign_click(inner_index):
             def assign_click():
-                skills = self.host.action.skills
-                skills[self.var], skills[inner_index] = skills[inner_index], skills[self.var]
-                self.state = self.menu_skills
-                self.display(1)
+                self.host.armor.pockets[self.var] = inner_index
+                self.direct(self.menu_skills)
             return assign_click
-        first = self.host.action.skills[:6]
-        second = self.host.action.skills[6:]
+        first = self.host.armor.items[:6]
+        second = self.host.armor.items[6:]
         self.window.flush()
         for first_key, i in enumerate(first):
-            self.window.add_child(Menu.make_button([i.title()], make_assign_click(first_key), None))
+            self.window.add_child(Menu.make_button([i.name], make_assign_click(first_key), None))
         self.sub_window.flush()
         for second_key, i in enumerate(second):
-            self.sub_window.add_child(Menu.make_button([i.title()], make_assign_click(second_key + 6), None))
+            self.sub_window.add_child(Menu.make_button([i.name], make_assign_click(second_key + 6), None))
         self.window.display(1)
         self.sub_window.display(1)
 
     def menu_equipment(self):
         def click_headgear():
             if not self.host.unheadgear() and isinstance(self.host.weapon, Headgear):
-                self.host.weapon.use(self.host)
-            self.state = self.menu_equipment
-            self.display(1)
+                self.host.weapon.use()
+            self.direct(self.menu_equipment)
 
         def click_armor():
             if not self.host.unarmor() and isinstance(self.host.weapon, Armor):
-                self.host.weapon.use(self.host)
-            self.state = self.menu_equipment
-            self.display(1)
+                self.host.weapon.use()
+            self.direct(self.menu_equipment)
+
+        def click_offhand():
+            self.host.swap()
+            self.direct(self.menu_equipment)
 
         def click_weapon():
             self.host.drop()
-            self.state = self.menu_equipment
-            self.display(1)
+            self.direct(self.menu_equipment)
 
         def make_pocket(x, y):
             def pocket():
@@ -239,12 +251,29 @@ class Menu:
                     self.show_dialog(item.describe().split('\n'))
             return pocket
 
+        def click_skills():
+            self.direct(self.menu_skills)
+
         rmb = self.get_message(self.host.headgear.describe().split('\n'))
         self.window.add_child(Menu.make_button([self.host.headgear.name], click_headgear, rmb))
         rmb = self.get_message(self.host.armor.describe().split('\n'))
         self.window.add_child(Menu.make_button([self.host.armor.name], click_armor, rmb))
+        if len(self.host.armor.pockets) > 0:
+            rmb = self.get_message(['Designate items for quick access.'])
+            button = Menu.make_button(['Pockets'], click_skills, rmb, color=Window.fore_color3)
+        else:
+            button = Menu.make_button([''], None, None, color=(0, 0, 0, 0))
+        self.window.add_child(button)
+        rmb = self.get_message(self.host.offhand.describe().split('\n'))
+        display = self.host.offhand.name
+        if not self.host.is_shielded():
+            display = '<Offhand>'
+        self.window.add_child(Menu.make_button([display], click_offhand, rmb))
         rmb = self.get_message(self.host.weapon.describe().split('\n'))
-        self.window.add_child(Menu.make_button([self.host.weapon.name], click_weapon, rmb))
+        display = self.host.weapon.name
+        if not self.host.is_armed():
+            display = '<Unarmed>'
+        self.window.add_child(Menu.make_button([display], click_weapon, rmb))
         for ky, vy in enumerate(self.host.armor.inventory):
             for kx, vx in enumerate(vy):
                 if vx == Armor.VACANT:
@@ -271,10 +300,6 @@ class Menu:
             self.sub_window.next_y = self.sub_window.vec.y + 8
             self.sub_window.add_child(item_canvas)
             item_canvas.display(1)
-        textbox = Window([140, 0], color=Window.fore_color3)
-        textbox.hover_font_color = Window.fore_color3
-        textbox.set_text(['Gold: ' + str(self.host.gold)])
-        self.window.add_child(textbox)
         self.sub_window.display(1)
 
     def menu_proficiency(self):

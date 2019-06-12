@@ -1,2 +1,3 @@
 map
-#0,[[11,5]],Player,unit/Man,[hum,if],80,[],2,Manual,[1,3,1,1,0,0,0],[sonic,dispell,tackle,block,leap,flurry,lunge,sprint],[fist],100,[#0,[[11,5]],Broadsword,data/image/broadsword,[shp,im],15,[],[1,3],8,[1],2,3,6],[#2f56,[[0,0]],Fist,g_0x0,[],-1,[],[1,1],0,[1],1,1,4],[#30eb,[[17,7]],Gold Robe,data/image/unit/robe_gold,[],79,[],[3,4],0,[121,222,222,212],[]],[#12f5,[[0,0]],Head,head,[],-1,[],[1,1],0]
+#0,[[7,-1]],Player,unit/Man,[hum,if],7,[],2,Manual,[1,2,1,1,0,0,0],[sonic,dispell,tackle,kick,block,leap,flurry,lunge,sprint],[Flurry],[#191,[[0,0]],Fist,g_0x0,[],-1,[],[1,1],0,[1],1,1,3],[#a96,[[0,0]],Fist,g_0x0,[],-1,[],[1,1],0,[1],1,1,4],[#197,[[6,-1]],Leather Armor,data/image/unit/leather,[],6,[],[3,3],1,[111,112,121,111],[],[]],[#698,[[0,0]],Head,head,[],-1,[],[1,1],0]
+Scorch Scroll,Levitate Scroll,Scry Scroll,Scorch Staff,Sonic Scroll

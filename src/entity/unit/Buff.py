@@ -57,6 +57,16 @@ class BuffTags:
     magic = 'm'
 
 
+class Hunger(Buff):
+    def describe(self):
+        return 'You cannot travel or perform any time consuming actions.'
+
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return 1
+
+
 class Bleed(Buff):
     def describe(self):
         dmg = str(int(self.duration / 100))
@@ -205,6 +215,9 @@ class Levitate(Buff):
 
     def on_load(self):
         self.host.gravity = 0
+
+    def on_stack(self, duration, var):
+        self.duration = max(self.duration, duration)
 
     def on_finish(self):
         self.host.gravity = 1

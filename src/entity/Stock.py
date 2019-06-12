@@ -1,8 +1,10 @@
+from src.entity.Container import Container
 from src.entity.Projectile import Projectile
 from src.entity.Prop import Prop
 from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
+from src.entity.unit.item.Spell import Spell
 from src.entity.unit.item.Weapon import Weapon
 from src.tools.Data import Data
 
@@ -17,7 +19,10 @@ class Stock:
             registry_items = Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt'))
             for item in registry_items:
                 Stock.registry[item[0]] = [getattr(Stock, i), item]
-        Stock.registry['projectile'] = [Stock.projectile, 'Projectile,g_0x0,[],-1,[],10']
+        Stock.registry['Projectile'] = [Stock.projectile, 'Projectile,g_0x0,[],-1,[],10']
+        item_desc = Data.process_raw(Data.get_cache_file('data/raw/descriptions.txt'))
+        for i in item_desc:
+            Item.description[i[0]] = i[1]
 
     @staticmethod
     def get(name, data=None):
@@ -57,6 +62,12 @@ class Stock:
         return r
 
     @staticmethod
+    def containers(arg):
+        r = Container(Stock.location)
+        r.load(arg)
+        return r
+
+    @staticmethod
     def armors(arg):
         r = Armor(Stock.location)
         r.load(arg)
@@ -81,6 +92,12 @@ class Stock:
         return r
 
     @staticmethod
+    def spells(arg):
+        r = Spell(Stock.location)
+        r.load(arg)
+        return r
+
+    @staticmethod
     def others(arg):
         from src.entity import Other
         unique = getattr(Other, arg[2])
@@ -92,8 +109,8 @@ class Stock:
         return r
 
     @staticmethod
-    def project(form, pos, lifetime):
-        data = [0, [pos], 'Projectile'] + Stock.registry['Force'][1][1:] + [lifetime]
-        r = Stock.others(data)
+    def project(form, pos):
+        data = [0, [pos], 'Projectile'] + Stock.registry['Force'][1][1:]
+        r = Stock.projectile(data)
         r.make_form(form)
         return r.add()

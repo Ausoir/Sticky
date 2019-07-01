@@ -1,4 +1,14 @@
-Head,head,[],-1,[],[1,1],0 //Name, image, states, hp, size, encumbrance
+Head,g_0x0,[],-1,[],[1,1],0 //Name, image, tags, hp, states, size, encumbrance
 Skull,data/image/unit/skull,[],-1,[],[2,1],1
 Hat,data/image/unit/hat,[],1,[],[2,1],1
 Headband,data/image/unit/headband,[],1,[],[2,1],1
+Bandana,data/image/unit/bandana,[],1,[],[2,1],1
+Beanie,data/image/unit/beanie,[],1,[],[2,1],1
+Lace Helm,data/image/unit/lace_helm,[],1,[],[2,1],1
+Full Helm,data/image/unit/full_helm,[],1,[],[2,1],1
+Glasses,data/image/unit/glasses,[],1,[],[2,1],1
+Sunglasses,data/image/unit/sunglasses,[],1,[],[2,1],1
+Top Hat,data/image/unit/top_hat,[],1,[],[2,1],1
+Straw Hat,data/image/unit/straw_hat,[],1,[],[2,1],1
+Fur Hat,data/image/unit/fur_hat,[],1,[],[2,1],1
+Cap,data/image/unit/cap,[],1,[],[2,1],1

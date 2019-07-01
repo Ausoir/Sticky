@@ -10,9 +10,8 @@ from src.tools.Data import Data
 
 
 class Control:
-    def __init__(self, menu, player):
+    def __init__(self, player):
         Turn.add(self)
-        self.menu = menu
         self.player = player
         self.keypress = []
         self.keyrelease = []
@@ -92,8 +91,8 @@ class Control:
         return 0
 
     def input(self, event):
-        if self.menu.visible == 1:
-            if self.menu.input(event):
+        if Global.menu.visible == 1:
+            if Global.menu.input(event):
                 return 1
         code = Control.get_event_code(event)
         if code > 0:
@@ -149,19 +148,7 @@ class Control:
                     self.quit()
                 elif command == 'menu':
                     self.clear_press(code)
-                    self.menu.toggle()
-                elif command == 'character':
-                    self.clear_press(code)
-                    self.menu.state = self.menu.menu_character
-                    self.menu.display(1)
-                elif command == 'skills':
-                    self.clear_press(code)
-                    self.menu.state = self.menu.menu_skills
-                    self.menu.display(1)
-                elif command == 'equipment':
-                    self.clear_press(code)
-                    self.menu.state = self.menu.menu_equipment
-                    self.menu.display(1)
+                    Global.menu.toggle()
                 elif command == 'text':
                     self.clear_press(code)
                     Global.main.textbox.display_text = ''

@@ -18,6 +18,7 @@ class Armor(Item):
         self.form_armR = None
         self.form_legL = None
         self.form_legR = None
+        self.armor = 0
 
     def __str__(self):
         r = super().__str__()
@@ -27,29 +28,35 @@ class Armor(Item):
             items.append('[' + i.__str__() + ']')
         items = ','.join(items)
         pockets = ','.join(str(x) for x in self.pockets)
-        r += ',' + str(self.encumbrance) + ',[' + inventory + '],[' + items + '],[' + pockets + ']'
+        r += ',' + str(self.encumbrance) + ',' + str(self.armor)
+        r += ',[' + inventory + '],[' + items + '],[' + pockets + ']'
         return r
 
     def load(self, p):
         from src.entity.Stock import Stock
         index = super().load(p)
         self.encumbrance = p[index]
+        index += 1
+        self.armor = p[index]
+        index += 1
         self.inventory = []
-        for i in p[index + 1]:
+        for i in p[index]:
             row = []
             for c in str(i):
                 row.append(int(c))
             self.inventory.append(row)
+        index += 1
         self.items = []
-        for i in p[index + 2]:
+        for i in p[index]:
             item = Stock.get(i[2], i)
             self.items.append(item)
-        self.pockets = p[index + 3]
-        return index + 4
+        index += 1
+        self.pockets = p[index]
+        return index + 1
 
-    def make_form(self, arg):
+    def set_form(self, arg):
         Data.initialize_image(self.name, arg, (16, 48))
-        super().make_form(self.name + '_0x0')
+        super().set_form(self.name + '_0x0')
         self.form_armL = Data.run_cache(self.name + '_1x0')
         self.form_armR = self.form_armL.clone()
         self.form_legL = Data.run_cache(self.name + '_2x0')
@@ -73,6 +80,17 @@ class Armor(Item):
         self.form.size.y = 48
         self.form.pivot.y = 24
         self.form.rotate(180)
+
+    def get_value(self):
+        inv = 0
+        for row in self.inventory:
+            for cell in row:
+                if cell != '1':
+                    inv += 1
+        inv += len(self.pockets)
+        r = self.durability + self.armor + inv
+        r = max(0, int(r / 2) - 5)
+        return r
 
     def describe(self):
         inv = 0

@@ -17,7 +17,7 @@ class Object(Image):
         self.gravity = 1
         self.collide = Tile.COLLIDE_OBJECT
         self.visible = 1
-        self.standables = Tile.CHECK_SUPPORTED.copy()
+        self.standables = Tile.CHECK_FOUNDATION.copy()
         self.removed = 0
         self.depth = 1
 
@@ -35,7 +35,7 @@ class Object(Image):
         index += 1
         self.name = p[index]
         index += 1
-        self.make_form(p[index])
+        self.set_form(p[index])
         index += 1
         return index
 
@@ -53,7 +53,7 @@ class Object(Image):
         for i in self.pos:
             i.things.remove(self)
 
-    def make_form(self, arg):
+    def set_form(self, arg):
         self.form_name = arg
         self.form = Data.run_cache(arg)
 

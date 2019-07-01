@@ -11,16 +11,15 @@ class Tile(Space):
     CHECK_NONE = []
     CHECK_ANY = [10, 20, 30, 40]
     CHECK_FIRM = [10, 30]
+    CHECK_FOUNDATION = [10, 30, 35]
     CHECK_LARGE = [10, 30, 40]
     CHECK_LANDABLE = [10, 30, 35, 40]
-    CHECK_SUPPORTED = [10, 25, 30, 35]
     CHECK_BREAKABLE = [30, 40]
-    COLLIDE_FOG = 9
+    COLLIDE_FOG = 8
     COLLIDE_TERRAIN = 10
     COLLIDE_OBJECT = 20
-    COLLIDE_SUPPORT = 25
     COLLIDE_PROP = 30
-    COLLIDE_DOODAD = 35
+    COLLIDE_DOODAD = 35  # can't be collided with but can be stood on (bridges)
     COLLIDE_UNIT = 40
     COLLIDE_ITEM = 50
     fog = None
@@ -47,7 +46,7 @@ class Tile(Space):
 
     def draw(self, surface):
         pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-        surface.blit(Global.main.bg.image, pos,
+        surface.blit(Global.main.player.background.image, pos,
                      (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
         if self.terrain:
             self.terrain.draw(surface)

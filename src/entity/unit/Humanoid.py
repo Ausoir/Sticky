@@ -1,30 +1,40 @@
-from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 
 
 class Humanoid(Unit):
+    faces = []
+
     def __init__(self, loc):
         super().__init__(loc)
         self.armor = None
         self.headgear = None
         self.aim_angle = 0
+        from src.entity.Stock import Stock
         self.fist = Stock.get('Fist')
         self.body = Stock.get('Body')
         self.head = Stock.get('Head')
         self.weapon = self.fist
         self.offhand = self.fist
+        self.fist.host = self
+        self.body.host = self
+        self.head.host = self
 
     def __str__(self):
-        weapon = '['+self.weapon.__str__()+']'
+        weapon = '['+self.weapon.__str__()+']' if self.is_armed() else '0'
         offhand = '['+self.offhand.__str__()+']'
-        armor = '['+self.armor.__str__()+']'
-        headgear = '['+self.headgear.__str__()+']'
+        armor = '['+self.armor.__str__()+']' if self.is_armored() else '0'
+        headgear = '['+self.headgear.__str__()+']' if self.is_headgeared() else '0'
         gear = weapon + ',' + offhand + ',' + armor + ',' + headgear
         return super().__str__() + ',' + gear
 
     def load(self, p):
         index = super().load(p)
+        from src.entity.Stock import Stock
+        from src.tools.Data import Data
         self.form.randomize_clip('hit', 4)
+        head = Data.run_cache(Humanoid.faces[self.attributes.gene % len(Humanoid.faces)])
+        head.flip(0, 1)
+        self.form.organs[3].set(head)
         if p[index]:
             weapon = Stock.get(p[index][2], p[index])
             weapon.on_equip(self)
@@ -88,6 +98,7 @@ class Humanoid(Unit):
     def face(self, direction):
         self.weapon.face(direction)
         self.offhand.face(direction)
+        self.headgear.face(direction)
         super().face(direction)
 
     def draw(self, surface):
@@ -97,15 +108,24 @@ class Humanoid(Unit):
         self.weapon.form.rotate(arm + 90 + (self.weapon.rotation * self.direction))
         self.weapon.form.draw(surface, x, y)
         super().draw(surface)
+        x = self.vec.x + self.form.organs[3].upper_joint.x
+        y = self.vec.y + self.form.organs[3].upper_joint.y
+        arm = -(self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
+        self.headgear.form.pivot.y = self.headgear.form.size.y
+        self.headgear.form.rotate(arm - 90)
+        self.headgear.form.draw(surface, x, y - self.form.height)
         x = self.vec.x + self.form.organs[5].lower_joint.x
         y = self.vec.y + self.form.organs[5].lower_joint.y - self.form.height
         arm = -(self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
         self.offhand.form.rotate(arm + 110 + (self.offhand.rotation * self.direction))
         self.offhand.form.draw(surface, x, y)
 
-    def on_block(self):
-        self.action.exert(1, self.offhand.damage)
-        return self.offhand.weight + 1
+    def get_dodge(self):
+        r = self.get_proficiency('Dodge') + self.armor.armor
+        if self.action.current_action == 'block':
+            self.action.exert(1, self.offhand.damage)
+            r += max(self.weapon.weight, self.offhand.weight) * 4
+        return r
 
     def make_fist(self):
         self.fist.on_equip(self)
@@ -165,3 +185,37 @@ class Humanoid(Unit):
         r.append(self.weapon)
         r.append(self.offhand)
         return r
+
+    def get_gold(self):
+        total = 0
+        items = self.get_accessibles()
+        for i in items:
+            if i.name == 'Gold':
+                total += i.durability
+        return total
+
+    def modify_gold(self, amount):
+        items = self.get_accessibles()
+        if amount > 0:
+            for i in items:
+                if i.name == 'Gold':
+                    space = min(amount, i.capacity - i.durability)
+                    i.durability += space
+                    amount -= space
+                if amount == 0:
+                    return True
+            if amount > 0:
+                from src.entity.Stock import Stock
+                Stock.make('Gold', self.pos[0]).durability = amount
+        elif amount < 0:
+            amount = -amount
+            if self.get_gold() >= amount:
+                for i in items:
+                    if i.name == 'Gold':
+                        space = min(amount, i.durability)
+                        i.durability -= space
+                        amount -= space
+                        if i.durability == 0:
+                            i.die()
+                    if amount == 0:
+                        return True

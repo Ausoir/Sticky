@@ -38,15 +38,10 @@ class Prop(Object):
             self.collide = Tile.COLLIDE_FOG
         if Tags.indestructible in self.tags:
             self.hittable = 0
-        if Tags.furniture in self.tags:
-            if Tile.COLLIDE_SUPPORT in self.standables:
-                self.standables.remove(Tile.COLLIDE_SUPPORT)
         if Tags.intangible in self.tags:
             self.collide = 0
         elif Tags.land in self.tags:
             self.collide = Tile.COLLIDE_DOODAD
-        elif Tags.support in self.tags:
-            self.collide = Tile.COLLIDE_SUPPORT
         return index
 
     def turn(self):
@@ -59,17 +54,15 @@ class Prop(Object):
             Stock.get('Plank').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         if Tags.metal in self.tags:
             from src.entity.Stock import Stock
-            Stock.get('Scrap').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
+            Stock.get('Rock').add().relocate(self.pos[0].x, self.pos[0].y, force=1)
         self.remove()
 
     def is_hit(self, chance, faction=0):
         if self.hittable and Faction.is_against(self.faction, faction):
             if Tags.metal in self.tags:
-                return chance > 3
-            elif Tags.terrain in self.tags:
-                return chance > 2
+                return chance > 4
             elif Tags.wood in self.tags:
-                return chance > 1
+                return chance > 2
             return 1
 
     def hit(self, damage):

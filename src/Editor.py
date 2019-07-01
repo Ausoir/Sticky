@@ -2,6 +2,7 @@ import sys
 
 import pygame
 
+from src.entity.Space import Space
 from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Camera import Camera
@@ -88,21 +89,21 @@ class Editor:
                 if objs:
                     self.tool = ToolObject(self.location, 'props')
                     self.tool.select(objs[0].name)
+                    self.display_text = objs[0].__str__()
                 else:
                     self.tool = ToolTerrain(self.location)
                     terrain = self.location.get_tile(m).terrain
                     if terrain:
                         self.tool.select(terrain.name)
         elif action == 'select':
-            self.tool.cancel()
-            if self.selection:
-                self.selection.relocate(m.x, m.y)
-                self.selection = None
-            else:
-                objs = self.location.get_tile(m).things
-                if objs:
-                    self.display_text = 'Selected ID ' + str(objs[0].id)
-                    self.selection = objs[0]
+            objs = self.location.get_tile(m).things
+            if objs:
+                self.display_text = 'Selected ID ' + str(objs[0].id)
+                self.tool = ToolObject(self.location, 'props')
+                self.tool.cancel()
+                self.tool.selection = objs[0]
+        elif action == 'player.char':
+            Global.main.player.character.relocate(m.x, m.y)
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -139,23 +140,16 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Spells Tool'
-        elif action == 'others':
+        elif action == 'miscellaneous':
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
-            self.display_text = 'Others Tool'
-        elif action == 'load':
-            if len(Global.main.textbox.display_text) > 0:
-                Global.main.player.switch()
-                travel = Stock.make('Travel', m)
-                travel.remove()
-                travel.to_map = Global.main.textbox.display_text
-                travel.trigger(Global.main.player.character)
-                Global.main.player.switch()
+            self.display_text = 'Miscellaneous Tool'
+        elif action == 'command':
+            self.command()
         elif action == 'save':
             self.tool.cancel()
-            self.location.delay = 0
-            self.location.turn()
-            self.display_text = 'saved'
+            self.location.save()
+            self.display_text = 'saved to ' + self.location.name
         elif action == 'quit':
             self.tool.cancel()
             pygame.quit()
@@ -163,10 +157,66 @@ class Editor:
         self.prev_command = action
         return 0
 
+    def command(self):
+        params = Global.main.textbox.display_text.split(' ')
+        if params[0] == 'set':
+            if isinstance(self.tool, ToolObject):
+                from src.entity.Container import Container
+                if self.tool.selection.name == 'Beacon':
+                    self.tool.selection.var = params[1]
+                elif self.tool.selection.name == 'Interactive':
+                    self.tool.selection.argument = params[1].split(',')
+                elif isinstance(self.tool.selection, Container):
+                    self.tool.selection.loots = params[1].split(',')
+                self.display_text = '[' + params[1] + '] Applied'
+        elif params[0] == 'image':
+            if isinstance(self.tool, ToolObject):
+                self.tool.selection.set_form(params[1])
+        elif params[0] == 'make':
+            self.location.construct_map('current', params[1])
+        elif params[0] == 'camera':
+            pos = params[1].split(',')
+            Camera.target.relocate(int(pos[0]), int(pos[1]), force=1)
+        elif params[0] == 'moveall':
+            pos = params[1].split(',')
+            self.location.tiles = {}
+            self.location.record.clear()
+            map_data = list(Data.process_raw(Data.read('save/' + self.location.name + '.map')))
+            self.location.load_map(map_data, offset=(int(pos[0]), int(pos[1])))
+        elif params[0] == 'moveobj':
+            pos = params[1].split(',')
+            for i in self.location.record:
+                i.move(int(pos[0]), int(pos[1]), distance=9999, flag=[])
+        elif params[0] == 'new':
+            from src.map.Location import Location
+            new = Location(params[1], ['5,937,[0,0,0,1],field', '', ''])
+            new.save()
+            Global.main.player.switch()
+            Global.main.player.travel(params[1], Space())
+            Global.main.player.switch()
+        elif params[0] == 'load':
+            maps = Data.get_files('save', lambda x: x.endswith('.map'))
+            if params[1] + '.map' in maps:
+                Global.main.player.switch()
+                Global.main.player.travel(params[1], Space())
+                Global.main.player.switch()
+        elif params[0] == 'loadraw':
+            Global.main.player.switch()
+            Global.main.player.travel('../data/map/' + params[1], Space())
+            Global.main.player.switch()
+        elif params[0] == 'save':
+            self.tool.cancel()
+            name = self.location.name
+            self.location.name = params[1]
+            self.location.save()
+            self.location.name = name
+            self.display_text = 'saved to ' + params[1]
+        Global.main.textbox.display_text = ''
+
     def draw(self, surface):
         if self.display_text:
             surface.blit(Global.font.render(self.display_text, 1, (255, 255, 255)), (16, 16))
-            surface.blit(Global.font.render(self.display_subtext, 1, (255, 255, 255)), (320, 16))
+            surface.blit(Global.font.render(self.display_subtext, 1, (255, 255, 255)), (500, 16))
 
 
 class ToolTerrain:
@@ -225,7 +275,7 @@ class ToolTerrain:
         tile = self.location.get_tile([x, y])
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
-            if name_type in ['dirt', 'rock']:
+            if name_type in ['dirt', 'rock', 'leaf']:
                 grid = [self.is_terrain(x, y - 1, name_type), self.is_terrain(x - 1, y, name_type),
                         self.is_terrain(x + 1, y, name_type), self.is_terrain(x, y + 1, name_type)]
                 if grid in [[0, 1, 1, 1], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' top'):
@@ -235,6 +285,10 @@ class ToolTerrain:
                 elif grid in [[0, 1, 0, 1]] and tile.set_terrain(name_type + ' left'):
                     return
                 elif grid in [[0, 0, 1, 1]] and tile.set_terrain(name_type + ' right'):
+                    return
+                elif grid in [[1, 1, 0, 1], [1, 1, 0, 0]] and tile.set_terrain(name_type + ' side left'):
+                    return
+                elif grid in [[1, 0, 1, 1], [1, 0, 1, 0]] and tile.set_terrain(name_type + ' side right'):
                     return
                 elif grid in [[0, 1, 0, 0]] and tile.set_terrain(name_type + ' edge left'):
                     return

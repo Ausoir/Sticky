@@ -11,11 +11,8 @@ class Terrain(Image):
         self.form = Data.run_cache(image)
         self.form_name = image
         self.type = type
-        if flip_x == 1:
-            self.form.flip(1, 0)
-        if flip_y == 1:
-            self.form.flip(0, 1)
         if flip_x == 1 or flip_y == 1:
+            self.form.direction = (1 if flip_x == 0 else 0, flip_y)
             self.form.resize()
 
     @classmethod

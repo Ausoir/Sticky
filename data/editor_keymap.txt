@@ -7,6 +7,7 @@ w,up
 s,down
 F1,switch
 1,tiles
+LS+1,player
 2,props
 LS+2,containers
 3,items
@@ -15,7 +16,8 @@ LS+2,containers
 6,armors
 7,headgears
 8,spells
-9,others
+9,miscellaneous
+m,command
 ESCAPE,quit
 LMB,use
 LS+LMB,special

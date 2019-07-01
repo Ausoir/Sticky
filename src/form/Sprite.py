@@ -15,8 +15,7 @@ class Sprite:
         self.size = Space()
         self.pivot = None
         self.rot_pos = [0, 0]
-        self.direction_x = 1
-        self.direction_y = 1
+        self.direction = [1, 0]
         self.set(args[0])
 
     def clone(self):
@@ -32,20 +31,26 @@ class Sprite:
         if arg:
             self.size.load(arg)
             self.pivot = Space(self.size.x / 2, self.size.y / 2)
-        self.image = self.orig_image
+        x_flip = self.direction[0] != 1
+        y_flip = self.direction[1] != 0
+        if x_flip or y_flip:
+            dir_x = 1 if x_flip else 0
+            dir_y = 1 if y_flip else 0
+            self.image = pygame.transform.flip(self.orig_image, dir_x, dir_y)
+        else:
+            self.image = self.orig_image
         scale = [max(1, self.size.x), max(1, self.size.y)]
         self.image = pygame.transform.smoothscale(self.image, scale)
 
     def rotate(self, angle):
-        if self.rotation != angle:
-            self.rotation = angle
-            self.resize()
-            self.image = pygame.transform.rotozoom(self.image, self.rotation, 1)
-            pp = self.pivot - (self.size * (.5, .5))
-            aa = math.degrees(math.atan2(-pp.y, -pp.x))
-            piv = pp.distance()
-            self.rot_pos[0] = Math.cos(-self.rotation + aa) * piv
-            self.rot_pos[1] = Math.sin(-self.rotation + aa) * piv
+        self.rotation = angle
+        self.resize()
+        self.image = pygame.transform.rotozoom(self.image, self.rotation, 1)
+        pp = self.pivot - (self.size * (.5, .5))
+        aa = math.degrees(math.atan2(-pp.y, -pp.x))
+        piv = pp.distance()
+        self.rot_pos[0] = Math.cos(-self.rotation + aa) * piv
+        self.rot_pos[1] = Math.sin(-self.rotation + aa) * piv
 
     def draw(self, surface, x, y):
         if self.size.x > 1 and self.size.y > 1:

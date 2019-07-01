@@ -22,7 +22,7 @@ class Main:
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(Global.DISPLAY, pygame.DOUBLEBUF, 16)
         Math.init()
-        Random.init(99999)
+        Random.init(Random.rand_seed())  # todo: set to constant on production
         Space.reusable = Space()
         Data.init()
         Stock.init()
@@ -30,8 +30,8 @@ class Main:
         Global.font = pygame.font.Font(Data.direct('data/Ubuntu-Regular.ttf'), 20)
         pygame.display.set_icon(Data.get_cache('icon_1x0')[1])
         pygame.display.set_caption('Sticky', 'Sticky')
-        self.bg = Data.run_cache('data/image/background/desert_0')
-        self.textbox = Textbox(self)
+        self.textbox = Textbox(self, 16, Global.DISPLAY[1] - 48)
+        self.monologue = Textbox(self, Global.CENTER[0] - 100, Global.CENTER[1] - 80)
         self.text_mode = False
 
         self.player = Player()
@@ -47,7 +47,7 @@ class Main:
         Global.DISPLAY = (width, height)
         Global.CENTER = (Global.DISPLAY[0] / 2, Global.DISPLAY[1] / 2)
         Global.SCREEN_TILES = (int(Global.DISPLAY[0] / Global.BLOCK), int(Global.DISPLAY[1] / Global.BLOCK))
-        self.bg.resize(Global.DISPLAY)
+        self.player.background.resize(Global.DISPLAY)
         self.player.map.resize()
         Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 32)
 
@@ -84,7 +84,8 @@ class Main:
         self.screen.fill((0, 0, 0))
         self.player.map.draw(self.screen)
         Group.effects.draw(self.screen)
-        self.player.control.menu.draw(self.screen)
+        self.monologue.draw(self.screen)
+        Global.menu.draw(self.screen)
         self.textbox.draw(self.screen)
         pygame.display.flip()
 

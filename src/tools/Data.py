@@ -9,14 +9,14 @@ from src.form.Sprite import Sprite
 
 class Data:
     cache = {}
-    registry_list = ['props', 'units', 'items', 'containers', 'armors', 'weapons', 'headgears', 'spells', 'others']
+    registry_list = ['props', 'units', 'items', 'containers', 'armors', 'weapons', 'headgears', 'spells', 'miscellaneous']
 
     @staticmethod
     def init():
         Data.set_cache('tiles', Data.process_raw(Data.get_cache_file('data/raw/tiles.txt')))
         for i in Data.registry_list:
             Data.set_cache(i, Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt')))
-        res = Data.process_raw(Data.read('data/image/resource.txt'))
+        res = Data.process_raw(Data.read('data/raw/resource.txt'))
         for i in res:
             Data.initialize_image(i[0], i[1], i[2])
         anim = Data.process_raw(Data.read('data/raw/animations.txt'))
@@ -88,6 +88,13 @@ class Data:
         if data_flag == 1:
             r += '\''
         return ast.literal_eval(",".join('['+x+']' for x in r.split('\n')))
+
+    @staticmethod
+    def get_line(fdir, name):
+        data = Data.process_raw(Data.read(fdir))
+        for i in data:
+            if i[0] == name:
+                return i
 
     @staticmethod
     def initialize_image(name, fdir, subset_size):

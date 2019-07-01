@@ -25,10 +25,10 @@ class Appendage:
         self.rotation = -diff.get_atan() + 90
         if self.resize:
             self.length = int(diff.distance() * 1.5)
+            self.form.size.y = self.length
+        self.form.rotate(self.rotation)
 
     def draw(self, surface, x, y):
-        self.form.size.y = self.length
-        self.form.rotate(self.rotation)
         self.form.draw(surface, x + self.upper_joint.x, y + self.upper_joint.y)
 
     def set_parent(self, parent, tip):

@@ -1,0 +1,2 @@
+start,-1,[start1,start2],[],[] //biome, seed, terrain, estates, mobs
+town,-1,[town/t1],[town/apartment,town/blacksmith,town/general,town/office,town/shop,town/storage,town/tailor],[]

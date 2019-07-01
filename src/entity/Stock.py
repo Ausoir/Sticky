@@ -1,6 +1,7 @@
 from src.entity.Container import Container
 from src.entity.Projectile import Projectile
 from src.entity.Prop import Prop
+from src.entity.unit.Humanoid import Humanoid
 from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
@@ -23,6 +24,7 @@ class Stock:
         item_desc = Data.process_raw(Data.get_cache_file('data/raw/descriptions.txt'))
         for i in item_desc:
             Item.description[i[0]] = i[1]
+        Humanoid.faces = Data.get_line('data/raw/raw.txt', 'face')[1]
 
     @staticmethod
     def get(name, data=None):
@@ -50,7 +52,6 @@ class Stock:
 
     @staticmethod
     def units(arg):
-        from src.entity.unit.Humanoid import Humanoid
         r = Humanoid(Stock.location)
         r.load(arg)
         return r
@@ -98,7 +99,7 @@ class Stock:
         return r
 
     @staticmethod
-    def others(arg):
+    def miscellaneous(arg):
         from src.entity import Other
         unique = getattr(Other, arg[2])
         if unique:
@@ -112,5 +113,5 @@ class Stock:
     def project(form, pos):
         data = [0, [pos], 'Projectile'] + Stock.registry['Force'][1][1:]
         r = Stock.projectile(data)
-        r.make_form(form)
+        r.set_form(form)
         return r.add()

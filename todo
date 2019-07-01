@@ -1,9 +1,4 @@
--- Mapgen
-map type - field, desert, etc
- * each has small(5~)/large(5~) estates, start maps (2 or 3), main maps (10~)
-
-//Field
-Small - 14x6
+monologue - "Press [Tab]" for messages
 
 * - proficiency - weapon, flurry, lunge, dodge, constitution
 
@@ -24,3 +19,30 @@ Necromancer - raise dead
 Hexer - cause buff
 Rogue - hiding
 Warrior - blocking free
+
+-- powers (per encounter)
+any block removal - 2
+mistform - 1
+time travel - loads last save, randomly save every 30 ~ 60 sec. 1
+teleport - teleport to coordinates (unknown). 1
+telekinesis - move target prop/unit. 1
+touch of gold - depends on yellow in sprite. 1
+pocket dimension - store an area and recall. 1
+
+-- artifacts
+memory amulet - remembers location it was put on
+eel trident - gains charge over time, hits 100% when 100 charge
+dying dagger - instant kill if hits, destroyed if not
+sadim's glove - anything it hits turns into gold, including itself
+lifegem amulet - auto regens to 3 durability every encounter
+bloodgem amulet - regens to 3 durability by absorbing corpses
+interdimensional coin - spawn random item
+ancient potion - perm inc str/agi
+
+-- enemies
+field slime - field, slow, AC 0
+slime - sewer, poison, slow, AC 4
+dog - field, fast, weak, grouped (leap from behind), constitution (no fall), AC 2
+warrior, spearman, archer
+wizard - cast combust (target burns)
+summoner - cast summon undead (run - summon, repeats)

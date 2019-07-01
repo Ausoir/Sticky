@@ -177,10 +177,10 @@ class Burn(Buff):
         return [BuffTags.magic]
 
     def describe(self):
-        return 'Initially take 1 damage and constantly flinch under this state. May also spread.'
+        return 'Constantly take damage and spread to nearby flammables.'
 
     def is_valid(self):
-        if Tags.metal not in self.host.tags:
+        if Tags.metal not in self.host.tags and Tags.indestructible not in self.host.tags:
             return 1
 
     def on_start(self):
@@ -191,7 +191,7 @@ class Burn(Buff):
     def on_update(self):
         self.var += 1
         if not self.var % 8:
-            self.host.hit(0)
+            self.host.hit(1)
             x = Random.rand_int(-1, 1)
             y = Random.rand_int(-1, 1)
             for thing in self.host.get_offset_tile(x, y).things:

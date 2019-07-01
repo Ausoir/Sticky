@@ -85,10 +85,9 @@ class Body:
         self.current_clip += 1
 
     def face(self, direction):
-        if self.direction != direction:
-            self.direction = direction
-            for x in self.organs:
-                x.form.flip(1, 0)
+        self.direction = direction
+        for x in self.organs:
+            x.form.direction = [self.direction, 0]
 
     def randomize_once(self, mag):
         r = []

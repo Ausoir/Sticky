@@ -32,8 +32,10 @@ class Actions:
             self.set('idle')
 
     def set(self, action, auto=0):
-        if self.exhausted and not auto:
-            action = 'idle'
+        if auto:
+            self.host.location.attack.unregister(self.host)
+        elif self.exhausted:
+            action = 'rest'
         self.host.weapon.rotation = 60
         self.auto = auto
         self.current_action = action
@@ -54,7 +56,7 @@ class Actions:
 
     def make(self, animation=None, turn=0, interrupt=1):
         if interrupt:
-            self.host.attributes.rest_time = 0
+            self.host.attributes.breath = 0
         if animation:
             self.set_animation(animation)
         else:
@@ -74,15 +76,16 @@ class Actions:
                 victim.form.set('drop')
 
     def idle(self):
+        if self.last_action == 'idle':
+            self.make(animation='standby', turn=0, interrupt=0)
+        else:
+            self.make(turn=0, interrupt=0)
+
+    def rest(self):
         self.exhausted = not self.host.attributes.is_rested()
         if self.exhausted:
-            self.host.attributes.rest()
-            self.make(animation='rest', interrupt=0)
-        else:
-            if self.last_action == 'idle':
-                self.make(animation='standby', turn=0)
-            else:
-                self.make(turn=0)
+            self.host.attributes.rest(mag=8)
+            self.make(turn=3, interrupt=0)
 
     def wield(self, pocket):
         if len(self.host.armor.pockets) > pocket:
@@ -156,7 +159,10 @@ class Actions:
             if front.is_land([Tile.COLLIDE_UNIT]):
                 self.set('attack')
             elif front.is_land(Tile.CHECK_FIRM):
-                self.set('jump')
+                if not self.host.get_offset_tile(self.host.direction, -1).is_land(Tile.CHECK_FIRM):
+                    self.set('jump')
+                else:
+                    self.set('idle')
             else:
                 self.host.move(self.host.direction, 0)
                 self.make(turn=1 - self.host.attributes.speed + slow)
@@ -165,7 +171,6 @@ class Actions:
             self.make(animation='swim', turn=4 - self.host.attributes.speed)
 
     def hit(self):
-        self.host.attributes.rest(5)
         self.make(turn=4, interrupt=0)
 
     def interact(self):
@@ -211,10 +216,11 @@ class Actions:
                 self.make('climb', turn=2)
         else:
             if self.host.gravity:
+                from src.entity.Other import Interactive
                 for thing in self.host.pos[0].things:
-                    if thing.name == 'Travel':
-                        self.make(animation='interact', turn=2)
-                        thing.trigger(self.host)
+                    if isinstance(thing, Interactive):
+                        self.make(animation='interact', turn=4)
+                        thing.trigger()
                         return
                 self.attempt('block')
             else:
@@ -223,11 +229,14 @@ class Actions:
 
     def jump(self):
         if self.host.gravity:
-            stand = self.host.get_offset_tile(0, -1).is_climbable() or self.host.pos[0].is_land([Tile.COLLIDE_DOODAD])
-            if stand and self.host.pos[0].is_climbable():
-                self.exert(1, 1)
+            above = self.host.get_offset_tile(0, -1).is_climbable()
+            stand = self.host.pos[0].is_land([Tile.COLLIDE_DOODAD])
+            if (above or stand) and self.host.pos[0].is_climbable():
                 if self.host.pos[0] != self.host.move(0, -1):
-                    self.make('climb', turn=2)
+                    if not above:
+                        self.make('jump', turn=1)
+                    else:
+                        self.make('climb', turn=2)
             else:
                 self.exert(1, 3)
                 self.host.move(self.host.direction*1, -1)
@@ -243,12 +252,12 @@ class Actions:
                     thing.move(self.host.direction, 0)
                     self.knockdown(thing)
         self.on_finish = fin
-        self.host.attributes.rest()
         self.make(turn=10, interrupt=0)
 
     def block(self):
+        self.host.form.organs[3].form.flip(1, 0)
         self.host.weapon.form.rotate(20 * self.host.direction)
-        self.make(turn=2)
+        self.make(turn=1)
 
     def sprint(self):
         front = self.host.get_offset_tile(self.host.direction, 0)
@@ -281,7 +290,7 @@ class Actions:
         self.exert(0, self.host.weapon.weight)
         self.host.form.rotate_appendage(30, 0, self.host.next_target, offset=50)
         self.host.weapon.attack()
-        if self.host.weapon.speed < 5:
+        if self.host.weapon.speed < 4:
             self.make(animation='slash', turn=self.host.weapon.speed)
         else:
             self.make(turn=self.host.weapon.speed)
@@ -308,13 +317,14 @@ class Actions:
         self.host.move(self.host.direction, 0)
         rand = Random.rand_int(-10, 10)
         self.host.form.rotate_appendage(40, 0, self.host.next_target, offset=rand)
-        self.host.weapon.attack(chance=self.host.get_proficiency('Lunge') - 1, callback=hit)
+        self.host.weapon.attack(damage=0, chance=self.host.get_proficiency('Lunge') * 2, callback=hit)
         self.make(turn=self.host.weapon.speed)
 
     def flurry(self):
         self.host.weapon.rotation = 20
-        self.exert(0, 1)
-        self.host.weapon.attack(chance=1 - self.host.weapon.damage + self.host.get_proficiency('Flurry'))
+        self.exert(0, self.host.weapon.weight)
+        self.exert(1, self.host.weapon.weight * 3)
+        self.host.weapon.attack(chance=self.host.get_proficiency('Flurry') - 1)
         rand = Random.rand_int(-15, 15)
         self.host.form.rotate_appendage(38, 0, self.host.next_target, offset=rand)
         self.host.form.rotate_appendage(38, 5, self.host.next_target, offset=rand)
@@ -322,7 +332,7 @@ class Actions:
 
     def arch(self):
         def fin():
-            r = Stock.project('g_0x7', self.host.get_interact_pos())
+            r = Stock.project('g_0x6', self.host.get_interact_pos())
             r.faction = self.host.faction
             r.shoot(dest.x, dest.y)
             self.host.weapon.rotation = orig_rot

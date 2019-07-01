@@ -48,7 +48,7 @@ class Attribute:
 
     def rest(self, mag=1):
         self.breath += mag
-        if self.breath >= 5:
+        if self.breath >= 8:
             self.breath = 0
             self.body = 0
             self.leg = 0

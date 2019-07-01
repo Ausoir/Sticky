@@ -1,0 +1,2 @@
+stuff,[1,2]
+face,[data/image/unit/face/Head1,data/image/unit/face/Head2,data/image/unit/face/Head3,data/image/unit/face/Head4]

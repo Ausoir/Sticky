@@ -42,7 +42,7 @@ class Unit(Prop):
         index += 1
         return index
 
-    def make_form(self, arg):
+    def set_form(self, arg):
         self.form_name = arg
         self.form = Body(arg)
 
@@ -63,6 +63,7 @@ class Unit(Prop):
                 self.attributes.exert(1, 2)
                 self.move(0, 1, flag=Tile.CHECK_FIRM)
         self.pilot.update()
+        self.attributes.rest()
         if self.delay > 0:
             self.delay -= 1
         elif self.delay == 0:
@@ -96,21 +97,22 @@ class Unit(Prop):
             if not self.action.auto:
                 self.form.set('drop')
 
-    def is_hit(self, chance, faction=0):
-        if super().is_hit(chance, faction):
-            dodge = self.get_proficiency('Dodge')
-            if self.action.current_action == 'block':
-                dodge += self.on_block()
-            if chance - dodge >= Random.rand_int(1, 4):
+    def is_hit(self, accuracy, faction=0):
+        if super().is_hit(accuracy, faction):
+            chance = accuracy / max(1, self.get_dodge())
+            if Random.rand_float() < chance:
                 if self.states.get('Distraction'):
                     self.die()
                 return 1
             else:
                 self.form.randomize_once(14)
 
-    def on_block(self):
-        self.action.exert(1, 1)
-        return 2
+    def get_dodge(self):
+        r = self.get_proficiency('Dodge')
+        if self.action.current_action == 'block':
+            self.action.exert(1, 1)
+            r += 4
+        return r
 
     def hit(self, damage):
         self.pilot.hit()

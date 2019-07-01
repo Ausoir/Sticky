@@ -16,7 +16,6 @@ class Tags:
     flesh = 'if'
     metal = 'im'
     wood = 'iw'
-    terrain = 'it'
     jewel = 'ij'
     silver = 'is'
     paper = 'ip'

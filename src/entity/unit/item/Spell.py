@@ -48,17 +48,8 @@ class Spell(Item):
 
     @staticmethod
     def scorch(host):
-        def effect():
-            if not r.lifetime % 2:
-                Effect.make('scorch', r.pos[0].get_center(), offset=6)
-            for thing in r.pos[0].things:
-                if thing != r:
-                    thing.states.add('Burn', 8)
-
         from src.entity.Stock import Stock
-        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 80)
-        r.fast = 0
-        r.effect = effect
+        Stock.make('Flame', host.get_offset_tile(host.direction, 0))
 
     @staticmethod
     def conjure(host):

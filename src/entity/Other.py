@@ -1,9 +1,11 @@
 from src.entity.Effect import Effect
+from src.entity.Object import Object
 from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
 from src.form.Body import Body
+from src.game import Global
 from src.game.Turn import Turn
 from src.map.Tile import Tile
 from src.tools.Random import Random
@@ -22,55 +24,73 @@ class Light(Prop):
                         self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
 
 
-class Travel(Prop):
+class Beacon(Object):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.var = 'estate'
+
+    def __str__(self):
+        return super().__str__() + ',' + self.var
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.var = arg[index]
+        return index + 1
+
+
+class Interactive(Prop):
     def __init__(self, loc):
         super().__init__(loc)
         self.depth = 3
-        self.to_map = ''
-        self.to_pos = Space(0, 0)
+        self.argument = ''
 
     def __str__(self):
-        return super().__str__() + ',' + self.to_map + ',' + self.to_pos.__str__()
+        return super().__str__() + ',[' + ','.join(str(x) for x in self.argument) + ']'
 
     def load(self, arg):
         index = super().load(arg)
-        self.to_map = arg[index]
-        index += 1
-        self.to_pos.load(arg[index])
+        self.argument = arg[index]
         return index + 1
 
-    def draw(self, surface):
-        super().draw(surface)
+    def trigger(self):
+        if self.argument[0] == 'enter':
+            Global.main.player.travel(self.argument[1], Space(int(self.argument[2]), int(self.argument[3])))
+        elif self.argument[0] == 'trainer':
+            Global.menu.state = Global.menu.menu_trainer
+            Global.menu.display(1)
+        elif self.argument[0] == 'shop':
+            Global.menu.var = self.argument[1:]
+            Global.menu.state = Global.menu.menu_shop
+            Global.menu.display(1)
+        elif self.argument[0] == 'travel':
+            t = self.argument[1:]
+            new = [t[i * 3:(i + 1) * 3] for i in range((int(len(t) / 3)))]
+            Global.menu.var = new
+            Global.menu.state = Global.menu.menu_travel
+            Global.menu.display(1)
 
-    def trigger(self, host):
-        from src.game.Player import Player
-        from src.game import Global
-        host.location.delay = 0
-        host.location.turn()
-        host.action.set('idle')
-        host.form.set('interact')
-        host.relocate(self.to_pos.x, self.to_pos.y, force=1)
-        self.remove()
-        Global.main.player.map.name = self.to_map
-        Global.main.player.turn()
-        Global.main.player = Player()
 
-
-class Portal(Prop):
+class Gold(Item):
     def __init__(self, loc):
         super().__init__(loc)
-        self.to_map = ''
-        self.to_pos = Space(0, 0)
+        self.capacity = 5
 
     def __str__(self):
-        return super().__str__() + ',' + self.to_map + ',' + self.to_pos.__str__()
+        return super().__str__() + ',' + str(self.capacity)
+
+    def describe(self):
+        return super().describe().replace('Durability', 'Coins')
 
     def load(self, arg):
         index = super().load(arg)
-        self.to_map = arg[index]
-        index += 1
-        self.to_pos.load(arg[index])
+        self.capacity = arg[index]
         return index + 1
+
+    def use(self):
+        super().use()
+        self.name = 'Bag'
+        self.host.modify_gold(self.durability)
+        self.die()
 
 
 class Bridge(Prop):
@@ -85,7 +105,7 @@ class Bridge(Prop):
         for i in adj:
             if i.is_land(Tile.CHECK_FIRM):
                 support += 2
-            elif i.is_land(Tile.CHECK_SUPPORTED):
+            elif i.is_land([Tile.COLLIDE_DOODAD]):
                 support += 1
         if support < 2:
             self.die()
@@ -106,14 +126,14 @@ class Ragdoll(Prop):
         self.relocate(self.pos[0].x, self.pos[0].y, force=1)
         return self
 
-    def make_form(self, arg):
+    def set_form(self, arg):
         self.form_name = arg
         if not Ragdoll.template:
             Ragdoll.template = Body('unit/man')
         self.form = Ragdoll.template
 
     def set(self, form):
-        def invalid(str):
+        def invalid(arg):
             pass
         self.add()
         self.form = form
@@ -138,19 +158,6 @@ class Ragdoll(Prop):
 
     def die(self):
         self.remove()
-
-
-class Estate(Prop):
-    def build(self, theme):
-        from src.tools.Data import Data
-        if self.durability == 2:
-            size = 'L'
-        else:
-            size = 'S'
-        maps = Data.get_files('data/map/' + theme, lambda x: x.startswith(size) and x.endswith('.map'))
-        chosen = maps[Random.rand_int(0, len(maps) - 1)]
-        building = Data.process_raw(Data.read('data/map/' + theme + '/' + chosen))
-        return self.location.load_map(building, new=True, offset=(self.pos[0].x, self.pos[0].y))
 
 
 class Goldbag(Item):
@@ -189,7 +196,7 @@ class Backpack(Item):
 
 class Food(Item):
     def describe(self):
-        if not self.host.states.get('Hunger'):
+        if self.host and not self.host.states.get('Hunger'):
             return super().describe() + '\nItem cannot be used because you are not hungry.'
         return super().describe()
 
@@ -215,17 +222,17 @@ class Hammer(Weapon):
         from src.entity.Stock import Stock
         for thing in self.pos[0].things:
             if thing.name == 'Scaffold':
-                top = not thing.get_offset_tile(0, -1).is_land(Tile.CHECK_SUPPORTED)
-                topleft = not thing.get_offset_tile(-1, -1).is_land(Tile.CHECK_SUPPORTED)
-                topright = not thing.get_offset_tile(1, -1).is_land(Tile.CHECK_SUPPORTED)
-                left = not thing.get_offset_tile(-1, 0).is_land(Tile.CHECK_SUPPORTED)
-                right = not thing.get_offset_tile(1, 0).is_land(Tile.CHECK_SUPPORTED)
+                top = not thing.get_offset_tile(0, -1).is_land(Tile.CHECK_FOUNDATION)
+                top_left = not thing.get_offset_tile(-1, -1).is_land(Tile.CHECK_FOUNDATION)
+                top_right = not thing.get_offset_tile(1, -1).is_land(Tile.CHECK_FOUNDATION)
+                left = not thing.get_offset_tile(-1, 0).is_land(Tile.CHECK_FOUNDATION)
+                right = not thing.get_offset_tile(1, 0).is_land(Tile.CHECK_FOUNDATION)
                 down = not thing.get_offset_tile(0, 1).is_land([Tile.COLLIDE_TERRAIN])
-                downleft = not thing.get_offset_tile(-1, 1).is_land(Tile.CHECK_SUPPORTED)
-                downright = not thing.get_offset_tile(1, 1).is_land(Tile.CHECK_SUPPORTED)
+                down_left = not thing.get_offset_tile(-1, 1).is_land(Tile.CHECK_FOUNDATION)
+                down_right = not thing.get_offset_tile(1, 1).is_land(Tile.CHECK_FOUNDATION)
                 thing.remove()
                 door = not self.pos[0].is_land([Tile.COLLIDE_DOODAD])
-                if down and door and (top or left or right or topleft or topright or downleft or downright):
+                if down and door and (top or left or right or top_left or top_right or down_left or down_right):
                     construct = 'Wall'
                 else:
                     construct = 'Tile'
@@ -251,28 +258,3 @@ class Bow(Weapon):
     def use(self):
         self.host.action.set('arch')
         self.hit(1)
-
-
-class Zapper(Weapon):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.charge = 0
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.charge)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.charge = arg[index]
-        return index + 1
-
-    def attack(self, chance=0, callback=None):
-        self.charge += 1
-        if self.charge > 3:
-            super().attack(chance + 2, callback)
-            self.charge = -1
-
-    def on_attack(self, target):
-        super().on_attack(target)
-        if self.charge == -1:
-            target.states.add('Stun', 16)

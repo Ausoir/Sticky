@@ -27,7 +27,7 @@ class Weapon(Item):
         r = super().describe()
         r += '\nRange: ' + ','.join(str(x) for x in self.range)
         r += '\nWeight: ' + str(self.weight)
-        r += '\nDamage: ' + str(self.damage)
+        r += '\nAttack: ' + str(self.damage)
         r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
         if Tags.sharp in self.tags:
             r += '\nThis weapon has a sharp edge.'
@@ -35,16 +35,16 @@ class Weapon(Item):
 
     @staticmethod
     def describe_speed(speed):
-        if speed < 3:
+        if speed < 2:
             return 'Flurry'
-        elif speed == 3:
+        elif speed == 2:
             return 'Fast'
-        elif speed == 4:
+        elif speed == 3:
             return 'Normal'
-        elif speed == 5:
+        elif speed == 4:
             return 'Slow'
-        else:
-            return 'Burdening'
+        elif speed > 4:
+            return 'Very Slow'
 
     def get_value(self):
         if self.durability == -1:

@@ -2,8 +2,9 @@ from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.Attribute import Attribute
 from src.form.Body import Body
+from src.game import Global
+from src.game.Tags import Tags
 from src.map.Tile import Tile
-from src.tools.Random import Random
 
 
 class Unit(Prop):
@@ -27,11 +28,18 @@ class Unit(Prop):
         return super().__str__() + ',' + str(self.faction) + ',' + self.pilot.__str__() + ',' + att
 
     def load(self, p):
-        from src.entity.unit.ai.Pilot import Pilot
         index = super().load(p)
         self.faction = p[index]
         index += 1
-        self.pilot = Pilot(self, p[index])
+        if p[index] == 'AdvPilot':
+            from src.entity.unit.ai.AdvPilot import AdvPilot
+            self.pilot = AdvPilot(self)
+        elif p[index] == 'Pilot':
+            from src.entity.unit.ai.Pilot import Pilot
+            self.pilot = Pilot(self)
+        else:
+            from src.entity.unit.ai.Pilot import Manual
+            self.pilot = Manual(self)
         index += 1
         self.attributes.load(p[index])
         index += 1
@@ -60,10 +68,10 @@ class Unit(Prop):
                 for thing in ground.things:
                     if isinstance(thing, Unit):
                         thing.action.set('down', auto=1)
+                        thing.delay = 4
                 self.attributes.exert(1, 2)
                 self.move(0, 1, flag=Tile.CHECK_FIRM)
         self.pilot.update()
-        self.attributes.rest()
         if self.delay > 0:
             self.delay -= 1
         elif self.delay == 0:
@@ -78,6 +86,9 @@ class Unit(Prop):
         self.next_action = action
         if target:
             self.next_target = target
+
+    def use(self):
+        self.action.attack()
 
     def get_target_tile(self):
         return self.location.get_tile(self.pos[0] + self.next_target)
@@ -99,8 +110,12 @@ class Unit(Prop):
 
     def is_hit(self, accuracy, faction=0):
         if super().is_hit(accuracy, faction):
-            chance = accuracy / max(1, self.get_dodge())
-            if Random.rand_float() < chance:
+            sick = self.states.get('Sick')
+            if sick:
+                chance = 1
+            else:
+                chance = accuracy / max(1, accuracy + self.get_dodge())
+            if Global.r.rand_float() < chance:
                 if self.states.get('Distraction'):
                     self.die()
                 return 1
@@ -108,6 +123,8 @@ class Unit(Prop):
                 self.form.randomize_once(14)
 
     def get_dodge(self):
+        if self.action.current_action == 'down':
+            return 0
         r = self.get_proficiency('Dodge')
         if self.action.current_action == 'block':
             self.action.exert(1, 1)
@@ -120,11 +137,15 @@ class Unit(Prop):
         return super().hit(damage)
 
     def die(self):
-        from src.entity.Stock import Stock
-        r = Stock.get('Ragdoll')
-        r.relocate(self.pos[0].x, self.pos[0].y, force=1)
-        r.set(self.form)
-        self.remove()
+        if Tags.insubstantial in self.tags:
+            from src.entity.Effect import Effect
+            Effect.make('disintegrate', self.pos[0].get_center(), offset=0)
+        else:
+            from src.entity.Stock import Stock
+            r = Stock.get('Corpse')
+            r.relocate(self.pos[0].x, self.pos[0].y, force=1)
+            r.set(self.form)
+        super().die()
 
     def will_hit(self, tile):
         for i in self.pos:

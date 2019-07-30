@@ -33,22 +33,29 @@ class MenuPlayer(Menu):
         def click_status():
             self.direct(self.menu_status)
 
-        def describe():
-            self.show_dialog(['Something HP', 'Some long dialog text.....', 'And your choice'])
-
-        hp = str(self.host.durability)
-        st1 = str(self.host.attributes.strength)
-        st2 = str(self.host.attributes.agility)
-        st3 = str(self.host.attributes.intelligence)
-        text = ['HP - ' + hp, 'Str - ' + st1, 'Agi - ' + st2, 'Int - ' + st3]
-        panel = Menu.make_button(text, describe, None)
-        panel.color = Window.fore_color3
-        panel.normal_font_color = Window.font_color1
-        panel.hover_font_color = Window.font_color3
-        panel.redraw()
-        self.window.add_child(panel)
-        self.sub_window.add_child(Menu.make_button(['Proficiency'], click_proficiency, None))
-        self.sub_window.add_child(Menu.make_button(['Status'], click_status, None))
+        x = Window.fore_color0
+        hpdesc = ['Hit Point represents how many attacks you can endure.']
+        if self.host.is_headgeared:
+            hpdesc.append(str(max(0, self.host.headgear.durability)) + ' HP comes from your headgear.')
+        if self.host.is_armored():
+            hpdesc.append(str(max(0, self.host.armor.durability)) + ' HP comes from your armor.')
+        rmb = self.get_message(hpdesc)
+        self.window.add_child(Menu.make_button(['Hit Point'], rmb, rmb, color=x))
+        self.sub_window.add_child(Menu.make_button([str(self.host.durability)], rmb, rmb, color=x))
+        rmb = self.get_message(['Strength represents your maximum stamina.',
+                                'More stamina allows you to perform actions without having to rest.'])
+        self.window.add_child(Menu.make_button(['Strength'], rmb, rmb, color=x))
+        self.sub_window.add_child(Menu.make_button([str(self.host.attributes.strength)], rmb, rmb, color=x))
+        rmb = self.get_message(['Agility represents your maximum encumbrance.',
+                                'More encumbrance allows you to wear more encumbering armor and headgear.'])
+        self.window.add_child(Menu.make_button(['Agility'], rmb, rmb, color=x))
+        self.sub_window.add_child(Menu.make_button([str(self.host.attributes.agility)], rmb, rmb, color=x))
+        rmb = self.get_message(['Intelligence represents your maximum memory.',
+                                'More memory allows you to craft more spells and items'])
+        self.window.add_child(Menu.make_button(['Intelligence'], rmb, rmb, color=x))
+        self.sub_window.add_child(Menu.make_button([str(self.host.attributes.intelligence)], rmb, rmb, color=x))
+        self.window.add_child(Menu.make_button(['Status'], click_status, None))
+        self.window.add_child(Menu.make_button(['Proficiency'], click_proficiency, None))
         self.sub_window.display(1)
 
     def menu_knowledge(self):
@@ -165,7 +172,7 @@ class MenuPlayer(Menu):
         rmb = self.get_message(self.host.headgear.describe().split('\n'))
         display = self.host.headgear.name
         if not self.host.is_headgeared():
-            display = '<No Accessory>'
+            display = '<No Hat>'
         self.window.add_child(Menu.make_button([display], click_headgear, rmb))
         rmb = self.get_message(self.host.armor.describe().split('\n'))
         display = self.host.armor.name

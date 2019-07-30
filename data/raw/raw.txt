@@ -1,2 +1,3 @@
 stuff,[1,2]
-face,[data/image/unit/face/Head1,data/image/unit/face/Head2,data/image/unit/face/Head3,data/image/unit/face/Head4]
+face,[data/image/unit/face/Head1,data/image/unit/face/Head2,data/image/unit/face/Head3,data/image/unit/face/Head4,data/image/unit/face/Head5,data/image/unit/face/Head6,data/image/unit/face/Head7,data/image/unit/face/Head8,data/image/unit/face/Head9,data/image/unit/face/Head10]
+crafts,[Ladder,Bat,Shield]

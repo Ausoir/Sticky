@@ -1,7 +1,7 @@
 from src.entity.Effect import Effect
 from src.entity.unit.ai.Faction import Faction
 from src.entity.unit.item.Item import Item
-from src.tools.Random import Random
+from src.game import Global
 
 
 class Spell(Item):
@@ -99,7 +99,7 @@ class Spell(Item):
             if r.pos[0] == r.move(final_dir, y):
                 on_hit(r)
             else:
-                r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
+                r.location.attack.register(0, r.pos[0], faction=0, callback=on_hit)
                 Effect.make('explode', r.pos[0].get_center(), offset=4).form.face(final_dir)
 
         from src.entity.Stock import Stock
@@ -122,11 +122,11 @@ class Spell(Item):
 
             r.last_pos = r.pos[0] + 0
             r.move(host.direction, 0, 1)
-            r.location.attack.register(0, r.get_offset_tile(0, -1), faction=Faction.PROJECTILE, callback=on_hit)
-            r.location.attack.register(0, r.get_offset_tile(0, 1), faction=Faction.PROJECTILE, callback=on_hit)
-            r.location.attack.register(0, r.get_offset_tile(1, 0), faction=Faction.PROJECTILE, callback=on_hit)
-            r.location.attack.register(0, r.get_offset_tile(-1, 0), faction=Faction.PROJECTILE, callback=on_hit)
-            r.location.attack.register(0, r.pos[0], faction=Faction.PROJECTILE, callback=on_hit)
+            r.location.attack.register(0, r.get_offset_tile(0, -1), faction=0, callback=on_hit)
+            r.location.attack.register(0, r.get_offset_tile(0, 1), faction=0, callback=on_hit)
+            r.location.attack.register(0, r.get_offset_tile(1, 0), faction=0, callback=on_hit)
+            r.location.attack.register(0, r.get_offset_tile(-1, 0), faction=0, callback=on_hit)
+            r.location.attack.register(0, r.pos[0], faction=0, callback=on_hit)
             Effect.make('wind', r.pos[0].get_center(), offset=4)
 
         from src.entity.Stock import Stock
@@ -195,9 +195,9 @@ class Spell(Item):
             r1.relocate(rift.pos[0].x, rift.pos[0].y, force=1)
             r1.states.add('Levitate', 1)
             Effect.make('zip', r1.vec)
-            r1.move(Random.rand_int(-1, 1), Random.rand_int(-1, 0))
+            r1.move(Global.r.rand_int(-1, 1), Global.r.rand_int(-1, 0))
 
     @staticmethod
     def torrent(host):
-        host.move(Random.rand_int(-4, 4), Random.rand_int(-4, 4))
+        host.move(Global.r.rand_int(-4, 4), Global.r.rand_int(-4, 4))
         Spell.dispell(host)

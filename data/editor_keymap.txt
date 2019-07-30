@@ -9,9 +9,9 @@ F1,switch
 1,tiles
 LS+1,player
 2,props
-LS+2,containers
 3,items
 4,units
+LS+4,beasts
 5,weapons
 6,armors
 7,headgears
@@ -28,3 +28,4 @@ e,next
 LS+e,s_next
 SPACE,select
 LS+RMB,sample
+r,repeat

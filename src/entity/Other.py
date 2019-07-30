@@ -2,24 +2,23 @@ from src.entity.Effect import Effect
 from src.entity.Object import Object
 from src.entity.Prop import Prop
 from src.entity.Space import Space
+from src.entity.unit.NPC import NPC
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
-from src.form.Body import Body
 from src.game import Global
-from src.game.Turn import Turn
+from src.game.Tags import Tags
 from src.map.Tile import Tile
-from src.tools.Random import Random
 
 
 class Light(Prop):
     def turn(self):
-        if Random.rand_int(0, 80) == 0:
+        if Global.r.rand_int(0, 80) == 0:
             self.remove()
         else:
-            Effect.make('energy', self.get_offset_tile(Random.rand_int(-3, 3), Random.rand_int(-3, 3)).get_center())
+            Effect.make('energy', self.get_offset_tile(Global.r.rand_int(-3, 3), Global.r.rand_int(-3, 3)).get_center())
             for x in range(-3, 4):
                 for y in range(-3, 4):
-                    if Random.rand_int(0, 1) == 0:
+                    if Global.r.rand_int(0, 1) == 0:
                         pos = str(self.pos[0].x + x) + ',' + str(self.pos[0].y + y)
                         self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
 
@@ -55,17 +54,8 @@ class Interactive(Prop):
     def trigger(self):
         if self.argument[0] == 'enter':
             Global.main.player.travel(self.argument[1], Space(int(self.argument[2]), int(self.argument[3])))
-        elif self.argument[0] == 'trainer':
-            Global.menu.state = Global.menu.menu_trainer
-            Global.menu.display(1)
-        elif self.argument[0] == 'shop':
-            Global.menu.var = self.argument[1:]
-            Global.menu.state = Global.menu.menu_shop
-            Global.menu.display(1)
         elif self.argument[0] == 'travel':
-            t = self.argument[1:]
-            new = [t[i * 3:(i + 1) * 3] for i in range((int(len(t) / 3)))]
-            Global.menu.var = new
+            Global.menu.var = self.argument[1:]
             Global.menu.state = Global.menu.menu_travel
             Global.menu.display(1)
 
@@ -87,7 +77,7 @@ class Gold(Item):
         return index + 1
 
     def use(self):
-        super().use()
+        self.host.action.set('block')
         self.name = 'Bag'
         self.host.modify_gold(self.durability)
         self.die()
@@ -111,49 +101,47 @@ class Bridge(Prop):
             self.die()
 
 
-class Ragdoll(Prop):
-    template = None
-
+class Corpse(Prop):
     def __init__(self, loc):
         super().__init__(loc)
         self.direction = 1
         self.collide = 0
         self.depth = 3
         self.standables = Tile.CHECK_LANDABLE
+        from src.tools.Data import Data
+        self.form = Data.run_cache('g_9x3')
+        self.is_ragdoll = False
 
-    def add(self):
-        Turn.add(self)
-        self.relocate(self.pos[0].x, self.pos[0].y, force=1)
-        return self
+    def invalid(self, state):
+        pass
 
     def set_form(self, arg):
         self.form_name = arg
-        if not Ragdoll.template:
-            Ragdoll.template = Body('unit/man')
-        self.form = Ragdoll.template
 
     def set(self, form):
-        def invalid(arg):
-            pass
+        self.is_ragdoll = True
         self.add()
         self.form = form
         self.durability = 8
-        dead = 'dead' + str(Random.rand_int(1, 2))
+        dead = 'dead' + str(Global.r.rand_int(1, 2))
         self.form.randomize_clip(dead, 12)
+        # noinspection PyArgumentList
         self.form.set(dead)
-        self.form.set = invalid
+        self.form.set = self.invalid
         return self
 
     def draw(self, surface):
         super().draw(surface)
-        self.form.update()
+        if self.is_ragdoll:
+            self.form.update()
 
     def is_hit(self, chance, faction=0):
         if self.hittable:
             return 1
 
     def hit(self, damage):
-        self.form.randomize_once(18)
+        if self.is_ragdoll:
+            self.form.randomize_once(18)
         return super().hit(damage)
 
     def die(self):
@@ -178,36 +166,6 @@ class Goldbag(Item):
 
     def describe(self):
         return super().describe() + '\nGold: ' + str(self.gold) + '\nJewels: ' + str(self.jewel)
-
-
-class Backpack(Item):
-    def describe(self):
-        if self.host.is_armored() and self.host.armor.inventory[1][1] == 1:
-            return super().describe() + '\nBackpack cannot be attached to your current armor.'
-        return super().describe()
-
-    def use(self):
-        if self.host.is_armored():
-            if self.host.armor.inventory[1][1] == 1:
-                self.host.armor.inventory[1][1] = 2
-                self.host.action.set('block')
-                self.die()
-
-
-class Food(Item):
-    def describe(self):
-        if self.host and not self.host.states.get('Hunger'):
-            return super().describe() + '\nItem cannot be used because you are not hungry.'
-        return super().describe()
-
-    def use(self):
-        hunger = self.host.states.get('Hunger')
-        if hunger:
-            hunger.end()
-            self.host.action.set('block')
-            self.hit(1)
-        else:
-            super().use()
 
 
 class Break(Prop):
@@ -254,7 +212,74 @@ class Hammer(Weapon):
         super().use()
 
 
-class Bow(Weapon):
+class Fiber(Item):
+    def describe(self):
+        armor = str(self.get_restoration())
+        return super().describe() + '\nUse at a table to restore clothing durability to ' + armor + '.'
+
+    def get_restoration(self):
+        r = 3
+        if self.host:
+            r += self.host.armor.weight
+            r *= self.host.get_proficiency('Tailor') + 1
+        return r
+
     def use(self):
-        self.host.action.set('arch')
-        self.hit(1)
+        for prop in self.host.pos[0].things:
+            if Tags.workable in prop.tags:
+                armor = self.get_restoration()
+                if armor > self.host.armor.durability:
+                    self.host.armor.durability = armor
+                    self.die()
+                return
+        Global.main.player.monologue.text('Use at a table or a desk!')
+
+
+class Talker(NPC):
+    def talk(self):
+        self.face(1 if Global.main.player.character.pos[0].x > self.pos[0].x else -1)
+        from src.tools.Data import Data
+        conversation = Data.get_line('data/raw/conversation.txt', self.var[0])[1:]
+        output = []
+        for sentence in conversation:
+            new = ','.join(sentence)
+            output.append(new)
+        Global.menu.show_dialog([output[self.attributes.gene % len(output)]])
+
+
+class Merchant(NPC):
+    def talk(self):
+        self.face(1 if Global.main.player.character.pos[0].x > self.pos[0].x else -1)
+        if self.var[0] == 'shop':
+            Global.menu.var = self.var[1:]
+            Global.menu.state = Global.menu.menu_shop
+            Global.menu.display(1)
+        elif self.var[0] == 'trainer':
+            Global.menu.state = Global.menu.menu_trainer
+            Global.menu.display(1)
+        elif self.var[0] == 'host':
+            if Global.main.player.days > self.var[1]:
+                from src.tools.Data import Data
+                from src.tools.Random import Random
+                from src.entity.Stock import Stock
+                data = Data.get_line('data/raw/trade.txt', 'host')
+                rng = Random(self.attributes.gene + Global.main.player.days)
+                due_date = Global.main.player.days + rng.rand_int(1, 3)
+                value = Stock.get(rng.rand_list(data[1])).get_value()
+                self.var = ['host', due_date, rng.rand_list(data[1]), 1, value + 1]
+            Global.menu.var = self.var
+            Global.menu.state = Global.menu.menu_guild
+            Global.menu.display(1)
+        elif self.var[0] == 'guild':
+            if Global.main.player.days > self.var[1]:
+                from src.tools.Data import Data
+                from src.tools.Random import Random
+                from src.entity.Stock import Stock
+                data = Data.get_line('data/raw/trade.txt', 'guild')
+                rng = Random(self.attributes.gene + Global.main.player.days)
+                due_date = Global.main.player.days + rng.rand_int(2, 5)
+                value = Stock.get(rng.rand_list(data[1])).get_value()
+                self.var = ['guild', due_date, rng.rand_list(data[1]), rng.rand_int(1, 7), rng.rand_int(1, 3) * value]
+            Global.menu.var = self.var
+            Global.menu.state = Global.menu.menu_guild
+            Global.menu.display(1)

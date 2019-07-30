@@ -9,13 +9,12 @@ class Crafting:
     def get_ingredients(item):
         for i in Crafting.recipe:
             if i[0] == item:
-                return i[1], i[2]
+                return i[1]
 
     @staticmethod
     def describe(item):
-        time, res = Crafting.get_ingredients(item)
+        res = Crafting.get_ingredients(item)
         r = item
-        r += '\nTime: ' + str(time) + ' meal'
         r += '\nIngredients:'
         if res:
             for i in res:
@@ -38,20 +37,17 @@ class Crafting:
         for i in subjects:
             materials.append(i.name)
             materials.extend(i.tags)
-        time, resource = Crafting.get_ingredients(item)
-        if time == 0 or not host.states.get('Hunger'):
-            for mat in resource:
-                if mat.startswith('#'):
-                    mat = mat[1:]
-                if mat not in materials:
-                    return False
-            return True
+        resource = Crafting.get_ingredients(item)
+        for mat in resource:
+            if mat.startswith('#'):
+                mat = mat[1:]
+            if mat not in materials:
+                return False
+        return True
 
     @staticmethod
     def craft(host, item):
-        time, resource = Crafting.get_ingredients(item)
-        if time > 0:
-            host.states.add('Hunger', -1)
+        resource = Crafting.get_ingredients(item)
         subjects = host.get_accessibles()
         for i in subjects:
             if i.name in resource:

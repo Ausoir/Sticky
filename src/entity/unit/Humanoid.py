@@ -1,4 +1,5 @@
 from src.entity.unit.Unit import Unit
+from src.game.Interaction import Interaction
 
 
 class Humanoid(Unit):
@@ -21,7 +22,7 @@ class Humanoid(Unit):
 
     def __str__(self):
         weapon = '['+self.weapon.__str__()+']' if self.is_armed() else '0'
-        offhand = '['+self.offhand.__str__()+']'
+        offhand = '['+self.offhand.__str__()+']' if self.is_shielded() else '0'
         armor = '['+self.armor.__str__()+']' if self.is_armored() else '0'
         headgear = '['+self.headgear.__str__()+']' if self.is_headgeared() else '0'
         gear = weapon + ',' + offhand + ',' + armor + ',' + headgear
@@ -33,7 +34,6 @@ class Humanoid(Unit):
         from src.tools.Data import Data
         self.form.randomize_clip('hit', 4)
         head = Data.run_cache(Humanoid.faces[self.attributes.gene % len(Humanoid.faces)])
-        head.flip(0, 1)
         self.form.organs[3].set(head)
         if p[index]:
             weapon = Stock.get(p[index][2], p[index])
@@ -62,13 +62,18 @@ class Humanoid(Unit):
         else:
             self.make_headgear()
         self.update_durability()
-        self.pilot.strategize()
         index += 1
         return index
 
     def turn(self):
         super().turn()
+        if self.action.current_action == 'idle':
+            self.weapon.rotation = 60
         self.weapon.states.update()
+
+    def use(self):
+        if not Interaction.interact(self.weapon):
+            self.weapon.use()
 
     def relocate(self, x, y, force=0):
         super().relocate(x, y, force)
@@ -87,6 +92,7 @@ class Humanoid(Unit):
     def hit(self, damage):
         r = super().hit(damage)
         self.form.randomize_once(16)
+        self.offhand.hit(1)
         if self.durability > 0:
             self.update_durability(damage)
         return r
@@ -121,10 +127,14 @@ class Humanoid(Unit):
         self.offhand.form.draw(surface, x, y)
 
     def get_dodge(self):
+        if self.action.current_action == 'down':
+            return 0
         r = self.get_proficiency('Dodge') + self.armor.armor
         if self.action.current_action == 'block':
-            self.action.exert(1, self.offhand.damage)
-            r += max(self.weapon.weight, self.offhand.weight) * 4
+            if self.get_proficiency('Block'):
+                return self.offhand.weight * 50
+            else:
+                r += self.offhand.weight * 10 + 10
         return r
 
     def make_fist(self):
@@ -178,6 +188,14 @@ class Humanoid(Unit):
 
     def is_headgeared(self):
         return self.headgear.name != 'Head'
+
+    def get_possessions(self):
+        r = [self.armor]
+        r += self.armor.items
+        r.append(self.headgear)
+        r.append(self.weapon)
+        r.append(self.offhand)
+        return r
 
     def get_accessibles(self):
         r = self.pos[0].things.copy()

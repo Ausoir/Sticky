@@ -1,35 +1,35 @@
+import math
 import random
 
 
 # Sync'ed random
 class Random:
-    seed = 123
+    def __init__(self, seed=0):
+        if not seed:
+            self.seed = Random.rand_seed()
+            print(str(self.seed))
+        else:
+            self.seed = seed
+        self.random = random.Random(self.seed)
 
-    @staticmethod
-    def init(seed):
-        Random.seed = seed
-        random.seed(seed)
+    def rand_bool(self):
+        return self.random.randint(0, 1)
 
-    @staticmethod
-    def get_instance(seed):
-        return random.Random(seed)
+    def rand_float(self):
+        return self.random.random()
 
-    @staticmethod
-    def rand_bool():
-        return random.randint(0, 1)
+    def rand_int(self, arg1, arg2):
+        return self.random.randint(arg1, arg2)
 
-    @staticmethod
-    def rand_float():
-        return random.random()
+    def gauss(self, arg1, arg2):
+        return self.random.gauss(arg1, arg2)
 
-    @staticmethod
-    def rand_int(arg1, arg2):
-        return random.randint(arg1, arg2)
+    def rand_list(self, arg):
+        return arg[self.rand_int(0, len(arg) - 1)]
+
+    def rand_log(self, arg1):
+        return int(math.log(self.random.randint(1, arg1), arg1) * arg1)
 
     @staticmethod
     def rand_seed():
         return random.SystemRandom().randint(1, 999999)
-
-    @staticmethod
-    def gauss(arg1, arg2):
-        return random.gauss(arg1, arg2)

@@ -1,3 +1,5 @@
-Dummy,unit/man,[hum,if],1,[],1,Melee,[0,1,1,1],[],[] //Name,image,tags,hp=1,state,faction,pilot,stats,skills
-Slime,unit/slime,[],5,[],1,Command,[0,1,1,1],[],[]
-Dog,unit/dog,[if],2,[],1,Command,[0,2,1,1],[dash],[dodge]
+Dummy,unit/slime,[hum,ii],6,[],[],1,Manual,[0,1,1,1],[],[] //Name,image,tags,hp=1,state,faction,pilot,stats,skills
+Undead,unit/man,[hum],1,[],[],0,Pilot,[0,3,1,1],[],[]
+Slime,unit/slime,[ii],-4,[Jelly,Fiber,0],[[Speed,-1,-4]],1,Pilot,[0,1,1,1],[],[]
+Sewer Slime,unit/slime2,[ii],-4,[Jelly,Venom,0,0],[[Speed,-1,-4],[Venom,-1,-4]],1,Pilot,[0,1,1,1],[],[dodge]
+Dog,unit/dog,[if],-3,[],[],3,Pilot,[0,2,1,1],[],[attack]

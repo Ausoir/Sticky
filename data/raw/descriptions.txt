@@ -1,7 +1,12 @@
+Jelly,A blob of slime goo
+Fiber,A fibrous material that can be used to repair or produce armor
 Gold Robe,A magnificent robe laced with gold
-Backpack,Attached to any armor for additional inventory space
+Food,Use to remove <Hunger> status
+Backpack,Attached to any armor with an empty center slot for additional inventory space
 Gold Chalk,A scribing tool used for spell creation
 Scroll Bag,Stores scribing tools and paper for scroll creation
 Scroll,Base for magical scroll creation
 Scorch Scroll,Create scorching ground directly in front of caster
 Dispell Scroll,Disrupt all magical effects in vicinity of caster
+Hammer,Can be used to build scaffolds from planks and buildings from scaffolds
+Treatment,Use to remove <Sick> status

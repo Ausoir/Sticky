@@ -1,7 +1,8 @@
-Scorch Scroll,g_5x6,[],1,[],[1,1],Scorch
-Scorch Staff,data/image/Staff,[],8,[],[1,1],Scorch
-Dispell Scroll,g_5x6,[],1,[],[1,1],Dispell
-Sonic Scroll,g_5x6,[],1,[],[1,1],Sonic
-Scry Scroll,g_5x6,[],1,[],[1,1],Scry
-Brand Scroll,g_5x6,[],1,[],[1,1],Brand
-Levitate Scroll,g_5x6,[],1,[],[1,1],Levitate
+Scorch Scroll,g_11x6,[],1,[],[],[1,1],Scorch
+Scorch Staff,data/image/Staff,[],8,[],[],[1,3],Scorch
+Dispell Scroll,g_11x6,[],1,[],[],[1,1],Dispell
+Sonic Scroll,g_11x6,[],1,[],[],[1,1],Sonic
+Scry Scroll,g_11x6,[],1,[],[],[1,1],Scry
+Brand Scroll,g_11x6,[],1,[],[],[1,1],Brand
+Levitate Scroll,g_11x6,[],1,[],[],[1,1],Levitate
+Hellfire,g_8x0,[],1,[],[],[5,5],Hellfire

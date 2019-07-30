@@ -3,6 +3,7 @@ F1,switch
 TAB,menu
 w,jump
 s,duck
+RETURN,duck
 a,left
 d,right
 LS+a,run_left

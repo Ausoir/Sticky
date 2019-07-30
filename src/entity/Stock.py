@@ -1,7 +1,7 @@
-from src.entity.Container import Container
 from src.entity.Projectile import Projectile
 from src.entity.Prop import Prop
 from src.entity.unit.Humanoid import Humanoid
+from src.entity.unit.Unit import Unit
 from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
@@ -34,8 +34,8 @@ class Stock:
                 object_id = Stock.location.get_id()
                 pos = [[0, 0]]
                 data = [object_id, pos] + record[1]
-            r = record[0](data)
-            return r
+            print(data)
+            return record[0](data)
 
     @staticmethod
     def make(name, pos):
@@ -54,17 +54,19 @@ class Stock:
     def units(arg):
         r = Humanoid(Stock.location)
         r.load(arg)
+        for i in r.get_possessions():
+            i.id = Stock.location.get_id()
+        return r
+
+    @staticmethod
+    def beasts(arg):
+        r = Unit(Stock.location)
+        r.load(arg)
         return r
 
     @staticmethod
     def items(arg):
         r = Item(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def containers(arg):
-        r = Container(Stock.location)
         r.load(arg)
         return r
 

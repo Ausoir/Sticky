@@ -11,9 +11,9 @@ class Item(Prop):
         self.collide = Tile.COLLIDE_ITEM
         self.host = None
         self.rotation = 60
-        self.range = [[1, 0]]
+        self.range = [1]
         self.volume = [1, 1]
-        self.weight = 4  # not recorded
+        self.weight = 1  # not recorded
         self.speed = 5
         self.damage = 1
 
@@ -30,9 +30,10 @@ class Item(Prop):
             if self.host.weapon == self:
                 self.host.drop()
             elif self.host.offhand == self:
-                self.host.swap()
-                self.host.drop()
-                self.host.swap()
+                host = self.host
+                host.swap()
+                host.drop()
+                host.swap()
             elif self in self.host.armor.items:
                 self.host.armor.get_item(self.host.armor.items.index(self))
         super().die()
@@ -67,25 +68,44 @@ class Item(Prop):
         else:
             r += '\nDurability: ' + str(self.durability)
         r += '\nVolume: ' + str(self.volume[0]) + 'x' + str(self.volume[1])
+        if Tags.flesh in self.tags:
+            r += '\nThis item is an organic material.'
+        if Tags.plant in self.tags:
+            r += '\nThis item contains plant fiber.'
+        if Tags.insubstantial in self.tags:
+            r += '\nThis item is insubstantial.'
+        if Tags.metal in self.tags:
+            r += '\nThis item is metallic.'
+        if Tags.wood in self.tags:
+            r += '\nThis item is composed of wood.'
+        if Tags.silver in self.tags:
+            r += '\nThis item has silver properties.'
+        if Tags.paper in self.tags:
+            r += '\nThis item can be used as paper.'
+        if Tags.sharp in self.tags:
+            r += '\nThis item is sharp.'
+        if Tags.scribing in self.tags:
+            r += '\nThis item can be used to write.'
         return r
 
     def use(self):
-        self.host.action.set('idle')
+        self.host.action.set('swing')
 
     def attack(self, chance=0, damage=1, callback=None):
         def on_attack(target):
             self.hit(1)
-            if self.states.get('Fire'):
-                target.states.add('Burn', 8)
+            self.states.trigger(['attack', target])
             if Tags.sharp in self.tags:
                 target.states.add('Bleed', 40)
             if callback:
                 callback(target)
-
         dmg = self.damage + chance + self.host.get_proficiency(self.name)
+
+        def fn(prev, tile):
+            return None
         for i in self.range:
-            tile = self.host.location.collide_land(self.host.get_interact_pos(),
-                                                   self.host.next_target.x, self.host.next_target.y,
-                                                   distance=i, flag=[])
-            self.location.attack.register(damage, tile, chance=dmg, type='batter', faction=self.host.faction,
+            tile = self.host.location.collide_line(self.host.get_interact_pos(),
+                                                   self.host.next_target.x, self.host.next_target.y, fn,
+                                                   distance=i)
+            self.location.attack.register(damage, tile, chance=dmg, type='batter',
                                           hitter=self.host, callback=on_attack)

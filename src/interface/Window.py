@@ -87,10 +87,26 @@ class Window(Shape):
                 i.draw(surface)
 
     def set_text(self, text):
-        self.text = text
-        self.size.y = self.text_spacing * len(text)
+        self.text = Window.resize_text(text, self.size.x - (self.margin.x * 2))
+        self.size.y = self.text_spacing * len(self.text)
         self.vertices = Shape.make_rect(self.size.to_list())
         self.redraw()
+
+    @staticmethod
+    def resize_text(text, size):
+        r = []
+        for line in text:
+            length = 0
+            newline = ''
+            for char in line:
+                newline += char
+                length += Global.font.size(char)[0]
+                if length >= size:
+                    r.append(newline)
+                    newline = ''
+                    length = 0
+            r.append(newline)
+        return r
 
     def add_child(self, child):
         self.children.append(child)

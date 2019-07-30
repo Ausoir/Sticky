@@ -1,9 +1,10 @@
+import random
+
 from src.entity.Space import Space
 from src.game.Camera import Camera
 from src.game.Group import Group
 from src.game.Turn import Turn
 from src.tools.Data import Data
-from src.tools.Random import Random
 
 
 class Effect:
@@ -12,7 +13,7 @@ class Effect:
         r = cls(arg)
         r.lifetime = lifetime
         r.at = pos
-        r.offset = [Random.rand_int(-offset, offset), Random.rand_int(-offset, offset)]
+        r.offset = [random.randint(-offset, offset), random.randint(-offset, offset)]
         return r.add()
 
     def __init__(self, animation):

@@ -1,0 +1,65 @@
+from src.entity.unit.ai.Pilot import Pilot
+from src.entity.unit.ai.Task import *
+from src.entity.unit.item.Weapon import Weapon
+
+
+class AdvPilot(Pilot):
+    def init(self):
+        self.move = Path(self)
+        self.hunt = Hunt(self)
+        self.hunt.move = self.move
+        self.hunt.attack = Melee(self, 1)
+
+    def update(self):
+        self.task.update()
+        if self.host.delay == 0:
+            if not self.dodge():
+                self.perceive(self.range)
+                if self.task.is_done() and self.task.next:
+                    self.task = self.task.next
+                    self.task.on_set()
+                self.task.perform()
+
+    def add_task(self, task):
+        task.next = self.task
+        self.task = task
+        self.task.on_set()
+
+    def hit(self):
+        if self.priority > 1:
+            self.priority = 3
+            self.add_task(Search(self))
+
+    def prioritize(self, targets):
+        nearest_dist = 10
+        nearest = targets[0]
+        for i in targets:
+            t = (i.pos[0] - self.host.pos[0]).distance()
+            if t < nearest_dist:
+                nearest_dist = t
+                nearest = i
+        return nearest
+
+    def dodge(self):
+        for i in self.host.location.attack.registry:
+            if self.host.will_hit(i[2]):
+                self.host.input('block', None)
+                return True
+
+    def spot_item(self, targets):
+        self.priority = 3
+        weapons = []
+        for i in targets:
+            if isinstance(i, Weapon):
+                weapons.append(i)
+        if weapons and not self.host.is_armed():
+            self.var = self.prioritize(weapons)
+            self.add_task(Pickup(self))
+            self.add_task(Move(self, 1))
+            self.add_task(self.move)
+
+    def strategize(self):
+        if self.host.weapon.name == 'Bow':
+            self.hunt.attack = Range(self)
+        else:
+            self.hunt.attack = Melee(self, 1)

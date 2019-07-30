@@ -1,19 +1,35 @@
-monologue - "Press [Tab]" for messages
+item upgrade
 
-* - proficiency - weapon, flurry, lunge, dodge, constitution
-
--- specs
-Vampirism
-Nova
-Drain
-Weaken
+static maps
+port town (can start)
+ * L1) garden (slimes)
+ * L2) egg farm nest (roaches for eggs) - need levitate
+ * L1~3) sewer (slimes, venom)
+ * L3) downtown (thugs, SHOP)
+ * L4) sewer -> rogue hideout (rogues, get gold)
+ * L4) field -> beaches (spear natives)
+   port sails to -> mine town
+island (can start)
+   L1) garden (slimes)
+   L1) egg farm nest (roaches for eggs)
+   L1~3) field (slimes)
+   L2) snake pit (snakes)
+ * L2) casino (fighters)
+ * L3) maze bar (thugs, rogues, SHOP)
+ * L4) maze bar -> labyrinth (taurus)
+ * L4) egg caves -> spider caves (spiders)
+   L5) warehouse (guards)
+   L6) cemetery (undead)
+   L7+) spider caves -> abyss
+   port to -> port town
+bloody waters swamp ritual city
 
 -- classes
 Blacksmith - forge armor/weapon
 Sorcerer - ritual scribing (long casting but free)
 Monk - fist & all weapon skill - weight 0, speed 5, damage 3
 Scout - run/jump cost 0
-Witch - charm & control target
+Witch - charm
 Summoner - summon perma 1
 Necromancer - raise dead
 Hexer - cause buff
@@ -21,28 +37,26 @@ Rogue - hiding
 Warrior - blocking free
 
 -- powers (per encounter)
-any block removal - 2
+move terrain - inf
+control target - 1
 mistform - 1
-time travel - loads last save, randomly save every 30 ~ 60 sec. 1
-teleport - teleport to coordinates (unknown). 1
-telekinesis - move target prop/unit. 1
+time travel - save current data, load after 100 turns - 1
+teleport - teleport to any coordinate - inf
+telekinesis - move target prop/unit - inf
 touch of gold - depends on yellow in sprite. 1
-pocket dimension - store an area and recall. 1
+mending - repair equipment
+
+-- specials
+poison immunity
+fire immunity
+bleed immunity
+stun immunity
 
 -- artifacts
 memory amulet - remembers location it was put on
 eel trident - gains charge over time, hits 100% when 100 charge
 dying dagger - instant kill if hits, destroyed if not
-sadim's glove - anything it hits turns into gold, including itself
 lifegem amulet - auto regens to 3 durability every encounter
 bloodgem amulet - regens to 3 durability by absorbing corpses
 interdimensional coin - spawn random item
 ancient potion - perm inc str/agi
-
--- enemies
-field slime - field, slow, AC 0
-slime - sewer, poison, slow, AC 4
-dog - field, fast, weak, grouped (leap from behind), constitution (no fall), AC 2
-warrior, spearman, archer
-wizard - cast combust (target burns)
-summoner - cast summon undead (run - summon, repeats)

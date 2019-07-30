@@ -4,3 +4,4 @@ gfx,data/image/_effect,[40,40]
 g,data/image/_single,[40,40]
 head,data/image/unit/face/Head1,0
 body,data/image/unit/Body,[16,48]
+dog,data/image/unit/Dog_skin,[16,48]

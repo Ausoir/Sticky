@@ -157,7 +157,8 @@ class Control:
                     self.clear_press(code)
                     Global.main.player.switch()
                 else:
-                    self.player.input(command, mouse)
+                    if not Global.main.player.click(command, mouse):
+                        self.player.input(command, mouse)
         else:
             self.player.input('idle', mouse)
         for i in self.keyrelease:

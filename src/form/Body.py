@@ -4,7 +4,6 @@ from src.form.Appendage import Appendage
 from src.game import Global
 from src.tools.Data import Data
 from src.tools.Math import Math
-from src.tools.Random import Random
 from src.tools.Timer import Timer
 
 
@@ -64,12 +63,17 @@ class Body:
                 organ.update()
 
     def set(self, state):
-        self.state_name = state
+        if self.state_name in self.motion:
+            self.state_name = state
+        else:
+            self.state_name = 'idle'
         self.current_clip = 0
         self.update_clip()
         self.height = -999
         for i in self.leg:
             self.height = max(self.height, self.current_animation[i][1] - Global.HALF_BLOCK - 1)
+        if self.height == -999:
+            self.height = 0
 
     def update_clip(self):
         self.animation_ended = 0
@@ -93,7 +97,7 @@ class Body:
         r = []
         for i in self.current_animation:
             if isinstance(i, list):
-                r.append([i[0] + Random.rand_int(-mag, mag), i[1] + Random.rand_int(-mag, mag)])
+                r.append([i[0] + Global.r.rand_int(-mag, mag), i[1] + Global.r.rand_int(-mag, mag)])
             else:
                 r.append(i)
         self.current_animation = r

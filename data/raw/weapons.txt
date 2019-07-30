@@ -1,9 +1,13 @@
-Fist,g_0x0,[],-1,[],[1,1],0,[1],1,1,3 //Name, Image, Tags, Durability, State, Size, Pivot, Range, Weight, Damage, Speed
-Dagger,data/image/dagger,[ps,im],8,[],[1,1],6,[1],1,1,1
-Cleaver,data/image/cleaver,[ps,im],16,[],[1,1],6,[1],1,1,2
-Katana,data/image/katana,[ps,is],16,[],[1,3],4,[1,2],2,2,4
-Bat,data/image/bat,[iw],32,[],[1,2],8,[1],1,1,3
-Mace,data/image/mace,[im],32,[],[1,2],12,[1],3,3,5
-Axe,data/image/axe,[ps,im],16,[],[1,2],18,[1],2,2,4
-Broadsword,data/image/broadsword,[ps,im],16,[],[1,3],8,[1],2,2,5
-Shield,data/image/shield,[iw],16,[],[2,2],8,[1],4,0,5
+Fist,g_0x0,[],-1,[],[],[1,1],-1,2,0,[1],1,2 //Name, Image, Tags, Durability, State, Size, Max HP, Weight, Pivot, Range, Damage, Speed
+Dagger,data/image/dagger,[ps,im],8,[],[],[1,1],8,1,4,[1],1,1
+Cleaver,data/image/cleaver,[ps,im],16,[],[],[1,1],16,1,6,[1],1,2
+Bat,data/image/bat,[iw],32,[],[],[1,2],32,1,8,[1],2,4
+Shortsword,data/image/shortsword,[ps,im],16,[],[],[1,3],16,1,4,[1],2,4
+Katana,data/image/katana,[ps,is],16,[],[],[1,3],16,2,4,[1,2],4,4
+Axe,data/image/axe,[ps,im],16,[],[],[1,2],16,2,18,[1],4,4
+Broadsword,data/image/broadsword,[ps,im],16,[],[],[1,3],16,3,6,[1],7,4
+Mace,data/image/mace,[im],64,[],[],[1,2],64,3,12,[1],8,5
+Spear,data/image/spear,[ps,im],64,[],[],[1,3],64,3,24,[2],4,5
+Greatsword,data/image/greatsword,[ps,im],64,[],[],[1,3],64,4,6,[1],12,5
+Shield,data/image/shield,[iw],64,[],[],[2,2],64,5,8,[1],0,5
+Bow,data/image/bow,[],16,[],[],[1,3],16,1,6,[1],1,0

@@ -19,6 +19,8 @@ class Appendage:
         self.form = sprite
         self.form.pivot = Space(self.form.size.x / 2, 0)
         self.length = self.form.size.y
+        if self.part == 3:
+            self.form.flip(1, 1)
 
     def update(self):
         diff = self.lower_joint - self.upper_joint

@@ -1,51 +1,47 @@
 from src.entity.unit.Unit import Unit
 from src.entity.unit.ai.Task import *
 from src.entity.unit.item.Item import Item
-from src.entity.unit.item.Weapon import Weapon
-from src.map.Tile import Tile
-from src.tools.Random import Random
 
 
-class Pilot:
-    def __init__(self, host, style):
+class Manual:
+    def __init__(self, host):
         self.host = host
-        self.style = style
         self.task = Idle(self)
         self.var = None
-        if style == 'Manual':
-            def none():
-                pass
-            self.hit = none
-            self.update = none
-            self.strategize = none
-        else:
-            self.priority = 5
-            self.range = 6
-            self.move = Path(self)
-            self.hunt = Chase(self)
-            self.hunt.move = self.move
-            if style == 'Worker':
-                self.task = Work(self)
-                self.task.move = self.move
 
     def __str__(self):
-        return self.style
+        return self.__class__.__name__
 
-    def strategize(self):
-        if self.host.weapon.name == 'Bow':
-            self.hunt.attack = Range(self)
-        else:
-            self.hunt.attack = Melee(self, 1)
+    def hit(self):
+        pass
+
+    def update(self):
+        pass
+
+
+class Pilot(Manual):
+    def __init__(self, host):
+        super().__init__(host)
+        self.priority = 5
+        self.range = 6
+        self.move = None
+        self.hunt = None
+        self.init()
+
+    def init(self):
+        self.move = Move(self, 1)
+        self.hunt = Hunt(self)
+        self.hunt.move = self.move
+        self.hunt.attack = Attack(self)
 
     def update(self):
         self.task.update()
         if self.host.delay == 0:
-            if not self.dodge():
-                self.perceive(self.range)
-                if self.task.is_done() and self.task.next:
-                    self.task = self.task.next
-                    self.task.on_set()
-                self.task.perform()
+            self.perceive(self.range)
+            if self.task.is_done() and self.task.next:
+                self.task = self.task.next
+                self.task.on_set()
+            self.task.perform()
 
     def add_task(self, task):
         task.next = self.task
@@ -93,25 +89,49 @@ class Pilot:
                 nearest = i
         return nearest
 
-    def dodge(self):
-        for i in self.host.location.attack.registry:
-            if self.host.will_hit(i[1]):
-                self.host.input('block', None)
-                return True
-
     def spot_enemy(self, targets):
         self.priority = 1
         self.var = self.prioritize(targets)
         self.add_task(self.hunt)
+        from src.entity.Effect import Effect
+        Effect.make('shout', self.host.vec)
+        aoe = self.host.location.get_area(self.host.pos[0], 4, 2)
+        for i in aoe:
+            for thing in i.things:
+                if thing != self.host and not Faction.is_against(thing.faction, self.host.faction):
+                    if isinstance(thing, Unit) and not isinstance(thing.pilot, Manual) and thing.pilot.priority > 2:
+                        thing.pilot.spot_enemy(targets)
 
     def spot_item(self, targets):
-        self.priority = 3
-        weapons = []
-        for i in targets:
-            if isinstance(i, Weapon):
-                weapons.append(i)
-        if weapons and not self.host.is_armed():
-            self.var = self.prioritize(weapons)
-            self.add_task(Pickup(self))
-            self.add_task(Move(self, 1))
-            self.add_task(self.move)
+        pass
+
+    def get_routes(self, pos):
+        options = []
+        right = self.host.location.get_tile(pos + (1, 0))
+        upright = self.host.location.get_tile(pos + (1, -1))
+        left = self.host.location.get_tile(pos + (-1, 0))
+        upleft = self.host.location.get_tile(pos + (-1, -1))
+        ground = self.host.location.get_tile(pos + (0, 1))
+        air = self.host.location.get_tile(pos + (0, -1))
+        if ground.is_land(Tile.CHECK_LANDABLE) or pos.is_climbable():
+            if not air.is_land(Tile.CHECK_LARGE) and air.is_climbable():
+                options.append((0, -1))
+            if not right.is_land(Tile.CHECK_LARGE):
+                if self.host.location.get_tile(pos + (1, 1)).is_land(Tile.CHECK_LANDABLE) or right.is_climbable():
+                    options.append((1, 0))
+                else:
+                    options.append((1, 1))
+            elif not upright.is_land(Tile.CHECK_LARGE):
+                options.append((1, -1))
+            if not left.is_land(Tile.CHECK_LARGE):
+                if self.host.location.get_tile(pos + (-1, 1)).is_land(Tile.CHECK_LANDABLE) or left.is_climbable():
+                    options.append((-1, 0))
+                else:
+                    options.append((-1, 1))
+            elif not upleft.is_land(Tile.CHECK_LARGE):
+                options.append((-1, -1))
+            if not ground.is_land(Tile.CHECK_LARGE) and ground.is_climbable() and ground.y < self.host.location.edge:
+                options.append((0, 1))
+        else:
+            options.append((0, 1))
+        return options

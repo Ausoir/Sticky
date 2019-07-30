@@ -14,12 +14,12 @@ from src.tools.Math import Math
 
 # Handles both map and save functions
 class Location:
-    OBJECT_ID = 0
-
     def __init__(self, name, data):
         Stock.location = self
         Turn.add(self)
         from src.entity.Field import Field
+        self.type = 0
+        self.identity = 0
         self.name = name
         self.attack = Field()
         self.delay = 8
@@ -31,6 +31,7 @@ class Location:
         self.sight_block = [Tile.COLLIDE_FOG, Tile.COLLIDE_PROP, Tile.COLLIDE_TERRAIN]
         self.last_pos = None
         self.load(data)
+        self.sight_range = 7
         self.display_tiles_x = None
         self.display_tiles_y = None
         self.sight_tiles = []
@@ -55,8 +56,7 @@ class Location:
                 if y > high_y:
                     high_y = y
         size = '[' + ','.join([str(low_x), str(low_y), str(high_x - low_x), str(high_y - low_y)]) + ']'
-        meta = str(Turn.frame) + ',' + str(Location.OBJECT_ID)
-        meta += ',' + size + ',' + self.header[3]
+        meta = str(self.type) + ',' + size + ',' + self.header[2]
         rt = []
         for tile in self.tiles.values():
             if tile.terrain:
@@ -73,8 +73,7 @@ class Location:
         while len(arg) < 3:
             arg = arg + [[]]
         self.header = arg[0]
-        Turn.frame = arg[0][0]
-        Location.OBJECT_ID = arg[0][1]
+        self.type = arg[0][0]
         self.load_map(arg)
 
     def remove(self, arg):
@@ -101,8 +100,8 @@ class Location:
         Data.write('save/' + self.name + '.map', self.__str__())
 
     def resize(self):
-        self.display_tiles_x = min(int(Global.SCREEN_TILES[0] / 2), 14)
-        self.display_tiles_y = min(int(Global.SCREEN_TILES[1] / 2), 7)
+        self.display_tiles_x = min(int(Global.SCREEN_TILES[0] / 2), self.sight_range * 2)
+        self.display_tiles_y = min(int(Global.SCREEN_TILES[1] / 2), self.sight_range)
         self.sight_tiles = [[], []]
         for x in range(-self.display_tiles_x, self.display_tiles_x + 1):
             for y in range(-self.display_tiles_y, 0):
@@ -127,20 +126,16 @@ class Location:
             obj.add()
 
     @staticmethod
-    def construct_map(name, biome):
+    def construct_map(biome):
         from src.tools.Random import Random
-        data = Data.get_line('data/map/map.txt', biome)
-        if data[1] == -1:
-            test = Random.rand_seed()
-            rand = Random.get_instance(test)
-        else:
-            rand = Random.get_instance(data[1])
-        terrain = data[2][rand.randint(0, len(data[2]) - 1)]
-        r = Location(name, list(Data.process_raw(Data.read('data/map/' + terrain + '.map'))))
+        map_data = Data.get_line('data/map/map.txt', biome)
+        rand = Random()
+        terrain = map_data[2][rand.rand_int(0, len(map_data[2]) - 1)]
+        r = Location('current', list(Data.process_raw(Data.read('data/map/' + terrain + '.map'))))
         buildings = []
-        for i in data[3]:
+        for i in map_data[3]:
             building = Data.process_raw(Data.read('data/map/' + i + '.map'))
-            size = building[0][2]
+            size = building[0][1]
             inserted = False
             for k, v in enumerate(buildings):
                 if size[2] > v[0]:
@@ -152,15 +147,15 @@ class Location:
         estates = []
         for obj in r.record:
             if obj.name == 'Beacon' and obj.var == 'estate':
-                estates.insert(Random.rand_int(0, len(estates)), obj)
+                estates.insert(rand.rand_int(0, len(estates)), obj)
         for estate in estates:
-            for building in buildings:
-                if rand.randint(1, 2) == 1:
-                    bound = r.check_clearing(estate.pos[0].x, estate.pos[0].y)
-                    if building[0] < bound[0] and building[1] < bound[1]:
-                        building_data = Data.process_raw(Data.read('data/map/' + building[2] + '.map'))
-                        r.load_map(building_data, new=True, offset=estate.pos[0].to_list())
-                        break
+            for i in range(len(buildings)):
+                building = rand.rand_list(buildings)
+                bound = r.check_clearing(estate.pos[0].x, estate.pos[0].y)
+                if building[0] < bound[0] and building[1] < bound[1]:
+                    building_data = Data.process_raw(Data.read('data/map/' + building[2] + '.map'))
+                    r.load_map(building_data, new=True, offset=estate.pos[0].to_list())
+                    break
         shop_names = []
         shops = Data.process_raw(Data.read('data/raw/trade.txt'))
         for i in shops:
@@ -170,20 +165,41 @@ class Location:
             if obj.name == 'Beacon':
                 removal.append(obj)
                 if obj.var == 'treasure':
-                    data = Data.get_line('data/raw/trade.txt', obj.var)
-                    Stock.make(data[1][rand.randint(0, len(data[1]) - 1)], obj.pos[0])
-                elif obj.var == 'man':
-                    Stock.make('Man', obj.pos[0])
+                    data = Data.get_line('data/raw/trade.txt', 'treasure')
+                    Stock.make(rand.rand_list(data[1]), obj.pos[0])
+                elif obj.var == 'mob':
+                    for mob in rand.rand_list(map_data[5]):
+                        Stock.make(mob, obj.pos[0])
                 elif obj.var in shop_names:
                     data = Data.get_line('data/raw/trade.txt', obj.var)
                     merchandise = []
-                    for i in range(rand.randint(3, 6)):
-                        merchandise.append(data[1][rand.randint(0, len(data[1]) - 1)])
-                    shop = Stock.make('Interactive', obj.pos[0])
-                    shop.argument = ['shop'] + merchandise
+                    for i in range(rand.rand_int(3, 6)):
+                        merchandise.append(rand.rand_list(data[1]))
+                    shop = Stock.make('Merchant', obj.pos[0])
+                    shop.var = ['shop'] + merchandise
         for i in removal:
             i.remove()
+        if map_data[4] > 0:
+            tiles = []
+            for i in r.tiles.values():
+                if i.terrain and i.is_land(Tile.CHECK_FIRM):
+                    tiles.append(i)
+            ftiles = []
+            for i in tiles:
+                above = r.get_tile(i + (0, -1))
+                if above.terrain and not above.is_land(Tile.CHECK_FIRM):
+                    ftiles.append(above)
+            if ftiles:
+                for i in range(map_data[4]):
+                    index = rand.rand_int(0, len(ftiles) - 1)
+                    pos = ftiles[index]
+                    ftiles.pop(index)
+                    for mob in rand.rand_list(map_data[5]):
+                        Stock.make(mob, pos)
+        if map_data[1]:
+            r.name = map_data[0]
         r.save()
+        return r
 
     def check_clearing(self, pos_x, pos_y):
         high_x = 14
@@ -192,13 +208,6 @@ class Location:
             last_y = y
             current_x = min(high_x, 10)
             for x in range(current_x + 1):
-                if y == 0:
-                    if not self.get_tile([pos_x + x, pos_y + 1]).is_land(Tile.CHECK_FOUNDATION):
-                        high_x = min(high_x, x) - 1
-                        break
-                    if not self.get_tile([pos_x - x, pos_y + 1]).is_land(Tile.CHECK_FOUNDATION):
-                        high_x = min(high_x, x) - 1
-                        break
                 if self.get_tile([pos_x + x, pos_y - y]).is_land(Tile.CHECK_FOUNDATION):
                     high_x = min(high_x, x) - 1
                     break
@@ -234,10 +243,9 @@ class Location:
             if sight:
                 self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
 
-    @staticmethod
-    def get_id():
-        Location.OBJECT_ID += 1
-        return '#' + str(format(Location.OBJECT_ID, 'x'))
+    def get_id(self):
+        self.identity += 1
+        return '#' + str(format(self.identity, 'x'))
 
     def get_object(self, oid):
         for i in self.record:
@@ -318,34 +326,3 @@ class Location:
                 if tile:
                     tiles.append(tile)
         return tiles
-
-    def get_routes(self, pos):
-        options = []
-        right = self.get_tile(pos + (1, 0))
-        upright = self.get_tile(pos + (1, -1))
-        left = self.get_tile(pos + (-1, 0))
-        upleft = self.get_tile(pos + (-1, -1))
-        ground = self.get_tile(pos + (0, 1))
-        air = self.get_tile(pos + (0, -1))
-        if ground.is_land(Tile.CHECK_LANDABLE) or pos.is_climbable():
-            if not air.is_land(Tile.CHECK_LARGE) and air.is_climbable():
-                options.append((0, -1))
-            if not right.is_land(Tile.CHECK_LARGE):
-                if self.get_tile(pos + (1, 1)).is_land(Tile.CHECK_LANDABLE) or right.is_climbable():
-                    options.append((1, 0))
-                else:
-                    options.append((1, 1))
-            elif not upright.is_land(Tile.CHECK_LARGE):
-                options.append((1, -1))
-            if not left.is_land(Tile.CHECK_LARGE):
-                if self.get_tile(pos + (-1, 1)).is_land(Tile.CHECK_LANDABLE) or left.is_climbable():
-                    options.append((-1, 0))
-                else:
-                    options.append((-1, 1))
-            elif not upleft.is_land(Tile.CHECK_LARGE):
-                options.append((-1, -1))
-            if not ground.is_land(Tile.CHECK_LARGE) and ground.is_climbable() and ground.y < self.edge:
-                options.append((0, 1))
-        else:
-            options.append((0, 1))
-        return options

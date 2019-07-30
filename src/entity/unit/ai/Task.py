@@ -1,4 +1,5 @@
 from src.entity.unit.ai.Faction import Faction
+from src.game import Global
 from src.map.Tile import Tile
 
 
@@ -115,7 +116,7 @@ class Path(Task):  # path finding A*
         achieved = (node.node - self.pilot.var.pos[0]).distance()
         if achieved < 2:
             return node
-        options = self.host.location.get_routes(node.node)
+        options = self.pilot.get_routes(node.node)
         for i in options:
             pos = self.pilot.var.location.get_tile(node.node + i)
             if self.check_loop(self.closed, pos):
@@ -246,31 +247,27 @@ class Melee(Task):
         return 0
 
     def perform_gapcloser(self, dist):
-        if self.special and -1 <= dist.y <= 0:
-            if abs(dist.x) == 1 and dist.y == 0 and 'kick' in self.host.action.skills:
-                self.host.input('kick', dist)
-                return 1
-            destination = self.host.location.collide_land(self.host.pos[0], dist.x, 0,
-                                                          distance=4, flag=Tile.CHECK_LARGE)
-            destination = destination - self.host.pos[0]
-            x = min(abs(dist.x), abs(destination.x))
-            if x == 1 and 'lunge' in self.host.action.skills:
+        if Global.r.rand_bool() and self.special and dist.y == 0:
+            dist_x = abs(dist.x)
+            if dist_x == 2 and 'lunge' in self.host.action.skills:
                 self.host.input('lunge', dist)
                 return 1
-            if 2 <= x <= 3 and 'dash' in self.host.action.skills:
-                self.host.input('dash', dist)
+            if dist_x == 3 and 'tackle' in self.host.action.skills:
+                self.host.input('tackle', dist)
+                return 1
+            if dist_x > 3 and 'sprint' in self.host.action.skills:
+                self.host.input('sprint', dist)
                 return 1
 
     def perform_attack(self, diff):
-        if 'flurry' in self.host.action.skills:
+        if 'flurry' in self.host.action.skills and Global.r.rand_bool():
             self.host.input('flurry', diff)
-        elif 'stab' in self.host.action.skills:
-            self.host.input('stab', diff)
         else:
             self.host.input('use', diff)
 
     def perform(self):
         if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
+            self.pilot.strategize()
             diff = self.pilot.var.pos[0] - self.host.pos[0]
             if self.perform_gapcloser(diff):
                 return 1
@@ -298,8 +295,6 @@ class Range(Task):
 
     def perform(self):
         if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
-            if self.host.weapon.name != 'Bow':
-                self.pilot.hunt.attack = Melee(self.pilot, 1)
             diff = self.pilot.var.pos[0] - self.host.pos[0]
             reach = self.host.location.collide_land(self.host.get_interact_pos(), diff.x, diff.y,
                                                     distance=9, flag=Tile.CHECK_FIRM)
@@ -328,7 +323,7 @@ class Search(Task):
         self.host.face(self.host.direction * -1)
 
 
-class Chase(Task):
+class Hunt(Task):
     def __init__(self, pilot):
         super().__init__(pilot)
         self.attack = None
@@ -347,28 +342,3 @@ class Chase(Task):
 
     def update(self):
         self.move.update()
-
-
-class Patrol(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.move = Move(self.pilot, 4)
-
-    def on_set(self):
-        self.pilot.priority = 3
-
-    def perform(self):
-        self.pilot.priority = 5
-
-
-class Work(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.command = None
-        self.move = None
-
-    def on_set(self):
-        self.pilot.priority = 3
-
-    def perform(self):
-        super().perform()

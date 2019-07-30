@@ -53,3 +53,7 @@ class Buffs:
                 i.end()
                 r = 1
         return r
+
+    def trigger(self, arg):
+        for i in self.buffs:
+            i.trigger(arg)

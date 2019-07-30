@@ -1,3 +1,3 @@
 from src.tools.Random import Random
 
-print('seed ' + str(Random.rand_seed()))
+print('log ' + str(Random().rand_log(100)))

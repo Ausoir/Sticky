@@ -117,3 +117,14 @@
 6/25 Resource.house (1)
 6/29 Humanoid face resource and code (3)
 6/30 Organs not facing correctly after multiple direction change bugfix (1)
+---- PUSH
+7/02 Dodge system tweaked (1), Renewable reliable Obj.id (1)
+7/03 Metal weapon break = inf loop fix (1), new id system (1)
+7/10 Beasts (3), stat trigger (1)
+7/17 Menu stat descriptions (1)
+7/20 Random instanced (1), mob generation (1), added sewers (1)
+7/22 Mobs sound alert (1)
+7/24 Containers removed, loot applies to all prop (3)
+7/28 Night/day sight range (1), Merchants instead of Interactive (1), Guild (1)
+7/29 Rearranged item data and added Equipment and max HP (3), Merchants and Talkers (1), Interactive (1)
+---- PUSH

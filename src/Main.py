@@ -22,7 +22,7 @@ class Main:
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(Global.DISPLAY, pygame.DOUBLEBUF, 16)
         Math.init()
-        Random.init(Random.rand_seed())  # todo: set to constant on production
+        Global.r = Random()  # todo: set to constant on production
         Space.reusable = Space()
         Data.init()
         Stock.init()
@@ -31,7 +31,6 @@ class Main:
         pygame.display.set_icon(Data.get_cache('icon_1x0')[1])
         pygame.display.set_caption('Sticky', 'Sticky')
         self.textbox = Textbox(self, 16, Global.DISPLAY[1] - 48)
-        self.monologue = Textbox(self, Global.CENTER[0] - 100, Global.CENTER[1] - 80)
         self.text_mode = False
 
         self.player = Player()
@@ -48,7 +47,7 @@ class Main:
         Global.CENTER = (Global.DISPLAY[0] / 2, Global.DISPLAY[1] / 2)
         Global.SCREEN_TILES = (int(Global.DISPLAY[0] / Global.BLOCK), int(Global.DISPLAY[1] / Global.BLOCK))
         self.player.background.resize(Global.DISPLAY)
-        self.player.map.resize()
+        self.player.location.resize()
         Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 32)
 
     def loop(self):
@@ -60,8 +59,8 @@ class Main:
             self.clock.tick(fps + dt)
             dt = self.clock.get_time()
             frame += 1
-            if frame > 40:
-                print(str(int(pygame.time.get_ticks() - last)))
+            if frame > 100:
+                print(str(int(pygame.time.get_ticks() - last)/100))
                 last = pygame.time.get_ticks()
                 frame = 0
             for event in pygame.event.get():
@@ -82,9 +81,9 @@ class Main:
         Camera.update()
         Group.update()
         self.screen.fill((0, 0, 0))
-        self.player.map.draw(self.screen)
+        self.player.location.draw(self.screen)
         Group.effects.draw(self.screen)
-        self.monologue.draw(self.screen)
+        self.player.monologue.draw(self.screen)
         Global.menu.draw(self.screen)
         self.textbox.draw(self.screen)
         pygame.display.flip()

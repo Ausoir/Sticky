@@ -1,6 +1,6 @@
 from src.entity.Effect import Effect
+from src.game import Global
 from src.game.Tags import Tags
-from src.tools.Random import Random
 
 
 class Buff:
@@ -50,6 +50,9 @@ class Buff:
         pass
 
     def on_update(self):
+        pass
+
+    def trigger(self, arg):
         pass
 
 
@@ -105,7 +108,7 @@ class Distraction(Buff):
 
 class Cripple(Buff):
     def describe(self):
-        return 'Take -1 to move speed.'
+        return 'You take -1 to move speed, and are unable to jump.'
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -120,13 +123,31 @@ class Cripple(Buff):
             self.host.form.randomize_once(8)
 
 
-class Poison(Buff):
+class Weak(Buff):
+    def describe(self):
+        return 'Your defense is set to 0. Your resting time tripled.'
+
+    def on_update(self):
+        if self.effect(8):
+            Effect.make('sweat', self.host.vec)
+
+
+class Sick(Buff):
     def describe(self):
         return 'You will die if this effect expires naturally.'
 
     def on_update(self):
         if self.effect(6):
-            Effect.make('kindle', self.host.vec)
+            Effect.make('poison', self.host.vec)
+
+    def on_finish(self):
+        if self.var == 0:
+            self.host.die()
+
+    def trigger(self, arg):
+        if arg[0] == 'remove':
+            self.var = 1
+            self.end()
 
 
 class Fire(Buff):
@@ -139,6 +160,10 @@ class Fire(Buff):
     def on_update(self):
         if self.effect(6):
             Effect.make('kindle', self.host.vec)
+
+    def trigger(self, arg):
+        if arg[0] == 'attack':
+            arg[1].states.add('Burn', 8)
 
 
 class Rift(Buff):
@@ -180,7 +205,7 @@ class Burn(Buff):
         return 'Constantly take damage and spread to nearby flammables.'
 
     def is_valid(self):
-        if Tags.metal not in self.host.tags and Tags.indestructible not in self.host.tags:
+        if Tags.indestructible not in self.host.tags and Tags.is_combustible(self.host.tags):
             return 1
 
     def on_start(self):
@@ -192,8 +217,8 @@ class Burn(Buff):
         self.var += 1
         if not self.var % 8:
             self.host.hit(1)
-            x = Random.rand_int(-1, 1)
-            y = Random.rand_int(-1, 1)
+            x = Global.r.rand_int(-1, 1)
+            y = Global.r.rand_int(-1, 1)
             for thing in self.host.get_offset_tile(x, y).things:
                 thing.states.add('Burn', 8)
         Effect.make('burn', self.host.vec)
@@ -269,12 +294,9 @@ class Stun(Buff):
             Effect.make('zap', self.host.pos[0].get_center())
 
 
-class Haste(Buff):
-    def get_tags(self):
-        return [BuffTags.magic]
-
+class Speed(Buff):
     def describe(self):
-        return 'Your move speed is increased.'
+        return 'Your move speed is altered.'
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -282,14 +304,19 @@ class Haste(Buff):
             return 1
 
     def on_start(self):
-        self.host.attributes.speed += 1
+        self.host.attributes.speed += self.var
 
     def on_load(self):
-        self.host.attributes.speed += 1
+        self.host.attributes.speed += self.var
 
     def on_finish(self):
-        self.host.attributes.speed -= 1
+        self.host.attributes.speed -= self.var
 
-    def on_update(self):
-        if self.effect(6):
-            Effect.make('barrier', self.host.pos[0].get_center())
+
+class Venom(Buff):
+    def describe(self):
+        return 'Attacks will cause poisoning.'
+
+    def trigger(self, arg):
+        if arg[0] == 'attack':
+            arg[1].states.add('Sick', 80)

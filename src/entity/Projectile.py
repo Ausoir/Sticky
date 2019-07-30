@@ -1,6 +1,7 @@
 from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.entity.unit.ai.Faction import Faction
+from src.game import Global
 from src.map.Tile import Tile
 from src.tools.Math import Math
 
@@ -8,7 +9,7 @@ from src.tools.Math import Math
 class Projectile(Prop):
     def __init__(self, loc):
         super().__init__(loc)
-        self.faction = Faction.PROJECTILE
+        self.faction = 0
         self.collide = 0
         self.lifetime = 9
         self.gravity = 1
@@ -47,9 +48,8 @@ class Projectile(Prop):
         pass
 
     def shoot(self, x, y):
-        from src.tools.Random import Random
         offset = min(4, abs(int(x / 4)))
-        rand = Random.rand_int(15, 25) + offset
+        rand = Global.r.rand_int(15, 25) + offset
         atan = Space(x, y - offset).get_atan()
         self.vel.load(rand * Math.cos(atan), rand * Math.sin(atan))
         self.start = self.pos[0]

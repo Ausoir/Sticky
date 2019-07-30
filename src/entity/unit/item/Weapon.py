@@ -1,8 +1,8 @@
-from src.entity.unit.item.Item import Item
+from src.entity.unit.item.Equipment import Equipment
 from src.game.Tags import Tags
 
 
-class Weapon(Item):
+class Weapon(Equipment):
     def __str__(self):
         return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + ','.join(str(x) for x in self.range) + '],' \
                + str(self.weight) + ',' + str(self.damage) + ',' + str(self.speed)
@@ -13,24 +13,18 @@ class Weapon(Item):
         index += 1
         self.range = arg[index]
         index += 1
-        self.weight = arg[index]
-        index += 1
         self.damage = arg[index]
         index += 1
         self.speed = arg[index]
         return index + 1
-
-    def use(self):
-        self.host.action.set('attack')
 
     def describe(self):
         r = super().describe()
         r += '\nRange: ' + ','.join(str(x) for x in self.range)
         r += '\nWeight: ' + str(self.weight)
         r += '\nAttack: ' + str(self.damage)
+        r += '\nDamage: 1'
         r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
-        if Tags.sharp in self.tags:
-            r += '\nThis weapon has a sharp edge.'
         return r
 
     @staticmethod

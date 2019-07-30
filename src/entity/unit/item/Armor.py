@@ -1,16 +1,15 @@
-from src.entity.unit.item.Item import Item
+from src.entity.unit.item.Equipment import Equipment
 from src.game.Tags import Tags
 from src.tools.Data import Data
 
 
-class Armor(Item):
+class Armor(Equipment):
     NONE = 1
     VACANT = 2
     OCCUPIED = 3
 
     def __init__(self, loc):
         super().__init__(loc)
-        self.encumbrance = None
         self.inventory = []
         self.items = []
         self.pockets = [0]
@@ -28,15 +27,12 @@ class Armor(Item):
             items.append('[' + i.__str__() + ']')
         items = ','.join(items)
         pockets = ','.join(str(x) for x in self.pockets)
-        r += ',' + str(self.encumbrance) + ',' + str(self.armor)
-        r += ',[' + inventory + '],[' + items + '],[' + pockets + ']'
+        r += ',' + str(self.armor) + ',[' + inventory + '],[' + items + '],[' + pockets + ']'
         return r
 
     def load(self, p):
         from src.entity.Stock import Stock
         index = super().load(p)
-        self.encumbrance = p[index]
-        index += 1
         self.armor = p[index]
         index += 1
         self.inventory = []
@@ -88,7 +84,7 @@ class Armor(Item):
                 if cell != '1':
                     inv += 1
         inv += len(self.pockets)
-        r = self.durability + self.armor + inv
+        r = int(self.durability / 2) + self.armor + inv
         r = max(0, int(r / 2) - 5)
         return r
 
@@ -99,8 +95,8 @@ class Armor(Item):
                 if slot == Armor.VACANT:
                     inv += 1
         r = super().describe()
-        r += '\nEncumbrance: ' + str(self.encumbrance)
         r += '\nInventory: ' + str(inv)
+        r += '\nDefense: ' + str(self.armor)
         r += '\nPockets: ' + str(len(self.pockets))
         return r
 
@@ -184,10 +180,8 @@ class Armor(Item):
                 total += i.durability
                 if i.durability == 0:
                     armors.append(i)
-        final_damage = max(0, min(damage, self.durability))
-        self.durability = self.durability - final_damage
-        damage -= final_damage
-        total = max(0, total + self.durability)
+        rt, damage = super().get_reduction(damage)
+        total += rt
         for i in armors:
             x, y = i.pos[0].x, i.pos[0].y
             self.get_item_at(x, y, pop=1)

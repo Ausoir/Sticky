@@ -1,7 +1,10 @@
-Ladder,1,[#iw,#ps] //Result, Time, Tools, Ingredients, Description
-Sonic Scroll,0,[#pw,#ip]
-Scorch Scroll,0,[#pw,#ip]
-Levitate Scroll,0,[#pw,#ip]
-Dispell Scroll,0,[#pw,#ip]
-Scry Scroll,0,[#pw,#ip]
-Scorch Staff,0,[#ifi,#ps,Plank]
+Ladder,[#iw,#ps] //Result, Time, Tools, Ingredients, Description
+Bat,[#iw,#ps]
+Shield,[#iw,#ps]
+Sonic Scroll,[#pw,#ip]
+Scorch Scroll,[#pw,#ip]
+Levitate Scroll,[#pw,#ip]
+Dispell Scroll,[#pw,#ip]
+Scry Scroll,[#pw,#ip]
+Scorch Staff,[#ps,Plank]
+Treatment,[#iv,#if]

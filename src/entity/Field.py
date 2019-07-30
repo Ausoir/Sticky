@@ -28,7 +28,7 @@ class Field:
 
     @staticmethod
     def hit(data):
-        for thing in data[2].things:
+        for thing in data[2].things.copy():
             if thing.is_hit(data[4], faction=data[6]):
                 if data[5]:
                     Effect.make(data[5], data[2].get_center())

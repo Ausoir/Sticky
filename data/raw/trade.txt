@@ -1,4 +1,7 @@
 treasure,[Gold]
+host,[Casual Wear,Chair,Statue,Hat,Headband,Dagger,Spear,Shield,Leather Armor,Fiber]
+guild,[Jelly,Scaffold,Fiber,Tooth,Ladder,Paper]
+grocery,[Food,Food,Food,Food,Food]
 general,[Food,Ladder,Hat,Casual Wear]
 scholar,[Gold Chalk,Scroll Bag,Scorch Scroll,Dispell Scroll,Scry Scroll,Levitate Scroll,Sonic Scroll]
 tailor,[Casual Wear,Green Robe,Teal Robe,Blue Robe,Indigo Robe,Red Robe,Traveller Gear]

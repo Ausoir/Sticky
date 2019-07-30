@@ -27,6 +27,8 @@ class Editor:
         self.display_text = ''
         self.display_subtext = ''
         self.enter = 0
+        self.prev_mouse = [0, 0]
+        self.prev_action = None
         self.prev_command = None
         self.fog_update = True
         self.selection = None
@@ -48,6 +50,7 @@ class Editor:
 
     def input(self, action, target):
         m = Camera.target.pos[0] + target
+        self.prev_mouse = m
         self.display_subtext = 'X:' + str(m.x) + ' Y:' + str(m.y)
         if action == 'idle':
             self.tool.input(0, self.location.get_tile(m))
@@ -59,16 +62,16 @@ class Editor:
         elif action == 'delete':
             self.tool.input(2, self.location.get_tile(m))
         elif action == 'prev':
-            if action != self.prev_command:
+            if action != self.prev_action:
                 self.display_text = self.tool.cycle(-1)
         elif action == 'next':
-            if action != self.prev_command:
+            if action != self.prev_action:
                 self.display_text = self.tool.cycle(1)
         elif action == 's_prev':
-            if action != self.prev_command:
+            if action != self.prev_action:
                 self.display_text = self.tool.cycle(-1, specific=True)
         elif action == 's_next':
-            if action != self.prev_command:
+            if action != self.prev_action:
                 self.display_text = self.tool.cycle(1, specific=True)
         elif action == 'up':
             Camera.target.move(0, -1, Editor.scroll, [])
@@ -83,7 +86,7 @@ class Editor:
             Camera.target.move(1, 0, Editor.scroll, [])
             self.fog_update = True
         elif action == 'sample':
-            if action != self.prev_command:
+            if action != self.prev_action:
                 self.tool.cancel()
                 objs = self.location.get_tile(m).things
                 if objs:
@@ -102,7 +105,7 @@ class Editor:
                 self.tool = ToolObject(self.location, 'props')
                 self.tool.cancel()
                 self.tool.selection = objs[0]
-        elif action == 'player.char':
+        elif action == 'player':
             Global.main.player.character.relocate(m.x, m.y)
         elif action == 'tiles':
             self.tool.cancel()
@@ -112,10 +115,6 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Props Tool'
-        elif action == 'containers':
-            self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
-            self.display_text = 'Containers Tool'
         elif action == 'items':
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
@@ -124,6 +123,10 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Units Tool'
+        elif action == 'beasts':
+            self.tool.cancel()
+            self.tool = ToolObject(self.location, action)
+            self.display_text = 'Beasts Tool'
         elif action == 'weapons':
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
@@ -144,6 +147,9 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Miscellaneous Tool'
+        elif action == 'repeat':
+            Global.main.textbox.display_text = self.prev_command
+            self.command()
         elif action == 'command':
             self.command()
         elif action == 'save':
@@ -154,29 +160,38 @@ class Editor:
             self.tool.cancel()
             pygame.quit()
             sys.exit()
-        self.prev_command = action
+        self.prev_action = action
         return 0
 
     def command(self):
+        self.prev_command = Global.main.textbox.display_text
         params = Global.main.textbox.display_text.split(' ')
         if params[0] == 'set':
             if isinstance(self.tool, ToolObject):
-                from src.entity.Container import Container
                 if self.tool.selection.name == 'Beacon':
                     self.tool.selection.var = params[1]
                 elif self.tool.selection.name == 'Interactive':
                     self.tool.selection.argument = params[1].split(',')
-                elif isinstance(self.tool.selection, Container):
-                    self.tool.selection.loots = params[1].split(',')
                 self.display_text = '[' + params[1] + '] Applied'
+        elif params[0] == 'loot':
+            if isinstance(self.tool, ToolObject):
+                self.tool.selection.loot = params[1].split(',')
         elif params[0] == 'image':
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.set_form(params[1])
         elif params[0] == 'make':
-            self.location.construct_map('current', params[1])
+            self.location.construct_map(params[1])
+            Global.main.player.switch()
+            Global.main.player.travel('current', Space())
+            Global.main.player.switch()
+        elif params[0] == 'background':
+            self.location.header[2] = params[1]
         elif params[0] == 'camera':
             pos = params[1].split(',')
             Camera.target.relocate(int(pos[0]), int(pos[1]), force=1)
+        elif params[0] == 'merchant':
+            r = Stock.make('Merchant', self.location.get_tile(self.prev_mouse))
+            r.var = params[1].split(',')
         elif params[0] == 'moveall':
             pos = params[1].split(',')
             self.location.tiles = {}
@@ -189,7 +204,7 @@ class Editor:
                 i.move(int(pos[0]), int(pos[1]), distance=9999, flag=[])
         elif params[0] == 'new':
             from src.map.Location import Location
-            new = Location(params[1], ['5,937,[0,0,0,1],field', '', ''])
+            new = Location(params[1], ['0,[0,0,0,1],field', '', ''])
             new.save()
             Global.main.player.switch()
             Global.main.player.travel(params[1], Space())
@@ -206,10 +221,8 @@ class Editor:
             Global.main.player.switch()
         elif params[0] == 'save':
             self.tool.cancel()
-            name = self.location.name
             self.location.name = params[1]
             self.location.save()
-            self.location.name = name
             self.display_text = 'saved to ' + params[1]
         Global.main.textbox.display_text = ''
 
@@ -275,7 +288,7 @@ class ToolTerrain:
         tile = self.location.get_tile([x, y])
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
-            if name_type in ['dirt', 'rock', 'leaf']:
+            if name_type in ['dirt', 'rock', 'bush']:
                 grid = [self.is_terrain(x, y - 1, name_type), self.is_terrain(x - 1, y, name_type),
                         self.is_terrain(x + 1, y, name_type), self.is_terrain(x, y + 1, name_type)]
                 if grid in [[0, 1, 1, 1], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' top'):

@@ -9,7 +9,7 @@ from src.form.Sprite import Sprite
 
 class Data:
     cache = {}
-    registry_list = ['props', 'units', 'items', 'containers', 'armors', 'weapons', 'headgears', 'spells', 'miscellaneous']
+    registry_list = ['props', 'units', 'beasts', 'items', 'armors', 'weapons', 'headgears', 'spells', 'miscellaneous']
 
     @staticmethod
     def init():
@@ -46,6 +46,10 @@ class Data:
     @staticmethod
     def get_files(fdir, fn):
         return [m for m in os.listdir(Data.direct(fdir)) if fn(m)]
+
+    @staticmethod
+    def is_file(fdir):
+        return os.path.exists(Data.direct(fdir))
 
     @staticmethod
     def get_cache(fdir):

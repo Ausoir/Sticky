@@ -73,8 +73,8 @@ class Menu:
         self.display(1)
 
     @staticmethod
-    def make_button(text, callback, r_callback, color=Window.fore_color2, hover=True):
-        button = Window([160, 40], color=color)
+    def make_button(text, callback, r_callback, color=Window.fore_color2, width=160, hover=True):
+        button = Window([width, 40], color=color)
         button.set_text(text)
         button.on_click = callback
         button.on_r_click = r_callback
@@ -83,19 +83,7 @@ class Menu:
         return button
 
     def show_dialog(self, text):
-        r = []
-        for line in text:
-            length = 0
-            newline = ''
-            for char in line:
-                newline += char
-                length += Global.font.size(char)[0]
-                if length >= self.window.size.x + self.sub_window.size.x - self.window.margin.x * 5:
-                    r.append(newline)
-                    newline = ''
-                    length = 0
-            r.append(newline)
-        self.dialog_text = r
+        self.dialog_text = text
         self.direct(self.menu_dialog)
 
     def menu_dialog(self):

@@ -70,6 +70,11 @@ class Hunger(Buff):
             return 1
 
 
+class Modified(Buff):
+    def describe(self):
+        return 'This object has a +' + self.var + ' modification.'
+
+
 class Bleed(Buff):
     def describe(self):
         dmg = str(int(self.duration / 100))
@@ -319,4 +324,4 @@ class Venom(Buff):
 
     def trigger(self, arg):
         if arg[0] == 'attack':
-            arg[1].states.add('Sick', 80)
+            arg[1].states.add('Sick', self.var)

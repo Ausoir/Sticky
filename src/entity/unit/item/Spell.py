@@ -1,5 +1,4 @@
 from src.entity.Effect import Effect
-from src.entity.unit.ai.Faction import Faction
 from src.entity.unit.item.Item import Item
 from src.game import Global
 
@@ -8,6 +7,7 @@ class Spell(Item):
     def __init__(self, loc):
         super().__init__(loc)
         self.spell = None
+        self.is_known = True
 
     def __str__(self):
         r = super().__str__()
@@ -17,17 +17,35 @@ class Spell(Item):
     def load(self, p):
         index = super().load(p)
         self.spell = p[index]
+        self.is_known = not self.name.startswith('Unknown')
+        if self.spell[0] == '?':
+            from src.tools.Data import Data
+            spells = Data.process_raw(Data.read('data/raw/spells.txt'))
+            possible_spells = []
+            for spell in spells:
+                if spell[0].startswith('Scroll'):
+                    possible_spells.append(spell[7])
+            self.spell = Global.r.rand_list(possible_spells)
         return index + 1
 
     def describe(self):
         r = super().describe()
-        r += '\nCasts Spell: ' + self.spell
+        if not self.is_known:
+            if 'Scroll of ' + self.spell in Global.main.player.knowledge:
+                self.is_known = True
+                self.name = 'Scroll of ' + self.spell
+        else:
+            r += '\nCasts Spell: ' + self.spell
         return r
 
     def use(self):
         self.host.action.set('block')
         getattr(self, self.spell.lower())(self.host)
         self.hit(1)
+
+    @staticmethod
+    def unknown(host):
+        pass
 
     @staticmethod
     def sonic(host):

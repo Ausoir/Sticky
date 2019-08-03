@@ -1,6 +1,5 @@
 from src.entity.unit.Unit import Unit
 from src.entity.unit.ai.Task import *
-from src.entity.unit.item.Item import Item
 
 
 class Manual:
@@ -63,21 +62,16 @@ class Pilot(Manual):
                         perceived.append(thing)
             if self.priority > 2:
                 targets = []
-                items = []
                 host_pos = self.host.pos[0].get_center().to_list()
                 for thing in perceived:
                     to = (thing.pos[0] - self.host.pos[0]).to_list()
                     sight = self.host.location.collide_sight(host_pos, to)
                     if sight:
                         if isinstance(thing, Unit):
-                            if Faction.is_against(self.host.faction, thing.faction):
+                            if self.host.faction != thing.faction:
                                 targets.append(thing)
-                        elif isinstance(thing, Item) and not thing.host:
-                            items.append(thing)
                 if targets:
                     self.spot_enemy(targets)
-                elif items and self.priority > 3:
-                    self.spot_item(items)
 
     def prioritize(self, targets):
         nearest_dist = 10
@@ -98,12 +92,9 @@ class Pilot(Manual):
         aoe = self.host.location.get_area(self.host.pos[0], 4, 2)
         for i in aoe:
             for thing in i.things:
-                if thing != self.host and not Faction.is_against(thing.faction, self.host.faction):
+                if thing != self.host and not thing.faction != self.host.faction:
                     if isinstance(thing, Unit) and not isinstance(thing.pilot, Manual) and thing.pilot.priority > 2:
                         thing.pilot.spot_enemy(targets)
-
-    def spot_item(self, targets):
-        pass
 
     def get_routes(self, pos):
         options = []

@@ -288,7 +288,7 @@ class ToolTerrain:
         tile = self.location.get_tile([x, y])
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
-            if name_type in ['dirt', 'rock', 'bush']:
+            if name_type in ['dirt', 'rock', 'bush', 'sand']:
                 grid = [self.is_terrain(x, y - 1, name_type), self.is_terrain(x - 1, y, name_type),
                         self.is_terrain(x + 1, y, name_type), self.is_terrain(x, y + 1, name_type)]
                 if grid in [[0, 1, 1, 1], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' top'):
@@ -340,7 +340,7 @@ class ToolObject:
     def select(self, text):
         self.text = text
         self.selection.remove()
-        self.selection = Stock.get(self.text.title())
+        self.selection = Stock.get(self.text)
         if self.selection:
             self.selection.add()
 
@@ -355,7 +355,7 @@ class ToolObject:
                     preexisting = 1
                     break
             if not preexisting:
-                self.selection = Stock.get(self.text.title()).add()
+                self.selection = Stock.get(self.text).add()
                 self.selection.relocate(tile.x, tile.y, force=1)
         else:
             if self.last != tile:

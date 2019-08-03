@@ -1,5 +1,4 @@
 Head,g_0x0,[],-1,[],[],[1,1],-1,0 //Name, image, tags, hp, states, size, max hp, weight
-Skull,data/image/unit/skull,[],-1,[],[],[2,1],-1,1
 Hat,data/image/unit/hat,[],1,[Fiber],[],[2,1],1,1
 Headband,data/image/unit/headband,[],1,[Fiber],[],[2,1],1,1
 Bandana,data/image/unit/bandana,[],1,[Fiber],[],[2,1],1,1

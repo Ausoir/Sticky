@@ -73,9 +73,9 @@ class Menu:
         self.display(1)
 
     @staticmethod
-    def make_button(text, callback, r_callback, color=Window.fore_color2, width=160, hover=True):
-        button = Window([width, 40], color=color)
-        button.set_text(text)
+    def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, resize=True, hover=True):
+        button = Window([width, 40], name=name, color=color)
+        button.set_text(text, resize=resize)
         button.on_click = callback
         button.on_r_click = r_callback
         if not hover:
@@ -92,13 +92,13 @@ class Menu:
         textbox.text_spacing = Global.font.size('A')[1] + 2
         textbox.set_text(self.dialog_text + [' '])
         textbox.hover_font_color = textbox.normal_font_color
-        self.window.add_child(textbox)
+        self.window.add(textbox)
         self.sub_window.display(1)
 
     def get_message(self, msg):
-        def message():
+        def message(index):
             self.show_dialog(msg)
         return message
 
     def menu_main(self):
-        self.window.add_child(Menu.make_button(['Main Menu'], None, None))
+        self.window.add(Menu.make(['Main Menu'], None, None))

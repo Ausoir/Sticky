@@ -1,4 +1,3 @@
-from src.entity.unit.ai.Faction import Faction
 from src.game import Global
 from src.map.Tile import Tile
 
@@ -28,6 +27,10 @@ class Task:
 class Idle(Task):
     def on_set(self):
         self.pilot.priority = 5
+
+    def perform(self):
+        self.pilot.priority = 5
+        super().perform()
 
 
 class Move(Task):
@@ -222,10 +225,10 @@ class Attack(Task):
         return super().is_done() or self.pilot.var.removed
 
     def perform(self):
-        if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
+        if self.pilot.var and self.host.faction != self.pilot.var.faction:
             dist = self.pilot.var.pos[0] - self.host.pos[0]
             if -1 <= dist.y <= 1 and -1 <= dist.x <= 1:
-                self.host.input('use', dist)
+                self.host.input(Global.r.rand_list(self.host.action.skills + ['use']), dist)
                 return 1
 
 
@@ -266,7 +269,7 @@ class Melee(Task):
             self.host.input('use', diff)
 
     def perform(self):
-        if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
+        if self.pilot.var and self.host.faction != self.pilot.var.faction:
             self.pilot.strategize()
             diff = self.pilot.var.pos[0] - self.host.pos[0]
             if self.perform_gapcloser(diff):
@@ -294,7 +297,7 @@ class Range(Task):
         self.pilot.priority = 1
 
     def perform(self):
-        if self.pilot.var and Faction.is_against(self.host.faction, self.pilot.var.faction):
+        if self.pilot.var and self.host.faction != self.pilot.var.faction:
             diff = self.pilot.var.pos[0] - self.host.pos[0]
             reach = self.host.location.collide_land(self.host.get_interact_pos(), diff.x, diff.y,
                                                     distance=9, flag=Tile.CHECK_FIRM)

@@ -1,6 +1,8 @@
 temple,1,[static/temple],[],0,[[Slime]] //biome, static, terrain, estates, encounter count, encounters
-town,1,[town/t1],[town/apartment,town/blacksmith,town/general,town/school,town/office,town/shop,town/storage,town/tailor,town/house,town/house,town/house],9,[[Talker]]
+town,1,[static/town],[town/apartment,town/blacksmith,town/general,town/school,town/office,town/shop,town/storage,town/tailor,town/house],14,[[Talker],[],[]]
 garden,0,[garden/t1,garden/t2,garden/t3],[garden/e1,garden/e2,garden/e3,garden/e4,garden/e5],12,[[Slime,Slime],[Slime],[Bag],[],[],[]]
 sewer,0,[sewer/t1,sewer/t2],[],12,[[Slime],[Slime],[Slime],[Sewer Slime],[],[],[],[],[]]
 nest,0,[nest/t1,nest/t2],[],12,[[Dog],[Dog],[Dog],[Sewer Slime],[],[],[],[],[]]
 outskirts,1,[static/outskirts],[],0,[[Dog],[],[]]
+city,1,[static/city],[],24,[[Looter],[],[]]
+refuge,0,[static/refuge],[town/general,town/school,town/shop,town/storage,town/tailor,town/house,town/house,town/house],14,[[Talker],[],[]]

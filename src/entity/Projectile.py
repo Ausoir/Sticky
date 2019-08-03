@@ -1,6 +1,5 @@
 from src.entity.Prop import Prop
 from src.entity.Space import Space
-from src.entity.unit.ai.Faction import Faction
 from src.game import Global
 from src.map.Tile import Tile
 from src.tools.Math import Math

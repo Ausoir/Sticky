@@ -19,7 +19,11 @@ class Field:
         self.registry = new_reg
 
     def register(self, damage, pos, chance=4, delay=1, type=0, faction=0, hitter=None, callback=None):
-        self.registry.append([hitter, delay, pos, damage, chance, type, faction, callback])
+        data = [hitter, delay, pos, damage, chance, type, faction, callback]
+        if delay == 0:
+            Field.hit(data)
+        else:
+            self.registry.append(data)
 
     def unregister(self, hitter):
         for i in self.registry:

@@ -6,7 +6,6 @@ from src.entity.unit.NPC import NPC
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
 from src.game import Global
-from src.game.Tags import Tags
 from src.map.Tile import Tile
 
 
@@ -53,6 +52,7 @@ class Interactive(Prop):
 
     def trigger(self):
         if self.argument[0] == 'enter':
+            Global.main.fade = 255
             Global.main.player.travel(self.argument[1], Space(int(self.argument[2]), int(self.argument[3])))
         elif self.argument[0] == 'travel':
             Global.menu.var = self.argument[1:]
@@ -203,36 +203,21 @@ class Hammer(Weapon):
                 self.host.action.set('hit')
                 self.host.form.set('interact')
                 return
-            if thing.name == 'Plank':
+            elif thing.name == 'Plank':
                 thing.remove()
                 Stock.make('Scaffold', thing.pos[0])
                 self.host.action.set('hit')
                 self.host.form.set('interact')
+                self.hit(1)
+                return
+            elif thing.name == 'Scrap':
+                thing.remove()
+                Stock.make('Plating', thing.pos[0])
+                self.host.action.set('hit')
+                self.host.form.set('interact')
+                self.hit(1)
                 return
         super().use()
-
-
-class Fiber(Item):
-    def describe(self):
-        armor = str(self.get_restoration())
-        return super().describe() + '\nUse at a table to restore clothing durability to ' + armor + '.'
-
-    def get_restoration(self):
-        r = 3
-        if self.host:
-            r += self.host.armor.weight
-            r *= self.host.get_proficiency('Tailor') + 1
-        return r
-
-    def use(self):
-        for prop in self.host.pos[0].things:
-            if Tags.workable in prop.tags:
-                armor = self.get_restoration()
-                if armor > self.host.armor.durability:
-                    self.host.armor.durability = armor
-                    self.die()
-                return
-        Global.main.player.monologue.text('Use at a table or a desk!')
 
 
 class Talker(NPC):
@@ -251,7 +236,8 @@ class Merchant(NPC):
     def talk(self):
         self.face(1 if Global.main.player.character.pos[0].x > self.pos[0].x else -1)
         if self.var[0] == 'shop':
-            Global.menu.var = self.var[1:]
+            from src.entity.Stock import Stock
+            Global.menu.var = [Stock.get(i) for i in self.var[1:]]
             Global.menu.state = Global.menu.menu_shop
             Global.menu.display(1)
         elif self.var[0] == 'trainer':

@@ -15,7 +15,8 @@ class Window(Shape):
     font_color2 = (120, 180, 140, 200)
     font_color3 = (60, 80, 80, 220)
 
-    def __init__(self, size, vec=(0, 0), color=fore_color1):
+    def __init__(self, size, vec=(0, 0), name=0, color=fore_color1):
+        self.name = name
         self.color = color
         self.size = Space(size)
         self.vec = Space(vec)
@@ -58,10 +59,10 @@ class Window(Shape):
             mouse = pygame.mouse.get_pos()
             if self.collide(mouse):
                 if event.button == 1 and self.on_click is not None:
-                    self.on_click()
+                    self.on_click(self.name)
                     return 1
                 elif event.button == 3 and self.on_r_click is not None:
-                    self.on_r_click()
+                    self.on_r_click(self.name)
                     return 1
         return 0
 
@@ -86,8 +87,11 @@ class Window(Shape):
             for i in self.children:
                 i.draw(surface)
 
-    def set_text(self, text):
-        self.text = Window.resize_text(text, self.size.x - (self.margin.x * 2))
+    def set_text(self, text, resize=True):
+        if resize:
+            self.text = Window.resize_text(text, self.size.x - (self.margin.x * 2))
+        else:
+            self.text = text
         self.size.y = self.text_spacing * len(self.text)
         self.vertices = Shape.make_rect(self.size.to_list())
         self.redraw()
@@ -108,7 +112,7 @@ class Window(Shape):
             r.append(newline)
         return r
 
-    def add_child(self, child):
+    def add(self, child):
         self.children.append(child)
         child.vec.load(child.vec.x + self.margin.x + self.vec.x, child.vec.y + self.next_y)
         self.next_y += child.size.y + self.margin.y

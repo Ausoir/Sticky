@@ -1,5 +1,4 @@
 from src.entity.Object import Object
-from src.entity.unit.ai.Faction import Faction
 from src.game.Tags import Tags
 from src.map.Tile import Tile
 
@@ -68,7 +67,7 @@ class Prop(Object):
         self.remove()
 
     def is_hit(self, chance, faction=0):
-        if self.hittable and Faction.is_against(self.faction, faction):
+        if self.hittable and self.faction != faction:
             if Tags.metal in self.tags:
                 return chance > 4
             elif Tags.wood in self.tags:

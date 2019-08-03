@@ -9,69 +9,51 @@ from src.interface.Window import Window
 
 class MenuPlayer(Menu):
     def menu_main(self):
-        def click_character():
-            self.direct(self.menu_character)
-
-        def click_equipment():
-            self.direct(self.menu_equipment)
-
-        def click_knowledge():
-            self.direct(self.menu_knowledge)
-
-        def click_help():
-            self.direct(self.menu_help)
-
-        self.window.add_child(Menu.make_button(['Character'], click_character, None))
-        self.window.add_child(Menu.make_button(['Equipment'], click_equipment, None))
-        self.window.add_child(Menu.make_button(['Knowledge'], click_knowledge, None))
-        self.window.add_child(Menu.make_button(['Help'], click_help, None))
+        self.window.add(Menu.make(['Character'], lambda x: self.direct(self.menu_character), None))
+        self.window.add(Menu.make(['Equipment'], lambda x: self.direct(self.menu_equipment), None))
+        self.window.add(Menu.make(['Knowledge'], lambda x: self.direct(self.menu_knowledge), None))
+        self.window.add(Menu.make(['Help'], lambda x: self.direct(self.menu_help), None))
 
     def menu_character(self):
-        def click_proficiency():
-            self.direct(self.menu_proficiency)
-
-        def click_status():
-            self.direct(self.menu_status)
-
-        x = Window.fore_color0
-        hpdesc = ['Hit Point represents how many attacks you can endure.']
+        color = Window.fore_color0
+        hp = ['Hit Point represents how many attacks you can endure.']
         if self.host.is_headgeared:
-            hpdesc.append(str(max(0, self.host.headgear.durability)) + ' HP comes from your headgear.')
+            hp.append(str(max(0, self.host.headgear.durability)) + ' HP comes from your headgear.')
         if self.host.is_armored():
-            hpdesc.append(str(max(0, self.host.armor.durability)) + ' HP comes from your armor.')
-        rmb = self.get_message(hpdesc)
-        self.window.add_child(Menu.make_button(['Hit Point'], rmb, rmb, color=x))
-        self.sub_window.add_child(Menu.make_button([str(self.host.durability)], rmb, rmb, color=x))
+            hp.append(str(max(0, self.host.armor.durability)) + ' HP comes from your armor.')
+        rmb = self.get_message(hp)
+        self.window.add(Menu.make(['Hit Point'], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.durability)], rmb, rmb, color=color))
         rmb = self.get_message(['Strength represents your maximum stamina.',
                                 'More stamina allows you to perform actions without having to rest.'])
-        self.window.add_child(Menu.make_button(['Strength'], rmb, rmb, color=x))
-        self.sub_window.add_child(Menu.make_button([str(self.host.attributes.strength)], rmb, rmb, color=x))
+        self.window.add(Menu.make(['Strength'], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.strength)], rmb, rmb, color=color))
         rmb = self.get_message(['Agility represents your maximum encumbrance.',
                                 'More encumbrance allows you to wear more encumbering armor and headgear.'])
-        self.window.add_child(Menu.make_button(['Agility'], rmb, rmb, color=x))
-        self.sub_window.add_child(Menu.make_button([str(self.host.attributes.agility)], rmb, rmb, color=x))
+        self.window.add(Menu.make(['Agility'], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.agility)], rmb, rmb, color=color))
         rmb = self.get_message(['Intelligence represents your maximum memory.',
-                                'More memory allows you to craft more spells and items'])
-        self.window.add_child(Menu.make_button(['Intelligence'], rmb, rmb, color=x))
-        self.sub_window.add_child(Menu.make_button([str(self.host.attributes.intelligence)], rmb, rmb, color=x))
-        self.window.add_child(Menu.make_button(['Status'], click_status, None))
-        self.window.add_child(Menu.make_button(['Proficiency'], click_proficiency, None))
+                                'More memory allows you to craft more spells and items from memory.'])
+        self.window.add(Menu.make(['Intelligence'], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.intelligence)], rmb, rmb, color=color))
+        self.window.add(Menu.make(['Status'], lambda l: self.direct(self.menu_status), None))
+        self.window.add(Menu.make(['Proficiency'], lambda l: self.direct(self.menu_proficiency), None))
         self.sub_window.display(1)
 
     def menu_knowledge(self):
         def add_button(window, text):
-            def craft():
+            def craft(name):
                 Crafting.craft(self.host, text)
                 self.host.action.set('block')
                 self.toggle()
             if Crafting.is_craftable(self.host, text):
                 rmb = self.get_message(Crafting.describe(text).split('\n'))
-                button = Menu.make_button([text], craft, rmb)
+                button = Menu.make([text], craft, rmb)
             else:
                 rmb = self.get_message((Crafting.describe(text) + '\nRequirements not met.').split('\n'))
-                button = Menu.make_button([text], None, rmb, color=Window.fore_color0)
+                button = Menu.make([text], None, rmb, color=Window.fore_color0)
                 button.hover_font_color = window.normal_font_color
-            window.add_child(button)
+            window.add(button)
 
         for i in Global.main.player.knowledge[:6]:
             add_button(self.window, i)
@@ -81,120 +63,101 @@ class MenuPlayer(Menu):
         self.sub_window.display(1)
 
     def menu_skills(self):
-        def make_on_click(outer_index):
-            def assign():
-                self.var = outer_index
-                self.direct(self.menu_slot_reassign)
-            return assign
+        def assign(index):
+            self.var = index
+            self.direct(self.menu_slot_reassign)
         control = Global.main.player.control
         key_buttons = []
         for k, v in control.keymap.items():
             if v[:4] == 'item':
-                button = Menu.make_button(['Key [' + control.get_key_name(k) + ']'], None, None, color=(0, 0, 0, 0))
+                button = Menu.make(['Key [' + control.get_key_name(k) + ']'], None, None, color=(0, 0, 0, 0))
                 button.hover_font_color = None
                 key_buttons.append(button)
-                self.window.add_child(button)
+                self.window.add(button)
         for k, v in enumerate(self.host.armor.pockets):
             if v == -1:
                 desc = self.get_message(['Click to assign item.'])
-                action_button = Menu.make_button(['<Assign>'], make_on_click(k), desc)
+                action_button = Menu.make(['<Assign>'], assign, desc, name=k)
             else:
-                action_button = Menu.make_button([self.host.armor.items[v].name], make_on_click(k), None)
-            self.sub_window.add_child(action_button)
+                action_button = Menu.make([self.host.armor.items[v].name], assign, None, name=k)
+            self.sub_window.add(action_button)
         self.sub_window.display(1)
 
     def menu_slot_reassign(self):
-        def make_assign_click(inner_index):
-            def assign_click():
-                self.host.armor.pockets[self.var] = inner_index
-                self.direct(self.menu_skills)
-            return assign_click
+        def assign_click(index):
+            self.host.armor.pockets[self.var] = index
+            self.direct(self.menu_skills)
         first = self.host.armor.items[:6]
         second = self.host.armor.items[6:]
         self.window.flush()
         for first_key, i in enumerate(first):
-            self.window.add_child(Menu.make_button([i.name], make_assign_click(first_key), None))
+            self.window.add(Menu.make([i.name], assign_click, None, name=first_key))
         self.sub_window.flush()
         for second_key, i in enumerate(second):
-            self.sub_window.add_child(Menu.make_button([i.name], make_assign_click(second_key + 6), None))
+            self.sub_window.add(Menu.make([i.name], assign_click, None, name=second_key + 6))
         self.window.display(1)
         self.sub_window.display(1)
 
     def menu_equipment(self):
-        def click_headgear():
+        def click_headgear(name):
             if not self.host.unheadgear() and isinstance(self.host.weapon, Headgear):
                 self.host.weapon.use()
             self.direct(self.menu_equipment)
 
-        def click_armor():
+        def click_armor(name):
             if not self.host.unarmor() and isinstance(self.host.weapon, Armor):
                 self.host.weapon.use()
             self.direct(self.menu_equipment)
 
-        def click_offhand():
-            self.host.swap()
-            self.direct(self.menu_equipment)
-
-        def click_weapon():
-            self.host.drop()
-            self.direct(self.menu_equipment)
-
-        def make_pocket(x, y):
-            def pocket():
-                if self.host.is_armed():
-                    weapon = self.host.weapon
-                    if self.host.armor.is_vacant(weapon, x, y):
-                        self.host.drop()
-                        self.host.armor.add_inventory(weapon, x, y)
-                else:
-                    item = self.host.armor.get_item_at(x, y, pop=1)
-                    if item:
-                        item.on_equip(self.host)
-                        self.host.action.set('block')
-                    else:
-                        Global.main.monologue.text('That inventory slot is empty.')
-                self.state = self.menu_equipment
-                self.display(1)
-            return pocket
-
-        def make_pocket_desc(x, y):
-            def pocket():
-                item = self.host.armor.get_item_at(x, y)
+        def make_pocket(arg):
+            if self.host.is_armed():
+                weapon = self.host.weapon
+                if self.host.armor.is_vacant(weapon, arg[0], arg[1]):
+                    self.host.drop()
+                    self.host.armor.add_inventory(weapon, arg[0], arg[1])
+            else:
+                item = self.host.armor.get_item_at(arg[0], arg[1], pop=1)
                 if item:
-                    self.show_dialog(item.describe().split('\n'))
+                    item.on_equip(self.host)
+                    self.host.action.set('block')
                 else:
-                    self.show_dialog(['This is an inventory slot. Click on this slot while holding a fitting item.'])
-            return pocket
+                    Global.main.monologue.text('That inventory slot is empty.')
+            self.state = self.menu_equipment
+            self.display(1)
 
-        def click_skills():
-            self.direct(self.menu_skills)
+        def make_pocket_desc(arg):
+            item = self.host.armor.get_item_at(arg[0], arg[1])
+            if item:
+                self.show_dialog(item.describe().split('\n'))
+            else:
+                self.show_dialog(['This is an inventory slot. Click on this slot while holding a fitting item.'])
 
         rmb = self.get_message(self.host.headgear.describe().split('\n'))
-        display = self.host.headgear.name
+        display = self.host.headgear.get_display_name()
         if not self.host.is_headgeared():
-            display = '<No Hat>'
-        self.window.add_child(Menu.make_button([display], click_headgear, rmb))
+            display = '<No Accessory>'
+        self.window.add(Menu.make([display], click_headgear, rmb, resize=False))
         rmb = self.get_message(self.host.armor.describe().split('\n'))
-        display = self.host.armor.name
+        display = self.host.armor.get_display_name()
         if not self.host.is_armored():
             display = '<No Armor>'
-        self.window.add_child(Menu.make_button([display], click_armor, rmb))
+        self.window.add(Menu.make([display], click_armor, rmb, resize=False))
         if len(self.host.armor.pockets) > 0:
             rmb = self.get_message(['Designate items for quick access.'])
-            button = Menu.make_button(['Pockets'], click_skills, rmb, color=Window.fore_color3)
+            button = Menu.make(['Pockets'], lambda l: self.direct(self.menu_skills), rmb, color=Window.fore_color3)
         else:
-            button = Menu.make_button([''], None, None, color=(0, 0, 0, 0))
-        self.window.add_child(button)
+            button = Menu.make([''], None, None, color=(0, 0, 0, 0))
+        self.window.add(button)
         rmb = self.get_message(self.host.offhand.describe().split('\n'))
-        display = self.host.offhand.name
+        display = self.host.offhand.get_display_name()
         if not self.host.is_shielded():
             display = '<No Offhand>'
-        self.window.add_child(Menu.make_button([display], click_offhand, rmb))
+        self.window.add(Menu.make([display], lambda l: self.host.swap(), rmb, resize=False))
         rmb = self.get_message(self.host.weapon.describe().split('\n'))
-        display = self.host.weapon.name
+        display = self.host.weapon.get_display_name()
         if not self.host.is_armed():
             display = '<No Weapon>'
-        self.window.add_child(Menu.make_button([display], click_weapon, rmb))
+        self.window.add(Menu.make([display], lambda l: self.host.drop(), rmb, resize=False))
         for ky, vy in enumerate(self.host.armor.inventory):
             for kx, vx in enumerate(vy):
                 if vx == Armor.VACANT:
@@ -203,13 +166,13 @@ class MenuPlayer(Menu):
                     color = (120, 120, 120, 220)
                 else:
                     color = Window.fore_color0
-                slot = Window([40, 40], color=color)
+                slot = Window([40, 40], name=[kx, ky], color=color)
                 slot.vec.x = kx * 48
                 slot.vec.y = ky * 48
-                slot.on_click = make_pocket(kx, ky)
-                slot.on_r_click = make_pocket_desc(kx, ky)
+                slot.on_click = make_pocket
+                slot.on_r_click = make_pocket_desc
                 self.sub_window.next_y = self.sub_window.vec.y + 8
-                self.sub_window.add_child(slot)
+                self.sub_window.add(slot)
         inventory_items = self.host.armor.items
         for i in inventory_items:
             pos = (i.pos[0] * 48)
@@ -219,36 +182,36 @@ class MenuPlayer(Menu):
             pos.y -= (i.form.size.y/2 - i.form.pivot.y)
             item_canvas = CanvasWindow(i.form, vec=pos)
             self.sub_window.next_y = self.sub_window.vec.y + 8
-            self.sub_window.add_child(item_canvas)
+            self.sub_window.add(item_canvas)
             item_canvas.display(1)
         self.sub_window.display(1)
 
     def menu_proficiency(self):
         count = 0
         for i in self.host.proficiency:
-            button = Menu.make_button([i.title()], None, None)
+            button = Menu.make([i.title()], None, None)
             if count < 6:
-                self.window.add_child(button)
+                self.window.add(button)
             else:
-                self.sub_window.add_child(button)
+                self.sub_window.add(button)
             count += 1
         self.sub_window.display(1)
 
     def menu_status(self):
         for i in self.host.states.buffs:
             rmb = self.get_message(i.describe().split('\n'))
-            self.window.add_child(Menu.make_button([i.name.title()], rmb, rmb, color=Window.fore_color0))
+            self.window.add(Menu.make([i.name.title()], rmb, rmb, color=Window.fore_color0))
             if i.duration == -1:
                 dur = 'Persistent'
             else:
                 dur = str(i.duration)
-            self.sub_window.add_child(Menu.make_button([dur], None, None, color=Window.fore_color0))
+            self.sub_window.add(Menu.make([dur], None, None, color=Window.fore_color0))
         self.sub_window.display(1)
 
     def menu_help(self):
         lmb = self.get_message(['WASD and LMB/RMB'])
         rmb = self.get_message(['Display default game controls'])
-        button = Menu.make_button(['Controls'], lmb, rmb)
-        self.window.add_child(button)
+        button = Menu.make(['Controls'], lmb, rmb)
+        self.window.add(button)
         self.window.display(1)
         self.sub_window.display(1)

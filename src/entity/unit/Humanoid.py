@@ -109,7 +109,7 @@ class Humanoid(Unit):
 
     def draw(self, surface):
         x = self.vec.x + self.form.organs[0].lower_joint.x
-        y = self.vec.y + self.form.organs[0].lower_joint.y - self.form.height
+        y = self.vec.y + self.form.organs[0].lower_joint.y + 2
         arm = -(self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
         self.weapon.form.rotate(arm + 90 + (self.weapon.rotation * self.direction))
         self.weapon.form.draw(surface, x, y)
@@ -119,9 +119,9 @@ class Humanoid(Unit):
         arm = -(self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
         self.headgear.form.pivot.y = self.headgear.form.size.y
         self.headgear.form.rotate(arm - 90)
-        self.headgear.form.draw(surface, x, y - self.form.height)
+        self.headgear.form.draw(surface, x, y)
         x = self.vec.x + self.form.organs[5].lower_joint.x
-        y = self.vec.y + self.form.organs[5].lower_joint.y - self.form.height
+        y = self.vec.y + self.form.organs[5].lower_joint.y
         arm = -(self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
         self.offhand.form.rotate(arm + 110 + (self.offhand.rotation * self.direction))
         self.offhand.form.draw(surface, x, y)
@@ -129,9 +129,9 @@ class Humanoid(Unit):
     def get_dodge(self):
         if self.action.current_action == 'down':
             return 0
-        r = self.get_proficiency('Dodge') + self.armor.armor
+        r = self.get_proficiency('dodge') + self.armor.armor
         if self.action.current_action == 'block':
-            if self.get_proficiency('Block'):
+            if self.get_proficiency('block'):
                 return self.offhand.weight * 50
             else:
                 r += self.offhand.weight * 10 + 10
@@ -190,18 +190,20 @@ class Humanoid(Unit):
         return self.headgear.name != 'Head'
 
     def get_possessions(self):
-        r = [self.armor]
+        r = [self.weapon]
         r += self.armor.items
         r.append(self.headgear)
-        r.append(self.weapon)
+        r.append(self.armor)
         r.append(self.offhand)
         return r
 
     def get_accessibles(self):
-        r = self.pos[0].things.copy()
-        r += self.armor.items
-        r.append(self.weapon)
-        r.append(self.offhand)
+        r = []
+        from src.entity.unit.item.Item import Item
+        for thing in self.pos[0].things:
+            if isinstance(thing, Item):
+                r.append(thing)
+        r += self.get_possessions()
         return r
 
     def get_gold(self):

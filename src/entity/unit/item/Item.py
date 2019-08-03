@@ -53,11 +53,14 @@ class Item(Prop):
         self.vec = self.vec + 0
         self.relocate(self.host.pos[0].x, self.host.pos[0].y, force=1)
         self.host = None
-        self.form.rotate(0)
+        self.set_form(self.form_name)
         self.add()
 
     def get_value(self):
         return 1
+
+    def get_display_name(self):
+        return self.name
 
     def describe(self):
         r = self.name
@@ -109,3 +112,6 @@ class Item(Prop):
                                                    distance=i)
             self.location.attack.register(damage, tile, chance=dmg, type='batter',
                                           hitter=self.host, callback=on_attack)
+
+    def update(self):
+        pass

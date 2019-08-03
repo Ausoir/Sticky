@@ -11,7 +11,6 @@ class Tags:
     land = 'cd'
     cover = 'cc'
     support = 'cs'
-    armor = 'amr'
     humanoid = 'hum'
     flesh = 'if'
     plant = 'iv'

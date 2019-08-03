@@ -7,3 +7,4 @@ scholar,[Gold Chalk,Scroll Bag,Scorch Scroll,Dispell Scroll,Scry Scroll,Levitate
 tailor,[Casual Wear,Green Robe,Teal Robe,Blue Robe,Indigo Robe,Red Robe,Traveller Gear]
 blacksmith,[Dagger,Broadsword,Mace,Katana,Axe,Leather Armor,Chainmail]
 antique,[Silver Robe,Gold Robe,White Robe,Black Robe]
+tinker,[Scrap,Plating,Tooth,Jelly]

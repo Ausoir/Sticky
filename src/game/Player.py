@@ -55,6 +55,7 @@ class Player:
             self.location.resize()
             self.background = Data.run_cache('data/image/background/' + self.location.header[2])
         else:
+            Global.main.weather = (10, 0, 30, 220)
             self.location.sight_range = 5
             self.location.resize()
             name = 'data/image/background/' + self.location.header[2] + '_night'

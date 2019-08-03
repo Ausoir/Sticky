@@ -69,7 +69,7 @@ class Actions:
     @staticmethod
     def knockdown(victim):
         if isinstance(victim, Unit):
-            if not victim.get_proficiency('Constitution'):
+            if not victim.get_proficiency('constitution'):
                 victim.action.set('down', auto=1)
             else:
                 victim.form.set('drop')
@@ -152,9 +152,7 @@ class Actions:
             slow = 0
         if self.host.gravity:
             front = self.host.get_offset_tile(self.host.direction, 0)
-            if front.is_land([Tile.COLLIDE_UNIT]):
-                self.set('attack')
-            elif front.is_land(Tile.CHECK_FIRM):
+            if front.is_land(Tile.CHECK_FIRM):
                 if not self.host.get_offset_tile(self.host.direction, -1).is_land(Tile.CHECK_FIRM):
                     self.set('jump')
                 else:
@@ -294,7 +292,7 @@ class Actions:
             self.host.states.trigger(['attack', target])
         self.exert(0, 1)
         front = self.host.get_offset_tile(self.host.direction, 0)
-        self.host.location.attack.register(1, front, type='batter', chance=1, callback=callback)
+        self.host.location.attack.register(1, front, type='batter', delay=0, chance=1, callback=callback)
         self.make(animation='attack', turn=4)
 
     def swing(self):
@@ -323,16 +321,16 @@ class Actions:
         self.host.move(self.host.direction, 0)
         rand = random.randint(-15, 15)
         self.host.form.rotate_appendage(40, 0, self.host.next_target, offset=rand)
-        prof = self.host.get_proficiency('Lunge')
+        prof = self.host.get_proficiency('lunge')
         self.host.weapon.attack(damage=0, chance=prof, callback=hit)
         self.make(turn=max(1, self.host.weapon.speed - prof))
 
     def flurry(self):
         self.host.weapon.rotation = 10
-        self.exert(1, self.host.weapon.weight * 3)
-        self.exert(0, self.host.weapon.weight + 1)
+        self.exert(1, self.host.weapon.weight)
+        self.exert(0, self.host.weapon.weight)
         variance = Global.r.rand_int(0, self.host.weapon.damage)
-        self.host.weapon.attack(chance=self.host.get_proficiency('Flurry') - variance)
+        self.host.weapon.attack(chance=self.host.get_proficiency('flurry') - variance)
         rand = random.randint(-15, 15)
         self.host.form.rotate_appendage(38, 0, self.host.next_target, offset=rand)
         self.host.form.rotate_appendage(38, 5, self.host.next_target, offset=rand)

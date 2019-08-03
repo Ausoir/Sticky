@@ -21,6 +21,10 @@ class Main:
         pygame.font.init()
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(Global.DISPLAY, pygame.DOUBLEBUF, 16)
+        self.overlay = pygame.Surface(Global.DISPLAY, pygame.SRCALPHA, 16)
+        self.overlay = self.overlay.convert_alpha(self.overlay)
+        self.weather = None
+        self.fade = 0
         Math.init()
         Global.r = Random()  # todo: set to constant on production
         Space.reusable = Space()
@@ -48,7 +52,7 @@ class Main:
         Global.SCREEN_TILES = (int(Global.DISPLAY[0] / Global.BLOCK), int(Global.DISPLAY[1] / Global.BLOCK))
         self.player.background.resize(Global.DISPLAY)
         self.player.location.resize()
-        Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 32)
+        Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 16)
 
     def loop(self):
         dt = 0
@@ -85,6 +89,13 @@ class Main:
         Group.effects.draw(self.screen)
         self.player.monologue.draw(self.screen)
         Global.menu.draw(self.screen)
+        if self.weather:
+            self.overlay.fill(self.weather)
+            self.screen.blit(self.overlay, (0, 0))
+        if self.fade > 0:
+            self.overlay.fill((0, 0, 0, self.fade))
+            self.screen.blit(self.overlay, (0, 0))
+            self.fade -= 4
         self.textbox.draw(self.screen)
         pygame.display.flip()
 

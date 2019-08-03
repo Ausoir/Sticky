@@ -27,12 +27,15 @@ linen,g_9x1,2,0,0
 ancient,g_10x1,1,0,0
 ancient horizontal,g_11x1,1,0,0
 ancient back,g_12x1,2,0,0
-mud,g_14x2,2,0,0
+mud,g_14x2,2,0,0 // OBSOLETE
 bush,g_10x2,2,1,0
 bush edge left,g_11x2,2,1,0
 bush edge right,g_11x2,2,0,0
-bush left,g_10x2,1,1,0 // OBSOLETE
-leaf left,g_13x2,3,1,0 // OBSOLETE
-leaf right,g_13x2,3,0,0 // OBSOLETE
-leaf corner left,g_13x2,3,1,1 // OBSOLETE
-leaf corner right,g_13x2,3,0,1 // OBSOLETE
+sand,g_12x2,1,0,0
+sand top,g_13x2,1,0,0
+sand left,g_14x2,1,1,0
+sand right,g_14x2,1,0,0
+sand edge left,g_14x2,1,1,0
+sand edge right,g_14x2,1,0,0
+sand corner left,g_15x2,1,1,0
+sand corner right,g_15x2,1,0,0

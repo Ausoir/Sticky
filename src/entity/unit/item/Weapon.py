@@ -1,11 +1,10 @@
 from src.entity.unit.item.Equipment import Equipment
-from src.game.Tags import Tags
 
 
 class Weapon(Equipment):
     def __str__(self):
         return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + ','.join(str(x) for x in self.range) + '],' \
-               + str(self.weight) + ',' + str(self.damage) + ',' + str(self.speed)
+               + str(self.damage) + ',' + str(self.speed)
 
     def load(self, arg):
         index = super().load(arg)
@@ -18,12 +17,18 @@ class Weapon(Equipment):
         self.speed = arg[index]
         return index + 1
 
+    def set_form(self, arg):
+        if not self.form:
+            super().set_form(arg)
+
+    def on_unequip(self):
+        self.form.rotate(0)
+        super().on_unequip()
+
     def describe(self):
         r = super().describe()
         r += '\nRange: ' + ','.join(str(x) for x in self.range)
-        r += '\nWeight: ' + str(self.weight)
         r += '\nAttack: ' + str(self.damage)
-        r += '\nDamage: 1'
         r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
         return r
 
@@ -42,24 +47,22 @@ class Weapon(Equipment):
 
     def get_value(self):
         if self.durability == -1:
-            hp = 3
+            hp = 4
         else:
-            hp = min(2, int(self.durability / 8))
+            if self.max_durability >= 16:
+                hp = 1
+            elif self.max_durability >= 32:
+                hp = 2
+            elif self.max_durability >= 64:
+                hp = 3
+            else:
+                hp = 0
         reach = len(self.range)
-        if 1 in self.range:
-            reach += 1
         other = 0
         if 'ps' in self.tags:
             other += 1
         if 'is' in self.tags:
             other += 1
-        weight = int((self.weight + 1) / 2)
-        score = hp + other + reach + self.damage - weight
+        damage = int(self.damage / 2)
+        score = hp + other + reach + damage - self.weight - self.speed
         return score
-
-    def die(self):
-        if Tags.sharp in self.tags:
-            self.tags.remove(Tags.sharp)
-            self.durability = 8
-        else:
-            super().die()

@@ -55,7 +55,13 @@ class Unit(Prop):
         self.form = Body(arg)
 
     def draw(self, surface):
-        super().draw(surface)
+        diff = self.pos[0].get_vec() + (Global.HALF_BLOCK, Global.BLOCK) - self.vec
+        self.vec.x += diff.x * .07
+        if 0 < diff.y and self.gravity:
+            self.vec.y += min(16, diff.y)
+        else:
+            self.vec.y += diff.y * .07
+        self.form.draw(surface, self.vec.x, self.vec.y)
         self.form.update()
 
     def turn(self):
@@ -102,7 +108,7 @@ class Unit(Prop):
 
     def on_fall(self, distance):
         super().on_fall(distance)
-        if distance > 1 and not self.get_proficiency('Constitution'):
+        if distance > 1 and not self.get_proficiency('constitution'):
             self.action.set('down', auto=1)
         else:
             if not self.action.auto:
@@ -125,7 +131,7 @@ class Unit(Prop):
     def get_dodge(self):
         if self.action.current_action == 'down':
             return 0
-        r = self.get_proficiency('Dodge')
+        r = self.get_proficiency('dodge')
         if self.action.current_action == 'block':
             self.action.exert(1, 1)
             r += 4
@@ -154,4 +160,11 @@ class Unit(Prop):
         return 0
 
     def get_proficiency(self, school):
-        return 1 if school in self.proficiency else 0
+        return 1 if school.lower() in self.proficiency else 0
+
+    def is_safe(self):
+        for unit in self.location.record:
+            if isinstance(unit, Unit):
+                if self.faction != unit.faction and unit.pilot.var == self:
+                    return False
+        return True

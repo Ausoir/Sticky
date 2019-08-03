@@ -1,5 +1,5 @@
 Jelly,A blob of slime goo
-Fiber,A fibrous material that can be used to repair or produce armor
+Fiber,A fibrous material that can be used to repair equipment
 Gold Robe,A magnificent robe laced with gold
 Food,Use to remove <Hunger> status
 Backpack,Attached to any armor with an empty center slot for additional inventory space

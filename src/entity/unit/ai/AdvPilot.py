@@ -46,18 +46,6 @@ class AdvPilot(Pilot):
                 self.host.input('block', None)
                 return True
 
-    def spot_item(self, targets):
-        self.priority = 3
-        weapons = []
-        for i in targets:
-            if isinstance(i, Weapon):
-                weapons.append(i)
-        if weapons and not self.host.is_armed():
-            self.var = self.prioritize(weapons)
-            self.add_task(Pickup(self))
-            self.add_task(Move(self, 1))
-            self.add_task(self.move)
-
     def strategize(self):
         if self.host.weapon.name == 'Bow':
             self.hunt.attack = Range(self)

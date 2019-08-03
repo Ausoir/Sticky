@@ -1,28 +1,7 @@
-item upgrade
+brick complex
+sewers
+abandoned tower
 
-static maps
-port town (can start)
- * L1) garden (slimes)
- * L2) egg farm nest (roaches for eggs) - need levitate
- * L1~3) sewer (slimes, venom)
- * L3) downtown (thugs, SHOP)
- * L4) sewer -> rogue hideout (rogues, get gold)
- * L4) field -> beaches (spear natives)
-   port sails to -> mine town
-island (can start)
-   L1) garden (slimes)
-   L1) egg farm nest (roaches for eggs)
-   L1~3) field (slimes)
-   L2) snake pit (snakes)
- * L2) casino (fighters)
- * L3) maze bar (thugs, rogues, SHOP)
- * L4) maze bar -> labyrinth (taurus)
- * L4) egg caves -> spider caves (spiders)
-   L5) warehouse (guards)
-   L6) cemetery (undead)
-   L7+) spider caves -> abyss
-   port to -> port town
-bloody waters swamp ritual city
 
 -- classes
 Blacksmith - forge armor/weapon

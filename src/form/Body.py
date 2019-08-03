@@ -24,24 +24,28 @@ class Body:
         self.current_animation = None
         self.state_name = 'idle'
         self.animation_ended = 0
-        self.height = 0
-        self.leg = []
+        self.root = None
 
         for x in data[2]:
             self.motion[x[0]] = x[1]
         parent = []
         for x in self.model:
-            parent.append(x[0])
-            organ = Appendage(Data.run_cache(x[1]), part=x[2], resize=x[3])
+            parent.append([x[0], x[1]])
+            organ = Appendage(Data.run_cache(x[2]), meta=x[3])
             self.organs.append(organ)
         for k, x in enumerate(self.organs):
-            if x.part == Body.LEG:
-                self.leg.append(k)
-            if abs(parent[k]) != k:
-                x.set_parent(self.organs[abs(parent[k])], parent[k] < 0)
-        for k, organ in enumerate(self.organs):
-            organ.lower_joint.load(self.animation[0][k][0], self.animation[0][k][1])
+            if parent[k][0] == 'r':
+                self.root = x
+            else:
+                int_parent = int(parent[k][1])
+                x.set_parent(self.organs[int_parent], parent[k][0])
         self.set('idle')
+        for k, organ in enumerate(self.organs):
+            # noinspection PyTypeChecker
+            x = self.current_animation[k][0] + self.current_animation[len(self.current_animation) - 2][0]
+            # noinspection PyTypeChecker
+            y = self.current_animation[k][1] + self.current_animation[len(self.current_animation) - 2][1]
+            organ.lower_joint.load(x, y)
 
     def randomize(self, seed):
         self.seed = seed
@@ -49,7 +53,7 @@ class Body:
 
     def draw(self, surface, x, y):
         for i in self.organs:
-            i.draw(surface, x, y - self.height)
+            i.draw(surface, x, y)
 
     def update(self):
         if self.timer.update():
@@ -61,6 +65,7 @@ class Body:
                 dy = (self.current_animation[k][1] + diff.y) / self.timer.max
                 organ.lower_joint += (dx, dy)
                 organ.update()
+            self.root.upper_joint.load(self.current_animation[len(self.current_animation) - 2])
 
     def set(self, state):
         if self.state_name in self.motion:
@@ -69,11 +74,6 @@ class Body:
             self.state_name = 'idle'
         self.current_clip = 0
         self.update_clip()
-        self.height = -999
-        for i in self.leg:
-            self.height = max(self.height, self.current_animation[i][1] - Global.HALF_BLOCK - 1)
-        if self.height == -999:
-            self.height = 0
 
     def update_clip(self):
         self.animation_ended = 0
@@ -95,8 +95,8 @@ class Body:
 
     def randomize_once(self, mag):
         r = []
-        for i in self.current_animation:
-            if isinstance(i, list):
+        for k, i in enumerate(self.current_animation):
+            if k < len(self.current_animation) - 2:
                 r.append([i[0] + Global.r.rand_int(-mag, mag), i[1] + Global.r.rand_int(-mag, mag)])
             else:
                 r.append(i)
@@ -106,8 +106,8 @@ class Body:
         for clip in self.motion[arg]:
             if clip != -1:
                 r = []
-                for i in self.animation[clip]:
-                    if isinstance(i, list):
+                for k, i in enumerate(self.animation[clip]):
+                    if k < len(self.animation[clip]) - 2:
                         r.append([i[0] + random.randint(-mag, mag), i[1] + random.randint(-mag, mag)])
                     else:
                         r.append(i)
@@ -115,12 +115,12 @@ class Body:
 
     def randomize_body(self, seed):
         random.seed(seed)
-        mag = random.gauss(.9, .08)
+        mag = random.gauss(.6, .1)
         r = []
         for clip in self.animation:
             r1 = []
-            for i in clip:
-                if isinstance(i, list):
+            for k, i in enumerate(clip):
+                if k < len(clip) - 1:
                     r1.append([int(i[0] * mag), int(i[1] * mag)])
                 else:
                     r1.append(i)

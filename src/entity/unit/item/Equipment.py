@@ -16,9 +16,44 @@ class Equipment(Item):
         self.weight = p[index]
         return index + 1
 
+    def get_enhance_chance(self):
+        return int(100 * (1 / max(1, self.get_level() + 1)))
+
+    def enhance(self, rng):
+        if rng <= self.get_enhance_chance():
+            mod = self.states.get('Modified')
+            if mod:
+                mod.var += 1
+            else:
+                self.states.add('Modified', -1, var=1)
+            return True
+        return False
+
+    def get_level(self):
+        mod = self.states.get('Modified')
+        if mod:
+            return mod.var
+        return 0
+
+    def get_display_name(self):
+        level = self.get_level()
+        if level > 0:
+            return self.name + ' +' + str(level)
+        else:
+            return self.name
+
     def describe(self):
-        r = 'Maximum Durability: ' + str(self.max_durability) + '\n'
-        r += 'Encumbrance: ' + str(self.weight) + '\n'
+        orig = self.name
+        self.name = self.get_display_name()
+        r = super().describe()
+        self.name = orig
+        r += '\nMarket Value: ' + str(self.get_value())
+        if self.durability != -1:
+            if self.max_durability == -1:
+                r += '\nMaximum Durability: Unbreakable'
+            else:
+                r += '\nMaximum Durability: ' + str(self.max_durability)
+        r += '\nEncumbrance: ' + str(self.weight)
         return r
 
     def get_reduction(self, damage):

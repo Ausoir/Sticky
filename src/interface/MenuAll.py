@@ -6,6 +6,14 @@ from src.interface.Window import Window
 
 
 class MenuAll(MenuPlayer):
+    def menu_choice(self):
+        self.history = [self.menu_choice]
+        text = [self.var[0]]
+        self.window.add(Menu.make(text, None, None, color=Window.fore_color0, hover=False, width=320))
+        for i in range(len(self.var[1])):
+            self.window.add(Menu.make([self.var[1][i]], self.var[2][i], None, name=i, width=320))
+        self.sub_window.display(1)
+
     def menu_travel(self):
         self.history = [self.menu_travel]
         penalty = 0
@@ -18,17 +26,17 @@ class MenuAll(MenuPlayer):
             else:
                 text = ['You are starving. You can force travel, but without treatment you will die soon after.',
                         'Travel to [' + destination + '] ?']
-                panel = Menu.make_button(text, None, None, color=Window.fore_color0, hover=False, width=320)
+                panel = Menu.make(text, None, None, color=Window.fore_color0, hover=False, width=320)
                 option = 'Force Travel'
-                self.window.add_child(panel)
+                self.window.add(panel)
                 penalty = 2
         else:
             text = ['Travel to [' + destination + '] ?']
-            panel = Menu.make_button(text, None, None, color=Window.fore_color0, hover=False, width=320)
+            panel = Menu.make(text, None, None, color=Window.fore_color0, hover=False, width=320)
             panel.normal_font_color = Window.font_color1
             panel.hover_font_color = Window.font_color3
             panel.redraw()
-            self.window.add_child(panel)
+            self.window.add(panel)
         from src.entity.Space import Space
 
         def travel():
@@ -40,24 +48,20 @@ class MenuAll(MenuPlayer):
             Global.main.player.travel(self.var[0], Space(int(self.var[1]), int(self.var[2])))
         rmb = self.get_message(['Travel to ' + destination])
         self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-        self.window.add_child(Menu.make_button([option], travel, rmb, width=320))
+        self.window.add(Menu.make([option], travel, rmb, width=320))
         self.sub_window.display(1)
 
     def menu_shop(self):
-        def click(item):
-            def buy():
-                if Global.main.player.character.modify_gold(-item.get_value()):
-                    item.relocate(Global.main.player.character.pos[0].x, Global.main.player.character.pos[0].y, force=1)
-                    item.add()
-            return buy
+        def buy(item):
+            if Global.main.player.character.modify_gold(-item.get_value()):
+                item.relocate(Global.main.player.character.pos[0].x, Global.main.player.character.pos[0].y, force=1)
+                item.add()
         self.history = [self.menu_shop]
-        from src.entity.Stock import Stock
         for i in self.var:
-            item = Stock.get(i)
-            gold = str(item.get_value()) + ' Gold'
-            rmb = self.get_message(item.describe().split('\n'))
-            self.window.add_child(Menu.make_button([i], click(item), rmb))
-            self.sub_window.add_child(Menu.make_button([gold], None, rmb, color=Window.fore_color0, hover=False))
+            gold = str(i.get_value()) + ' Gold'
+            rmb = self.get_message(i.describe().split('\n'))
+            self.window.add(Menu.make([i.name], buy, rmb, name=i))
+            self.sub_window.add(Menu.make([gold], None, rmb, color=Window.fore_color0, hover=False))
         self.sub_window.display(1)
 
     def menu_trainer(self):
@@ -84,20 +88,20 @@ class MenuAll(MenuPlayer):
             return training
         self.history = [self.menu_trainer]
         text = ['<Chu>', 'What aspect would you like to strengthen?']
-        panel = Menu.make_button(text, None, None, color=Window.fore_color0, hover=False)
+        panel = Menu.make(text, None, None, color=Window.fore_color0, hover=False)
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
         panel.redraw()
-        self.window.add_child(panel)
+        self.window.add(panel)
         cost = Global.main.player.character.attributes.strength - Global.main.player.experience[0]
         rmb = self.get_message(['Increase Strength. Takes ' + str(cost) + ' sessions.'])
-        self.sub_window.add_child(Menu.make_button(['Strength'], click(0, cost), rmb))
+        self.sub_window.add(Menu.make(['Strength'], click(0, cost), rmb))
         cost = Global.main.player.character.attributes.agility - Global.main.player.experience[1]
         rmb = self.get_message(['Increase Agility. Takes ' + str(cost) + ' sessions.'])
-        self.sub_window.add_child(Menu.make_button(['Agility'], click(1, cost), rmb))
+        self.sub_window.add(Menu.make(['Agility'], click(1, cost), rmb))
         cost = Global.main.player.character.attributes.intelligence - Global.main.player.experience[1]
         rmb = self.get_message(['Increase Intelligence. Takes ' + str(cost) + ' sessions.'])
-        self.sub_window.add_child(Menu.make_button(['Intelligence'], click(2, cost), rmb))
+        self.sub_window.add(Menu.make(['Intelligence'], click(2, cost), rmb))
         self.sub_window.display(1)
 
     def menu_guild(self):
@@ -116,13 +120,11 @@ class MenuAll(MenuPlayer):
             reward = int((self.var[3] * self.var[4]) / 2) + 1
             text = ['<Guildsman>', 'We are currently in need of ' + str(self.var[3]) + ' ' + self.var[2] + '.',
                     'Deliver full amount within ' + dur + ' to receive ' + str(reward) + ' gold.']
-            panel = Menu.make_button(text, None, None, color=Window.fore_color0, hover=False, width=320)
-            panel.normal_font_color = Window.font_color1
-            panel.hover_font_color = Window.font_color3
+            panel = Menu.make(text, None, None, color=Window.fore_color0, hover=False, width=320)
             panel.redraw()
-            self.window.add_child(panel)
+            self.window.add(panel)
 
-            def sell():
+            def sell(name):
                 items = Global.main.player.character.get_accessibles()
                 count = 0
                 for item in items:
@@ -140,30 +142,26 @@ class MenuAll(MenuPlayer):
                     Global.main.player.monologue.text('No ' + self.var[2] + '...')
             rmb = self.get_message(['Provide ' + self.var[2]])
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-            self.window.add_child(Menu.make_button(['Provide ' + self.var[2]], sell, rmb, width=320))
+            self.window.add(Menu.make(['Provide ' + self.var[2]], sell, rmb, width=320))
             self.sub_window.display(1)
 
     def menu_craft(self):
         def add_button(window, text):
-            def craft():
+            def craft(arg):
                 Crafting.craft(self.host, text)
                 self.host.action.set('block')
                 self.toggle()
             if Crafting.is_craftable(self.host, text):
                 rmb = self.get_message(Crafting.describe(text).split('\n'))
-                button = Menu.make_button([text], craft, rmb)
+                button = Menu.make([text], craft, rmb)
             else:
                 rmb = self.get_message((Crafting.describe(text) + '\nRequirements not met.').split('\n'))
-                button = Menu.make_button([text], None, rmb, color=Window.fore_color0)
+                button = Menu.make([text], None, rmb, color=Window.fore_color0)
                 button.hover_font_color = window.normal_font_color
-            window.add_child(button)
-
-        def repair():
-            self.direct(self.menu_repair)
-
+            window.add(button)
         self.history = [self.menu_craft]
         desc = self.get_message(['Repair an equipment'])
-        self.window.add_child(Menu.make_button(['Repair'], repair, desc))
+        self.window.add(Menu.make(['Repair'], lambda l: self.direct(self.menu_repair), desc))
         for i in self.var[:5]:
             add_button(self.window, i)
         for i in self.var[5:]:
@@ -172,13 +170,12 @@ class MenuAll(MenuPlayer):
         self.sub_window.display(1)
 
     def menu_repair(self):
-        def click(mat, gear):
-            def repair():
-                if gear.max_durability > gear.durability:
-                    gear.durability = gear.max_durability
-                    mat.die()
-            return repair
-
+        def repair(arg):
+            gear = arg[1]
+            if gear.max_durability > gear.durability:
+                gear.durability = gear.max_durability
+                arg[0].die()
+            self.toggle()
         fiber = None
         items = self.host.get_accessibles()
         for i in items:
@@ -189,14 +186,98 @@ class MenuAll(MenuPlayer):
         if fiber:
             if self.host.is_armed():
                 text = ['Repair weapon with fiber']
-                self.window.add_child(Menu.make_button(text, click(fiber, self.host.weapon), rmb_fiber, width=320))
+                self.window.add(Menu.make(text, repair, rmb_fiber, width=320, name=[fiber, self.host.weapon]))
             if self.host.is_armored():
                 text = ['Repair armor with fiber']
-                self.window.add_child(Menu.make_button(text, click(fiber, self.host.armor), rmb_fiber, width=320))
+                self.window.add(Menu.make(text, repair, rmb_fiber, width=320, name=[fiber, self.host.armor]))
             if self.host.is_headgeared():
                 text = ['Repair headgear with fiber']
-                self.window.add_child(Menu.make_button(text, click(fiber, self.host.headgear), rmb_fiber, width=320))
+                self.window.add(Menu.make(text, repair, rmb_fiber, width=320, name=[fiber, self.host.headgear]))
         else:
             text = ['Cannot repair without fiber']
-            button = Menu.make_button(text, None, rmb_fiber, color=Window.fore_color0, hover=False, width=320)
-            self.window.add_child(button)
+            button = Menu.make(text, None, rmb_fiber, color=Window.fore_color0, hover=False, width=320)
+            self.window.add(button)
+        self.sub_window.display(1)
+
+    def menu_anvil(self):
+        self.history = [self.menu_anvil]
+        desc = self.get_message(['Repair an equipment'])
+        self.window.add(Menu.make(['Repair'], lambda l: self.direct(self.menu_repair), desc, width=320))
+        from src.entity.unit.item.Weapon import Weapon
+        if self.host.is_armed() and isinstance(self.host.weapon, Weapon):
+            text = 'Modify Weapon - %' + str(self.host.weapon.get_enhance_chance()) + ''
+            self.window.add(Menu.make([text], lambda l: self.direct(self.menu_mod_weapon), desc, width=320))
+        if self.host.is_armored():
+            self.window.add(Menu.make(['Modify Armor'], lambda l: self.direct(self.menu_repair), desc, width=320))
+        self.sub_window.display(1)
+
+    def menu_mod_weapon(self):
+        from src.entity.Effect import Effect
+
+        def reinforce(arg):
+            if self.host.weapon.enhance(Global.r.rand_int(0, 99)):
+                self.host.weapon.max_durability *= 2
+                if self.host.weapon.max_durability >= 256:
+                    self.host.weapon.durability = -1
+                    self.host.weapon.max_durability = -1
+            else:
+                Effect.make('disintegrate', self.host.vec)
+                self.host.weapon.die()
+            arg.die()
+            self.toggle()
+
+        def grip(arg):
+            if self.host.weapon.enhance(Global.r.rand_int(0, 99)):
+                self.host.weapon.speed -= 1
+            else:
+                Effect.make('disintegrate', self.host.vec)
+                self.host.weapon.die()
+            arg.die()
+            self.toggle()
+
+        def blade(arg):
+            if self.host.weapon.enhance(Global.r.rand_int(0, 99)):
+                self.host.weapon.damage += 1
+            else:
+                Effect.make('disintegrate', self.host.vec)
+                self.host.weapon.die()
+            arg.die()
+            self.toggle()
+
+        def body(arg):
+            if self.host.weapon.enhance(Global.r.rand_int(0, 99)):
+                self.host.weapon.weight -= 1
+            else:
+                Effect.make('disintegrate', self.host.vec)
+                self.host.weapon.die()
+            arg.die()
+            self.toggle()
+
+        items = self.host.get_accessibles()
+        flag = ['Scrap', 'Rubber', 'Tooth', 'Plating']
+        deny = self.get_message(['No materials...'])
+        lmb = [deny, deny, deny, deny]
+        for i in items:
+            if i.name == flag[0]:
+                flag[0] = i
+                lmb[0] = reinforce
+            if i.name == flag[1]:
+                flag[1] = i
+                lmb[1] = grip
+            if i.name == flag[2]:
+                flag[2] = i
+                lmb[2] = blade
+            if i.name == flag[3]:
+                flag[3] = i
+                lmb[3] = body
+        desc = self.get_message(['Reinforce to double maximum durability. Requires Scrap.'])
+        self.window.add(Menu.make(['Reinforce with Scrap'], lmb[0], desc, width=320, name=flag[0]))
+        if self.host.weapon.speed > 1:
+            desc = self.get_message(['Improve grip, increasing weapon speed. Requires Rubber.'])
+            self.window.add(Menu.make(['Improve Grip with Rubber'], lmb[1], desc, width=320, name=flag[1]))
+        desc = self.get_message(['Grind or attach weapon blade, increasing attack. Requires Tooth.'])
+        self.window.add(Menu.make(['Modify Blade with Tooth'], lmb[2], desc, width=320, name=flag[2]))
+        if self.host.weapon.weight > 1:
+            desc = self.get_message(['Improve weapon body, decreasing weight. Requires Plating.'])
+            self.window.add(Menu.make(['Modify Body with Plating'], lmb[3], desc, width=320, name=flag[3]))
+        self.sub_window.display(1)

@@ -1,5 +1,4 @@
 from src.entity.unit.item.Equipment import Equipment
-from src.game.Tags import Tags
 from src.tools.Data import Data
 
 
@@ -51,7 +50,7 @@ class Armor(Equipment):
         return index + 1
 
     def set_form(self, arg):
-        Data.initialize_image(self.name, arg, (16, 48))
+        Data.initialize_image(self.name, arg, (16, 32))
         super().set_form(self.name + '_0x0')
         self.form_armL = Data.run_cache(self.name + '_1x0')
         self.form_armR = self.form_armL.clone()
@@ -71,21 +70,14 @@ class Armor(Equipment):
             item.add()
         super().die()
 
-    def on_unequip(self):
-        super().on_unequip()
-        self.form.size.y = 48
-        self.form.pivot.y = 24
-        self.form.rotate(180)
-
     def get_value(self):
         inv = 0
         for row in self.inventory:
             for cell in row:
-                if cell != '1':
+                if cell != 1:
                     inv += 1
         inv += len(self.pockets)
-        r = int(self.durability / 2) + self.armor + inv
-        r = max(0, int(r / 2) - 5)
+        r = int(self.durability / 4) + self.armor + inv - self.weight + 1
         return r
 
     def describe(self):
@@ -168,21 +160,3 @@ class Armor(Equipment):
             for ix in range(item.pos[0].x, item.pos[0].x + item.volume[0]):
                 if self.inventory[iy][ix] == state_from:
                     self.inventory[iy][ix] = state_to
-
-    def get_reduction(self, damage):
-        total = 0
-        armors = []
-        for i in self.items:
-            if Tags.armor in i.tags:
-                final_damage = max(0, min(damage, i.durability))
-                i.durability = i.durability - final_damage
-                damage -= final_damage
-                total += i.durability
-                if i.durability == 0:
-                    armors.append(i)
-        rt, damage = super().get_reduction(damage)
-        total += rt
-        for i in armors:
-            x, y = i.pos[0].x, i.pos[0].y
-            self.get_item_at(x, y, pop=1)
-        return total, damage

@@ -1,4 +1,5 @@
 main = None
+player = None
 font = None
 DISPLAY = (1200, 680)
 BLOCK = 40

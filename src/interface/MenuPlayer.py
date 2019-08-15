@@ -29,15 +29,18 @@ class MenuPlayer(Menu):
         self.window.add(Menu.make(['Strength'], rmb, rmb, color=color))
         self.sub_window.add(Menu.make([str(self.host.attributes.strength)], rmb, rmb, color=color))
         rmb = self.get_message(['Agility represents your maximum encumbrance.',
-                                'More encumbrance allows you to wear more encumbering armor and headgear.'])
+                                'More encumbrance allows you to wear more advanced armor and headgear.'])
         self.window.add(Menu.make(['Agility'], rmb, rmb, color=color))
         self.sub_window.add(Menu.make([str(self.host.attributes.agility)], rmb, rmb, color=color))
         rmb = self.get_message(['Intelligence represents your maximum memory.',
                                 'More memory allows you to craft more spells and items from memory.'])
         self.window.add(Menu.make(['Intelligence'], rmb, rmb, color=color))
         self.sub_window.add(Menu.make([str(self.host.attributes.intelligence)], rmb, rmb, color=color))
+        rmb = self.get_message(['Nutrition is required to perform time consuming actions such as travelling maps.'])
+        self.window.add(Menu.make(['Charisma'], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.breath)], rmb, rmb, color=color))
         self.window.add(Menu.make(['Status'], lambda l: self.direct(self.menu_status), None))
-        self.window.add(Menu.make(['Proficiency'], lambda l: self.direct(self.menu_proficiency), None))
+        self.sub_window.add(Menu.make(['Proficiency'], lambda l: self.direct(self.menu_proficiency), None))
         self.sub_window.display(1)
 
     def menu_knowledge(self):
@@ -55,9 +58,9 @@ class MenuPlayer(Menu):
                 button.hover_font_color = window.normal_font_color
             window.add(button)
 
-        for i in Global.main.player.knowledge[:6]:
+        for i in Global.player.knowledge[:6]:
             add_button(self.window, i)
-        for i in Global.main.player.knowledge[6:]:
+        for i in Global.player.knowledge[6:]:
             add_button(self.sub_window, i)
         self.window.display(1)
         self.sub_window.display(1)
@@ -66,7 +69,7 @@ class MenuPlayer(Menu):
         def assign(index):
             self.var = index
             self.direct(self.menu_slot_reassign)
-        control = Global.main.player.control
+        control = Global.player.control
         key_buttons = []
         for k, v in control.keymap.items():
             if v[:4] == 'item':

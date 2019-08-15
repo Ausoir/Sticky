@@ -33,18 +33,14 @@ class Interaction:
             Global.menu.var = conversation
             Global.menu.state = Global.menu.menu_craft
             Global.menu.display(1)
+        elif Tags.restable in target.tags:
+            if Global.player.is_safe() and Global.player.eat():
+                Global.main.colorize(0, [0, 0, 0, 255], fade=2)
+                Global.player.sleep(1)
+                Global.player.character.attributes.breath = 0
         elif target.name == 'Anvil':
             Global.menu.state = Global.menu.menu_anvil
             Global.menu.display(1)
-        elif target.name in ['Bed', 'Sofa']:
-            hunger = Global.main.player.character.states.get('Hunger')
-            if not hunger:
-                Global.main.fade = 255
-                Global.main.player.sleep(1)
-                Global.main.player.character.attributes.breath = 0
-                Global.main.player.character.states.add('Hunger', -1)
-            else:
-                Global.main.player.monologue.text('Cannot sleep when hungry')
         elif target.name in ['Talker', 'Merchant']:
             target.talk()
         elif target.name == 'Food':
@@ -55,6 +51,18 @@ class Interaction:
                 target.hit(1)
             else:
                 target.use()
+        elif target.name == 'Pockets':
+            if target.host.is_armored():
+                used = False
+                if target.host.armor.inventory[3][0] == 1:
+                    target.host.armor.inventory[3][0] = 2
+                    used = True
+                if target.host.armor.inventory[3][2] == 1:
+                    target.host.armor.inventory[3][2] = 2
+                    used = True
+                if used:
+                    target.host.action.set('block')
+                    target.die()
         elif target.name == 'Backpack':
             if target.host.is_armored():
                 if target.host.armor.inventory[1][1] == 1:

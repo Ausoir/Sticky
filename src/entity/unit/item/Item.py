@@ -73,8 +73,6 @@ class Item(Prop):
         r += '\nVolume: ' + str(self.volume[0]) + 'x' + str(self.volume[1])
         if Tags.flesh in self.tags:
             r += '\nThis item is an organic material.'
-        if Tags.plant in self.tags:
-            r += '\nThis item contains plant fiber.'
         if Tags.insubstantial in self.tags:
             r += '\nThis item is insubstantial.'
         if Tags.metal in self.tags:

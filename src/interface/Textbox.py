@@ -14,13 +14,13 @@ class Textbox:
 
     def input(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key in Global.main.player.control.keymap:
-                if Global.main.player.control.keymap[event.key] == 'text':
+            if event.key in Global.player.control.keymap:
+                if Global.player.control.keymap[event.key] == 'text':
                     self.display = 100
                     self.color1 = (200, 230, 200)
                     self.color2 = (60, 100, 60)
                     Global.main.text_mode = False
-                    Global.main.player.control.player.input('command', (0, 0))
+                    Global.player.control.player.input('command', (0, 0))
                     return
             self.display = -1
             self.color1 = (220, 220, 220)

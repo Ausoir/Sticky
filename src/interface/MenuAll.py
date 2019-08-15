@@ -16,36 +16,24 @@ class MenuAll(MenuPlayer):
 
     def menu_travel(self):
         self.history = [self.menu_travel]
-        penalty = 0
         destination = self.var[0].title()
         option = 'Travel'
-        if Global.main.player.character.states.get('Hunger'):
-            if Global.main.player.character.states.get('Sick'):
-                self.show_dialog(['You cannot travel because you are dying. Check your status menu.'])
-                return
-            else:
-                text = ['You are starving. You can force travel, but without treatment you will die soon after.',
-                        'Travel to [' + destination + '] ?']
-                panel = Menu.make(text, None, None, color=Window.fore_color0, hover=False, width=320)
-                option = 'Force Travel'
-                self.window.add(panel)
-                penalty = 2
-        else:
-            text = ['Travel to [' + destination + '] ?']
-            panel = Menu.make(text, None, None, color=Window.fore_color0, hover=False, width=320)
-            panel.normal_font_color = Window.font_color1
-            panel.hover_font_color = Window.font_color3
-            panel.redraw()
-            self.window.add(panel)
+        text = ['Travel to [' + destination + '] ?']
+        panel = Menu.make(text, None, None, color=Window.fore_color0, hover=False, width=320)
+        panel.normal_font_color = Window.font_color1
+        panel.hover_font_color = Window.font_color3
+        panel.redraw()
+        self.window.add(panel)
         from src.entity.Space import Space
 
-        def travel():
-            if penalty == 0:
-                self.host.states.add('Hunger', -1)
+        def travel(name):
+            if Global.player.depart == self.var[0]:
+                Global.player.travel(self.var[0], Space(int(self.var[1]), int(self.var[2])))
+            elif Global.player.eat():
+                Global.player.sleep(1)
+                Global.player.travel(self.var[0], Space(int(self.var[1]), int(self.var[2])))
             else:
-                self.host.states.add('Sick', Global.r.rand_int(60, 300))
-            Global.main.player.sleep(1)
-            Global.main.player.travel(self.var[0], Space(int(self.var[1]), int(self.var[2])))
+                self.toggle()
         rmb = self.get_message(['Travel to ' + destination])
         self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
         self.window.add(Menu.make([option], travel, rmb, width=320))
@@ -53,9 +41,11 @@ class MenuAll(MenuPlayer):
 
     def menu_shop(self):
         def buy(item):
-            if Global.main.player.character.modify_gold(-item.get_value()):
-                item.relocate(Global.main.player.character.pos[0].x, Global.main.player.character.pos[0].y, force=1)
+            if Global.player.pay(item.get_value()):
+                item.relocate(Global.player.character.pos[0].x, Global.player.character.pos[0].y, force=1)
                 item.add()
+            else:
+                self.toggle()
         self.history = [self.menu_shop]
         for i in self.var:
             gold = str(i.get_value()) + ' Gold'
@@ -67,24 +57,21 @@ class MenuAll(MenuPlayer):
     def menu_trainer(self):
         def click(stat, sessions):
             def training():
-                if not self.host.states.get('Hunger'):
-                    Global.main.player.sleep(1)
-                    self.host.states.add('Hunger', -1)
+                if Global.player.eat():
+                    Global.player.sleep(1)
                     if sessions <= 1:
-                        Global.main.player.experience[stat] = 0
+                        Global.player.experience[stat] = 0
                         if stat == 0:
-                            Global.main.player.character.attributes.strength += 1
+                            Global.player.character.attributes.strength += 1
                         elif stat == 1:
-                            Global.main.player.character.attributes.agility += 1
+                            Global.player.character.attributes.agility += 1
                         elif stat == 2:
-                            Global.main.player.character.attributes.intelligence += 1
-                        Global.main.player.monologue.text('Completed current training!')
+                            Global.player.character.attributes.intelligence += 1
+                        Global.player.monologue.text('Completed current training!')
                     else:
-                        Global.main.player.experience[stat] += 1
-                        Global.main.player.monologue.text('Completed a training session.')
-                    self.toggle()
-                else:
-                    self.show_dialog(['You are too hungry to train!', 'Eat something first.'])
+                        Global.player.experience[stat] += 1
+                        Global.player.monologue.text('Completed a training session.')
+                self.toggle()
             return training
         self.history = [self.menu_trainer]
         text = ['<Chu>', 'What aspect would you like to strengthen?']
@@ -93,13 +80,13 @@ class MenuAll(MenuPlayer):
         panel.hover_font_color = Window.font_color3
         panel.redraw()
         self.window.add(panel)
-        cost = Global.main.player.character.attributes.strength - Global.main.player.experience[0]
+        cost = Global.player.character.attributes.strength - Global.player.experience[0]
         rmb = self.get_message(['Increase Strength. Takes ' + str(cost) + ' sessions.'])
         self.sub_window.add(Menu.make(['Strength'], click(0, cost), rmb))
-        cost = Global.main.player.character.attributes.agility - Global.main.player.experience[1]
+        cost = Global.player.character.attributes.agility - Global.player.experience[1]
         rmb = self.get_message(['Increase Agility. Takes ' + str(cost) + ' sessions.'])
         self.sub_window.add(Menu.make(['Agility'], click(1, cost), rmb))
-        cost = Global.main.player.character.attributes.intelligence - Global.main.player.experience[1]
+        cost = Global.player.character.attributes.intelligence - Global.player.experience[1]
         rmb = self.get_message(['Increase Intelligence. Takes ' + str(cost) + ' sessions.'])
         self.sub_window.add(Menu.make(['Intelligence'], click(2, cost), rmb))
         self.sub_window.display(1)
@@ -110,7 +97,7 @@ class MenuAll(MenuPlayer):
             self.show_dialog(['<Guildsman>', 'We do not need anything for now. Come back at a later date.'])
             return
         else:
-            dur = self.var[1] - Global.main.player.days
+            dur = self.var[1] - Global.player.days
             if dur % 2 == 1:
                 dur = str(int(dur / 2)) + ' and half days'
             elif dur > 2:
@@ -125,7 +112,7 @@ class MenuAll(MenuPlayer):
             self.window.add(panel)
 
             def sell(name):
-                items = Global.main.player.character.get_accessibles()
+                items = Global.player.character.get_accessibles()
                 count = 0
                 for item in items:
                     if item.name == self.var[2]:
@@ -134,12 +121,12 @@ class MenuAll(MenuPlayer):
                         count += 1
                 self.var[3] -= count
                 if self.var[3] <= 0:
-                    Global.main.player.monologue.text('Completed guild quest!')
-                    Global.main.player.character.modify_gold(reward)
+                    Global.player.monologue.text('Completed guild quest!')
+                    Global.player.character.modify_gold(reward)
                 elif count > 0:
-                    Global.main.player.monologue.text('Provided ' + str(count) + ' ' + self.var[2])
+                    Global.player.monologue.text('Provided ' + str(count) + ' ' + self.var[2])
                 else:
-                    Global.main.player.monologue.text('No ' + self.var[2] + '...')
+                    Global.player.monologue.text('No ' + self.var[2] + '...')
             rmb = self.get_message(['Provide ' + self.var[2]])
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
             self.window.add(Menu.make(['Provide ' + self.var[2]], sell, rmb, width=320))
@@ -161,7 +148,7 @@ class MenuAll(MenuPlayer):
             window.add(button)
         self.history = [self.menu_craft]
         desc = self.get_message(['Repair an equipment'])
-        self.window.add(Menu.make(['Repair'], lambda l: self.direct(self.menu_repair), desc))
+        self.window.add(Menu.make(['<Repair>'], lambda l: self.direct(self.menu_repair), desc))
         for i in self.var[:5]:
             add_button(self.window, i)
         for i in self.var[5:]:

@@ -194,7 +194,6 @@ class Humanoid(Unit):
         r += self.armor.items
         r.append(self.headgear)
         r.append(self.armor)
-        r.append(self.offhand)
         return r
 
     def get_accessibles(self):
@@ -219,7 +218,7 @@ class Humanoid(Unit):
         if amount > 0:
             for i in items:
                 if i.name == 'Gold':
-                    space = min(amount, i.capacity - i.durability)
+                    space = min(amount, 8 - i.durability)
                     i.durability += space
                     amount -= space
                 if amount == 0:

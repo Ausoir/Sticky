@@ -19,7 +19,7 @@ class Tile(Space):
     COLLIDE_TERRAIN = 10
     COLLIDE_OBJECT = 20
     COLLIDE_PROP = 30
-    COLLIDE_DOODAD = 35  # can't be collided with but can be stood on (bridges)
+    COLLIDE_DOODAD = 35
     COLLIDE_UNIT = 40
     COLLIDE_ITEM = 50
     fog = None
@@ -32,6 +32,7 @@ class Tile(Space):
         super().__init__(x, y)
         self.terrain = None
         self.things = List()
+        self.light = 0
 
     def __str__(self):
         if self.terrain:
@@ -45,15 +46,23 @@ class Tile(Space):
         return self.terrain
 
     def draw(self, surface):
-        pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-        surface.blit(Global.main.player.background.image, pos,
-                     (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
         if self.terrain:
+            if self.terrain.background:
+                pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
+                surface.blit(Global.player.background.image, pos,
+                             (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
             self.terrain.draw(surface)
+        else:
+            pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
+            surface.blit(Global.player.background.image, pos,
+                         (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
 
-    def draw_fog(self, surface):
-        Tile.fog.vec = self.get_vec()
-        Tile.fog.draw(surface)
+    def draw_overlay(self, surface):
+        if self.light <= 0:
+            pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
+            surface.blit(Global.main.overlay, (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
+        else:
+            self.light -= 1
 
     def get_vec(self):
         return self * Global.BLOCK

@@ -193,21 +193,6 @@ class Actions:
             else:
                 self.host.drop()
 
-    def offhand(self):
-        if not self.host.is_shielded():
-            from src.entity.unit.item.Item import Item
-            for thing in reversed(self.host.pos[0].things):
-                if thing != self.host.weapon and isinstance(thing, Item):
-                    self.host.swap()
-                    thing.on_equip(self.host)
-                    self.host.swap()
-                    break
-        else:
-            self.host.swap()
-            self.host.drop()
-            self.host.swap()
-        self.make(animation='interact', turn=3)
-
     def duck(self):
         ground = self.host.get_offset_tile(0, 1)
         if ground.is_climbable():
@@ -243,7 +228,11 @@ class Actions:
                             self.make('climb', turn=2)
                 else:
                     self.exert(1, 3)
-                    self.host.move(self.host.direction*1, -1)
+                    destination = self.host.get_offset_tile(self.host.direction, -1)
+                    if destination.is_land(Tile.CHECK_FIRM):
+                        self.host.move(0, -1)
+                    else:
+                        self.host.move(self.host.direction * 1, -1)
                     self.make(turn=2)
         else:
             self.host.move(0, -1)

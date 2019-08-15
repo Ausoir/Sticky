@@ -43,12 +43,12 @@ class Prop(Object):
             self.depth = 1
         if Tags.front in self.tags:
             self.depth = 5
-        if Tags.fog in self.tags:
-            self.collide = Tile.COLLIDE_FOG
         if Tags.indestructible in self.tags:
             self.hittable = 0
         if Tags.intangible in self.tags:
             self.collide = 0
+        elif Tags.fog in self.tags:
+            self.collide = Tile.COLLIDE_FOG
         elif Tags.land in self.tags:
             self.collide = Tile.COLLIDE_DOODAD
         return index
@@ -56,6 +56,14 @@ class Prop(Object):
     def turn(self):
         super().turn()
         self.states.update()
+
+    def glow(self, radius):
+        if not radius:
+            self.pos[0].light = 40
+        else:
+            aoe = self.location.get_area(self.pos[0], radius, radius)
+            for pos in aoe:
+                pos.light = 40
 
     def die(self):
         if self.loot:

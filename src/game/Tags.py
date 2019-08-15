@@ -13,7 +13,6 @@ class Tags:
     support = 'cs'
     humanoid = 'hum'
     flesh = 'if'
-    plant = 'iv'
     insubstantial = 'ii'
     metal = 'im'
     wood = 'iw'
@@ -22,6 +21,7 @@ class Tags:
     sharp = 'ps'
     scribing = 'pw'
     workable = 'pc'
+    restable = 'pr'
 
     @staticmethod
     def name(tag):
@@ -31,11 +31,11 @@ class Tags:
 
     @staticmethod
     def is_property(tag):
-        prop_tag = [Tags.flesh, Tags.plant, Tags.insubstantial, Tags.metal, Tags.wood, Tags.silver,
+        prop_tag = [Tags.flesh, Tags.insubstantial, Tags.metal, Tags.wood, Tags.silver,
                     Tags.paper, Tags.sharp, Tags.scribing]
         return tag in prop_tag
 
     @staticmethod
     def is_combustible(tags):
-        combustibles = [Tags.flesh, Tags.wood, Tags.plant, Tags.paper]
+        combustibles = [Tags.flesh, Tags.wood, Tags.paper]
         return any(elem in combustibles for elem in tags)

@@ -32,7 +32,7 @@ class Editor:
         self.prev_command = None
         self.fog_update = True
         self.selection = None
-        Camera.target = Stock.make('Force', Global.main.player.character.pos[0])
+        Camera.target = Stock.make('Force', Global.player.character.pos[0])
         Camera.target.location.remove(Camera.target)
 
     def update(self):
@@ -106,7 +106,7 @@ class Editor:
                 self.tool.cancel()
                 self.tool.selection = objs[0]
         elif action == 'player':
-            Global.main.player.character.relocate(m.x, m.y)
+            Global.player.character.relocate(m.x, m.y)
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -181,9 +181,9 @@ class Editor:
                 self.tool.selection.set_form(params[1])
         elif params[0] == 'make':
             self.location.construct_map(params[1])
-            Global.main.player.switch()
-            Global.main.player.travel('current', Space())
-            Global.main.player.switch()
+            Global.player.switch()
+            Global.player.travel('current', Space())
+            Global.player.switch()
         elif params[0] == 'background':
             self.location.header[2] = params[1]
         elif params[0] == 'camera':
@@ -206,19 +206,19 @@ class Editor:
             from src.map.Location import Location
             new = Location(params[1], ['0,[0,0,0,1],field', '', ''])
             new.save()
-            Global.main.player.switch()
-            Global.main.player.travel(params[1], Space())
-            Global.main.player.switch()
+            Global.player.switch()
+            Global.player.travel(params[1], Space())
+            Global.player.switch()
         elif params[0] == 'load':
             maps = Data.get_files('save', lambda x: x.endswith('.map'))
             if params[1] + '.map' in maps:
-                Global.main.player.switch()
-                Global.main.player.travel(params[1], Space())
-                Global.main.player.switch()
+                Global.player.switch()
+                Global.player.travel(params[1], Space())
+                Global.player.switch()
         elif params[0] == 'loadraw':
-            Global.main.player.switch()
-            Global.main.player.travel('../data/map/' + params[1], Space())
-            Global.main.player.switch()
+            Global.player.switch()
+            Global.player.travel('../data/map/' + params[1], Space())
+            Global.player.switch()
         elif params[0] == 'save':
             self.tool.cancel()
             self.location.name = params[1]

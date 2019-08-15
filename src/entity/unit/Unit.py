@@ -161,10 +161,3 @@ class Unit(Prop):
 
     def get_proficiency(self, school):
         return 1 if school.lower() in self.proficiency else 0
-
-    def is_safe(self):
-        for unit in self.location.record:
-            if isinstance(unit, Unit):
-                if self.faction != unit.faction and unit.pilot.var == self:
-                    return False
-        return True

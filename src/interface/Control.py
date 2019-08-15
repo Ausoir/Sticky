@@ -155,9 +155,9 @@ class Control:
                     Global.main.text_mode = True
                 elif command == 'switch':
                     self.clear_press(code)
-                    Global.main.player.switch()
+                    Global.player.switch()
                 else:
-                    if not Global.main.player.click(command, mouse):
+                    if not Global.player.click(command, mouse):
                         self.player.input(command, mouse)
         else:
             self.player.input('idle', mouse)

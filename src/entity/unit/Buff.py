@@ -60,6 +60,11 @@ class BuffTags:
     magic = 'm'
 
 
+class Modified(Buff):
+    def describe(self):
+        return 'This object has a +' + self.var + ' modification.'
+
+
 class Hunger(Buff):
     def describe(self):
         return 'You cannot travel or perform any time consuming actions.'
@@ -70,9 +75,16 @@ class Hunger(Buff):
             return 1
 
 
-class Modified(Buff):
+class Glow(Buff):
     def describe(self):
-        return 'This object has a +' + self.var + ' modification.'
+        return 'You emit light.'
+
+    def on_stack(self, duration, var):
+        self.duration = max(self.duration, duration)
+        self.var = max(self.var, var)
+
+    def on_update(self):
+        self.host.glow(self.var)
 
 
 class Bleed(Buff):
@@ -113,7 +125,7 @@ class Distraction(Buff):
 
 class Cripple(Buff):
     def describe(self):
-        return 'You take -1 to move speed, and are unable to jump.'
+        return 'You are unable to jump.'
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -163,6 +175,7 @@ class Fire(Buff):
         return 'You are immune to fire.'
 
     def on_update(self):
+        self.host.pos[0].light = 40
         if self.effect(6):
             Effect.make('kindle', self.host.vec)
 
@@ -198,6 +211,7 @@ class Shock(Buff):
         return 'You are immune to shock.'
 
     def on_update(self):
+        self.host.pos[0].light = 40
         if self.effect(6):
             Effect.make('shock', self.host.vec)
 
@@ -220,6 +234,7 @@ class Burn(Buff):
 
     def on_update(self):
         self.var += 1
+        self.host.glow(1)
         if not self.var % 8:
             self.host.hit(1)
             x = Global.r.rand_int(-1, 1)
@@ -267,7 +282,7 @@ class Banish(Buff):
         self.host.remove()
 
     def on_update(self):
-        if self.effect(2):
+        if self.effect(5):
             Effect.make('zwip', self.host.vec, offset=8)
 
 

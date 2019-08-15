@@ -9,7 +9,7 @@ from src.game import Global
 from src.map.Tile import Tile
 
 
-class Light(Prop):
+class Sonic(Prop):
     def turn(self):
         if Global.r.rand_int(0, 80) == 0:
             self.remove()
@@ -52,12 +52,13 @@ class Interactive(Prop):
 
     def trigger(self):
         if self.argument[0] == 'enter':
-            Global.main.fade = 255
-            Global.main.player.travel(self.argument[1], Space(int(self.argument[2]), int(self.argument[3])))
+            Global.main.colorize(0, [0, 0, 0, 255], fade=2)
+            Global.player.travel(self.argument[1], Space(int(self.argument[2]), int(self.argument[3])))
         elif self.argument[0] == 'travel':
-            Global.menu.var = self.argument[1:]
-            Global.menu.state = Global.menu.menu_travel
-            Global.menu.display(1)
+            if Global.player.is_safe():
+                Global.menu.var = self.argument[1:]
+                Global.menu.state = Global.menu.menu_travel
+                Global.menu.display(1)
 
 
 class Gold(Item):
@@ -222,7 +223,7 @@ class Hammer(Weapon):
 
 class Talker(NPC):
     def talk(self):
-        self.face(1 if Global.main.player.character.pos[0].x > self.pos[0].x else -1)
+        self.face(1 if Global.player.character.pos[0].x > self.pos[0].x else -1)
         from src.tools.Data import Data
         conversation = Data.get_line('data/raw/conversation.txt', self.var[0])[1:]
         output = []
@@ -234,7 +235,7 @@ class Talker(NPC):
 
 class Merchant(NPC):
     def talk(self):
-        self.face(1 if Global.main.player.character.pos[0].x > self.pos[0].x else -1)
+        self.face(1 if Global.player.character.pos[0].x > self.pos[0].x else -1)
         if self.var[0] == 'shop':
             from src.entity.Stock import Stock
             Global.menu.var = [Stock.get(i) for i in self.var[1:]]
@@ -244,26 +245,26 @@ class Merchant(NPC):
             Global.menu.state = Global.menu.menu_trainer
             Global.menu.display(1)
         elif self.var[0] == 'host':
-            if Global.main.player.days > self.var[1]:
+            if Global.player.days > self.var[1]:
                 from src.tools.Data import Data
                 from src.tools.Random import Random
                 from src.entity.Stock import Stock
                 data = Data.get_line('data/raw/trade.txt', 'host')
-                rng = Random(self.attributes.gene + Global.main.player.days)
-                due_date = Global.main.player.days + rng.rand_int(1, 3)
+                rng = Random(self.attributes.gene + Global.player.days)
+                due_date = Global.player.days + rng.rand_int(1, 3)
                 value = Stock.get(rng.rand_list(data[1])).get_value()
                 self.var = ['host', due_date, rng.rand_list(data[1]), 1, value + 1]
             Global.menu.var = self.var
             Global.menu.state = Global.menu.menu_guild
             Global.menu.display(1)
         elif self.var[0] == 'guild':
-            if Global.main.player.days > self.var[1]:
+            if Global.player.days > self.var[1]:
                 from src.tools.Data import Data
                 from src.tools.Random import Random
                 from src.entity.Stock import Stock
                 data = Data.get_line('data/raw/trade.txt', 'guild')
-                rng = Random(self.attributes.gene + Global.main.player.days)
-                due_date = Global.main.player.days + rng.rand_int(2, 5)
+                rng = Random(self.attributes.gene + Global.player.days)
+                due_date = Global.player.days + rng.rand_int(2, 5)
                 value = Stock.get(rng.rand_list(data[1])).get_value()
                 self.var = ['guild', due_date, rng.rand_list(data[1]), rng.rand_int(1, 7), rng.rand_int(1, 3) * value]
             Global.menu.var = self.var

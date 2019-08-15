@@ -27,7 +27,7 @@ class Player:
             self.location = Location(data[0][0], map_data)
         self.background = None
         self.days = data[1][0]
-        self.experience = data[1][1]
+        self.depart = data[1][1]
         self.sleep(0)
         self.character = self.load_player(self.location, data[2])
         self.editor = None
@@ -50,12 +50,14 @@ class Player:
 
     def sleep(self, time):
         self.days += time
+        Global.main.colorize(0, [0, 0, 0, 255], fade=2)
         if self.days % 2 == 0:
+            Global.main.colorize(1, [0, 0, 0, 0])
             self.location.sight_range = 7
             self.location.resize()
             self.background = Data.run_cache('data/image/background/' + self.location.header[2])
         else:
-            Global.main.weather = (10, 0, 30, 220)
+            Global.main.colorize(1, [10, 0, 30, 220])
             self.location.sight_range = 5
             self.location.resize()
             name = 'data/image/background/' + self.location.header[2] + '_night'
@@ -65,13 +67,14 @@ class Player:
                 self.background = Data.run_cache(name[:-6])
 
     def travel(self, to_map, to_pos):
+        self.depart = self.character.location.name
         self.character.location.save()
         self.character.action.set('idle')
         self.character.form.set('interact')
         self.character.relocate(to_pos.x, to_pos.y, force=1)
-        Global.main.player.location.name = to_map
-        Global.main.player.turn()
-        Global.main.player = Player()
+        Global.player.location.name = to_map
+        Global.player.turn()
+        Global.player = Player()
         Global.main.resize(Global.DISPLAY[0], Global.DISPLAY[1])
 
     def switch(self):
@@ -99,7 +102,37 @@ class Player:
 
     def turn(self):
         r = self.location.name + '\n'
-        r += str(self.days) + ',[' + ','.join(str(x) for x in self.experience) + ']\n'
+        r += str(self.days) + ',' + str(self.depart) + '\n'
         r += self.character.__str__() + '\n'
         r += ','.join(self.knowledge) + '\n'
         Data.write('save/player.char', r)
+
+    def is_safe(self):
+        from src.entity.unit.Unit import Unit
+        for unit in self.location.record:
+            if isinstance(unit, Unit):
+                if self.character.faction != unit.faction and unit.pilot.var == self.character:
+                    self.monologue.text('Not safe!')
+                    return False
+        return True
+
+    def pay(self, gold):
+        if self.character.get_gold() >= gold:
+            self.character.modify_gold(-gold)
+            return True
+        else:
+            self.monologue.text('Not enough gold!')
+            return False
+
+    def eat(self):
+        items = self.character.get_accessibles()
+        for i in items:
+            if i.name == 'Food':
+                i.hit(1)
+                return True
+        hunger = self.character.states.get('Hunger')
+        if hunger:
+            self.monologue.text('Too hungry!')
+            return False
+        self.character.states.add('Hunger', -1, 0)
+        return True

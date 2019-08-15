@@ -31,7 +31,7 @@ class Spell(Item):
     def describe(self):
         r = super().describe()
         if not self.is_known:
-            if 'Scroll of ' + self.spell in Global.main.player.knowledge:
+            if 'Scroll of ' + self.spell in Global.player.knowledge:
                 self.is_known = True
                 self.name = 'Scroll of ' + self.spell
         else:
@@ -44,13 +44,9 @@ class Spell(Item):
         self.hit(1)
 
     @staticmethod
-    def unknown(host):
-        pass
-
-    @staticmethod
-    def sonic(host):
+    def echo(host):
         from src.entity.Stock import Stock
-        Stock.make('Light', host.get_target_tile())
+        Stock.make('Sonic', host.get_target_tile())
 
     @staticmethod
     def dispell(host):
@@ -70,22 +66,11 @@ class Spell(Item):
         Stock.make('Flame', host.get_offset_tile(host.direction, 0))
 
     @staticmethod
-    def conjure(host):
-        rift = host.states.get('Rift')
-        if rift:
-            Spell.teleport(host)
-        else:
-            from src.entity.Stock import Stock
-            Effect.make('barrier', host.vec)
-            r = Stock.get('Portal').add()
-            r.relocate(host.pos[0].x, host.pos[0].y - 1, force=1)
-            host.states.add('Rift', 160, var=r.id)
-
-    @staticmethod
     def scry(host):
         def effect():
-            if host.next_target.distance() > 4:
-                r.move(host.next_target.x, host.next_target.y, distance=2)
+            if host.next_target.distance() > 3:
+                print(str(host.next_target))
+                r.move(host.next_target.x, host.next_target.y, distance=1)
             if turnee.lifetime <= 1:
                 host.center_camera()
                 r.remove()
@@ -95,6 +80,7 @@ class Spell(Item):
         from src.tools.Turnee import Turnee
         turnee = Turnee(effect, 40)
         r = Stock.make('Force', host.pos[0])
+        r.gravity = False
         r.location.record.remove(r)
         host.states.add('Stun', 40)
         r.center_camera()

@@ -88,13 +88,16 @@ class Location:
 
     def draw(self, surface):
         objects = [[], [], [], [], [], []]
-        for k, v in self.draw_tiles.items():
+        items = list(self.draw_tiles.values())
+        for v in items:
             v.draw(surface)
             for thing in v.things:
                 objects[thing.depth - 1].append(thing)
         for depth in objects:
             for i in depth:
                 i.draw(surface)
+        for v in items:
+            v.draw_overlay(surface)
 
     def save(self):
         Data.write('save/' + self.name + '.map', self.__str__())
@@ -115,7 +118,7 @@ class Location:
         for i in arg[1]:
             data = tiles[i[1]]
             tile = self.get_tile((i[0][0] + offset[0], i[0][1] + offset[1]))
-            tile.terrain = Terrain(i[1], tile * Global.BLOCK, data[0], data[1], data[2], data[3], data[4])
+            tile.terrain = Terrain(i[1], tile * Global.BLOCK, data[0], data[1], data[2], data[3], data[4], data[5])
             if tile.y > self.edge:
                 self.edge = tile.y
         for i in arg[2]:
@@ -230,7 +233,7 @@ class Location:
         x = Camera.target.pos[0].x
         y = Camera.target.pos[0].y
         self.draw_tiles = {str(x) + ',' + str(y): self.get_tile(Camera.target.pos[0])}
-        direction = Global.main.player.character.direction
+        direction = Global.player.character.direction
         start = [x * Global.BLOCK + Global.HALF_BLOCK + (Global.HALF_BLOCK * direction) - direction,
                  y * Global.BLOCK + Global.BLOCK - 1]
         for i in self.sight_tiles[0]:

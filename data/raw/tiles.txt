@@ -1,41 +1,41 @@
-edge,g_0x1,1,0,0 //name,image,type,flip
-black,g_0x1,2,0,0
-dirt,g_2x2,1,0,0
-dirt top,g_3x2,1,0,0
-dirt left,g_4x2,1,1,0
-dirt right,g_4x2,1,0,0
-dirt edge left,g_5x2,1,1,0
-dirt edge right,g_5x2,1,0,0
-dirt corner left,g_6x2,1,1,0
-dirt corner right,g_6x2,1,0,0
-rock,g_7x2,1,0,0
-rock top,g_8x2,1,0,0
-rock bottom,g_8x2,1,0,1
-rock left,g_9x2,1,1,0
-rock right,g_9x2,1,0,0
-rock corner left,g_9x2,1,1,1
-rock corner right,g_9x2,1,0,1
+edge,g_0x1,1,0,0,0 //name,image,type,flip x,flip y,bg
+black,g_0x1,2,0,0,0
+dirt,g_2x2,1,0,0,0
+dirt top,g_3x2,1,0,0,0
+dirt left,g_4x2,1,1,0,1
+dirt right,g_4x2,1,0,0,1
+dirt edge left,g_5x2,1,1,0,1
+dirt edge right,g_5x2,1,0,0,1
+dirt corner left,g_6x2,1,1,0,1
+dirt corner right,g_6x2,1,0,0,1
+rock,g_7x2,1,0,0,0
+rock top,g_8x2,1,0,0,1
+rock bottom,g_8x2,1,0,1,1
+rock left,g_9x2,1,1,0,1
+rock right,g_9x2,1,0,0,1
+rock corner left,g_9x2,1,1,1,1
+rock corner right,g_9x2,1,0,1,1
 bush left,g_10x2,1,1,0 // OBSOLETE
 bush right,g_10x2,1,0,0 // OBSOLETE
-brick,g_3x1,1,0,0
-brick back,g_4x1,2,0,0
-concrete,g_5x1,1,0,0
-concrete back,g_6x1,2,0,0
-marble,g_7x1,1,0,0
-tile,g_8x1,2,0,0
-linen,g_9x1,2,0,0
-ancient,g_10x1,1,0,0
-ancient horizontal,g_11x1,1,0,0
-ancient back,g_12x1,2,0,0
+brick,g_3x1,1,0,0,0
+brick back,g_4x1,2,0,0,0
+concrete,g_5x1,1,0,0,0
+concrete back,g_6x1,2,0,0,0
+marble,g_7x1,1,0,0,0
+tile,g_8x1,2,0,0,0
+linen,g_9x1,2,0,0,0
+ancient,g_10x1,1,0,0,0
+ancient horizontal,g_11x1,1,0,0,0
+ancient back,g_12x1,2,0,0,0
 mud,g_14x2,2,0,0 // OBSOLETE
-bush,g_10x2,2,1,0
-bush edge left,g_11x2,2,1,0
-bush edge right,g_11x2,2,0,0
-sand,g_12x2,1,0,0
-sand top,g_13x2,1,0,0
-sand left,g_14x2,1,1,0
-sand right,g_14x2,1,0,0
-sand edge left,g_14x2,1,1,0
-sand edge right,g_14x2,1,0,0
-sand corner left,g_15x2,1,1,0
-sand corner right,g_15x2,1,0,0
+bush,g_10x2,2,1,0,1
+bush edge left,g_11x2,2,1,0,1
+bush edge right,g_11x2,2,0,0,1
+sand,g_12x2,1,0,0,0
+sand top,g_13x2,1,0,0,0
+sand left,g_14x2,1,1,0,0
+sand right,g_14x2,1,0,0,0
+sand edge left,g_14x2,1,1,0,0
+sand edge right,g_14x2,1,0,0,0
+sand corner left,g_15x2,1,1,0,0
+sand corner right,g_15x2,1,0,0,0

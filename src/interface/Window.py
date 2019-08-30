@@ -8,7 +8,7 @@ from src.game.Camera import Camera
 
 class Window(Shape):
     fore_color0 = (0, 0, 0, 0)
-    fore_color1 = (68, 102, 120, 200)
+    fore_color1 = (68, 102, 120, 160)
     fore_color2 = (95, 112, 120, 220)
     fore_color3 = (210, 220, 240, 60)
     font_color1 = (205, 209, 227, 255)
@@ -89,7 +89,7 @@ class Window(Shape):
 
     def set_text(self, text, resize=True):
         if resize:
-            self.text = Window.resize_text(text, self.size.x - (self.margin.x * 2))
+            self.text = Window.resize_text(text, self.size.x - (self.margin.x * 2) - 24)
         else:
             self.text = text
         self.size.y = self.text_spacing * len(self.text)
@@ -102,13 +102,19 @@ class Window(Shape):
         for line in text:
             length = 0
             newline = ''
-            for char in line:
-                newline += char
-                length += Global.font.size(char)[0]
-                if length >= size:
+            words = line.split(' ')
+            for word in words:
+                wordlength = 0
+                newword = ''
+                for char in word:
+                    newword += char
+                    wordlength += Global.font.size(char)[0]
+                if length + wordlength > size:
                     r.append(newline)
                     newline = ''
                     length = 0
+                length += wordlength
+                newline += newword + ' '
             r.append(newline)
         return r
 

@@ -21,11 +21,7 @@ class Equipment(Item):
 
     def enhance(self, rng):
         if rng <= self.get_enhance_chance():
-            mod = self.states.get('Modified')
-            if mod:
-                mod.var += 1
-            else:
-                self.states.add('Modified', -1, var=1)
+            self.states.add('Modified', -1, var=1)
             return True
         return False
 
@@ -42,17 +38,21 @@ class Equipment(Item):
         else:
             return self.name
 
+    def get_value(self):
+        r = max(1, int(self.durability / 3) - self.weight + 1)
+        return r
+
     def describe(self):
         orig = self.name
         self.name = self.get_display_name()
         r = super().describe()
         self.name = orig
-        r += '\nMarket Value: ' + str(self.get_value())
         if self.durability != -1:
             if self.max_durability == -1:
                 r += '\nMaximum Durability: Unbreakable'
             else:
                 r += '\nMaximum Durability: ' + str(self.max_durability)
+        r += '\nMarket Value: ' + str(self.get_value())
         r += '\nEncumbrance: ' + str(self.weight)
         return r
 

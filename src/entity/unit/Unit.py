@@ -5,6 +5,7 @@ from src.form.Body import Body
 from src.game import Global
 from src.game.Tags import Tags
 from src.map.Tile import Tile
+from src.tools.Math import Math
 
 
 class Unit(Prop):
@@ -16,7 +17,7 @@ class Unit(Prop):
         self.next_action = 'idle'
         self.next_target = Space()
         self.direction = 1
-        self.collide = Tile.COLLIDE_UNIT
+        self.collision_type = Tile.COLLIDE_UNIT
         self.attributes = Attribute()
         self.pilot = None
         self.depth = 4
@@ -55,9 +56,9 @@ class Unit(Prop):
         self.form = Body(arg)
 
     def draw(self, surface):
-        diff = self.pos[0].get_vec() + (Global.HALF_BLOCK, Global.BLOCK) - self.vec
+        diff = self.pos.get_center() - self.vec
         self.vec.x += diff.x * .07
-        if 0 < diff.y and self.gravity:
+        if 0 < diff.y and self.gravity and self.form.state_name != 'climb':
             self.vec.y += min(16, diff.y)
         else:
             self.vec.y += diff.y * .07
@@ -66,17 +67,6 @@ class Unit(Prop):
 
     def turn(self):
         super().turn()
-        if self.is_fall():
-            ground = self.get_offset_tile(0, 1)
-            landables = self.standables.copy()
-            landables.remove(Tile.COLLIDE_UNIT)
-            if not ground.is_land(landables):
-                for thing in ground.things:
-                    if isinstance(thing, Unit):
-                        thing.action.set('down', auto=1)
-                        thing.delay = 4
-                self.attributes.exert(1, 2)
-                self.move(0, 1, flag=Tile.CHECK_FIRM)
         self.pilot.update()
         if self.delay > 0:
             self.delay -= 1
@@ -97,26 +87,38 @@ class Unit(Prop):
         self.action.attack()
 
     def get_target_tile(self):
-        return self.location.get_tile(self.pos[0] + self.next_target)
+        return self.location.get_tile(self.pos + self.next_target)
 
     def get_interact_pos(self):
-        return self.pos[0]
+        degree = self.next_target.get_atan()
+        target = self.pos + (round(Math.cos(degree) * 1.4), round(Math.sin(degree) * 1.4))
+        return self.location.get_tile(target)
 
     def face(self, direction):
         self.direction = direction
         self.form.face(direction)
 
-    def on_fall(self, distance):
-        super().on_fall(distance)
-        if distance > 1 and not self.get_proficiency('constitution'):
-            self.action.set('down', auto=1)
+    def fell(self, distance, me=False):
+        super().fell(distance, me)
+        if not me:
+            self.action.set('down')
+            self.delay = 4
+
+    def on_fall(self):
+        super().on_fall()
+        if self.falling > 1:
+            self.attributes.exert(1, self.falling * 3)
+            self.action.set('down')
+            self.states.add('Cripple', self.falling * 4, var=1)
+            self.states.add('Speed', self.falling * 4, var=-1, stack=False)
+            return True
         else:
-            if not self.action.auto:
+            if self.action.current_action != 'down':
                 self.form.set('drop')
 
     def is_hit(self, accuracy, faction=0):
         if super().is_hit(accuracy, faction):
-            sick = self.states.get('Sick')
+            sick = self.states.get('Weak')
             if sick:
                 chance = 1
             else:
@@ -126,7 +128,8 @@ class Unit(Prop):
                     self.die()
                 return 1
             else:
-                self.form.randomize_once(14)
+                self.form.set('hit')
+                self.form.randomize_once(8)
 
     def get_dodge(self):
         if self.action.current_action == 'down':
@@ -139,25 +142,17 @@ class Unit(Prop):
 
     def hit(self, damage):
         self.pilot.hit()
-        self.action.set('hit', auto=1)
+        self.action.set('hit')
         return super().hit(damage)
 
     def die(self):
-        if Tags.insubstantial in self.tags:
-            from src.entity.Effect import Effect
-            Effect.make('disintegrate', self.pos[0].get_center(), offset=0)
-        else:
+        if Tags.insubstantial not in self.tags:
             from src.entity.Stock import Stock
             r = Stock.get('Corpse')
-            r.relocate(self.pos[0].x, self.pos[0].y, force=1)
+            r.durability = int(self.attributes.get_total() / 3)
+            r.relocate(self.pos.x, self.pos.y, force=1)
             r.set(self.form)
         super().die()
-
-    def will_hit(self, tile):
-        for i in self.pos:
-            if tile == i:
-                return 1
-        return 0
 
     def get_proficiency(self, school):
         return 1 if school.lower() in self.proficiency else 0

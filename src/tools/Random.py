@@ -19,6 +19,8 @@ class Random:
         return self.random.random()
 
     def rand_int(self, arg1, arg2):
+        if arg1 == arg2:
+            return arg1
         return self.random.randint(arg1, arg2)
 
     def gauss(self, arg1, arg2):

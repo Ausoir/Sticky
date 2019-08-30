@@ -42,7 +42,7 @@ class Move(Task):
         self.pilot.priority = 4
 
     def is_done(self):
-        dist = self.pilot.var.pos[0] - self.host.pos[0]
+        dist = self.pilot.var.pos - self.host.pos
         if self.distance >= 0:
             if dist.x <= self.distance and dist.y <= self.distance:
                 return 1
@@ -54,14 +54,14 @@ class Move(Task):
     def perform(self):
         super().perform()
         if self.distance >= 0:
-            dist = self.pilot.var.pos[0] - self.host.pos[0]
+            dist = self.pilot.var.pos - self.host.pos
         else:
-            dist = self.host.pos[0] - self.pilot.var.pos[0]
+            dist = self.host.pos - self.pilot.var.pos
         direction = 1 if dist.x >= 0 else -1
         if dist.y > 1 and dist.x == 0:
             land = self.host.get_offset_tile(0, 1)
             if not land.is_land([Tile.COLLIDE_TERRAIN]):
-                self.host.input('use', land - self.host.pos[0])
+                self.host.input('use', land - self.host.pos)
             return 0
         front = self.host.get_offset_tile(direction, 0)
         top = self.host.get_offset_tile(direction, -1)
@@ -70,9 +70,9 @@ class Move(Task):
         elif not top.is_land(Tile.CHECK_LARGE):
             self.host.input('jump', dist)
         elif not top.is_land([Tile.COLLIDE_TERRAIN]):
-            self.host.input('use', top - self.host.pos[0])
+            self.host.input('use', top - self.host.pos)
         elif not front.is_land([Tile.COLLIDE_TERRAIN]):
-            self.host.input('use', front - self.host.pos[0])
+            self.host.input('use', front - self.host.pos)
         return 0
 
 
@@ -93,7 +93,7 @@ class Path(Task):  # path finding A*
 
     def __init__(self, pilot):
         super().__init__(pilot)
-        self.open = [Path.Node(None, self.host.pos[0])]
+        self.open = [Path.Node(None, self.host.pos)]
         self.closed = []
         self.result = []
         self.counter = 0
@@ -103,7 +103,7 @@ class Path(Task):  # path finding A*
         self.pilot.priority = 4
 
     def is_done(self):
-        r = super().is_done() or (self.host.pos[0] - self.pilot.var.pos[0]).difference() <= 1
+        r = super().is_done() or (self.host.pos - self.pilot.var.pos).difference() <= 1
         if r:
             self.reset()
         return r
@@ -116,7 +116,7 @@ class Path(Task):  # path finding A*
                 node = v
         self.open.pop(index)
         self.closed.append(node)
-        achieved = (node.node - self.pilot.var.pos[0]).distance()
+        achieved = (node.node - self.pilot.var.pos).distance()
         if achieved < 2:
             return node
         options = self.pilot.get_routes(node.node)
@@ -130,12 +130,12 @@ class Path(Task):  # path finding A*
                 if node.g + 1 + mod <= conflict.g:
                     conflict.parent = node
                     conflict.g = node.g + 1 + mod
-                    conflict.set_h(self.pilot.var.pos[0])
+                    conflict.set_h(self.pilot.var.pos)
                     conflict.f = conflict.h + conflict.g
                 continue
             new = Path.Node(node, pos)
             new.g = node.g + 1 + mod
-            new.set_h(self.pilot.var.pos[0])
+            new.set_h(self.pilot.var.pos)
             new.f = new.h + new.g
             if new.h < self.heuristic_threshold:
                 self.open.append(new)
@@ -148,9 +148,9 @@ class Path(Task):  # path finding A*
 
     def perform(self):
         if self.result:
-            dist = self.result[0] - self.host.pos[0]
-            new_dist = (self.result[len(self.result)-1] - self.pilot.var.pos[0]).difference()
-            cur_dist = (self.host.pos[0] - self.pilot.var.pos[0]).difference()
+            dist = self.result[0] - self.host.pos
+            new_dist = (self.result[len(self.result)-1] - self.pilot.var.pos).difference()
+            cur_dist = (self.host.pos - self.pilot.var.pos).difference()
             if cur_dist <= 1:
                 pass
             elif cur_dist <= new_dist:
@@ -183,7 +183,7 @@ class Path(Task):  # path finding A*
                     while done.parent:
                         done = done.parent
                         result.insert(0, done.node)
-                        if done.node == self.host.pos[0]:
+                        if done.node == self.host.pos:
                             break
                     self.result = result
                     self.result.pop(0)
@@ -194,9 +194,9 @@ class Path(Task):  # path finding A*
                 self.reset()
 
     def reset(self):
-        self.heuristic_threshold = (self.host.pos[0] - self.pilot.var.pos[0]).distance()*3
+        self.heuristic_threshold = (self.host.pos - self.pilot.var.pos).distance()*3
         self.counter = 0
-        self.open = [Path.Node(None, self.host.pos[0])]
+        self.open = [Path.Node(None, self.host.pos)]
         self.closed = []
 
 
@@ -226,7 +226,7 @@ class Attack(Task):
 
     def perform(self):
         if self.pilot.var and self.host.faction != self.pilot.var.faction:
-            dist = self.pilot.var.pos[0] - self.host.pos[0]
+            dist = self.pilot.var.pos - self.host.pos
             if -1 <= dist.y <= 1 and -1 <= dist.x <= 1:
                 self.host.input(Global.r.rand_list(self.host.action.skills + ['use']), dist)
                 return 1
@@ -255,10 +255,10 @@ class Melee(Task):
             if dist_x == 2 and 'lunge' in self.host.action.skills:
                 self.host.input('lunge', dist)
                 return 1
-            if dist_x == 3 and 'tackle' in self.host.action.skills:
+            elif dist_x == 2 and 'tackle' in self.host.action.skills:
                 self.host.input('tackle', dist)
                 return 1
-            if dist_x > 3 and 'sprint' in self.host.action.skills:
+            if dist_x > 2 and 'sprint' in self.host.action.skills:
                 self.host.input('sprint', dist)
                 return 1
 
@@ -271,7 +271,7 @@ class Melee(Task):
     def perform(self):
         if self.pilot.var and self.host.faction != self.pilot.var.faction:
             self.pilot.strategize()
-            diff = self.pilot.var.pos[0] - self.host.pos[0]
+            diff = self.pilot.var.pos - self.host.pos
             if self.perform_gapcloser(diff):
                 return 1
             longest_range = 0
@@ -298,10 +298,10 @@ class Range(Task):
 
     def perform(self):
         if self.pilot.var and self.host.faction != self.pilot.var.faction:
-            diff = self.pilot.var.pos[0] - self.host.pos[0]
-            reach = self.host.location.collide_land(self.host.get_interact_pos(), diff.x, diff.y,
+            diff = self.pilot.var.pos - self.host.pos
+            reach = self.host.location.collide_land(self.host.pos, diff.x, diff.y,
                                                     distance=9, flag=Tile.CHECK_FIRM)
-            if reach == self.pilot.var.pos[0]:
+            if reach == self.pilot.var.pos:
                 dist = diff.distance()
                 if dist == 1 and diff.y == 0:
                     self.host.input('kick', diff)
@@ -313,17 +313,29 @@ class Range(Task):
 
 
 class Search(Task):
-    def __init__(self, pilot):
+    def __init__(self, pilot, target=None):
         super().__init__(pilot)
         self.lifetime = 10
+        self.target = target
+        if target:
+            from src.game.TempObject import TempObject
+            self.pilot.var = TempObject(target)
+            self.pilot.var.location = self.host.location
 
     def on_set(self):
         self.pilot.priority = 3
 
     def perform(self):
         super().perform()
-        self.pilot.perceive(self.pilot.range + 2, offset=(self.host.direction*(11-self.lifetime), 0))
-        self.host.face(self.host.direction * -1)
+        if self.target:
+            self.pilot.move.perform()
+        else:
+            self.pilot.perceive(self.pilot.range + 2, offset=(self.host.direction*(11-self.lifetime), 0))
+            self.host.face(self.host.direction * -1)
+
+    def update(self):
+        if self.target:
+            self.pilot.move.update()
 
 
 class Hunt(Task):

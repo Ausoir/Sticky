@@ -1,4 +1,5 @@
 from src.entity.unit.Unit import Unit
+from src.game import Global
 from src.game.Interaction import Interaction
 
 
@@ -61,8 +62,10 @@ class Humanoid(Unit):
             headgear.use()
         else:
             self.make_headgear()
-        self.update_durability()
+        self.update_durability(0)
         index += 1
+        for i in self.get_possessions():
+            i.id = Stock.location.get_id()
         return index
 
     def turn(self):
@@ -78,20 +81,22 @@ class Humanoid(Unit):
     def relocate(self, x, y, force=0):
         super().relocate(x, y, force)
         if self.is_armed():
-            self.weapon.pos[0] = self.pos[0]
+            self.weapon.pos = self.pos
 
-    def update_durability(self, damage=0):
+    def update_durability(self, damage):
         head_armor, damage = self.headgear.get_reduction(damage)
         if 0 < damage >= head_armor == 0 and self.headgear.durability != -1:
             self.headgear.die()
         armor, damage = self.armor.get_reduction(damage)
+        if armor == 0 and self.armor.durability != -1:
+            self.armor.die()
         if self.weapon.durability == 0:
             self.weapon.die()
         self.durability = head_armor + armor + 1
 
     def hit(self, damage):
         r = super().hit(damage)
-        self.form.randomize_once(16)
+        self.form.randomize_once(8)
         self.offhand.hit(1)
         if self.durability > 0:
             self.update_durability(damage)
@@ -108,20 +113,21 @@ class Humanoid(Unit):
         super().face(direction)
 
     def draw(self, surface):
+        vec_y = self.vec.y + Global.HALF_BLOCK
         x = self.vec.x + self.form.organs[0].lower_joint.x
-        y = self.vec.y + self.form.organs[0].lower_joint.y + 2
+        y = vec_y + self.form.organs[0].lower_joint.y + 2
         arm = -(self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
         self.weapon.form.rotate(arm + 90 + (self.weapon.rotation * self.direction))
         self.weapon.form.draw(surface, x, y)
         super().draw(surface)
         x = self.vec.x + self.form.organs[3].upper_joint.x
-        y = self.vec.y + self.form.organs[3].upper_joint.y
+        y = vec_y + self.form.organs[3].upper_joint.y
         arm = -(self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
         self.headgear.form.pivot.y = self.headgear.form.size.y
         self.headgear.form.rotate(arm - 90)
         self.headgear.form.draw(surface, x, y)
         x = self.vec.x + self.form.organs[5].lower_joint.x
-        y = self.vec.y + self.form.organs[5].lower_joint.y
+        y = vec_y + self.form.organs[5].lower_joint.y
         arm = -(self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
         self.offhand.form.rotate(arm + 110 + (self.offhand.rotation * self.direction))
         self.offhand.form.draw(surface, x, y)
@@ -132,9 +138,9 @@ class Humanoid(Unit):
         r = self.get_proficiency('dodge') + self.armor.armor
         if self.action.current_action == 'block':
             if self.get_proficiency('block'):
-                return self.offhand.weight * 50
+                return self.offhand.weight * 10 + 10
             else:
-                r += self.offhand.weight * 10 + 10
+                r += self.offhand.weight * 4 + 4
         return r
 
     def make_fist(self):
@@ -162,16 +168,16 @@ class Humanoid(Unit):
 
     def unarmor(self):
         if self.is_armored():
-            self.armor.relocate(self.pos[0].x, self.pos[0].y, force=1)
+            self.armor.relocate(self.pos.x, self.pos.y, force=1)
             self.armor.on_unequip()
             self.make_armor()
-            self.update_durability()
+            self.update_durability(0)
             return 1
         return 0
 
     def unheadgear(self):
         if self.is_headgeared():
-            self.headgear.relocate(self.pos[0].x, self.pos[0].y, force=1)
+            self.headgear.relocate(self.pos.x, self.pos.y, force=1)
             self.headgear.on_unequip()
             self.make_headgear()
             return 1
@@ -199,7 +205,7 @@ class Humanoid(Unit):
     def get_accessibles(self):
         r = []
         from src.entity.unit.item.Item import Item
-        for thing in self.pos[0].things:
+        for thing in self.pos.things:
             if isinstance(thing, Item):
                 r.append(thing)
         r += self.get_possessions()
@@ -225,7 +231,7 @@ class Humanoid(Unit):
                     return True
             if amount > 0:
                 from src.entity.Stock import Stock
-                Stock.make('Gold', self.pos[0]).durability = amount
+                Stock.make('Gold', self.pos).durability = amount
         elif amount < 0:
             amount = -amount
             if self.get_gold() >= amount:

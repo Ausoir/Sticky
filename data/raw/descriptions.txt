@@ -1,12 +1,11 @@
 Jelly,A blob of slime goo
 Fiber,A fibrous material that can be used to repair equipment
-Gold Robe,A magnificent robe laced with gold
 Food,Use to remove <Hunger> status
+Pocket,Attached to any armor to create additional pocket space
 Backpack,Attached to any armor with an empty center slot for additional inventory space
-Gold Chalk,A scribing tool used for spell creation
-Scroll Bag,Stores scribing tools and paper for scroll creation
-Scroll,Base for magical scroll creation
-Scorch Scroll,Create scorching ground directly in front of caster
-Dispell Scroll,Disrupt all magical effects in vicinity of caster
 Hammer,Can be used to build scaffolds from planks and buildings from scaffolds
-Treatment,Use to remove <Sick> status
+Medicine,Use to remove <Sick> status
+Cleansing Potion,Rare potion that increases a random attribute up to 3
+Amnesia Potion,Potion that makes the user forget a few spells or skills
+Scroll of Scorch,Create scorching ground that burns anything nearby
+Scroll of Dispell,Purge all magical effects in vicinity of caster

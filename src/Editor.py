@@ -32,7 +32,7 @@ class Editor:
         self.prev_command = None
         self.fog_update = True
         self.selection = None
-        Camera.target = Stock.make('Force', Global.player.character.pos[0])
+        Stock.make('Force', Global.player.character.pos).center_camera()
         Camera.target.location.remove(Camera.target)
 
     def update(self):
@@ -49,7 +49,7 @@ class Editor:
         Turn.update = self.backup
 
     def input(self, action, target):
-        m = Camera.target.pos[0] + target
+        m = Camera.target.pos + target
         self.prev_mouse = m
         self.display_subtext = 'X:' + str(m.x) + ' Y:' + str(m.y)
         if action == 'idle':
@@ -91,8 +91,9 @@ class Editor:
                 objs = self.location.get_tile(m).things
                 if objs:
                     self.tool = ToolObject(self.location, 'props')
-                    self.tool.select(objs[0].name)
-                    self.display_text = objs[0].__str__()
+                    obj = objs.copy().pop()
+                    self.tool.select(obj.name)
+                    self.display_text = obj.__str__()
                 else:
                     self.tool = ToolTerrain(self.location)
                     terrain = self.location.get_tile(m).terrain
@@ -123,10 +124,6 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Units Tool'
-        elif action == 'beasts':
-            self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
-            self.display_text = 'Beasts Tool'
         elif action == 'weapons':
             self.tool.cancel()
             self.tool = ToolObject(self.location, action)

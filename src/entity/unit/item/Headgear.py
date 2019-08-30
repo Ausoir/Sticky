@@ -13,5 +13,5 @@ class Headgear(Equipment):
         if self.host.weapon == self:
             self.host.drop()
         self.remove()
-        host.update_durability()
+        host.update_durability(0)
         self.host = host

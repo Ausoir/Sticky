@@ -17,12 +17,14 @@ class Manual:
     def update(self):
         pass
 
+    def hear(self, pos):
+        pass
+
 
 class Pilot(Manual):
     def __init__(self, host):
         super().__init__(host)
         self.priority = 5
-        self.range = 6
         self.move = None
         self.hunt = None
         self.init()
@@ -36,11 +38,15 @@ class Pilot(Manual):
     def update(self):
         self.task.update()
         if self.host.delay == 0:
-            self.perceive(self.range)
+            sight = self.get_sight()
+            self.perceive(sight, offset=(max(0, sight - 1), 0))
             if self.task.is_done() and self.task.next:
                 self.task = self.task.next
                 self.task.on_set()
             self.task.perform()
+
+    def get_sight(self):
+        return max(self.host.attributes.agility, int(self.host.location.sight_range / 2))
 
     def add_task(self, task):
         task.next = self.task
@@ -55,16 +61,16 @@ class Pilot(Manual):
     def perceive(self, sight, offset=(0, 0)):
         if self.priority > 1:
             perceived = []
-            aoe = self.host.location.get_area(self.host.pos[0] + (offset[0], 0), sight + offset[1], sight + offset[1])
+            aoe = self.host.location.get_area(self.host.pos + (offset[0], 0), sight + offset[1], sight + offset[1])
             for i in aoe:
                 for thing in i.things:
                     if thing != self.host:
                         perceived.append(thing)
             if self.priority > 2:
                 targets = []
-                host_pos = self.host.pos[0].get_center().to_list()
+                host_pos = self.host.pos.get_center().to_list()
                 for thing in perceived:
-                    to = (thing.pos[0] - self.host.pos[0]).to_list()
+                    to = (thing.pos - self.host.pos).to_list()
                     sight = self.host.location.collide_sight(host_pos, to)
                     if sight:
                         if isinstance(thing, Unit):
@@ -73,11 +79,15 @@ class Pilot(Manual):
                 if targets:
                     self.spot_enemy(targets)
 
+    def hear(self, pos):
+        if self.priority > 3:
+            self.add_task(Search(self, target=pos))
+
     def prioritize(self, targets):
         nearest_dist = 10
         nearest = targets[0]
         for i in targets:
-            t = (i.pos[0] - self.host.pos[0]).distance()
+            t = (i.pos - self.host.pos).distance()
             if t < nearest_dist:
                 nearest_dist = t
                 nearest = i
@@ -89,12 +99,7 @@ class Pilot(Manual):
         self.add_task(self.hunt)
         from src.entity.Effect import Effect
         Effect.make('shout', self.host.vec)
-        aoe = self.host.location.get_area(self.host.pos[0], 4, 2)
-        for i in aoe:
-            for thing in i.things:
-                if thing != self.host and not thing.faction != self.host.faction:
-                    if isinstance(thing, Unit) and not isinstance(thing.pilot, Manual) and thing.pilot.priority > 2:
-                        thing.pilot.spot_enemy(targets)
+        self.host.location.sound.register(self.host.pos, 16)
 
     def get_routes(self, pos):
         options = []
@@ -104,25 +109,22 @@ class Pilot(Manual):
         upleft = self.host.location.get_tile(pos + (-1, -1))
         ground = self.host.location.get_tile(pos + (0, 1))
         air = self.host.location.get_tile(pos + (0, -1))
-        if ground.is_land(Tile.CHECK_LANDABLE) or pos.is_climbable():
-            if not air.is_land(Tile.CHECK_LARGE) and air.is_climbable():
-                options.append((0, -1))
-            if not right.is_land(Tile.CHECK_LARGE):
-                if self.host.location.get_tile(pos + (1, 1)).is_land(Tile.CHECK_LANDABLE) or right.is_climbable():
-                    options.append((1, 0))
-                else:
-                    options.append((1, 1))
-            elif not upright.is_land(Tile.CHECK_LARGE):
-                options.append((1, -1))
-            if not left.is_land(Tile.CHECK_LARGE):
-                if self.host.location.get_tile(pos + (-1, 1)).is_land(Tile.CHECK_LANDABLE) or left.is_climbable():
-                    options.append((-1, 0))
-                else:
-                    options.append((-1, 1))
-            elif not upleft.is_land(Tile.CHECK_LARGE):
-                options.append((-1, -1))
-            if not ground.is_land(Tile.CHECK_LARGE) and ground.is_climbable() and ground.y < self.host.location.edge:
-                options.append((0, 1))
-        else:
+        if not air.is_land(Tile.CHECK_FIRM) and (air.is_climbable() or pos.is_climbable()):
+            options.append((0, -1))
+        if not right.is_land(Tile.CHECK_FIRM):
+            if self.host.location.get_tile(pos + (1, 1)).is_land(self.host.standables):
+                options.append((1, 0))
+            else:
+                options.append((1, 1))
+        elif not upright.is_land(Tile.CHECK_FIRM):
+            options.append((1, -1))
+        if not left.is_land(Tile.CHECK_FIRM):
+            if self.host.location.get_tile(pos + (-1, 1)).is_land(self.host.standables):
+                options.append((-1, 0))
+            else:
+                options.append((-1, 1))
+        elif not upleft.is_land(Tile.CHECK_FIRM):
+            options.append((-1, -1))
+        if not ground.is_land(Tile.CHECK_FIRM) and ground.is_climbable():
             options.append((0, 1))
         return options

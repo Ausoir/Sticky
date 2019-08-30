@@ -64,6 +64,9 @@ class Modified(Buff):
     def describe(self):
         return 'This object has a +' + self.var + ' modification.'
 
+    def on_stack(self, duration, var):
+        self.var = self.var + var
+
 
 class Hunger(Buff):
     def describe(self):
@@ -85,6 +88,23 @@ class Glow(Buff):
 
     def on_update(self):
         self.host.glow(self.var)
+
+
+class Insured(Buff):
+    def describe(self):
+        from src.tools.Dialog import Dialog
+        return 'When you die you will be resurrected at the nearest medical guild. ' + \
+               'You have ' + Dialog.date(self.var) + ' remaining on the contract.'
+
+    def on_stack(self, duration, var):
+        self.duration = duration
+        self.var = var
+
+    def trigger(self, arg):
+        if arg[0] == 'time':
+            self.var -= 1
+            if self.var <= 0:
+                self.end()
 
 
 class Bleed(Buff):
@@ -142,7 +162,16 @@ class Cripple(Buff):
 
 class Weak(Buff):
     def describe(self):
-        return 'Your defense is set to 0. Your resting time tripled.'
+        return 'Your defense is set to 0.'
+
+    def on_update(self):
+        if self.effect(8):
+            Effect.make('sweat', self.host.vec)
+
+
+class Exhaustion(Buff):
+    def describe(self):
+        return 'Your resting time is quadrupled.'
 
     def on_update(self):
         if self.effect(8):
@@ -175,13 +204,13 @@ class Fire(Buff):
         return 'You are immune to fire.'
 
     def on_update(self):
-        self.host.pos[0].light = 40
+        self.host.pos.light = 40
         if self.effect(6):
             Effect.make('kindle', self.host.vec)
 
     def trigger(self, arg):
         if arg[0] == 'attack':
-            arg[1].states.add('Burn', 8)
+            arg[1].states.add('Burn', 16)
 
 
 class Rift(Buff):
@@ -198,8 +227,8 @@ class Rift(Buff):
     def on_finish(self):
         obj = self.host.location.get_object(self.var)
         if obj:
-            Effect.make('zwip', obj.pos[0].get_center(), offset=24)
-            Effect.make('zwip', self.host.pos[0].get_center(), offset=24)
+            Effect.make('zwip', obj.pos.get_center(), offset=24)
+            Effect.make('zwip', self.host.pos.get_center(), offset=24)
             obj.remove()
 
 
@@ -211,7 +240,7 @@ class Shock(Buff):
         return 'You are immune to shock.'
 
     def on_update(self):
-        self.host.pos[0].light = 40
+        self.host.pos.light = 40
         if self.effect(6):
             Effect.make('shock', self.host.vec)
 
@@ -224,7 +253,8 @@ class Burn(Buff):
         return 'Constantly take damage and spread to nearby flammables.'
 
     def is_valid(self):
-        if Tags.indestructible not in self.host.tags and Tags.is_combustible(self.host.tags):
+        if Tags.indestructible not in self.host.tags and Tags.is_combustible(self.host.tags)\
+                and not self.host.states.get('Fire'):
             return 1
 
     def on_start(self):
@@ -235,12 +265,12 @@ class Burn(Buff):
     def on_update(self):
         self.var += 1
         self.host.glow(1)
-        if not self.var % 8:
+        if not self.var % 6:
             self.host.hit(1)
             x = Global.r.rand_int(-1, 1)
             y = Global.r.rand_int(-1, 1)
             for thing in self.host.get_offset_tile(x, y).things:
-                thing.states.add('Burn', 8)
+                thing.states.add('Burn', 16)
         Effect.make('burn', self.host.vec)
 
 
@@ -268,7 +298,8 @@ class Levitate(Buff):
         self.host.gravity = 1
 
     def on_update(self):
-        Effect.make('zip', self.host.pos[0].get_center())
+        self.host.gravity = 0
+        Effect.make('zip', self.host.pos.get_center())
 
 
 class Banish(Buff):
@@ -282,7 +313,7 @@ class Banish(Buff):
         self.host.remove()
 
     def on_update(self):
-        if self.effect(5):
+        if self.effect(7):
             Effect.make('zwip', self.host.vec, offset=8)
 
 
@@ -299,11 +330,11 @@ class Stun(Buff):
             return 1
 
     def on_start(self):
-        if self.host.action.set('hit', auto=1):
+        if self.host.action.set('hit'):
             self.host.delay = self.duration
 
     def on_load(self):
-        if self.host.action.set('hit', auto=1):
+        if self.host.action.set('hit'):
             self.host.delay = self.duration
 
     def on_finish(self):
@@ -311,7 +342,7 @@ class Stun(Buff):
 
     def on_update(self):
         if self.effect(6):
-            Effect.make('zap', self.host.pos[0].get_center())
+            Effect.make('zap', self.host.pos.get_center())
 
 
 class Speed(Buff):
@@ -340,3 +371,8 @@ class Venom(Buff):
     def trigger(self, arg):
         if arg[0] == 'attack':
             arg[1].states.add('Sick', self.var)
+
+
+class Channel(Buff):
+    def describe(self):
+        return 'You are channeling magic.'

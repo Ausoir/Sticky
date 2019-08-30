@@ -30,9 +30,9 @@ class Buffs:
                 return i
         return None
 
-    def add(self, buff, duration, var=0, load=False):
+    def add(self, buff, duration, var=0, load=False, stack=True):
         preexisting = self.get(buff)
-        if not preexisting:
+        if not stack or not preexisting:
             for i in Buff.__subclasses__():
                 if i.__name__ == buff:
                     buff = i(self.host, buff, duration, var)
@@ -43,8 +43,10 @@ class Buffs:
                     buff.on_load()
                 else:
                     buff.on_start()
+            return buff
         else:
             preexisting.on_stack(duration, var)
+            return preexisting
 
     def clear(self, fn):
         r = 0

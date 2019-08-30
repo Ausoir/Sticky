@@ -73,7 +73,7 @@ class Menu:
         self.display(1)
 
     @staticmethod
-    def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, resize=True, hover=True):
+    def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, resize=False, hover=True):
         button = Window([width, 40], name=name, color=color)
         button.set_text(text, resize=resize)
         button.on_click = callback

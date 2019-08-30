@@ -8,7 +8,7 @@ class Item(Prop):
 
     def __init__(self, loc):
         super().__init__(loc)
-        self.collide = Tile.COLLIDE_ITEM
+        self.collision_type = Tile.COLLIDE_ITEM
         self.host = None
         self.rotation = 60
         self.range = [1]
@@ -51,7 +51,7 @@ class Item(Prop):
 
     def on_unequip(self):
         self.vec = self.vec + 0
-        self.relocate(self.host.pos[0].x, self.host.pos[0].y, force=1)
+        self.relocate(self.host.pos.x, self.host.pos.y, force=1)
         self.host = None
         self.set_form(self.form_name)
         self.add()
@@ -63,7 +63,7 @@ class Item(Prop):
         return self.name
 
     def describe(self):
-        r = self.name
+        r = self.get_display_name()
         if r in Item.description:
             r += '\n' + Item.description[r]
         if self.durability == -1:
@@ -71,6 +71,8 @@ class Item(Prop):
         else:
             r += '\nDurability: ' + str(self.durability)
         r += '\nVolume: ' + str(self.volume[0]) + 'x' + str(self.volume[1])
+        if Tags.weightless in self.tags:
+            self.weight = 0
         if Tags.flesh in self.tags:
             r += '\nThis item is an organic material.'
         if Tags.insubstantial in self.tags:
@@ -85,31 +87,39 @@ class Item(Prop):
             r += '\nThis item can be used as paper.'
         if Tags.sharp in self.tags:
             r += '\nThis item is sharp.'
-        if Tags.scribing in self.tags:
-            r += '\nThis item can be used to write.'
         return r
 
     def use(self):
         self.host.action.set('swing')
 
-    def attack(self, chance=0, damage=1, callback=None):
+    def attack(self, chance=0, delay=1, callback=None):
         def on_attack(target):
+            self.location.sound.register(target.pos, 5)
             self.hit(1)
             self.states.trigger(['attack', target])
             if Tags.sharp in self.tags:
                 target.states.add('Bleed', 40)
             if callback:
                 callback(target)
-        dmg = self.damage + chance + self.host.get_proficiency(self.name)
+        acc = self.damage + chance + self.host.get_proficiency(self.name)
+        dmg = self.weight
+        from src.entity.unit.Character import Character
+        if Character.check_var(self.host, 'passive', 'Warrior'):
+            acc += 10
+            dmg *= 2
 
         def fn(prev, tile):
             return None
         for i in self.range:
-            tile = self.host.location.collide_line(self.host.get_interact_pos(),
+            tile = self.host.location.collide_line(self.host.pos,
                                                    self.host.next_target.x, self.host.next_target.y, fn,
                                                    distance=i)
-            self.location.attack.register(damage, tile, chance=dmg, type='batter',
+            self.location.attack.register(dmg, tile, chance=acc, delay=delay, type='batter',
                                           hitter=self.host, callback=on_attack)
 
     def update(self):
         pass
+
+    def on_fall(self):
+        if self.weight > 0:
+            super().on_fall()

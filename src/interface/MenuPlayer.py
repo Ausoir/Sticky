@@ -11,8 +11,8 @@ class MenuPlayer(Menu):
     def menu_main(self):
         self.window.add(Menu.make(['Character'], lambda x: self.direct(self.menu_character), None))
         self.window.add(Menu.make(['Equipment'], lambda x: self.direct(self.menu_equipment), None))
-        self.window.add(Menu.make(['Knowledge'], lambda x: self.direct(self.menu_knowledge), None))
-        self.window.add(Menu.make(['Help'], lambda x: self.direct(self.menu_help), None))
+        if len(Global.player.knowledge) > 0:
+            self.window.add(Menu.make(['Knowledge'], lambda x: self.direct(self.menu_knowledge), None))
 
     def menu_character(self):
         color = Window.fore_color0
@@ -23,22 +23,23 @@ class MenuPlayer(Menu):
             hp.append(str(max(0, self.host.armor.durability)) + ' HP comes from your armor.')
         rmb = self.get_message(hp)
         self.window.add(Menu.make(['Hit Point'], rmb, rmb, color=color))
-        self.sub_window.add(Menu.make([str(self.host.durability)], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.durability)], rmb, rmb, color=color, hover=False))
         rmb = self.get_message(['Strength represents your maximum stamina.',
                                 'More stamina allows you to perform actions without having to rest.'])
         self.window.add(Menu.make(['Strength'], rmb, rmb, color=color))
-        self.sub_window.add(Menu.make([str(self.host.attributes.strength)], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.strength)], rmb, rmb, color=color, hover=False))
         rmb = self.get_message(['Agility represents your maximum encumbrance.',
-                                'More encumbrance allows you to wear more advanced armor and headgear.'])
+                                'More encumbrance allows you to wear more advanced equipment.'])
         self.window.add(Menu.make(['Agility'], rmb, rmb, color=color))
-        self.sub_window.add(Menu.make([str(self.host.attributes.agility)], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.agility)], rmb, rmb, color=color, hover=False))
         rmb = self.get_message(['Intelligence represents your maximum memory.',
                                 'More memory allows you to craft more spells and items from memory.'])
         self.window.add(Menu.make(['Intelligence'], rmb, rmb, color=color))
-        self.sub_window.add(Menu.make([str(self.host.attributes.intelligence)], rmb, rmb, color=color))
-        rmb = self.get_message(['Nutrition is required to perform time consuming actions such as travelling maps.'])
-        self.window.add(Menu.make(['Charisma'], rmb, rmb, color=color))
-        self.sub_window.add(Menu.make([str(self.host.attributes.breath)], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.intelligence)], rmb, rmb, color=color, hover=False))
+        rmb = self.get_message(['Stamina is required to perform certain actions.',
+                                'Stamina can be restored by resting at a bed or sofa.'])
+        self.window.add(Menu.make(['Stamina'], rmb, rmb, color=color))
+        self.sub_window.add(Menu.make([str(self.host.attributes.breath)], rmb, rmb, color=color, hover=False))
         self.window.add(Menu.make(['Status'], lambda l: self.direct(self.menu_status), None))
         self.sub_window.add(Menu.make(['Proficiency'], lambda l: self.direct(self.menu_proficiency), None))
         self.sub_window.display(1)
@@ -51,10 +52,10 @@ class MenuPlayer(Menu):
                 self.toggle()
             if Crafting.is_craftable(self.host, text):
                 rmb = self.get_message(Crafting.describe(text).split('\n'))
-                button = Menu.make([text], craft, rmb)
+                button = Menu.make([text], craft, rmb, resize=False)
             else:
                 rmb = self.get_message((Crafting.describe(text) + '\nRequirements not met.').split('\n'))
-                button = Menu.make([text], None, rmb, color=Window.fore_color0)
+                button = Menu.make([text], None, rmb, color=Window.fore_color0, resize=False)
                 button.hover_font_color = window.normal_font_color
             window.add(button)
 
@@ -178,7 +179,7 @@ class MenuPlayer(Menu):
                 self.sub_window.add(slot)
         inventory_items = self.host.armor.items
         for i in inventory_items:
-            pos = (i.pos[0] * 48)
+            pos = (i.pos * 48)
             pos.x += (48 * i.volume[0]) / 2
             pos.y += (48 * i.volume[1]) / 2
             pos.x -= (i.form.size.x/2 - i.form.pivot.x)
@@ -211,10 +212,9 @@ class MenuPlayer(Menu):
             self.sub_window.add(Menu.make([dur], None, None, color=Window.fore_color0))
         self.sub_window.display(1)
 
-    def menu_help(self):
-        lmb = self.get_message(['WASD and LMB/RMB'])
-        rmb = self.get_message(['Display default game controls'])
-        button = Menu.make(['Controls'], lmb, rmb)
-        self.window.add(button)
-        self.window.display(1)
-        self.sub_window.display(1)
+    def menu_dead(self):
+        if self.var:
+            self.show_dialog(['You have been revived by your medical guild.',
+                              'Your insurance expires.', 'Good luck!'])
+        else:
+            self.show_dialog(['You die...'])

@@ -1,6 +1,5 @@
 from src.entity.unit.ai.Pilot import Pilot
 from src.entity.unit.ai.Task import *
-from src.entity.unit.item.Weapon import Weapon
 
 
 class AdvPilot(Pilot):
@@ -34,7 +33,7 @@ class AdvPilot(Pilot):
         nearest_dist = 10
         nearest = targets[0]
         for i in targets:
-            t = (i.pos[0] - self.host.pos[0]).distance()
+            t = (i.pos - self.host.pos).distance()
             if t < nearest_dist:
                 nearest_dist = t
                 nearest = i
@@ -42,7 +41,7 @@ class AdvPilot(Pilot):
 
     def dodge(self):
         for i in self.host.location.attack.registry:
-            if self.host.will_hit(i[2]):
+            if i[2] == self.host.pos:
                 self.host.input('block', None)
                 return True
 

@@ -2,26 +2,24 @@ class Tags:
     inactive = '!'
     interactive = '@'
     climb = 'cli'
-    back = 'bg'
     front = 'bf'
     float = 'xg'
     intangible = 'xc'
     indestructible = 'xh'
+    back = 'cb'
     fog = 'cf'
     land = 'cd'
-    cover = 'cc'
-    support = 'cs'
-    humanoid = 'hum'
     flesh = 'if'
-    insubstantial = 'ii'
+    insubstantial = 'ix'
     metal = 'im'
     wood = 'iw'
     silver = 'is'
     paper = 'ip'
     sharp = 'ps'
-    scribing = 'pw'
-    workable = 'pc'
-    restable = 'pr'
+    combustible = 'pf'
+    intelligent = 'ii'
+    listener = 'il'
+    weightless = 'ig'
 
     @staticmethod
     def name(tag):
@@ -32,10 +30,10 @@ class Tags:
     @staticmethod
     def is_property(tag):
         prop_tag = [Tags.flesh, Tags.insubstantial, Tags.metal, Tags.wood, Tags.silver,
-                    Tags.paper, Tags.sharp, Tags.scribing]
+                    Tags.paper, Tags.sharp]
         return tag in prop_tag
 
     @staticmethod
     def is_combustible(tags):
-        combustibles = [Tags.flesh, Tags.wood, Tags.paper]
+        combustibles = [Tags.flesh, Tags.wood, Tags.paper, Tags.combustible]
         return any(elem in combustibles for elem in tags)

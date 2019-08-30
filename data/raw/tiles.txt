@@ -27,7 +27,7 @@ linen,g_9x1,2,0,0,0
 ancient,g_10x1,1,0,0,0
 ancient horizontal,g_11x1,1,0,0,0
 ancient back,g_12x1,2,0,0,0
-mud,g_14x2,2,0,0 // OBSOLETE
+mud,g_14x2,2,0,0,0 // OBSOLETE
 bush,g_10x2,2,1,0,1
 bush edge left,g_11x2,2,1,0,1
 bush edge right,g_11x2,2,0,0,1

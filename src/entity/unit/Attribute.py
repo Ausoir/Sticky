@@ -16,7 +16,7 @@ class Attribute:
         self.leg = 0
 
     def __str__(self):
-        return str(self.gene) + ',' + str(self.strength) + ',' + str(self.agility) + ',' + str(self.intelligence)\
+        return str(self.gene) + ',' + str(self.strength) + ',' + str(self.agility) + ',' + str(self.intelligence) \
                + ',' + str(self.breath) + ',' + str(self.body) + ',' + str(self.leg)
 
     def load(self, arg):
@@ -32,6 +32,9 @@ class Attribute:
             self.body = arg[5]
             self.leg = arg[6]
 
+    def get_total(self):
+        return self.strength + self.agility + self.intelligence
+
     def exert(self, muscle, mag):
         if muscle == 0:
             self.body += mag
@@ -42,3 +45,6 @@ class Attribute:
             if self.leg >= self.strength * 3:
                 return 1
         return 0
+
+    def rest(self):
+        self.breath = self.strength + self.agility + self.intelligence

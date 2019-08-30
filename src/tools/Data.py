@@ -9,7 +9,7 @@ from src.form.Sprite import Sprite
 
 class Data:
     cache = {}
-    registry_list = ['props', 'units', 'beasts', 'items', 'armors', 'weapons', 'headgears', 'spells', 'miscellaneous']
+    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'spells', 'miscellaneous']
 
     @staticmethod
     def init():

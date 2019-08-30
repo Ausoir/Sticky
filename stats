@@ -126,7 +126,7 @@
 7/22 Mobs sound alert (1)
 7/24 Containers removed, loot applies to all prop (3)
 7/28 Night/day sight range (1), Merchants instead of Interactive (1), Guild (1)
-7/29 Rearranged item data and added Equipment and max HP (3), Merchants and Talkers (1), Interactive (1)
+7/29 Rearranged item data and added Equipment and max HP (3), Merchants and Residents (1), Interactive (1)
 ---- PUSH
 7/30 Menu button callback uses naming (1), item upgrade/craft/repair via anvil/workarea (1)
 8/01 Added root to .2d to replace height and organ part (3), Armor reset form on drop (1)
@@ -136,3 +136,13 @@
 8/01 Added root to .2d to replace height and organ part (3), Armor reset form on drop (1)
 8/02 Unknown Scrolls (1), added city/toilet/sofa/hanger (3)
 8/07 Lighting and fade system (5)
+---- PUSH
+8/19 NPCs have dictionaries and business and convo (2)
+8/20 rotate appendage length math wrong (1), Fixed Unit vec offset bug (1)
+8/21 pos no longer array (1)
+8/22 added sound system (2)
+8/23 divided identity with classes for instancing (2), fixed pathing climbables (1)
+8/28 insurance guild (1)
+8/29 business menu can now go to previous menu (1), added scroll bag (1), added silkworm (1), added begging (1)
+8/30 added powers - Thief/Rogue/Assassin/Monk/Warrior/Necromancer/Summoner (5), Pilot sight (1)
+---- PUSH

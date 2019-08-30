@@ -1,9 +1,16 @@
-Unknown Scroll,g_11x6,[],1,[],[],[1,1],?
-Scorch Staff,data/image/Staff,[],8,[],[],[1,3],Scorch
-Scroll of Scorch,g_11x6,[],1,[],[],[1,1],Scorch
-Scroll of Dispell,g_11x6,[],1,[],[],[1,1],Dispell
-Scroll of Echo,g_11x6,[],1,[],[],[1,1],Echo
-Scroll of Scry,g_11x6,[],1,[],[],[1,1],Scry
-Scroll of Brand,g_11x6,[],1,[],[],[1,1],Brand
-Scroll of Levitate,g_11x6,[],1,[],[],[1,1],Levitate
-Hellfire,g_8x0,[],1,[],[],[5,5],Hellfire
+Scorch Staff,Spell,data/image/Staff,[ig,pf],9,[],[],[1,3],Scorch
+Fireball Staff,Spell,data/image/Staff,[ig,pf],9,[],[],[1,3],Fireball
+Scroll of Echo,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Echo
+Scroll of Dispell,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Dispell
+Scroll of Scorch,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Scorch
+Scroll of Scry,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Scry
+Scroll of Levitate,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Levitate
+Scroll of Tornado,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Tornado
+Scroll of Crystallize,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Crystallize
+Scroll of Fireball,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Fireball
+Scroll of Immolation,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Immolation
+Scroll of Entomb,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Entomb
+Scroll of Gravitas,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Gravitas
+Scroll of Darkness,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Darkness
+Scroll of Haste,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Haste
+Scroll of Ensnare,Spell,g_11x6,[ig,pf],1,[],[],[1,1],Ensnare

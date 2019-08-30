@@ -1,12 +1,19 @@
-from src.entity.Projectile import Projectile
-from src.entity.Prop import Prop
-from src.entity.unit.Humanoid import Humanoid
-from src.entity.unit.Unit import Unit
+# noinspection PyUnresolvedReferences
 from src.entity.unit.item.Armor import Armor
+# noinspection PyUnresolvedReferences
 from src.entity.unit.item.Headgear import Headgear
-from src.entity.unit.item.Item import Item
+# noinspection PyUnresolvedReferences
 from src.entity.unit.item.Spell import Spell
+# noinspection PyUnresolvedReferences
 from src.entity.unit.item.Weapon import Weapon
+# noinspection PyUnresolvedReferences
+from src.entity.unit.Unit import Unit
+# noinspection PyUnresolvedReferences
+from src.entity.unit.Character import Character
+# noinspection PyUnresolvedReferences
+from src.entity.Projectile import Projectile
+from src.entity.unit.Humanoid import Humanoid
+from src.entity.Other import *
 from src.tools.Data import Data
 
 
@@ -19,8 +26,7 @@ class Stock:
         for i in Data.registry_list:
             registry_items = Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt'))
             for item in registry_items:
-                Stock.registry[item[0]] = [getattr(Stock, i), item]
-        Stock.registry['Projectile'] = [Stock.projectile, 'Projectile,g_0x0,[],-1,[],10']
+                Stock.registry[item[0]] = item
         item_desc = Data.process_raw(Data.get_cache_file('data/raw/descriptions.txt'))
         for i in item_desc:
             Item.description[i[0]] = i[1]
@@ -32,72 +38,17 @@ class Stock:
             record = Stock.registry[name]
             if not data:
                 object_id = Stock.location.get_id()
-                pos = [[0, 0]]
-                data = [object_id, pos] + record[1]
-            print(data)
-            return record[0](data)
+                pos = [0, 0]
+                data = [object_id, pos] + record
+            r = globals()[record[1]](Stock.location)
+            r.load(data)
+            return r
 
     @staticmethod
     def make(name, pos):
         r = Stock.get(name)
-        r.pos[0] = pos
+        r.pos = pos
         r.add()
-        return r
-
-    @staticmethod
-    def props(arg):
-        r = Prop(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def units(arg):
-        r = Humanoid(Stock.location)
-        r.load(arg)
-        for i in r.get_possessions():
-            i.id = Stock.location.get_id()
-        return r
-
-    @staticmethod
-    def beasts(arg):
-        r = Unit(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def items(arg):
-        r = Item(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def armors(arg):
-        r = Armor(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def headgears(arg):
-        r = Headgear(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def weapons(arg):
-        r = Weapon(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def projectile(arg):
-        r = Projectile(Stock.location)
-        r.load(arg)
-        return r
-
-    @staticmethod
-    def spells(arg):
-        r = Spell(Stock.location)
-        r.load(arg)
         return r
 
     @staticmethod
@@ -110,10 +61,3 @@ class Stock:
             r = Prop(Stock.location)
         r.load(arg)
         return r
-
-    @staticmethod
-    def project(form, pos):
-        data = [0, [pos], 'Projectile'] + Stock.registry['Force'][1][1:]
-        r = Stock.projectile(data)
-        r.set_form(form)
-        return r.add()

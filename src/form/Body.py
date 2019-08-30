@@ -1,3 +1,4 @@
+import math
 import random
 
 from src.form.Appendage import Appendage
@@ -53,7 +54,7 @@ class Body:
 
     def draw(self, surface, x, y):
         for i in self.organs:
-            i.draw(surface, x, y)
+            i.draw(surface, x, y + Global.HALF_BLOCK)
 
     def update(self):
         if self.timer.update():
@@ -129,7 +130,8 @@ class Body:
 
     def rotate_appendage(self, frame, organ, target, offset=0):
         animation = Data.get_cache_clip(self.model_name)[1]
-        length = abs(animation[frame][organ][0]) + abs(animation[frame][organ][1])
+        length = math.sqrt(pow(animation[frame][organ][0], 2) + pow(animation[frame][organ][1], 2))
         atan = target.to_int().get_atan() + (offset * self.direction)
         self.animation[frame][organ][0] = length*Math.cos(atan)*self.direction
         self.animation[frame][organ][1] = length*Math.sin(atan)
+

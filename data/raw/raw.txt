@@ -1,3 +1,4 @@
 stuff,[1,2]
 face,[data/image/unit/face/Head1,data/image/unit/face/Head2,data/image/unit/face/Head3,data/image/unit/face/Head4,data/image/unit/face/Head5,data/image/unit/face/Head6,data/image/unit/face/Head7,data/image/unit/face/Head8,data/image/unit/face/Head9,data/image/unit/face/Head10]
-crafts,[Box,Ladder,Bat,Shield]
+crafts,[Box,Ladder,Bat,Shield,Torch,Food,Medicine,Bandage,Amnesia Potion]
+writes,[Scroll of Echo,Scroll of Dispell,Scroll of Scorch,Scroll of Sonic,Scroll of Levitate,Scroll of Fireball]

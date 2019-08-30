@@ -1,4 +1,4 @@
 current
 6,current
-#0,[[78,0]],Player,unit/Man,[hum,if],1997,[],[[Hunger,-1,0]],1,Manual,[3972,4,1,1,0,0,0],[sonic,dispell,tackle,kick,block,leap,flurry,lunge,sprint],[dodge],[#1c,[[78,0]],Glaive,data/image/glaive,[ps,im],27,[],[],[1,3],32,4,24,[1,2],4,5],0,[#1f,[[2,0]],Red Robe,data/image/unit/traveller,[],1996,[Fiber],[[Modified,-1,3]],[3,4],28,5,0,[111,112,322,212],[[#1d,[[0,2]],Gold,g_6x6,[],2,[],[],[1,1],5]],[]],0
-Scroll of Scorch,Scroll of Levitate
+#0,[36,0],Player,Character,unit/man,[if,ii],2619,[],[],1,Manual,[3972,5,3,2,426,0,0],[tackle,block,leap,flurry,lunge,sprint],[],0,0,[#7,[3,0],Black Robe,Armor,data/image/unit/robe_black,[],2618,[Fiber],[],[4,4],13,9,0,[312,212,222,222],[[#5,[0,0],Gold,Gold,g_6x6,[xh],1,[],[],[1,1],16]],[]],0,[exp1:0,exp2:0,exp3:0,passive:Ranger,power:Necromancer]
+Scroll of Fireball

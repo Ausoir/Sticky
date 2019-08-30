@@ -6,14 +6,15 @@ kindle,[gfx_4x0,gfx_4x1,gfx_4x2,gfx_4x3],5,0
 zip,[gfx_5x0,gfx_5x1,gfx_5x2,gfx_5x3],5,1
 batter,[gfx_6x0,gfx_6x1,gfx_6x2,gfx_6x3],5,0
 blood,[gfx_7x0,gfx_7x1,gfx_7x2,gfx_7x3],5,0
-energy,[gfx_8x0,gfx_8x1,gfx_8x2,gfx_8x3],5,0
+sonic,[gfx_8x0,gfx_8x1,gfx_8x2,gfx_8x3],5,0
 portal,[gfx_9x0,gfx_9x1,gfx_9x2,gfx_9x3],5,1
 zap,[gfx_10x0,gfx_10x1,gfx_10x2,gfx_10x3],5,1
 zwip,[gfx_11x0,gfx_11x1,gfx_11x2,gfx_11x3],5,1
 shock,[gfx_0x4,gfx_0x5,gfx_0x6,gfx_0x7],5,0
-fail,[gfx_1x4,gfx_1x5,gfx_1x6,gfx_1x7],6,1
+spin,[gfx_1x4,gfx_1x5,gfx_1x6,gfx_1x7],6,1
 scorch,[gfx_2x4,gfx_2x5,gfx_2x6,gfx_2x7],6,1
 poison,[gfx_3x4,gfx_3x5,gfx_3x6,gfx_3x7],6,1
 disintegrate,[gfx_4x4,gfx_4x5,gfx_4x6,gfx_4x7],4,0
 sweat,[gfx_5x4,gfx_5x5,gfx_5x6,gfx_5x7],4,0
+fireball,[gfx_6x4,gfx_6x5,gfx_6x6,gfx_6x7],4,1
 shout,[g_5x0],30,0

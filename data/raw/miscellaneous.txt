@@ -1,10 +1,13 @@
-Sonic,g_0x0,[],-1,[],[[Levitate,-1,0]]
-Beacon,g_4x0,estate
-Interactive,g_2x0,[xc,xh,@],-1,[],[],[travel,map,0,0]
-Gold,g_6x6,[],2,[],[],[1,1],5
-Corpse,g_1x0,[if],6,[],[]
-Break,g_1x3,[xc,xg,im],4,[],[]
-Bridge,g_1x4,[cd,iw],8,[],[],[1,1]
-Hammer,data/image/hammer,[im],16,[],[],[1,1],16,3,14,[1],5,4
-Talker,unit/man,[hum,if,xc,@],1,[],[],1,Manual,[-1,1,1,1],[],[],0,0,[#-1,[[0,0]],Casual Wear,data/image/unit/casual,[],3,[Fiber],[],[2,2],3,0,0,[111,111,111,112],[],[]],0,[resident]
-Merchant,unit/man,[hum,if,xc,@],1,[Gold],[],1,AdvPilot,[-1,1,1,1],[],[],[#-1,[[0,0]],Dagger,data/image/dagger,[ps,im],8,[],[],[1,1],8,1,4,[1],1,1],0,[#-1,[[0,0]],Gold Robe,data/image/unit/robe_gold,[],10,[Fiber],[],[4,4],10,7,0,[112,212,222,212],[],[]],[#-1,[[0,0]],Top Hat,data/image/unit/top_hat,[],1,[Fiber],[],[2,1],1,1],[]
+Sonic,Sonic,g_0x0,[xh],80,[],[[Levitate,-1,0]]
+Beacon,Beacon,g_4x0,estate
+Interactive,Interactive,g_2x0,[xc,xh,@],-1,[],[],[travel,map,0,0]
+Gold,Gold,g_6x6,[xh],2,[],[],[1,1],16
+Corpse,Corpse,g_1x0,[if],6,[],[]
+Break,Break,g_1x3,[xc,xg,im],4,[],[]
+Bridge,Bridge,g_1x4,[cd,iw],8,[],[],[1,1]
+Hammer,Builder,data/image/hammer,[im],16,[],[],[1,1],16,3,14,[1],5,4
+Wall,Block,g_1x1,[iw],8,[Plank],[]
+Tile,Block,g_2x1,[cb,iw],8,[Plank],[]
+Window,Block,g_3x4,[cb,iw],2,[Plank],[]
+Fireball,Projectile,fireball,[xc,xg],-1,[],[]
+Arrow,Projectile,g_0x6,[xc],-1,[],[]

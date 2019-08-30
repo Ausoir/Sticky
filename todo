@@ -1,35 +1,23 @@
-brick complex
 sewers
-abandoned tower
+brick complex + abandoned tower
 
+-- powers (- stamina)
+*Some randomly removed per playthrough
+priest > buff - 2
+hexer > debuff - 2
+druid > mending - 2
+witch > charm - 3
+^ wraith > possess if allied - 3
+mage > blood scribing (apply bleeding debuff to craft spell) - 0
+^ sorcerer > ritual gesture (long casting but no item req) - 2
+prophet > foresight - save current data, load after 100 turns - 3
+pyromancer > fire immunity, fireblast - 1
+terraformer > move terrain/prop - 1
+aeromancer > mistform - 1
+warper > teleport - teleport to any coordinate and swap with props - 1
 
--- classes
-Blacksmith - forge armor/weapon
-Sorcerer - ritual scribing (long casting but free)
-Monk - fist & all weapon skill - weight 0, speed 5, damage 3
-Scout - run/jump cost 0
-Witch - charm
-Summoner - summon perma 1
-Necromancer - raise dead
-Hexer - cause buff
-Rogue - hiding
-Warrior - blocking free
-
--- powers (per encounter)
-move terrain - inf
-control target - 1
-mistform - 1
-time travel - save current data, load after 100 turns - 1
-teleport - teleport to any coordinate - inf
-telekinesis - move target prop/unit - inf
-touch of gold - depends on yellow in sprite. 1
-mending - repair equipment
-
--- specials
-poison immunity
-fire immunity
-bleed immunity
-stun immunity
+-- special
+lich > poison/hunger/bleed immunity
 
 -- artifacts
 memory amulet - remembers location it was put on
@@ -38,4 +26,10 @@ dying dagger - instant kill if hits, destroyed if not
 lifegem amulet - auto regens to 3 durability every encounter
 bloodgem amulet - regens to 3 durability by absorbing corpses
 interdimensional coin - spawn random item
-ancient potion - perm inc str/agi
+ancient potion - perm inc str/agi if lower than 3
+
+-- settings
+cleansing potion - pus blood
+cleansing potion - body is already toxic
+food - silk worm
+cloth - silk worm

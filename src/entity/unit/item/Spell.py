@@ -17,25 +17,21 @@ class Spell(Item):
     def load(self, p):
         index = super().load(p)
         self.spell = p[index]
-        self.is_known = not self.name.startswith('Unknown')
-        if self.spell[0] == '?':
-            from src.tools.Data import Data
-            spells = Data.process_raw(Data.read('data/raw/spells.txt'))
-            possible_spells = []
-            for spell in spells:
-                if spell[0].startswith('Scroll'):
-                    possible_spells.append(spell[7])
-            self.spell = Global.r.rand_list(possible_spells)
         return index + 1
 
-    def describe(self):
-        r = super().describe()
-        if not self.is_known:
-            if 'Scroll of ' + self.spell in Global.player.knowledge:
-                self.is_known = True
-                self.name = 'Scroll of ' + self.spell
+    def get_display_name(self):
+        self.is_known = self.name in Global.player.knowledge
+        if self.is_known:
+            return self.name
         else:
+            return 'Artifact'
+
+    def describe(self):
+        r = super().describe().replace('Durability', 'Number of casts')
+        if self.is_known:
             r += '\nCasts Spell: ' + self.spell
+        else:
+            r += '\nCasts an unknown spell'
         return r
 
     def use(self):
@@ -51,19 +47,22 @@ class Spell(Item):
     @staticmethod
     def dispell(host):
         from src.entity.Prop import Prop
-        aoe = host.location.get_area(host.pos[0], 8, 8)
+        aoe = host.location.get_area(host.pos, 8, 8)
         for i in aoe:
             for thing in i.things:
-                Effect.make('energy', thing.vec)
+                Effect.make('sonic', thing.vec)
                 if isinstance(thing, Prop):
                     thing.hit(0)
                     from src.entity.unit.Buff import BuffTags
                     thing.states.clear(lambda x: x.duration >= 0 and BuffTags.magic in x.tags)
+        if host == Global.player.character:
+            Global.player.set_darkness()
 
     @staticmethod
     def scorch(host):
         from src.entity.Stock import Stock
-        Stock.make('Flame', host.get_offset_tile(host.direction, 0))
+        host.location.sound.register(host.pos, 12)
+        Stock.make('Flame', host.pos).move(host.next_target.x, host.next_target.y, distance=1)
 
     @staticmethod
     def scry(host):
@@ -74,134 +73,155 @@ class Spell(Item):
             if turnee.lifetime <= 1:
                 host.center_camera()
                 r.remove()
-            Effect.make('energy', r.pos[0].get_center())
+            Effect.make('sonic', r.pos.get_center())
 
         from src.entity.Stock import Stock
         from src.tools.Turnee import Turnee
         turnee = Turnee(effect, 40)
-        r = Stock.make('Force', host.pos[0])
+        r = Stock.make('Force', host.pos)
         r.gravity = False
         r.location.record.remove(r)
         host.states.add('Stun', 40)
         r.center_camera()
 
     @staticmethod
-    def fireblast(host):
-        def effect():
-            def on_hit(target):
-                Effect.make('burn', target.pos[0].get_center(), offset=4, lifetime=40)
-                for thing in target.pos[0].things:
-                    thing.states.add('Burn', 16)
-                r.remove()
-
-            if host.next_target.y > 0:
-                y = 1
-            elif host.next_target.y < 0:
-                y = -1
-            else:
-                y = 0
-            if r.pos[0] == r.move(final_dir, y):
-                on_hit(r)
-            else:
-                r.location.attack.register(0, r.pos[0], faction=0, callback=on_hit)
-                Effect.make('explode', r.pos[0].get_center(), offset=4).form.face(final_dir)
-
-        from src.entity.Stock import Stock
-        r = Stock.project('g_0x0', host.get_offset_tile(host.direction, 0), 6)
-        final_dir = host.direction
-        r.effect = effect
-
-    @staticmethod
-    def haste(host):
-        host.states.add('Haste', 50)
-
-    @staticmethod
     def tornado(host):
-        def effect():
-            def on_hit(target):
-                if r.last_pos.x - r.pos[0].x > 0:
-                    target.move(-4, -4)
-                else:
-                    target.move(4, -4)
-
-            r.last_pos = r.pos[0] + 0
-            r.move(host.direction, 0, 1)
-            r.location.attack.register(0, r.get_offset_tile(0, -1), faction=0, callback=on_hit)
-            r.location.attack.register(0, r.get_offset_tile(0, 1), faction=0, callback=on_hit)
-            r.location.attack.register(0, r.get_offset_tile(1, 0), faction=0, callback=on_hit)
-            r.location.attack.register(0, r.get_offset_tile(-1, 0), faction=0, callback=on_hit)
-            r.location.attack.register(0, r.pos[0], faction=0, callback=on_hit)
-            Effect.make('wind', r.pos[0].get_center(), offset=4)
-
-        from src.entity.Stock import Stock
-        r = Stock.project('wind', host.get_offset_tile(host.direction, 0), 20)
-        r.last_pos = r.pos[0]
-        r.effect = effect
-        return r
-
-    @staticmethod
-    def summon(host):
-        rift = host.states.get('Rift')
-        if rift:
-            from src.entity.Stock import Stock
-            r = Stock.get('Summon').add()
-            r.relocate(rift.pos[0].x, rift.pos[0].y, force=1)
-            Effect.make('zip', r.vec)
-
-    @staticmethod
-    def fargate(host):
-        from src.entity.Stock import Stock
-
-        def effect():
-            flight = placer.pos[0] != placer.move(host.next_target.x, host.next_target.y, 2)
-            if not flight or placer.lifetime == 1:
-                Effect.make('barrier', placer.vec)
-                r = Stock.get('Portal').add()
-                r.relocate(placer.pos[0].x, placer.pos[0].y, force=1)
-                host.states.add('Rift', 80, var=r.id)
-                host.center_camera()
-                placer.remove()
-
-        obj = host.states.get('Rift')
-        placer = Stock.project('portal', obj.pos[0], 30)
-        placer.fast = 0
-        host.states.add('Stun', 20)
-        placer.effect = effect
-        placer.center_camera()
+        def test():
+            if channel.effect(2):
+                left = channel.host.get_offset_tile(-1, 0)
+                right = channel.host.get_offset_tile(1, 0)
+                Effect.make('wind', left.get_center())
+                Effect.make('wind', right.get_center())
+                for thing in left.things:
+                    thing.move(-1, 0, 1)
+                for thing in right.things:
+                    thing.move(1, 0, 1)
+        channel = host.states.add('Channel', 40)
+        channel.on_update = test
 
     @staticmethod
     def levitate(host):
         host.states.add('Levitate', 40)
 
     @staticmethod
-    def brand(host):
-        Effect.make('burn', host.weapon.vec, offset=0)
-        host.weapon.states.add('Fire', 400)
+    def summon(host):
+        things = []
+        things += host.pos.things
+        things += host.get_offset_tile(-1, 0).things
+        things += host.get_offset_tile(1, 0).things
+        for thing in things:
+            if isinstance(thing, Item):
+                from src.entity.Stock import Stock
+                r = Stock.make('Summon', host.pos)
+                Effect.make('zwip', r.vec)
+                return
 
     @staticmethod
-    def teleport(host):
-        rift = host.states.get('Rift')
-        if rift:
-            Spell.teleport(host)
-        else:
-            Effect.make('barrier', host.vec)
-            from src.entity.Stock import Stock
-            r = Stock.get('Portal').add()
-            r.relocate(host.pos[0].x, host.pos[0].y - 1, force=1)
-            host.states.add('Rift', 160, var=r.id)
+    def immolation(host):
+        Effect.make('burn', host.weapon.vec, offset=0)
+        host.states.add('Fire', 240)
 
     @staticmethod
     def crystallize(host):
-        rift = host.states.get('Rift')
+        def casting():
+            crystal = Stock.make('Crystal', host.pos)
+            crystal.states.add('Levitate', 10)
+            crystal.move(host.next_target.x, host.next_target.y)
+            Effect.make('zip', crystal.vec)
         from src.entity.Stock import Stock
-        for i in range(5):
-            r1 = Stock.get('Crystal').add()
-            r1.relocate(rift.pos[0].x, rift.pos[0].y, force=1)
-            r1.states.add('Levitate', 1)
-            Effect.make('zip', r1.vec)
-            r1.move(Global.r.rand_int(-1, 1), Global.r.rand_int(-1, 0))
+        channel = host.states.add('Channel', 8)
+        channel.on_update = casting
 
     @staticmethod
-    def torrent(host):
-        host.move(Global.r.rand_int(-4, 4), Global.r.rand_int(-4, 4))
-        Spell.dispell(host)
+    def fireball(host):
+        def effect():
+            aoe = r.location.get_area(r.pos, 2, 2)
+            for tile in aoe:
+                Effect.make('explode', tile.get_center(), offset=4)
+                for thing in tile.things:
+                    thing.states.add('Burn', 24)
+            r.remove()
+        from src.entity.Stock import Stock
+        r = Stock.make('Fireball', host.get_interact_pos())
+        r.set(lifetime=5, speed=12, speed_var=2)
+        r.shoot(host.next_target.x, host.next_target.y)
+        r.on_collide = effect
+
+    @staticmethod
+    def entomb(host):
+        from src.entity.Stock import Stock
+        target = host.get_target_tile()
+        for i in [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]:
+            r = Stock.make('Crystal', host.location.get_tile(target + (i[0], i[1])))
+            r.states.add('Levitate', 120)
+            r.states.add('Banish', 100)
+
+    @staticmethod
+    def gravitas(host):
+        def effect():
+            aoe = r.location.get_area(r.pos, 2, 2)
+            for tile in aoe:
+                Effect.make('wind', tile.get_center(), offset=6)
+                for thing in tile.things:
+                    thing.move((thing.pos.x - r.pos.x) * 2, (thing.pos.y - r.pos.y) * 2 - 2)
+            r.remove()
+            channel.end()
+        from src.entity.Stock import Stock
+        r = Stock.make('Fireball', host.get_interact_pos())
+        r.set(gravity=0, lifetime=40, speed=7, speed_var=0)
+        r.on_collide = effect
+
+        def casting():
+            if channel.effect(7):
+                Effect.make('spin', host.vec)
+            r.shoot(host.pos.x - r.pos.x + host.next_target.x, host.pos.y - r.pos.y + host.next_target.y)
+            aoe = r.location.get_area(r.pos, 2, 2)
+            for tile in aoe:
+                for thing in tile.things:
+                    thing.move(r.pos.x - thing.pos.x, r.pos.y - thing.pos.y)
+        channel = host.states.add('Channel', 40)
+        channel.on_update = casting
+
+    @staticmethod
+    def darkness(host):
+        def casting():
+            if channel.effect(4):
+                Effect.make('spin', host.vec)
+                Global.main.colorize(1, [30, 0, 0, 60 + (channel.frame * 4)])
+                host.location.sight_range = max(4, host.location.sight_range - 1)
+                host.location.resize()
+                host.location.update_fog()
+            if channel.frame == 38:
+                host.location.sight_range = 4
+                host.location.resize()
+                host.location.update_fog()
+        channel = host.states.add('Channel', 40)
+        channel.on_update = casting
+
+    @staticmethod
+    def haste(host):
+        host.states.add('Speed', 240, var=1)
+
+    @staticmethod
+    def ensnare(host):
+        aoe = host.location.get_area(host.get_target_tile(), 2, 0)
+        for tile in aoe:
+            Effect.make('spin', tile.get_center(), offset=6)
+            for thing in tile.things:
+                thing.states.add('Speed', 80, var=-9)
+                thing.states.add('Cripple', 80)
+
+    @staticmethod
+    def irradiate(host):
+        def effect():
+            aoe = r.location.get_area(r.pos, 2, 2)
+            for tile in aoe:
+                Effect.make('explode', tile.get_center(), offset=4)
+                for thing in tile.things:
+                    thing.states.add('Burn', 24)
+            r.remove()
+        from src.entity.Stock import Stock
+        r = Stock.make('Fireball', host.get_interact_pos())
+        r.set(lifetime=5, speed=12, speed_var=2)
+        r.shoot(host.next_target.x, host.next_target.y)
+        r.on_collide = effect

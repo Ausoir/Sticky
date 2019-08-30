@@ -29,6 +29,7 @@ class Weapon(Equipment):
         r = super().describe()
         r += '\nRange: ' + ','.join(str(x) for x in self.range)
         r += '\nAttack: ' + str(self.damage)
+        r += '\nDamage: ' + str(self.weight)
         r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
         return r
 

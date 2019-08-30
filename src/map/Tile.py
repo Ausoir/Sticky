@@ -13,9 +13,10 @@ class Tile(Space):
     CHECK_FIRM = [10, 30]
     CHECK_FOUNDATION = [10, 30, 35]
     CHECK_LARGE = [10, 30, 40]
-    CHECK_LANDABLE = [10, 30, 35, 40]
+    CHECK_LANDABLE = [10, 30, 35]
     CHECK_BREAKABLE = [30, 40]
     COLLIDE_FOG = 8
+    COLLIDE_BACK = 15
     COLLIDE_TERRAIN = 10
     COLLIDE_OBJECT = 20
     COLLIDE_PROP = 30
@@ -70,6 +71,9 @@ class Tile(Space):
     def get_center(self):
         return self.get_vec() + Global.HALF_BLOCK
 
+    def get_bottom(self):
+        return self.get_vec() + (Global.HALF_BLOCK, Global.BLOCK)
+
     def is_climbable(self):
         for i in self.things:
             if Tags.climb in i.tags:
@@ -83,6 +87,6 @@ class Tile(Space):
             elif self.terrain.type == 3 and Tile.COLLIDE_FOG in check:
                 return 1
         for i in self.things:
-            if i.collide in check:
+            if i.collision_type in check:
                 return 1
         return 0

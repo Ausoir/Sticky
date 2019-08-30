@@ -1,5 +1,6 @@
 import random
 
+from src.entity.Effect import Effect
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 from src.game import Global
@@ -7,8 +8,9 @@ from src.map.Tile import Tile
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck',
+    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck', 'peek', 'power',
                'run_left', 'run_right', 'item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'attack']
+    priority = ['down', 'hit']
 
     def __init__(self, host):
         self.host = host
@@ -16,7 +18,6 @@ class Actions:
         self.on_finish = None
         self.last_action = None
         self.skills = []
-        self.auto = 0
         self.exhausted = 0
 
     def __str__(self):
@@ -33,12 +34,10 @@ class Actions:
         elif idle:
             self.set('idle')
 
-    def set(self, action, auto=0):
-        if auto:
-            self.host.location.attack.unregister(self.host)
-        elif self.exhausted:
+    def set(self, action):
+        self.host.location.attack.unregister(self.host)
+        if self.exhausted and action not in Actions.priority:
             action = 'rest'
-        self.auto = auto
         self.current_action = action
         if self.on_finish:
             if self.host.delay:
@@ -69,10 +68,7 @@ class Actions:
     @staticmethod
     def knockdown(victim):
         if isinstance(victim, Unit):
-            if not victim.get_proficiency('constitution'):
-                victim.action.set('down', auto=1)
-            else:
-                victim.form.set('drop')
+            victim.action.set('down')
 
     def idle(self):
         if self.last_action == 'idle':
@@ -84,7 +80,10 @@ class Actions:
         self.exhausted = False
         self.host.attributes.body = 0
         self.host.attributes.leg = 0
-        self.make(turn=4)
+        if self.host.states.get('Exhaustion'):
+            self.make(turn=16)
+        else:
+            self.make(turn=4)
 
     def wield(self, pocket):
         if len(self.host.armor.pockets) > pocket:
@@ -171,7 +170,7 @@ class Actions:
         self.make(turn=3)
         if not self.host.is_armed():
             from src.entity.unit.item.Item import Item
-            for thing in reversed(self.host.pos[0].things):
+            for thing in reversed(self.host.pos.things):
                 if thing != self.host.weapon and isinstance(thing, Item):
                     thing.on_equip(self.host)
                     return
@@ -196,17 +195,12 @@ class Actions:
     def duck(self):
         ground = self.host.get_offset_tile(0, 1)
         if ground.is_climbable():
-            if self.host.gravity or self.host.form.state_name == 'climb':
-                def finish():
-                    self.host.gravity = 1
-                self.on_finish = finish
-                self.host.gravity = 0
-                self.host.move(0, 1, flag=Tile.CHECK_BREAKABLE)
-                self.make('climb', turn=2)
+            self.host.move(0, 1, flag=Tile.CHECK_BREAKABLE)
+            self.make('climb', turn=2)
         else:
             if self.host.gravity:
                 from src.game.Interaction import Interaction
-                if Interaction.trigger(self.host.pos[0]):
+                if Interaction.trigger(self.host.pos):
                     self.make(animation='interact', turn=4)
                 else:
                     self.attempt('block')
@@ -218,16 +212,13 @@ class Actions:
         if self.host.gravity:
             cripple = self.host.states.get('Cripple')
             if not cripple:
-                above = self.host.get_offset_tile(0, -1).is_climbable()
-                stand = self.host.pos[0].is_land([Tile.COLLIDE_DOODAD])
-                if (above or stand) and self.host.pos[0].is_climbable():
-                    if self.host.pos[0] != self.host.move(0, -1):
-                        if not above:
-                            self.make('jump', turn=1)
-                        else:
-                            self.make('climb', turn=2)
+                if self.host.pos.is_climbable():
+                    if self.host.pos != self.host.move(0, -1):
+                        self.make('climb', turn=2)
                 else:
-                    self.exert(1, 3)
+                    from src.entity.unit.Character import Character
+                    if not Character.check_var(self.host, 'passive', 'Monk'):
+                        self.exert(1, 3)
                     destination = self.host.get_offset_tile(self.host.direction, -1)
                     if destination.is_land(Tile.CHECK_FIRM):
                         self.host.move(0, -1)
@@ -240,7 +231,7 @@ class Actions:
 
     def down(self):
         def fin():
-            for thing in self.host.pos[0].things:
+            for thing in self.host.pos.things:
                 if thing != self.host and isinstance(thing, Unit):
                     thing.move(self.host.direction, 0)
                     self.knockdown(thing)
@@ -250,6 +241,18 @@ class Actions:
     def block(self):
         self.host.weapon.form.rotate(20 * self.host.direction)
         self.make(turn=1)
+
+    def peek(self):
+        def fin():
+            self.host.center_camera()
+        self.on_finish = fin
+        new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
+                                                  distance=1, flag=Tile.CHECK_LARGE)
+        from src.game.TempObject import TempObject
+        viewer = TempObject(new_pos)
+        from src.game.Camera import Camera
+        Camera.target = viewer
+        self.make(animation='idle', turn=1)
 
     def sprint(self):
         front = self.host.get_offset_tile(self.host.direction, 0)
@@ -261,14 +264,16 @@ class Actions:
                 slow = 1
             else:
                 slow = 0
-            self.exert(1, 1)
+            from src.entity.unit.Character import Character
+            if not Character.check_var(self.host, 'passive', 'Monk'):
+                self.exert(1, 1)
             self.host.move(self.host.direction, 0)
             self.make(turn=slow)
 
     def tackle(self):
-        self.exert(1, 12)
+        self.exert(1, 18)
         self.host.move(self.host.direction, 0)
-        self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0),
+        self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
                                            faction=self.host.faction, type='batter', callback=self.knockdown)
         self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM)
         self.make(animation='kick', turn=3)
@@ -287,7 +292,7 @@ class Actions:
     def swing(self):
         self.host.weapon.rotation = 60
         self.exert(0, self.host.weapon.weight)
-        self.host.form.rotate_appendage(30, 0, self.host.next_target, offset=50)
+        self.host.form.rotate_appendage(19, 0, self.host.next_target, offset=50)
         self.host.weapon.attack()
         if self.host.weapon.speed < 4:
             self.make(animation='slash', turn=self.host.weapon.speed)
@@ -296,7 +301,9 @@ class Actions:
 
     def leap(self):
         self.exert(1, 12)
-        self.host.move(self.host.direction * 2, -2)
+        degree = self.host.next_target.get_atan()
+        from src.tools.Math import Math
+        self.host.move(round(Math.cos(degree) * 2.4), round(Math.sin(degree) * 2.4))
         self.make(animation='jump', turn=3)
 
     def lunge(self):
@@ -311,25 +318,30 @@ class Actions:
         rand = random.randint(-15, 15)
         self.host.form.rotate_appendage(40, 0, self.host.next_target, offset=rand)
         prof = self.host.get_proficiency('lunge')
-        self.host.weapon.attack(damage=0, chance=prof, callback=hit)
+        self.host.weapon.attack(delay=2, chance=prof, callback=hit)
         self.make(turn=max(1, self.host.weapon.speed - prof))
 
     def flurry(self):
-        self.host.weapon.rotation = 10
-        self.exert(1, self.host.weapon.weight)
-        self.exert(0, self.host.weapon.weight)
-        variance = Global.r.rand_int(0, self.host.weapon.damage)
-        self.host.weapon.attack(chance=self.host.get_proficiency('flurry') - variance)
-        rand = random.randint(-15, 15)
-        self.host.form.rotate_appendage(38, 0, self.host.next_target, offset=rand)
-        self.host.form.rotate_appendage(38, 5, self.host.next_target, offset=rand)
-        self.make(animation='flurry', turn=1)
+        if Global.player.stamina(1):
+            self.host.weapon.rotation = 10
+            self.exert(1, 1)
+            self.host.weapon.attack(chance=self.host.get_proficiency('flurry'))
+            rand = random.randint(-15, 15)
+            self.host.form.rotate_appendage(38, 0, self.host.next_target, offset=rand)
+            self.host.form.rotate_appendage(38, 5, self.host.next_target, offset=rand)
+            self.make(animation='flurry', turn=1)
+        else:
+            self.make(animation='idle', turn=1)
 
     def arch(self):
         def fin():
-            r = Stock.project('g_0x6', self.host.get_interact_pos())
+            def collision():
+                r.remove()
+                r.location.attack.register(1, r.pos, delay=0, chance=r.chance, type='batter', faction=r.faction)
+            r = Stock.make('Arrow', self.host.get_interact_pos())
             r.faction = self.host.faction
             r.shoot(dest.x, dest.y)
+            r.on_collide = collision
             self.host.weapon.rotation = orig_rot
         orig_rot = self.host.weapon.rotation
         self.host.weapon.rotation = 0
@@ -339,3 +351,69 @@ class Actions:
         self.host.form.rotate_appendage(34, 0, self.host.next_target)
         self.on_finish = fin
         self.make(turn=7)
+
+    def power(self):
+        if self.host.var['power'] == 'Thief' and Global.player.stamina(3):
+            def fin():
+                from src.entity.unit.Humanoid import Humanoid
+                for thing in self.host.get_interact_pos().things:
+                    if isinstance(thing, Humanoid):
+                        item = thing.armor.get_item(0)
+                        if item:
+                            item.on_equip(self.host)
+            self.on_finish = fin
+            self.make(animation='cast', turn=4)
+        elif self.host.var['power'] == 'Summoner' and self.host.is_armed() and Global.player.stamina(1):
+            def fin():
+                phantom = Stock.make('Phantom', self.host.get_interact_pos())
+                phantom.form.organs[0].set(self.host.weapon.form)
+                phantom.durability = self.host.weapon.durability
+                phantom.attributes.strength = self.host.weapon.durability
+                phantom.loot = self.host.weapon.loot
+                phantom.faction = self.host.faction
+                self.host.weapon.loot = []
+                phantom.states.add('Sick', 80)
+                self.host.weapon.die()
+            self.on_finish = fin
+            self.make(animation='cast', turn=4)
+        elif self.host.var['power'] == 'Necromancer' and Global.player.stamina(1):
+            def fin():
+                def casting():
+                    if channel.effect(5):
+                        Effect.make('portal', target.get_center(), offset=0)
+                    total = 0
+                    if channel.frame == 38:
+                        for thing in target.things:
+                            if thing.name == 'Corpse':
+                                total += thing.durability
+                    if total > 1:
+                        r = Stock.make('Undead', target)
+                        r.faction = self.host.faction
+                        r.durability = total * 2
+                        r.attributes.strength = total
+                    else:
+                        Effect.make('zwip', target.get_center(), offset=0)
+                channel = self.host.states.add('Channel', 40)
+                channel.on_update = casting
+                target = self.host.get_target_tile()
+                aoe = self.host.location.get_area(target, 2, 2)
+                for tile in aoe:
+                    corpses = []
+                    for thing in tile.things:
+                        if thing.name == 'Corpse':
+                            corpses.append(thing)
+                            thing.gravity = 0
+                            thing.states.add('Banish', 40)
+                            thing.move(target.x - thing.pos.x, target.y - thing.pos.y)
+            self.on_finish = fin
+            self.make(animation='cast', turn=4)
+        elif self.host.var['power'] == 'Druid':
+            def fin():
+                from src.entity.unit.Humanoid import Humanoid
+                for thing in self.host.get_interact_pos().things:
+                    if isinstance(thing, Humanoid):
+                        item = thing.armor.get_item(0)
+                        if item:
+                            item.on_equip(self.host)
+            self.on_finish = fin
+            self.make(animation='cast', turn=4)

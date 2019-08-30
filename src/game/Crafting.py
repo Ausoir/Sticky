@@ -59,7 +59,7 @@ class Crafting:
                     resource.remove('#' + tag)
                     break
         from src.entity.Stock import Stock
-        result = Stock.make(item, host.pos[0])
+        result = Stock.make(item, host.pos)
         if host.is_armed():
             host.drop()
         result.on_equip(host)

@@ -60,9 +60,9 @@ class Armor(Equipment):
         self.form.rotate(180)
 
     def die(self):
-        pos = self.pos[0]
+        pos = self.pos
         if self.host:
-            pos = self.host.pos[0]
+            pos = self.host.pos
             self.host.unarmor()
         while self.items:
             item = self.items.pop(0)
@@ -77,7 +77,7 @@ class Armor(Equipment):
                 if cell != 1:
                     inv += 1
         inv += len(self.pockets)
-        r = int(self.durability / 4) + self.armor + inv - self.weight + 1
+        r = super().get_value() + self.armor + inv
         return r
 
     def describe(self):
@@ -87,7 +87,7 @@ class Armor(Equipment):
                 if slot == Armor.VACANT:
                     inv += 1
         r = super().describe()
-        r += '\nInventory: ' + str(inv)
+        r += '\nInventory Space: ' + str(inv)
         r += '\nDefense: ' + str(self.armor)
         r += '\nPockets: ' + str(len(self.pockets))
         return r
@@ -106,7 +106,7 @@ class Armor(Equipment):
             if forms[k]:
                 i.set(forms[k])
         self.remove()
-        host.update_durability()
+        host.update_durability(0)
         self.host = host
         for i in self.items:
             i.host = host
@@ -126,17 +126,17 @@ class Armor(Equipment):
 
     def add_inventory(self, item, x, y):
         item.remove()
-        item.pos[0] = self.location.get_tile((x, y))
+        item.pos = self.location.get_tile((x, y))
         item.host = self.host
         self.items.append(item)
         self.modify_inventory(item, Armor.VACANT, Armor.OCCUPIED)
-        self.host.update_durability()
+        self.host.update_durability(0)
         return len(self.items) - 1
 
     def get_item_at(self, x, y, pop=0):
         r = None
         for k, i in enumerate(self.items):
-            if i.pos[0].x <= x < i.pos[0].x + i.volume[0] and i.pos[0].y <= y < i.pos[0].y + i.volume[1]:
+            if i.pos.x <= x < i.pos.x + i.volume[0] and i.pos.y <= y < i.pos.y + i.volume[1]:
                 r = i
                 if pop:
                     self.get_item(k)
@@ -152,11 +152,11 @@ class Armor(Equipment):
             self.modify_inventory(item, Armor.OCCUPIED, Armor.VACANT)
             self.items.remove(item)
             if self.host:
-                self.host.update_durability()
+                self.host.update_durability(0)
             return item
 
     def modify_inventory(self, item, state_from, state_to):
-        for iy in range(item.pos[0].y, item.pos[0].y + item.volume[1]):
-            for ix in range(item.pos[0].x, item.pos[0].x + item.volume[0]):
+        for iy in range(item.pos.y, item.pos.y + item.volume[1]):
+            for ix in range(item.pos.x, item.pos.x + item.volume[0]):
                 if self.inventory[iy][ix] == state_from:
                     self.inventory[iy][ix] = state_to

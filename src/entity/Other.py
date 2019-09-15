@@ -2,33 +2,21 @@ from src.entity.Effect import Effect
 from src.entity.Object import Object
 from src.entity.Prop import Prop
 from src.entity.Space import Space
+from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
 from src.game import Global
 from src.map.Tile import Tile
 
 
-class Sonic(Prop):
-    def turn(self):
-        if self.durability == 0:
-            self.remove()
-        else:
-            self.durability -= 1
-            Effect.make('sonic', self.get_offset_tile(Global.r.rand_int(-3, 3), Global.r.rand_int(-3, 3)).get_center())
-            for x in range(-4, 5):
-                for y in range(-4, 5):
-                    if Global.r.rand_bool():
-                        pos = str(self.pos.x + x) + ',' + str(self.pos.y + y)
-                        self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
-
-
 class Beacon(Object):
     def __init__(self, loc):
         super().__init__(loc)
         self.var = 'estate'
+        self.depth = 5
 
     def __str__(self):
-        return super().__str__() + ',' + self.var
+        return super().__str__() + ',' + str(self.var)
 
     def load(self, arg):
         index = super().load(arg)
@@ -52,13 +40,30 @@ class Interactive(Prop):
 
     def trigger(self):
         if self.argument[0] == 'enter':
-            Global.main.colorize(0, [0, 0, 0, 255], fade=2)
             Global.player.travel(self.argument[1], Space(int(self.argument[2]), int(self.argument[3])))
         elif self.argument[0] == 'travel':
             if Global.player.is_safe():
                 Global.menu.var = self.argument[1:]
                 Global.menu.state = Global.menu.menu_travel
                 Global.menu.display(1)
+
+
+class Bridge(Prop):
+    def load(self, arg):
+        super().load(arg)
+        self.gravity = 0
+
+    def turn(self):
+        super().turn()
+        support = 0
+        adj = [self.get_offset_tile(-1, 0), self.get_offset_tile(1, 0)]
+        for i in adj:
+            if i.is_land(Tile.CHECK_FIRM):
+                support += 2
+            elif i.is_land([Tile.COLLIDE_DOODAD]):
+                support += 1
+        if support < 2:
+            self.die()
 
 
 class Gold(Item):
@@ -78,28 +83,24 @@ class Gold(Item):
         return index + 1
 
     def use(self):
-        self.host.action.set('block')
+        self.host.action.set('wait')
         self.name = 'Bag'
         self.host.modify_gold(self.durability)
         self.die()
 
 
-class Bridge(Prop):
-    def load(self, arg):
-        super().load(arg)
-        self.gravity = 0
-
+class Sonic(Prop):
     def turn(self):
-        super().turn()
-        support = 0
-        adj = [self.get_offset_tile(-1, 0), self.get_offset_tile(1, 0)]
-        for i in adj:
-            if i.is_land(Tile.CHECK_FIRM):
-                support += 2
-            elif i.is_land([Tile.COLLIDE_DOODAD]):
-                support += 1
-        if support < 2:
-            self.die()
+        if self.durability == 0:
+            self.remove()
+        else:
+            self.durability -= 1
+            Effect.make('sonic', self.get_offset_tile(Global.r.rand_int(-3, 3), Global.r.rand_int(-3, 3)).get_center())
+            for x in range(-4, 5):
+                for y in range(-4, 5):
+                    if Global.r.rand_bool():
+                        pos = str(self.pos.x + x) + ',' + str(self.pos.y + y)
+                        self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
 
 
 class Block(Prop):
@@ -206,3 +207,116 @@ class Builder(Weapon):
                 self.hit(1)
                 return
         super().use()
+
+
+class Mushroom(Item):
+    def die(self):
+        if self.host:
+            self.host.states.add('Sick', 40)
+        else:
+            for thing in self.pos.things:
+                thing.states.add('Sick', 40)
+        super().die()
+
+
+class Explosive(Item):
+    def die(self):
+        if self.states.get('Burn'):
+            from src.entity.Stock import Stock
+            Stock.make('Flame', self.pos)
+            aoe = self.location.get_area(self.pos, 1, 1)
+            for tile in aoe:
+                Effect.make('explode', tile.get_center(), offset=4)
+                for thing in tile.things:
+                    thing.states.add('Burn', 24)
+                    thing.hit(1)
+        super().die()
+
+
+class Manual(Item):
+    skills = ['Block', 'Sprint', 'Lunge', 'Leap', 'Tackle', 'Flurry']
+    req = [2, 3, 4, 5, 6, 7]
+
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.skill = None
+
+    def __str__(self):
+        return super().__str__() + ',' + self.skill
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.skill = arg[index]
+        if self.skill == 'Random':
+            self.skill = Global.r.rand_list(Manual.skills)
+        return index + 1
+
+    def get_display_name(self):
+        return 'Manual of ' + self.skill
+
+    def describe(self):
+        return super().describe() + '\nTeaches skill [' + self.skill + ']'
+
+    def use(self):
+        req = Manual.req[Manual.skills.index(self.skill)]
+        if self.host.attributes.strength > req:
+            skill = self.skill.lower()
+            if skill not in self.host.action.skills:
+                self.host.action.skills.append(skill)
+                if self.host == Global.player.character:
+                    Global.player.monologue.text('Learned ' + self.skill + '!')
+            elif self.host == Global.player.character:
+                Global.player.monologue.text('I already know ' + self.skill + '.')
+        elif self.host == Global.player.character:
+            Global.player.monologue.text('Need ' + str(req) + ' Strength to learn this skill!')
+
+
+class MemoryAmulet(Headgear):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.visible = 0
+        self.memory_map = None
+        self.memory_pos = Space()
+
+    def __str__(self):
+        return super().__str__() + ',' + self.memory_map + ',' + self.memory_pos.__str__()
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.memory_map = arg[index]
+        index += 1
+        self.memory_pos.load(arg[index])
+        return index + 1
+
+    def use(self):
+        super().use()
+        self.memory_map = self.host.location.name
+        self.memory_pos = self.host.pos
+
+    def activate(self):
+        super().activate()
+        self.hit(1)
+        Global.player.travel(self.memory_map, self.memory_pos)
+
+
+class RubyAmulet(Headgear):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.visible = 0
+
+    def die(self):
+        if self.host:
+            return
+        super().die()
+
+    def activate(self):
+        super().activate()
+        if self.durability <= 0:
+            for thing in self.host.pos.things:
+                if thing.name == 'Corpse':
+                    self.weight = thing.durability
+                    thing.die()
+                    break
+
+    def on_sleep(self, time):
+        self.durability = self.weight

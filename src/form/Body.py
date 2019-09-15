@@ -2,16 +2,18 @@ import math
 import random
 
 from src.form.Appendage import Appendage
+from src.form.Form import Form
 from src.game import Global
 from src.tools.Data import Data
 from src.tools.Math import Math
 from src.tools.Timer import Timer
 
 
-class Body:
+class Body(Form):
     LEG = 2
 
     def __init__(self, model_name):
+        super().__init__()
         data = Data.get_cache_clip(model_name).copy()
         self.seed = 1
         self.model_name = model_name
@@ -21,7 +23,6 @@ class Body:
         self.organs = []
         self.current_clip = 0
         self.timer = Timer(0, repeat=1)
-        self.direction = 1
         self.current_animation = None
         self.state_name = 'idle'
         self.animation_ended = 0
@@ -69,7 +70,7 @@ class Body:
             self.root.upper_joint.load(self.current_animation[len(self.current_animation) - 2])
 
     def set(self, state):
-        if self.state_name in self.motion:
+        if state in self.motion:
             self.state_name = state
         else:
             self.state_name = 'idle'
@@ -92,7 +93,8 @@ class Body:
     def face(self, direction):
         self.direction = direction
         for x in self.organs:
-            x.form.direction = [self.direction, 0]
+            x.form.direction = self.direction
+            x.form.direction_y = 0
 
     def randomize_once(self, mag):
         r = []

@@ -23,12 +23,10 @@ class Crafting:
                 r += ' [' + i + ']'
         else:
             r += ' None'
-        for i in Crafting.recipe:
-            if i[0] == item:
-                from src.entity.unit.item.Item import Item
-                if item in Item.description:
-                    return r + '\n' + Item.description[item]
-                return r
+        from src.entity.unit.item.Item import Item
+        if item in Item.description:
+            return r + '\n' + Item.description[item]
+        return r
 
     @staticmethod
     def is_craftable(host, item):

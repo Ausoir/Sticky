@@ -14,14 +14,18 @@ from src.tools.Math import Math
 
 
 # Handles both map and save functions
+from src.tools.Random import Random
+
+
 class Location:
     def __init__(self, name, data):
         Stock.location = self
-        Turn.add(self)
+        Turn.add(self.turn)
         from src.entity.Field import Field
-        self.type = 0
+        self.seed = 0
         self.identity = 0
         self.name = name
+        self.draw_frame = 0
         self.attack = Field()
         self.sound = Sound(self)
         self.delay = 8
@@ -33,7 +37,8 @@ class Location:
         self.sight_block = [Tile.COLLIDE_FOG, Tile.COLLIDE_PROP, Tile.COLLIDE_TERRAIN]
         self.last_pos = None
         self.load(data)
-        self.sight_range = 7
+        self.sight_range = 12
+        self.view_range = 12
         self.display_tiles_x = None
         self.display_tiles_y = None
         self.sight_tiles = []
@@ -58,7 +63,7 @@ class Location:
                 if y > high_y:
                     high_y = y
         size = '[' + ','.join([str(low_x), str(low_y), str(high_x - low_x), str(high_y - low_y)]) + ']'
-        meta = str(self.type) + ',' + size + ',' + self.header[2]
+        meta = str(self.seed) + ',' + size + ',' + self.header[2]
         rt = []
         for tile in self.tiles.values():
             if tile.terrain:
@@ -75,7 +80,7 @@ class Location:
         while len(arg) < 3:
             arg = arg + [[]]
         self.header = arg[0]
-        self.type = arg[0][0]
+        self.seed = arg[0][0]
         self.load_map(arg)
 
     def remove(self, arg):
@@ -89,6 +94,7 @@ class Location:
         self.update_fog()
 
     def draw(self, surface):
+        self.draw_frame += 1
         objects = [[], [], [], [], [], []]
         items = list(self.draw_tiles.values())
         for v in items:
@@ -115,11 +121,33 @@ class Location:
                 if y != 0 or x != 0:
                     self.sight_tiles[1].append([x, y])
 
-    def load_map(self, arg, new=False, offset=(0, 0)):
-        tiles = Data.get_cache('tiles')
+    def load_map(self, arg, new=False, offset=(0, 0), flip=False):
+        tile_data = Data.get_cache('tiles')
+        middle = 0
+        if flip:
+            if arg[1]:
+                lowest = arg[1][0][0][0]
+                highest = lowest
+            else:
+                lowest = arg[2][0][1][0]
+                highest = lowest
+            for i in arg[1]:
+                if i[0][0] < lowest:
+                    lowest = i[0][0]
+                elif i[0][0] > highest:
+                    highest = i[0][0]
+            for i in arg[2]:
+                if i[1][0] < lowest:
+                    lowest = i[1][0]
+                elif i[1][0] > highest:
+                    highest = i[1][0]
+            middle = int((highest - lowest) / 2)
         for i in arg[1]:
-            data = tiles[i[1]]
-            tile = self.get_tile((i[0][0] + offset[0], i[0][1] + offset[1]))
+            data = tile_data[i[1]]
+            if flip:
+                tile = self.get_tile(((middle - i[0][0] - middle) + offset[0], i[0][1] + offset[1]))
+            else:
+                tile = self.get_tile((i[0][0] + offset[0], i[0][1] + offset[1]))
             tile.terrain = Terrain(i[1], tile * Global.BLOCK, data[0], data[1], data[2], data[3], data[4], data[5])
             if tile.y > self.edge:
                 self.edge = tile.y
@@ -127,16 +155,19 @@ class Location:
             obj = Stock.get(i[2], i)
             if new:
                 obj.id = self.get_id()
-            obj.relocate(obj.pos.x + offset[0], obj.pos.y + offset[1], force=1)
+            if flip:
+                obj.relocate((middle - obj.pos.x - middle) + offset[0], obj.pos.y + offset[1], force=1)
+            else:
+                obj.relocate(obj.pos.x + offset[0], obj.pos.y + offset[1], force=1)
             obj.add()
 
     @staticmethod
-    def construct_map(biome):
-        from src.tools.Random import Random
+    def construct_map(biome, seed=0):
         map_data = Data.get_line('data/map/map.txt', biome)
         rand = Random()
         terrain = map_data[2][rand.rand_int(0, len(map_data[2]) - 1)]
         r = Location('current', list(Data.process_raw(Data.read('data/map/' + terrain + '.map'))))
+        r.seed = seed
         buildings = []
         for i in map_data[3]:
             building = Data.process_raw(Data.read('data/map/' + i + '.map'))
@@ -156,11 +187,27 @@ class Location:
         for estate in estates:
             for i in range(len(buildings)):
                 building = rand.rand_list(buildings)
-                bound = r.check_clearing(estate.pos.x, estate.pos.y)
-                if building[0] < bound[0] and building[1] < bound[1]:
-                    building_data = Data.process_raw(Data.read('data/map/' + building[2] + '.map'))
-                    r.load_map(building_data, new=True, offset=estate.pos.to_list())
-                    break
+                building_data = Data.process_raw(Data.read('data/map/' + building[2] + '.map'))
+                r.load_map(building_data, new=True, offset=estate.pos.to_list(), flip=rand.rand_bool())
+                break
+        random_count = 0
+        for obj in r.record.copy():
+            instance_seed = seed + random_count
+            if obj.name == 'XA':
+                if instance_seed % obj.var == 0:
+                    for thing in obj.pos.things.copy():
+                        thing.remove()
+                else:
+                    obj.remove()
+                random_count += 1
+            elif obj.name == 'X':
+                if instance_seed % obj.var == 0:
+                    for thing in reversed(obj.pos.things):
+                        if thing != obj:
+                            thing.remove()
+                            break
+                obj.remove()
+                random_count += 1
         shop_names = []
         shops = Data.process_raw(Data.read('data/raw/trade.txt'))
         for i in shops:
@@ -170,10 +217,7 @@ class Location:
         for obj in r.record:
             if obj.name == 'Beacon':
                 removal.append(obj)
-                if obj.var == 'treasure':
-                    data = Data.get_line('data/raw/trade.txt', 'treasure')
-                    Stock.make(rand.rand_list(data[1]), obj.pos)
-                elif obj.var == 'mob':
+                if obj.var == 'mob':
                     spawns.append(obj.pos)
                 elif obj.var == 'dealer':
                     data = Data.get_line('data/raw/trade.txt', 'dealer')
@@ -182,63 +226,44 @@ class Location:
                         merchandise.append(rand.rand_list(data[1]))
                     shop = Stock.make('Dealer', obj.pos)
                     shop.var['item'] = '&'.join(merchandise)
+                elif obj.var == 'inn':
+                    shop = Stock.make('Innkeep', obj.pos)
                 elif obj.var in shop_names:
-                    data = Data.get_line('data/raw/trade.txt', obj.var)
-                    merchandise = []
-                    for i in range(rand.rand_int(3, 6)):
-                        merchandise.append(rand.rand_list(data[1]))
                     shop = Stock.make('Merchant', obj.pos)
-                    shop.var['item'] = '&'.join(merchandise)
+                    shop.var['trade'] = obj.var
         for i in removal:
             i.remove()
-        if map_data[4] > 0:
-            tiles = []
-            for i in r.tiles.values():
-                if i.terrain and i.is_land(Tile.CHECK_FIRM):
-                    tiles.append(i)
-            for i in tiles:
-                above = r.get_tile(i + (0, -1))
-                if above.terrain and not above.is_land(Tile.CHECK_FIRM):
-                    spawns.append(above)
-            overlaps = []
-            if spawns:
-                for i in range(map_data[4]):
-                    index = rand.rand_int(0, len(spawns) - 1)
-                    pos = spawns[index]
-                    overlaps.append(spawns.pop(index))
-                    if len(spawns) == 0:
-                        spawns = overlaps
-                    for mob in rand.rand_list(map_data[5]):
-                        Stock.make(mob, pos)
+        r.spawn_mobs(map_data[4], map_data[5], rand=rand, spawns=spawns)
         if map_data[1]:
             r.name = map_data[0]
         r.save()
         return r
 
-    def check_clearing(self, pos_x, pos_y):
-        high_x = 14
-        last_y = 0
-        for y in range(5):
-            last_y = y
-            current_x = min(high_x, 10)
-            for x in range(current_x + 1):
-                if self.get_tile([pos_x + x, pos_y - y]).is_land(Tile.CHECK_FOUNDATION):
-                    high_x = min(high_x, x) - 1
-                    break
-                if x != 0 and self.get_tile([pos_x - x, pos_y - y]).is_land(Tile.CHECK_FOUNDATION):
-                    high_x = min(high_x, x) - 1
-                    break
-        if last_y == 4:
-            for y in range(5, 14):
-                block = self.get_tile([pos_x + high_x, pos_y - y]).is_land(Tile.CHECK_FOUNDATION)
-                block = block or self.get_tile([pos_x - high_x, pos_y - y]).is_land(Tile.CHECK_FOUNDATION)
-                block = block or self.get_tile([pos_x, pos_y - y]).is_land(Tile.CHECK_FOUNDATION)
-                if block:
-                    break
-                last_y = y
-        if last_y == 13:
-            last_y = 40
-        return [high_x * 2, last_y]
+    def spawn_mobs(self, number, mob_list, rand=None, spawns=None):
+        if number > 0:
+            if not rand:
+                rand = Random()
+            if not spawns:
+                spawns = []
+            tiles = []
+            for i in self.tiles.values():
+                if i.terrain and i.is_land(Tile.CHECK_FIRM):
+                    tiles.append(i)
+            for i in tiles:
+                above = self.get_tile(i + (0, -1))
+                if above.terrain and not above.is_land(Tile.CHECK_FIRM):
+                    spawns.append(above)
+            overlaps = []
+            if spawns:
+                for i in range(number):
+                    index = rand.rand_int(0, len(spawns) - 1)
+                    pos = spawns[index]
+                    overlaps.append(spawns.pop(index))
+                    if len(spawns) == 0:
+                        spawns = overlaps
+                    mob = rand.rand_list(mob_list)
+                    if mob:
+                        Stock.make(mob, pos)
 
     def update_fog(self):
         x = Camera.target.pos.x
@@ -249,12 +274,12 @@ class Location:
                  y * Global.BLOCK + Global.BLOCK - 1]
         for i in self.sight_tiles[0]:
             sight = self.collide_sight(start, i)
-            if sight:
+            if sight and ((abs(sight.x - x) < self.view_range and abs(sight.y - y) < self.view_range) or sight.light):
                 self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
         start[1] = y * Global.BLOCK + 1
         for i in self.sight_tiles[1]:
             sight = self.collide_sight(start, i)
-            if sight:
+            if sight and ((abs(sight.x - x) < self.view_range and abs(sight.y - y) < self.view_range) or sight.light):
                 self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
 
     def get_id(self):

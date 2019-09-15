@@ -3,19 +3,20 @@ import math
 import pygame
 
 from src.entity.Space import Space
+from src.form.Form import Form
 from src.game.Camera import Camera
 from src.tools.Math import Math
 
 
-class Sprite:
+class Sprite(Form):
     def __init__(self, args):
-        self.rotation = 0
+        super().__init__()
         self.image = None
         self.orig_image = None
         self.size = Space()
         self.pivot = None
         self.rot_pos = [0, 0]
-        self.direction = [1, 0]
+        self.direction_y = 0
         self.set(args[0])
 
     def clone(self):
@@ -31,8 +32,8 @@ class Sprite:
         if arg:
             self.size.load(arg)
             self.pivot = Space(self.size.x / 2, self.size.y / 2)
-        x_flip = self.direction[0] != 1
-        y_flip = self.direction[1] != 0
+        x_flip = self.direction != 1
+        y_flip = self.direction_y != 0
         if x_flip or y_flip:
             dir_x = 1 if x_flip else 0
             dir_y = 1 if y_flip else 0

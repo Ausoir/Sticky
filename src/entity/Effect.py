@@ -26,12 +26,12 @@ class Effect:
 
     def add(self):
         Group.effects.add(self)
-        Turn.add(self)
+        Turn.add(self.turn)
         return self
 
     def remove(self):
         Group.remove(self)
-        Turn.remove(self)
+        Turn.remove(self.turn)
 
     def turn(self):
         if self.lifetime == 0:

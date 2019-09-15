@@ -6,9 +6,9 @@ class Dialog:
         elif date == 2:
             r = 'one day'
         else:
-            word = Dialog.numeral(date / 2)
+            word = Dialog.numeral(int(date / 2))
             if date % 2 == 1:
-                r = word + ' and half days'
+                r = word + ' and a half days'
             else:
                 r = word + ' days'
         return r

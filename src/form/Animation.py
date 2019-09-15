@@ -1,9 +1,10 @@
 from src.entity.Space import Space
+from src.form.Form import Form
 
 
-class Animation:
+class Animation(Form):
     def __init__(self, args):
-        self.visible = 1
+        super().__init__()
         self.clips = args[0]
         self.speed = args[1]
         self.current = 0
@@ -11,8 +12,6 @@ class Animation:
         self.ended = 0
         self.size = self.clips[0].size
         self.pivot = Space(self.size.x / 2, self.size.y / 2)
-        self.direction = 1
-        self.rotation = 0
 
     def draw(self, surface, x, y):
         if self.visible:

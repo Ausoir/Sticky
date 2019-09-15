@@ -7,10 +7,11 @@ from src.game.Camera import Camera
 
 
 class Window(Shape):
-    fore_color0 = (0, 0, 0, 0)
+    fore_color_transparent = (0, 0, 0, 0)
     fore_color1 = (68, 102, 120, 160)
     fore_color2 = (95, 112, 120, 220)
     fore_color3 = (210, 220, 240, 60)
+    fore_color_disabled = (210, 140, 140, 80)
     font_color1 = (205, 209, 227, 255)
     font_color2 = (120, 180, 140, 200)
     font_color3 = (60, 80, 80, 220)

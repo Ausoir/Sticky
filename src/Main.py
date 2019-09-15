@@ -1,3 +1,4 @@
+import os
 import sys
 
 import pygame
@@ -102,6 +103,7 @@ class Main:
 
 
 if __name__ == '__main__':
+    os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (120, 80)
     Global.main = Main()
     Global.player = Player()
     for i in sys.argv[1:]:

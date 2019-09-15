@@ -15,7 +15,7 @@ class Object(Image):
         self.group = None
         self.pos = self.location.get_tile(0)
         self.delay = 0
-        self.gravity = 1
+        self.gravity = 0
         self.collision_type = Tile.COLLIDE_OBJECT
         self.visible = 1
         self.standables = Tile.CHECK_FOUNDATION.copy()
@@ -37,21 +37,20 @@ class Object(Image):
         index += 1
         self.group = p[index]
         index += 1
-        print(p)
         self.set_form(p[index])
         index += 1
         return index
 
     def add(self):
         self.removed = 0
-        Turn.add(self)
+        Turn.add(self.turn)
         self.relocate(self.pos.x, self.pos.y, force=1)
         self.location.record.append(self)
         return self
 
     def remove(self):
         self.removed = 1
-        Turn.remove(self)
+        Turn.remove(self.turn)
         self.location.record.remove(self)
         self.pos.things.remove(self)
 

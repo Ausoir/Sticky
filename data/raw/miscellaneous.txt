@@ -1,13 +1,18 @@
-Sonic,Sonic,g_0x0,[xh],80,[],[[Levitate,-1,0]]
 Beacon,Beacon,g_4x0,estate
 Interactive,Interactive,g_2x0,[xc,xh,@],-1,[],[],[travel,map,0,0]
-Gold,Gold,g_6x6,[xh],2,[],[],[1,1],16
-Corpse,Corpse,g_1x0,[if],6,[],[]
-Break,Break,g_1x3,[xc,xg,im],4,[],[]
 Bridge,Bridge,g_1x4,[cd,iw],8,[],[],[1,1]
-Hammer,Builder,data/image/hammer,[im],16,[],[],[1,1],16,3,14,[1],5,4
+X,Beacon,g_1x0,2
+XA,Beacon,g_1x0,2
 Wall,Block,g_1x1,[iw],8,[Plank],[]
 Tile,Block,g_2x1,[cb,iw],8,[Plank],[]
 Window,Block,g_3x4,[cb,iw],2,[Plank],[]
+Gold,Gold,g_6x6,[xh],5,[],[],[1,1],16
+Corpse,Corpse,g_9x3,[if],6,[],[]
+Break,Break,g_1x3,[xc,xg,im],4,[],[]
+Hammer,Builder,data/image/hammer,[im],16,[],[],[1,1],16,3,14,[1],5,4
+Sonic,Sonic,g_0x0,[xh],80,[],[[Levitate,-1,0]]
 Fireball,Projectile,fireball,[xc,xg],-1,[],[]
 Arrow,Projectile,g_0x6,[xc],-1,[],[]
+Manual,Manual,g_13x7,[ig,pf],1,[],[],[1,1],Random
+Memory Amulet,MemoryAmulet,data/image/unit/necklace,[],1,[],[],[1,1],1,1,current,[0,0]
+Ruby Amulet,RubyAmulet,data/image/unit/necklace,[],0,[],[],[1,1],1,1,current,[0,0]

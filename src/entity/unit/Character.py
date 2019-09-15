@@ -3,8 +3,13 @@ from src.entity.unit.Humanoid import Humanoid
 
 class Character(Humanoid):
     @staticmethod
+    def get_var(host, key):
+        if isinstance(host, Character) and key in host.var:
+            return host.var[key]
+
+    @staticmethod
     def check_var(host, key, value):
-        return isinstance(host, Character) and key in host.var and host.var[key] == value
+        return Character.get_var(host, key) == value
 
     def __init__(self, loc):
         super().__init__(loc)
@@ -29,5 +34,5 @@ class Character(Humanoid):
         return index + 1
 
     def fell(self, distance, me=False):
-        if not Character.check_var(self, 'passive', 'Assassin') or not me:
+        if not Character.check_var(self, 'power', 'Assassin') or not me:
             super().fell(distance, me)

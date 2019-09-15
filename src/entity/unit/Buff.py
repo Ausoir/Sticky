@@ -35,7 +35,7 @@ class Buff:
         self.duration = 0
 
     def is_valid(self):
-        return 1
+        return True
 
     def on_start(self):
         pass
@@ -73,9 +73,8 @@ class Hunger(Buff):
         return 'You cannot travel or perform any time consuming actions.'
 
     def is_valid(self):
-        from src.entity.unit.Unit import Unit
-        if isinstance(self.host, Unit):
-            return 1
+        if Tags.insubstantial not in self.host.tags:
+            return True
 
 
 class Glow(Buff):
@@ -104,6 +103,8 @@ class Insured(Buff):
         if arg[0] == 'time':
             self.var -= 1
             if self.var <= 0:
+                if self.host == Global.player.character:
+                    Global.player.monologue.text('Insurance expired.')
                 self.end()
 
 
@@ -113,8 +114,8 @@ class Bleed(Buff):
         return 'Take ' + dmg + ' damage over ' + str(self.duration) + ' ticks.'
 
     def is_valid(self):
-        if Tags.flesh in self.host.tags:
-            return 1
+        if Tags.flesh in self.host.tags and Tags.insubstantial not in self.host.tags:
+            return True
 
     def on_finish(self):
         self.host.hit(self.var)
@@ -137,7 +138,7 @@ class Distraction(Buff):
     def is_valid(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            return 1
+            return True
 
     def on_stack(self, duration, var):
         self.duration = max(self.duration, duration)
@@ -150,7 +151,7 @@ class Cripple(Buff):
     def is_valid(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            return 1
+            return True
 
     def on_stack(self, duration, var):
         self.duration = max(duration, self.duration)
@@ -181,6 +182,10 @@ class Exhaustion(Buff):
 class Sick(Buff):
     def describe(self):
         return 'You will die if this effect expires naturally.'
+
+    def is_valid(self):
+        if Tags.insubstantial not in self.host.tags:
+            return True
 
     def on_update(self):
         if self.effect(6):
@@ -213,25 +218,6 @@ class Fire(Buff):
             arg[1].states.add('Burn', 16)
 
 
-class Rift(Buff):
-    def get_tags(self):
-        return [BuffTags.magic]
-
-    def describe(self):
-        return 'A portal is bound to you.'
-
-    def on_stack(self, duration, var):
-        self.on_finish()
-        self.var = var
-
-    def on_finish(self):
-        obj = self.host.location.get_object(self.var)
-        if obj:
-            Effect.make('zwip', obj.pos.get_center(), offset=24)
-            Effect.make('zwip', self.host.pos.get_center(), offset=24)
-            obj.remove()
-
-
 class Shock(Buff):
     def get_tags(self):
         return [BuffTags.magic]
@@ -255,7 +241,7 @@ class Burn(Buff):
     def is_valid(self):
         if Tags.indestructible not in self.host.tags and Tags.is_combustible(self.host.tags)\
                 and not self.host.states.get('Fire'):
-            return 1
+            return True
 
     def on_start(self):
         self.host.hit(1)
@@ -271,6 +257,7 @@ class Burn(Buff):
             y = Global.r.rand_int(-1, 1)
             for thing in self.host.get_offset_tile(x, y).things:
                 thing.states.add('Burn', 16)
+            self.var = 0
         Effect.make('burn', self.host.vec)
 
 
@@ -283,7 +270,7 @@ class Levitate(Buff):
 
     def is_valid(self):
         if self.host.gravity:
-            return 1
+            return True
 
     def on_start(self):
         self.host.gravity = 0
@@ -327,15 +314,15 @@ class Stun(Buff):
     def is_valid(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            return 1
+            return True
 
     def on_start(self):
-        if self.host.action.set('hit'):
-            self.host.delay = self.duration
+        self.host.action.set('hit')
+        self.host.delay = self.duration
 
     def on_load(self):
-        if self.host.action.set('hit'):
-            self.host.delay = self.duration
+        self.host.action.set('hit')
+        self.host.delay = self.duration
 
     def on_finish(self):
         self.host.action.exert(0, 99)
@@ -352,7 +339,7 @@ class Speed(Buff):
     def is_valid(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            return 1
+            return True
 
     def on_start(self):
         self.host.attributes.speed += self.var
@@ -376,3 +363,70 @@ class Venom(Buff):
 class Channel(Buff):
     def describe(self):
         return 'You are channeling magic.'
+
+
+class Barkskin(Buff):
+    def describe(self):
+        return 'You are immune to weak attacks but vulnerable to fire.'
+
+    def is_valid(self):
+        return Tags.wood not in self.host.tags
+
+    def on_start(self):
+        Effect.make('mist', self.host.vec)
+        self.host.tags.append(Tags.wood)
+
+    def on_finish(self):
+        self.host.tags.remove(Tags.wood)
+
+
+class Slowfall(Buff):
+    def describe(self):
+        return 'You are immune to falling and cause no fall damage.'
+
+    def is_valid(self):
+        return Tags.lightweight not in self.host.tags
+
+    def on_start(self):
+        Effect.make('mist', self.host.vec)
+        self.host.tags.append(Tags.lightweight)
+
+    def on_finish(self):
+        self.host.tags.remove(Tags.lightweight)
+
+
+class Lichform(Buff):
+    def describe(self):
+        return 'You are immune to bleeding, sickness, and hunger.'
+
+    def is_valid(self):
+        return Tags.insubstantial not in self.host.tags
+
+    def on_start(self):
+        Effect.make('mist', self.host.vec)
+        self.host.tags.append(Tags.insubstantial)
+
+    def on_finish(self):
+        self.host.tags.remove(Tags.insubstantial)
+
+
+class Polymorph(Buff):
+    def describe(self):
+        return 'You are morphed into another shape.'
+
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return True
+
+    def on_start(self):
+        Effect.make('mist', self.host.vec)
+        from src.entity.Stock import Stock
+        r = Stock.make('Slime', self.host.pos)
+        self.var = r.id
+
+    def on_load(self):
+        self.on_start()
+
+    def on_finish(self):
+        self.host.tags.remove(Tags.lightweight)

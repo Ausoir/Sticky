@@ -14,12 +14,11 @@ class Tags:
     metal = 'im'
     wood = 'iw'
     silver = 'is'
-    paper = 'ip'
     sharp = 'ps'
     combustible = 'pf'
     intelligent = 'ii'
     listener = 'il'
-    weightless = 'ig'
+    lightweight = 'ig'
 
     @staticmethod
     def name(tag):
@@ -29,11 +28,10 @@ class Tags:
 
     @staticmethod
     def is_property(tag):
-        prop_tag = [Tags.flesh, Tags.insubstantial, Tags.metal, Tags.wood, Tags.silver,
-                    Tags.paper, Tags.sharp]
+        prop_tag = [Tags.flesh, Tags.insubstantial, Tags.metal, Tags.wood, Tags.silver, Tags.sharp]
         return tag in prop_tag
 
     @staticmethod
     def is_combustible(tags):
-        combustibles = [Tags.flesh, Tags.wood, Tags.paper, Tags.combustible]
+        combustibles = [Tags.flesh, Tags.wood, Tags.combustible]
         return any(elem in combustibles for elem in tags)

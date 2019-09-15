@@ -15,3 +15,7 @@ class Headgear(Equipment):
         self.remove()
         host.update_durability(0)
         self.host = host
+        self.host.action.set('wait')
+
+    def activate(self):
+        self.host.action.set('wait')

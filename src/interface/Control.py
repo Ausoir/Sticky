@@ -11,7 +11,7 @@ from src.tools.Data import Data
 
 class Control:
     def __init__(self, player):
-        Turn.add(self)
+        Turn.add(self.turn)
         self.player = player
         self.keypress = []
         self.keyrelease = []
@@ -121,11 +121,15 @@ class Control:
                             self.keypress[k] = v - 2000
         return 0
 
-    def clear_press(self, code):
-        if code in self.keyrelease:
-            self.keyrelease.remove(code)
-        if code in self.keypress:
-            self.keypress.remove(code)
+    def clear_press(self, code=None):
+        if code:
+            if code in self.keyrelease:
+                self.keyrelease.remove(code)
+            if code in self.keypress:
+                self.keypress.remove(code)
+        else:
+            self.keyrelease.clear()
+            self.keypress.clear()
 
     def quit(self):
         mouse = pygame.mouse.get_pos()

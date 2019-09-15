@@ -19,6 +19,10 @@ class Equipment(Item):
     def get_enhance_chance(self):
         return int(100 * (1 / max(1, self.get_level() + 1)))
 
+    def repair(self):
+        if self.durability < self.max_durability:
+            self.durability = self.max_durability
+
     def enhance(self, rng):
         if rng <= self.get_enhance_chance():
             self.states.add('Modified', -1, var=1)
@@ -65,3 +69,6 @@ class Equipment(Item):
         damage -= final_damage
         total = max(0, total + self.durability)
         return total, damage
+
+    def on_sleep(self, time):
+        pass

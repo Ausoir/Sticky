@@ -75,7 +75,9 @@ class Humanoid(Unit):
         self.weapon.states.update()
 
     def use(self):
-        if not Interaction.interact(self.weapon):
+        if Interaction.interact(self.weapon):
+            self.action.set('wait')
+        else:
             self.weapon.use()
 
     def relocate(self, x, y, force=0):
@@ -120,12 +122,13 @@ class Humanoid(Unit):
         self.weapon.form.rotate(arm + 90 + (self.weapon.rotation * self.direction))
         self.weapon.form.draw(surface, x, y)
         super().draw(surface)
-        x = self.vec.x + self.form.organs[3].upper_joint.x
-        y = vec_y + self.form.organs[3].upper_joint.y
-        arm = -(self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
-        self.headgear.form.pivot.y = self.headgear.form.size.y
-        self.headgear.form.rotate(arm - 90)
-        self.headgear.form.draw(surface, x, y)
+        if self.headgear.visible:
+            x = self.vec.x + self.form.organs[3].upper_joint.x
+            y = vec_y + self.form.organs[3].upper_joint.y
+            arm = -(self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
+            self.headgear.form.pivot.y = self.headgear.form.size.y
+            self.headgear.form.rotate(arm - 90)
+            self.headgear.form.draw(surface, x, y)
         x = self.vec.x + self.form.organs[5].lower_joint.x
         y = vec_y + self.form.organs[5].lower_joint.y
         arm = -(self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()

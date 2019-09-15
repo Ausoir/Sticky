@@ -1,6 +1,5 @@
 import random
 
-from src.entity.Effect import Effect
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 from src.game import Global
@@ -9,7 +8,7 @@ from src.map.Tile import Tile
 
 class Actions:
     default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck', 'peek', 'power',
-               'run_left', 'run_right', 'item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'attack']
+               'run_left', 'run_right', 'item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'trinket', 'attack']
     priority = ['down', 'hit']
 
     def __init__(self, host):
@@ -76,6 +75,10 @@ class Actions:
         else:
             self.make(turn=0)
 
+    def wait(self):
+        self.host.weapon.form.rotate(20 * self.host.direction)
+        self.make(animation='block', turn=2)
+
     def rest(self):
         self.exhausted = False
         self.host.attributes.body = 0
@@ -119,6 +122,13 @@ class Actions:
     def item6(self):
         self.wield(5)
 
+    def trinket(self):
+        if self.host.is_headgeared():
+            def fin():
+                self.host.headgear.activate()
+            self.on_finish = fin
+            self.make(animation='cast', turn=4)
+
     def left(self):
         self.host.face(-1)
         self.set('walk')
@@ -157,6 +167,9 @@ class Actions:
                 else:
                     self.set('idle')
             else:
+                for thing in front.things:
+                    if thing.faction == self.host.faction and isinstance(thing, Unit):
+                        thing.move(-self.host.direction, 0, flag=Tile.CHECK_FIRM)
                 self.host.move(self.host.direction, 0)
                 self.make(turn=1 - self.host.attributes.speed + slow)
         else:
@@ -195,8 +208,8 @@ class Actions:
     def duck(self):
         ground = self.host.get_offset_tile(0, 1)
         if ground.is_climbable():
-            self.host.move(0, 1, flag=Tile.CHECK_BREAKABLE)
-            self.make('climb', turn=2)
+            if self.host.pos != self.host.move(0, 1):
+                self.make('climb', turn=2)
         else:
             if self.host.gravity:
                 from src.game.Interaction import Interaction
@@ -217,7 +230,8 @@ class Actions:
                         self.make('climb', turn=2)
                 else:
                     from src.entity.unit.Character import Character
-                    if not Character.check_var(self.host, 'passive', 'Monk'):
+                    self.host.location.sound.register(self.host.pos, 3)
+                    if not Character.check_var(self.host, 'power', 'Monk'):
                         self.exert(1, 3)
                     destination = self.host.get_offset_tile(self.host.direction, -1)
                     if destination.is_land(Tile.CHECK_FIRM):
@@ -259,13 +273,14 @@ class Actions:
         if front.is_land(Tile.CHECK_FIRM):
             self.attempt('jump')
         else:
+            self.host.location.sound.register(self.host.pos, 5)
             cripple = self.host.states.get('Cripple')
             if cripple:
                 slow = 1
             else:
                 slow = 0
             from src.entity.unit.Character import Character
-            if not Character.check_var(self.host, 'passive', 'Monk'):
+            if not Character.check_var(self.host, 'power', 'Monk'):
                 self.exert(1, 1)
             self.host.move(self.host.direction, 0)
             self.make(turn=slow)
@@ -322,7 +337,7 @@ class Actions:
         self.make(turn=max(1, self.host.weapon.speed - prof))
 
     def flurry(self):
-        if Global.player.stamina(1):
+        if Global.player.stamina(1, host=self.host):
             self.host.weapon.rotation = 10
             self.exert(1, 1)
             self.host.weapon.attack(chance=self.host.get_proficiency('flurry'))
@@ -353,67 +368,11 @@ class Actions:
         self.make(turn=7)
 
     def power(self):
-        if self.host.var['power'] == 'Thief' and Global.player.stamina(3):
-            def fin():
-                from src.entity.unit.Humanoid import Humanoid
-                for thing in self.host.get_interact_pos().things:
-                    if isinstance(thing, Humanoid):
-                        item = thing.armor.get_item(0)
-                        if item:
-                            item.on_equip(self.host)
-            self.on_finish = fin
-            self.make(animation='cast', turn=4)
-        elif self.host.var['power'] == 'Summoner' and self.host.is_armed() and Global.player.stamina(1):
-            def fin():
-                phantom = Stock.make('Phantom', self.host.get_interact_pos())
-                phantom.form.organs[0].set(self.host.weapon.form)
-                phantom.durability = self.host.weapon.durability
-                phantom.attributes.strength = self.host.weapon.durability
-                phantom.loot = self.host.weapon.loot
-                phantom.faction = self.host.faction
-                self.host.weapon.loot = []
-                phantom.states.add('Sick', 80)
-                self.host.weapon.die()
-            self.on_finish = fin
-            self.make(animation='cast', turn=4)
-        elif self.host.var['power'] == 'Necromancer' and Global.player.stamina(1):
-            def fin():
-                def casting():
-                    if channel.effect(5):
-                        Effect.make('portal', target.get_center(), offset=0)
-                    total = 0
-                    if channel.frame == 38:
-                        for thing in target.things:
-                            if thing.name == 'Corpse':
-                                total += thing.durability
-                    if total > 1:
-                        r = Stock.make('Undead', target)
-                        r.faction = self.host.faction
-                        r.durability = total * 2
-                        r.attributes.strength = total
-                    else:
-                        Effect.make('zwip', target.get_center(), offset=0)
-                channel = self.host.states.add('Channel', 40)
-                channel.on_update = casting
-                target = self.host.get_target_tile()
-                aoe = self.host.location.get_area(target, 2, 2)
-                for tile in aoe:
-                    corpses = []
-                    for thing in tile.things:
-                        if thing.name == 'Corpse':
-                            corpses.append(thing)
-                            thing.gravity = 0
-                            thing.states.add('Banish', 40)
-                            thing.move(target.x - thing.pos.x, target.y - thing.pos.y)
-            self.on_finish = fin
-            self.make(animation='cast', turn=4)
-        elif self.host.var['power'] == 'Druid':
-            def fin():
-                from src.entity.unit.Humanoid import Humanoid
-                for thing in self.host.get_interact_pos().things:
-                    if isinstance(thing, Humanoid):
-                        item = thing.armor.get_item(0)
-                        if item:
-                            item.on_equip(self.host)
-            self.on_finish = fin
-            self.make(animation='cast', turn=4)
+        from src.entity.unit.Powers import Power
+        from src.entity.unit.Character import Character
+        power = Power.get(self.host, Character.get_var(self.host, 'power').title())
+        if power and power.is_valid():
+            if Global.player.stamina(power.stamina, host=self.host):
+                self.on_finish = power.on_cast
+                power.on_start()
+                self.make(animation=power.animation, turn=power.delay)

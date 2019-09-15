@@ -44,7 +44,6 @@ class Editor:
     def remove(self):
         self.tool.cancel()
         Camera.target.remove()
-        Turn.remove(self)
         Group.remove(self)
         Turn.update = self.backup
 

@@ -12,6 +12,7 @@ class Unit(Prop):
     def __init__(self, loc):
         super().__init__(loc)
         from src.entity.unit.Actions import Actions
+        self.draw_frame = 0
         self.action = Actions(self)
         self.proficiency = []
         self.next_action = 'idle'
@@ -32,15 +33,8 @@ class Unit(Prop):
         index = super().load(p)
         self.faction = p[index]
         index += 1
-        if p[index] == 'AdvPilot':
-            from src.entity.unit.ai.AdvPilot import AdvPilot
-            self.pilot = AdvPilot(self)
-        elif p[index] == 'Pilot':
-            from src.entity.unit.ai.Pilot import Pilot
-            self.pilot = Pilot(self)
-        else:
-            from src.entity.unit.ai.Pilot import Manual
-            self.pilot = Manual(self)
+        from src.entity.unit.ai import Pilot
+        self.pilot = getattr(Pilot, p[index][0])(self, p[index][1], p[index][2])
         index += 1
         self.attributes.load(p[index])
         index += 1
@@ -51,11 +45,20 @@ class Unit(Prop):
         index += 1
         return index
 
+    def add(self):
+        r = super().add()
+        self.face(1 if self.attributes.gene % 2 == 0 else -1)
+        return r
+
     def set_form(self, arg):
         self.form_name = arg
         self.form = Body(arg)
 
     def draw(self, surface):
+        if self.draw_frame != self.location.draw_frame:
+            self.update_vec()
+            self.draw_frame = self.location.draw_frame
+        self.draw_frame += 1
         diff = self.pos.get_center() - self.vec
         self.vec.x += diff.x * .07
         if 0 < diff.y and self.gravity and self.form.state_name != 'climb':
@@ -102,7 +105,7 @@ class Unit(Prop):
         super().fell(distance, me)
         if not me:
             self.action.set('down')
-            self.delay = 4
+            self.delay = 5
 
     def on_fall(self):
         super().on_fall()
@@ -123,6 +126,7 @@ class Unit(Prop):
                 chance = 1
             else:
                 chance = accuracy / max(1, accuracy + self.get_dodge())
+            self.pilot.hit()
             if Global.r.rand_float() < chance:
                 if self.states.get('Distraction'):
                     self.die()
@@ -141,7 +145,6 @@ class Unit(Prop):
         return r
 
     def hit(self, damage):
-        self.pilot.hit()
         self.action.set('hit')
         return super().hit(damage)
 

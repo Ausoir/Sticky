@@ -10,7 +10,7 @@ class Prop(Object):
         self.durability = -1
         self.hittable = 1
         self.collision_type = Tile.COLLIDE_PROP
-        self.faction = 0
+        self.faction = 0  # 0: Neutral, 1: Player, 2: Enemy, 3: Beast, 4: Undead
         self.loot = []
         self.states = Buffs(self)
         self.tags = []
@@ -37,8 +37,8 @@ class Prop(Object):
         index += 1
         self.states.load(arg[index])
         index += 1
-        if Tags.float in self.tags:
-            self.gravity = 0
+        if Tags.float not in self.tags:
+            self.gravity = 1
         if Tags.back in self.tags:
             self.depth = 1
             self.collision_type = Tile.COLLIDE_BACK
@@ -89,6 +89,7 @@ class Prop(Object):
         if self.durability != -1:
             self.durability = max(0, self.durability - damage)
             if self.durability == 0:
+                self.durability = -1
                 self.die()
                 return 1
 
@@ -99,6 +100,8 @@ class Prop(Object):
             self.hit(distance - 1)
 
     def on_fall(self):
+        if Tags.lightweight in self.tags:
+            return
         copy = self.get_offset_tile(0, 1).things.copy()
         for thing in self.pos.things:
             if thing.name == 'Water':

@@ -7,7 +7,7 @@ from src.interface.Window import Window
 
 class Menu:
     def __init__(self, host):
-        Turn.add(self)
+        Turn.add(self.turn)
         self.host = host
         self.visible = -1
         self.state = self.menu_main
@@ -19,6 +19,7 @@ class Menu:
         self.dialog_text = []
         self.last_input = None
         self.history = []
+        self.history_var = []
         self.var = 0
 
     def draw(self, surface):
@@ -43,8 +44,10 @@ class Menu:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 3:
                 self.history.pop()
+                self.history_var.pop()
                 if self.history:
                     self.state = self.history[len(self.history) - 1]
+                    self.var = self.history_var[len(self.history_var) - 1]
                 else:
                     self.toggle()
                 self.display(1)
@@ -52,6 +55,7 @@ class Menu:
 
     def toggle(self):
         self.history = [self.menu_main]
+        self.history_var = [0]
         self.visible *= -1
         self.display(self.visible)
 
@@ -69,6 +73,7 @@ class Menu:
 
     def direct(self, page):
         self.history.append(page)
+        self.history_var.append(self.var)
         self.state = page
         self.display(1)
 

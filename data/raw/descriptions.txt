@@ -1,3 +1,4 @@
+Repair Kit,Automatically repair items when spending time
 Jelly,A blob of slime goo
 Fiber,A fibrous material that can be used to repair equipment
 Food,Use to remove <Hunger> status
@@ -5,7 +6,21 @@ Pocket,Attached to any armor to create additional pocket space
 Backpack,Attached to any armor with an empty center slot for additional inventory space
 Hammer,Can be used to build scaffolds from planks and buildings from scaffolds
 Medicine,Use to remove <Sick> status
-Cleansing Potion,Rare potion that increases a random attribute up to 3
+Cleansing Potion,Drink for a chance to increase a random attribute up to 3
 Amnesia Potion,Potion that makes the user forget a few spells or skills
-Scroll of Scorch,Create scorching ground that burns anything nearby
-Scroll of Dispell,Purge all magical effects in vicinity of caster
+Scorch,Create scorching ground that burns anything nearby
+Memory Amulet,Remembers the location that it was worn
+Ruby Amulet,Absorbs power from a corpse to protect the user
+Echo,Reveal sight of a location within sight range
+Dispell,Purge all magical effects in vicinity of caster
+Scry,Reveal sight of far away location
+Tornado,Push away everything near the caster
+Crystallize,Create a wall of crystals in the shape you choose
+Immolation,Become immune to fire and imbue weapon with fire
+Entomb,Entomb a target in crystals
+Gravitas,Create and control a black hole
+Darkness,Create darkness to shrink sight and ignore light sources
+Transmute,Known to transmute Jelly/Plank/Water Bottle
+Evacuate,Teleport home
+Blink,Teleport to target
+Recharge,Recharge a staff in possession of caster

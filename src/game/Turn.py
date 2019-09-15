@@ -12,7 +12,7 @@ class Turn:
     @staticmethod
     def update():
         for i in Turn.queue[Turn.frame]:
-            i.turn()
+            i()
         Turn.frame += 1
         if Turn.frame >= 10:
             Turn.frame = 0

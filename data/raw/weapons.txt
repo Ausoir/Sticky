@@ -1,4 +1,5 @@
 Fist,Weapon,g_0x0,[],-1,[],[],[1,1],-1,2,0,[1],1,2 //Name, Image, Tags, Durability, State, Size, Max HP, Weight, Pivot, Range, Damage, Speed
+Bottle,Weapon,g_10x6,[],4,[],[],[1,1],4,1,20,[1],2,2
 Stick,Weapon,data/image/stick,[iw],16,[],[],[1,2],16,1,8,[1],1,4
 Dagger,Weapon,data/image/dagger,[ps,im],8,[],[],[1,1],8,1,4,[1],1,1
 Cleaver,Weapon,data/image/cleaver,[ps,im],16,[],[],[1,1],16,1,6,[1],1,2

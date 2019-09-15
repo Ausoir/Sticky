@@ -22,6 +22,8 @@ class Item(Prop):
 
     def load(self, arg):
         index = super().load(arg)
+        if Tags.lightweight in self.tags:
+            self.weight = 0
         self.volume = arg[index]
         return index + 1
 
@@ -39,7 +41,7 @@ class Item(Prop):
         super().die()
 
     def face(self, direction):
-        self.form.direction = [direction, 0]
+        self.form.direction = direction
 
     def on_equip(self, host):
         self.face(host.direction)
@@ -71,8 +73,6 @@ class Item(Prop):
         else:
             r += '\nDurability: ' + str(self.durability)
         r += '\nVolume: ' + str(self.volume[0]) + 'x' + str(self.volume[1])
-        if Tags.weightless in self.tags:
-            self.weight = 0
         if Tags.flesh in self.tags:
             r += '\nThis item is an organic material.'
         if Tags.insubstantial in self.tags:
@@ -83,8 +83,6 @@ class Item(Prop):
             r += '\nThis item is composed of wood.'
         if Tags.silver in self.tags:
             r += '\nThis item has silver properties.'
-        if Tags.paper in self.tags:
-            r += '\nThis item can be used as paper.'
         if Tags.sharp in self.tags:
             r += '\nThis item is sharp.'
         return r
@@ -104,7 +102,7 @@ class Item(Prop):
         acc = self.damage + chance + self.host.get_proficiency(self.name)
         dmg = self.weight
         from src.entity.unit.Character import Character
-        if Character.check_var(self.host, 'passive', 'Warrior'):
+        if Character.check_var(self.host, 'power', 'Warrior'):
             acc += 10
             dmg *= 2
 
@@ -119,7 +117,3 @@ class Item(Prop):
 
     def update(self):
         pass
-
-    def on_fall(self):
-        if self.weight > 0:
-            super().on_fall()

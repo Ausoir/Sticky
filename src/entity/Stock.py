@@ -50,14 +50,3 @@ class Stock:
         r.pos = pos
         r.add()
         return r
-
-    @staticmethod
-    def miscellaneous(arg):
-        from src.entity import Other
-        unique = getattr(Other, arg[2])
-        if unique:
-            r = unique(Stock.location)
-        else:
-            r = Prop(Stock.location)
-        r.load(arg)
-        return r

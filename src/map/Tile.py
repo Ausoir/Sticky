@@ -14,7 +14,6 @@ class Tile(Space):
     CHECK_FOUNDATION = [10, 30, 35]
     CHECK_LARGE = [10, 30, 40]
     CHECK_LANDABLE = [10, 30, 35]
-    CHECK_BREAKABLE = [30, 40]
     COLLIDE_FOG = 8
     COLLIDE_BACK = 15
     COLLIDE_TERRAIN = 10
@@ -90,3 +89,6 @@ class Tile(Space):
             if i.collision_type in check:
                 return 1
         return 0
+
+    def to_space(self):
+        return Space(self)

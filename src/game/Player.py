@@ -14,7 +14,7 @@ class Player:
     def __init__(self):
         Group.init()
         Turn.init()
-        Turn.add(self)
+        Turn.add(self.turn)
         self.control = None
         self.monologue = Textbox(self, Global.CENTER[0] - 100, Global.CENTER[1] - 80)
         data = Data.process_raw(Data.read('save/player.char'))
@@ -23,7 +23,7 @@ class Player:
             self.monologue.text('Press [TAB] for help', time=300)
         map_name = 'save/' + data[0][0] + '.map'
         if not Data.is_file(map_name):
-            self.location = Location.construct_map(data[0][0])
+            self.location = Location.construct_map(data[0][0], seed=Global.r.rand_seed())
         else:
             map_data = list(Data.process_raw(Data.read(map_name)))
             self.location = Location(data[0][0], map_data)
@@ -32,7 +32,7 @@ class Player:
         self.days = data[1][0]
         self.depart = data[1][1]
         self.character = self.load_player(self.location, data[2])
-        self.set_passive(self.character.var['passive'])
+        self.set_power(self.character.var['power'])
         self.editor = None
         self.knowledge = data[3]
         self.temporary = None
@@ -53,30 +53,48 @@ class Player:
         loc.record.remove(player)
         return player
 
-    def set_passive(self, passive):
+    def get_daytime(self):
+        return self.days % 2 == 0
+
+    def get_spell_list(self):
+        from src.entity.Stock import Stock
+        from src.entity.unit.item.Spell import Spell
+        spells = []
+        for i in self.knowledge:
+            r = Stock.get(i)
+            if isinstance(r, Spell):
+                if r.spell not in spells:
+                    spells.append(r.spell)
+        return spells
+
+    def set_power(self, passive):
         if passive == 'Monk':
             self.character.fist.weight = 0
 
     def sleep(self, time):
         self.days += time
-        if Global.player:
-            if self.character.var['passive'] == 'Ranger':
+        if Global.player and time >= 1:
+            self.character.armor.on_sleep(time)
+            self.character.headgear.on_sleep(time)
+            if self.character.var['power'] == 'Ranger':
                 self.character.attributes.rest()
             insurance = self.character.states.get('Insured')
             if insurance:
-                insurance.trigger(['time', 1])
+                insurance.trigger(['time', time])
         Global.main.colorize(0, [0, 0, 0, 255], fade=2)
         self.set_darkness()
 
     def set_darkness(self):
-        if self.days % 2 == 0:
+        if self.get_daytime():
             Global.main.colorize(1, [0, 0, 0, 0])
             self.location.sight_range = 12
+            self.location.view_range = 12
             self.location.resize()
             self.background = Data.run_cache('data/image/background/' + self.location.header[2])
         else:
             Global.main.colorize(1, [10, 0, 30, 160])
-            self.location.sight_range = 6
+            self.location.sight_range = 8
+            self.location.view_range = 5
             self.location.resize()
             name = 'data/image/background/' + self.location.header[2] + '_night'
             if Data.is_file(name + '.png'):
@@ -85,6 +103,7 @@ class Player:
                 self.background = Data.run_cache(name[:-6])
 
     def travel(self, to_map, to_pos):
+        Global.main.colorize(0, [0, 0, 0, 255], fade=2)
         self.depart = self.character.location.name
         self.character.location.save()
         self.character.action.set('idle')
@@ -127,7 +146,7 @@ class Player:
                     self.character.removed = 0
                     Global.main.colorize(0, [0, 0, 0, 255], fade=1)
                     from src.entity.Space import Space
-                    self.travel('town', Space(0, 0))
+                    self.travel('home', Space(0, 0))
                     Global.menu.var = 1
                     Global.menu.state = Global.menu.menu_dead
                     Global.menu.display(1)
@@ -138,11 +157,11 @@ class Player:
             else:
                 self.dead += 1
         else:
-            if self.character.var['passive'] == 'Rogue':
-                for x in range(-4, 5):
-                    for y in range(-4, 5):
+            if self.character.var['power'] == 'Rogue':
+                for x in range(-6, 7):
+                    for y in range(-6, 7):
                         tile = self.character.get_offset_tile(x, y)
-                        if tile.is_land(Tile.CHECK_BREAKABLE):
+                        if tile.is_land([Tile.COLLIDE_UNIT]):
                             pos = str(self.character.pos.x + x) + ',' + str(self.character.pos.y + y)
                             if pos not in self.location.draw_tiles:
                                 Effect.make('sonic', tile.get_center())
@@ -152,6 +171,14 @@ class Player:
             r += ','.join(self.knowledge) + '\n'
             Data.write('save/player.char', r)
 
+    def is_bright(self, character=None):
+        if not character:
+            character = self.character
+        if self.get_daytime() or character.pos.light > 0:
+            return True
+        if character == self.character:
+            self.monologue.text('Too dark!')
+
     def is_safe(self):
         from src.entity.unit.Unit import Unit
         for unit in self.location.record:
@@ -160,6 +187,11 @@ class Player:
                     self.monologue.text('Not safe!')
                     return False
         return True
+
+    def menu(self, menu):
+        self.control.clear_press()
+        Global.menu.state = menu
+        Global.menu.display(1)
 
     def pay(self, gold):
         if self.character.get_gold() >= gold:
@@ -182,7 +214,9 @@ class Player:
         self.character.states.add('Hunger', -1, 0)
         return True
 
-    def stamina(self, mag):
+    def stamina(self, mag, host=None):
+        if host and host != self.character:
+            return True
         if self.character.attributes.breath >= mag:
             self.character.attributes.breath -= mag
             return True

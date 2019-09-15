@@ -65,5 +65,5 @@ class Weapon(Equipment):
         if 'is' in self.tags:
             other += 1
         damage = int(self.damage / 2)
-        score = hp + other + reach + damage - self.weight - self.speed
-        return score
+        score = hp + other + reach + damage - self.speed
+        return max(1, score)

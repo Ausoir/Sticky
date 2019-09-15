@@ -1,35 +1,16 @@
-sewers
-brick complex + abandoned tower
-
--- powers (- stamina)
-*Some randomly removed per playthrough
-priest > buff - 2
-hexer > debuff - 2
-druid > mending - 2
-witch > charm - 3
-^ wraith > possess if allied - 3
-mage > blood scribing (apply bleeding debuff to craft spell) - 0
-^ sorcerer > ritual gesture (long casting but no item req) - 2
-prophet > foresight - save current data, load after 100 turns - 3
-pyromancer > fire immunity, fireblast - 1
-terraformer > move terrain/prop - 1
-aeromancer > mistform - 1
-warper > teleport - teleport to any coordinate and swap with props - 1
-
--- special
-lich > poison/hunger/bleed immunity
+town type should not overlap.
 
 -- artifacts
-memory amulet - remembers location it was put on
 eel trident - gains charge over time, hits 100% when 100 charge
 dying dagger - instant kill if hits, destroyed if not
 lifegem amulet - auto regens to 3 durability every encounter
-bloodgem amulet - regens to 3 durability by absorbing corpses
 interdimensional coin - spawn random item
-ancient potion - perm inc str/agi if lower than 3
 
 -- settings
 cleansing potion - pus blood
 cleansing potion - body is already toxic
 food - silk worm
 cloth - silk worm
+
+-- unidentified bugs
+Control threw error during Prophet power (~10 ticks in)

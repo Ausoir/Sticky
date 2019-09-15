@@ -1,0 +1,6 @@
+Start,[The Basics,Locations,Combat,Items and Artifacts,Spells and Power]
+The Basics,[Basic Controls,Purpose,How to make money,Where to get food,How to become stronger,Travelling]
+Locations,[Port,Dungeons,Services,Other Towns]
+Combat,[Offensive Variables,Defensive Variables,Martial Arts,Enemy Types]
+Items and Artifacts,[Crafts,Medical Items,Food,Gold,Weapons,Armor,Accessories,Artifacts]
+Spells and Power,[Spellcasting Basics,Obtaining Knowledge,Basics of Power,Obtaining Power]

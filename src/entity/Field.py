@@ -4,7 +4,7 @@ from src.game.Turn import Turn
 
 class Field:
     def __init__(self):
-        Turn.add(self)
+        Turn.add(self.turn)
         self.registry = []
 
     def turn(self):

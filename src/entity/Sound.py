@@ -4,7 +4,7 @@ from src.game.Turn import Turn
 
 class Sound:
     def __init__(self, location):
-        Turn.add(self)
+        Turn.add(self.turn)
         self.location = location
         self.registry = []
 

@@ -93,7 +93,7 @@ class Armor(Equipment):
         return r
 
     def use(self):
-        self.host.action.set('block')
+        self.host.action.set('wait')
         if self.host.is_armored():
             self.host.unarmor()
         self.host.armor = self
@@ -110,6 +110,7 @@ class Armor(Equipment):
         self.host = host
         for i in self.items:
             i.host = host
+        self.host.action.set('wait')
 
     def is_vacant(self, item, x, y):
         for ix in range(x, x + item.volume[0]):

@@ -160,3 +160,18 @@
 9/14 Improved Patrol (1), town maps (1), unit update vec if out of sight (1), Search fix (1), Pilot state save (1)
 9/15 Pilot.Ally (2)
 ---- PUSH
+9/15 Pilot add_task recurse fix (1)
+9/16 Pilot identify reachable and strategize (1), Pilot var nulls (1)
+9/18 Pilot & Task overhaul (3), dim coin (1), hit effects (1), Insurance coverage (2)
+9/19 Simple gold (1), Ally redone (1), Field cancel (1), Pilot.target fix (1), textbox unicode input (1)
+9/21 Renter (1), University (1), Hospital (1), Thief (1), Completed town (1), easier GUI travel (1)
+9/22 onsleep didnt resize bg (1), Workbench (1), spell redone (1), use menu.direct for talk interactions (1)
+9/23 Workbench (1), Lignification (1)
+9/24 redone stamina (1), _half graphic tileset (1), food system (1)
+9/26 homemade parser (3), Script (3)
+9/27 Particles affected by vision (1), construction site (1)
+9/28 Prop # loot table (1), Prophet bg color change (1)
+9/29 greetings (1)
+10/01 interactives and beacons are Scripts (3)
+10/02 light flicker glitch from fog/draw update desync fix (1)
+---- PUSH

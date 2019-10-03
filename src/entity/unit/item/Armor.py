@@ -1,4 +1,5 @@
 from src.entity.unit.item.Equipment import Equipment
+from src.game import Global
 from src.tools.Data import Data
 
 
@@ -57,7 +58,6 @@ class Armor(Equipment):
         self.form_legL = Data.run_cache(self.name + '_2x0')
         self.form_legR = self.form_legL.clone()
         self.form_name = arg
-        self.form.rotate(180)
 
     def die(self):
         pos = self.pos
@@ -81,47 +81,52 @@ class Armor(Equipment):
         return r
 
     def describe(self):
+        r = super().describe()
+        r += '\nInventory Space: ' + str(self.get_inventory_slots())
+        r += '\nDefense: ' + str(self.armor)
+        r += '\nPockets: ' + str(len(self.pockets))
+        return r
+
+    def get_inventory_slots(self):
         inv = 0
         for row in self.inventory:
             for slot in row:
                 if slot == Armor.VACANT:
                     inv += 1
-        r = super().describe()
-        r += '\nInventory Space: ' + str(inv)
-        r += '\nDefense: ' + str(self.armor)
-        r += '\nPockets: ' + str(len(self.pockets))
-        return r
+        return inv
 
     def use(self):
         self.host.action.set('wait')
-        if self.host.is_armored():
-            self.host.unarmor()
-        self.host.armor = self
-        host = self.host
-        if self.host.weapon == self:
-            self.host.drop()
-        host.face(1)
-        forms = [self.form_armL, self.form_legL, self.form_legR, None, self.form, self.form_armR]
-        for k, i in enumerate(host.form.organs):
-            if forms[k]:
-                i.set(forms[k])
-        self.remove()
-        host.update_durability(0)
-        self.host = host
-        for i in self.items:
-            i.host = host
-        self.host.action.set('wait')
+        if self.host.attributes.agility >= self.weight + self.host.headgear.weight:
+            if self.host.is_armored():
+                self.host.unarmor()
+            self.host.armor = self
+            host = self.host
+            if self.host.weapon == self:
+                self.host.drop()
+            host.face(1)
+            forms = [self.form_armL, self.form_legL, self.form_legR, None, self.form, self.form_armR]
+            for k, i in enumerate(host.form.organs):
+                if forms[k]:
+                    i.set(forms[k])
+            self.remove()
+            host.update_durability(0)
+            self.host = host
+            for i in self.items:
+                i.host = host
+        else:
+            self.host.say('Total encumbrance exceeds Agility!')
 
     def is_vacant(self, item, x, y):
         for ix in range(x, x + item.volume[0]):
             for iy in range(y, y + item.volume[1]):
-                if ix > 2 or iy > 3 or self.inventory[iy][ix] != Armor.VACANT:
+                if ix > 2 or iy > 1 or self.inventory[iy][ix] != Armor.VACANT:
                     return 0
         return 1
 
     def add_item(self, item):
         for ix in range(3):
-            for iy in range(4):
+            for iy in range(2):
                 if self.is_vacant(item, ix, iy):
                     return self.add_inventory(item, ix, iy)
 

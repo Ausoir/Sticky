@@ -1,51 +1,201 @@
-from src.entity.Effect import Effect
 from src.entity.Object import Object
+from src.entity.Particle import Particle
 from src.entity.Prop import Prop
 from src.entity.Space import Space
+from src.entity.unit.Unit import Unit
 from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
 from src.game import Global
 from src.map.Tile import Tile
+from src.tools.Data import Data
+from src.tools.Dialog import Dialog
 
 
-class Beacon(Object):
+class Script(Prop):
     def __init__(self, loc):
         super().__init__(loc)
-        self.var = 'estate'
-        self.depth = 5
+        self.condition = None
+        self.mechanism = None
 
     def __str__(self):
-        return super().__str__() + ',' + str(self.var)
+        string = Dialog.deepnonstrlist
+        return super().__str__() + ',' + string(self.condition, 2) + ',' + string(self.mechanism, 2)
 
     def load(self, arg):
         index = super().load(arg)
-        self.var = arg[index]
+        self.condition = arg[index]
+        index += 1
+        self.mechanism = arg[index]
         return index + 1
 
+    def turn(self):
+        for i in self.condition:
+            if not self.is_triggered(i):
+                return
+        self.trigger()
 
-class Interactive(Prop):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.depth = 3
-        self.argument = ''
+    def trigger_make(self):
+        make = False
+        for i in self.condition:
+            if i[0] == 'make':
+                make = True
+            elif not self.is_triggered(i):
+                return
+        if make:
+            self.trigger()
+            self.remove()
 
-    def __str__(self):
-        return super().__str__() + ',[' + ','.join(str(x) for x in self.argument) + ']'
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.argument = arg[index]
-        return index + 1
+    def is_triggered(self, condition):
+        if condition[0] == 'turn':
+            condition[2] += 1
+            if condition[2] >= condition[1]:
+                condition[2] = 0
+                return True
+        elif condition[0] == 'bring':
+            count = 0
+            for i in self.pos.things:
+                if i != self:
+                    if not condition[1] or condition[1] == i.name:
+                        count += 1
+            if count == condition[2]:
+                return True
+        elif condition[0] == 'chance':
+            if Global.r.rand_int(1, condition[1]) <= condition[2]:
+                return True
+        elif condition[0] == 'date':
+            if Global.player.days > condition[1]:
+                condition[1] = Global.player.days + condition[2]
+                return True
+        elif condition[0] == 'limit':
+            condition[1] -= 1
+            if condition[1] == 0:
+                return True
+        elif condition[0] == 'load':
+            from src.game.Turn import Turn
+            Turn.remove(self.turn)
+            return True
+        elif condition[0] == 'once':
+            self.remove()
+            return True
+        elif condition[0] == 'safe':
+            return Global.player.is_safe()
+        elif condition[0] == 'bright':
+            return Global.player.character.is_bright()
 
     def trigger(self):
-        if self.argument[0] == 'enter':
-            Global.player.travel(self.argument[1], Space(int(self.argument[2]), int(self.argument[3])))
-        elif self.argument[0] == 'travel':
-            if Global.player.is_safe():
-                Global.menu.var = self.argument[1:]
-                Global.menu.state = Global.menu.menu_travel
-                Global.menu.display(1)
+        for i in self.mechanism:
+            self.trigger_mechanism(i)
+
+    def get_directional(self, arg):
+        things = []
+        link = arg
+        if arg < 0:
+            for i in self.pos.things:
+                if i != self:
+                    things.append(i)
+            link = abs(arg)
+        if int(link/10) in (1, 3):
+            things += self.get_offset_tile(-1, 0).things
+        if link % 10 in (1, 3):
+            things += self.get_offset_tile(0, -1).things
+        if int(link/10) in (2, 3):
+            things += self.get_offset_tile(1, 0).things
+        if link % 10 in (2, 3):
+            things += self.get_offset_tile(0, 1).things
+        return things
+
+    def trigger_mechanism(self, arg):
+        if arg[0] == 'trigger':
+            for i in self.get_directional(arg[1]):
+                if isinstance(i, Script):
+                    i.trigger()
+        if arg[0] == 'triggerat':
+            for i in self.location.get_tile([arg[1], arg[2]]):
+                if isinstance(i, Script):
+                    i.trigger()
+        elif arg[0] == 'modify':
+            for i in self.get_directional(arg[1]):
+                if isinstance(i, Script):
+                    i.argument = arg[2]
+        elif arg[0] == 'spawn':
+            count = 0
+            from src.entity.Stock import Stock
+            for i in self.location.record:
+                if i.name == arg[1]:
+                    count += 1
+            if count < arg[2]:
+                Stock.make(arg[1], self.pos)
+        elif arg[0] == 'effect':
+            Particle.make(arg[1], self.pos.get_center(), offset=8, glow=arg[2])
+        elif arg[0] == 'message':
+            Global.menu.show_dialog([arg[1]])
+        elif arg[0] == 'say':
+            for i in self.pos:
+                from src.entity.unit.Character import Character
+                if isinstance(i, Character):
+                    i.say(arg[1])
+        elif arg[0] == 'remove':
+            count = arg[2]
+            for thing in reversed(self.pos.things):
+                if thing != self and count > 0 and not arg[1] or thing.name == arg[1]:
+                    count -= 1
+                    thing.remove()
+        elif arg[0] == 'hit':
+            for thing in self.pos.things:
+                if thing != self and not arg[1] or thing.name == arg[1]:
+                    thing.hit(arg[2])
+        elif arg[0] == 'buff':
+            for thing in self.pos.things:
+                if thing != self:
+                    thing.states.add(arg[1], arg[2], var=arg[3])
+        elif arg[0] == 'relocate':
+            for thing in self.pos.things:
+                if thing != self:
+                    if not arg[1] or arg[1] == thing.name:
+                        thing.relocate(arg[2], arg[3])
+        elif arg[0] == 'move':
+            for thing in self.pos.things:
+                if thing != self:
+                    if not arg[1] or arg[1] == thing.name:
+                        thing.move(arg[2], arg[3])
+        elif arg[0] == 'thief':
+            for i in self.location.record:
+                if isinstance(i, Item):
+                    if i.get_value() >= arg[1]:
+                        i.remove()
+        elif arg[0] == 'color':
+            Global.main.colorize(1, [arg[1], arg[2], arg[3], arg[4]])
+        elif arg[0] == 'darkness':
+            self.location.view_range = arg[1]
+            self.location.sight_range = arg[2]
+            self.location.resize()
+        elif arg[0] == 'rand':
+            for i in self.mechanism:
+                if i[0] == arg[1]:
+                    if arg[3].startswith('#'):
+                        i[arg[2]] = Global.r.rand_list(Data.get_line('data/raw/raw.txt', arg[3][1:])[1])
+                    else:
+                        i[arg[2]] = Global.r.rand_list(arg[3:])
+        elif arg[0] == 'enter':
+            Global.player.travel(arg[1], Space(int(arg[2]), int(arg[3])))
+        elif arg[0] == 'travel':
+            Global.menu.var = arg[1:]
+            Global.menu.state = Global.menu.menu_travel
+            Global.menu.display(1)
+        elif arg[0] == 'load':
+            building = Data.process_raw(Data.read('data/map/' + arg[1] + '.map'))
+            objs = self.location.load_map(building, new=True, offset=self.pos.to_list(), flip=Global.r.rand_bool())
+            for obj in objs:
+                if isinstance(obj, Script):
+                    obj.trigger_make()
+        elif arg[0] == 'make':
+            from src.map.Location import Location
+            r = Location(arg[2], list(Data.process_raw(Data.read('data/map/' + arg[1] + '.map'))))
+            for obj in r.record.copy():
+                if isinstance(obj, Script):
+                    obj.trigger_make()
+            r.save()
 
 
 class Bridge(Prop):
@@ -66,27 +216,109 @@ class Bridge(Prop):
             self.die()
 
 
-class Gold(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.capacity = 16
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.capacity)
-
+class Wallet(Item):
     def describe(self):
-        return super().describe().replace('Durability', 'Coins')
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.capacity = arg[index]
-        return index + 1
+        return super().describe().replace('Durability', 'Dollars')
 
     def use(self):
         self.host.action.set('wait')
-        self.name = 'Bag'
-        self.host.modify_gold(self.durability)
+        self.host.var['money'] += self.durability
         self.die()
+
+
+class RepairKit(Item):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.charge = 0
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.charge)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.charge = arg[index]
+        return index + 1
+
+    def describe(self):
+        return super().describe() + '\nCharges: ' + str(self.charge)
+
+    def on_sleep(self, time):
+        if self.host:
+            diff = max(0, self.host.headgear.max_durability - self.host.headgear.durability)
+            if diff > 0:
+                diff = max(self.charge, diff)
+                self.host.headgear.durability += diff
+                self.charge = max(0, self.charge - diff)
+            diff = max(0, self.host.armor.max_durability - self.host.armor.durability)
+            if diff > 0:
+                diff = max(self.charge, diff)
+                self.host.armor.durability += diff
+                self.charge = max(0, self.charge - diff)
+            if self.charge == 0:
+                self.die()
+
+    def use(self):
+        for i in self.host.get_possessions():
+            if i == 'Fiber':
+                i.die()
+                self.charge = min(20, self.charge + 8)
+                Particle.make('heal', self.host.vec)
+
+
+class Food(Item):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.nutrition = [-1, 0, 0, 0]
+
+    def __str__(self):
+        return super().__str__() + ',' + Dialog.nonstrlist(self.nutrition)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.nutrition = arg[index]
+        if self.nutrition[0] < 0:
+            self.nutrition[0] = Global.player.days + -self.nutrition[0]
+        return index + 1
+
+    def get_value(self):
+        expire = self.get_expiration()
+        if expire > 2:
+            return super().get_value() + self.nutrition[1] + self.nutrition[2]
+        elif expire > 0:
+            return super().get_value() + self.nutrition[1] + self.nutrition[2] - 1
+        else:
+            return 0
+
+    def describe(self):
+        r = super().describe()
+        r += '\nCalories: ' + str(self.nutrition[1])
+        r += '\nProtein: ' + str(self.nutrition[2])
+        expire = self.get_expiration()
+        if expire:
+            r += '\nExpires in ' + Dialog.day(expire)
+        else:
+            r += '\nThis food has expired.'
+        return r
+
+    def get_expiration(self):
+        left = max(0, self.nutrition[0] - Global.player.days)
+        return left
+
+    def use(self):
+        if self.get_expiration():
+            if self.host.states.get('Nausea'):
+                self.host.say('I have nausea...')
+            else:
+                calories = self.host.var['calories']
+                if calories > 0:
+                    self.host.say('Eating will not do anything right now. Wait ' + Dialog.day(calories) + '.')
+                else:
+                    self.host.action.set('wait')
+                    self.host.var['calories'] += self.nutrition[1]
+                    self.host.var['protein'] += self.nutrition[2]
+                    self.hit(1)
+        else:
+            self.host.say('This food has expired...')
 
 
 class Sonic(Prop):
@@ -95,9 +327,9 @@ class Sonic(Prop):
             self.remove()
         else:
             self.durability -= 1
-            Effect.make('sonic', self.get_offset_tile(Global.r.rand_int(-3, 3), Global.r.rand_int(-3, 3)).get_center())
-            for x in range(-4, 5):
-                for y in range(-4, 5):
+            Particle.make('sonic', self.get_offset_tile(Global.r.rand_int(-3, 3), Global.r.rand_int(-3, 3)).get_center())
+            for x in range(-9, 10):
+                for y in range(-9, 10):
                     if Global.r.rand_bool():
                         pos = str(self.pos.x + x) + ',' + str(self.pos.y + y)
                         self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
@@ -117,7 +349,6 @@ class Corpse(Prop):
         self.collision_type = 0
         self.depth = 3
         self.standables = Tile.CHECK_LANDABLE
-        from src.tools.Data import Data
         self.form = Data.run_cache('g_9x3')
         self.is_ragdoll = False
 
@@ -148,10 +379,17 @@ class Corpse(Prop):
         if self.hittable:
             return 1
 
-    def hit(self, damage):
-        if self.is_ragdoll:
-            self.form.randomize_once(18)
-        return super().hit(damage)
+    def hit(self, damage, accuracy=None, hitter=None):
+        r = super().hit(damage, accuracy, hitter)
+        if r == 2:
+            from src.game.Tags import Tags
+            if hitter and Tags.sharp in hitter.tags:
+                from src.entity.Stock import Stock
+                Stock.make('Raw Meat', self.pos)
+        else:
+            if self.is_ragdoll:
+                self.form.randomize_once(18)
+        return r
 
     def die(self):
         self.remove()
@@ -162,51 +400,6 @@ class Break(Prop):
         super().die()
         if self.pos.terrain:
             self.pos.terrain = None
-
-
-class Builder(Weapon):
-    def use(self):
-        from src.entity.Stock import Stock
-        for thing in self.pos.things:
-            if thing.name == 'Scaffold':
-                top = not thing.get_offset_tile(0, -1).is_land(Tile.CHECK_FOUNDATION)
-                top_left = not thing.get_offset_tile(-1, -1).is_land(Tile.CHECK_FOUNDATION)
-                top_right = not thing.get_offset_tile(1, -1).is_land(Tile.CHECK_FOUNDATION)
-                left = not thing.get_offset_tile(-1, 0).is_land(Tile.CHECK_FOUNDATION)
-                right = not thing.get_offset_tile(1, 0).is_land(Tile.CHECK_FOUNDATION)
-                down = not thing.get_offset_tile(0, 1).is_land([Tile.COLLIDE_TERRAIN])
-                down_left = not thing.get_offset_tile(-1, 1).is_land(Tile.CHECK_FOUNDATION)
-                down_right = not thing.get_offset_tile(1, 1).is_land(Tile.CHECK_FOUNDATION)
-                thing.remove()
-                door = not self.pos.is_land([Tile.COLLIDE_DOODAD])
-                if down and door and (top or left or right or top_left or top_right or down_left or down_right):
-                    construct = 'Wall'
-                else:
-                    construct = 'Tile'
-                    for thing2 in self.pos.things:
-                        if thing2.name == 'Tile':
-                            thing2.remove()
-                            construct = 'Wall'
-                            break
-                Stock.make(construct, thing.pos)
-                self.host.action.set('hit')
-                self.host.form.set('interact')
-                return
-            elif thing.name == 'Plank':
-                thing.remove()
-                Stock.make('Scaffold', thing.pos)
-                self.host.action.set('hit')
-                self.host.form.set('interact')
-                self.hit(1)
-                return
-            elif thing.name == 'Scrap':
-                thing.remove()
-                Stock.make('Plating', thing.pos)
-                self.host.action.set('hit')
-                self.host.form.set('interact')
-                self.hit(1)
-                return
-        super().use()
 
 
 class Mushroom(Item):
@@ -226,7 +419,7 @@ class Explosive(Item):
             Stock.make('Flame', self.pos)
             aoe = self.location.get_area(self.pos, 1, 1)
             for tile in aoe:
-                Effect.make('explode', tile.get_center(), offset=4)
+                Particle.make('explode', tile.get_center(), offset=4, glow=2)
                 for thing in tile.things:
                     thing.states.add('Burn', 24)
                     thing.hit(1)
@@ -234,8 +427,7 @@ class Explosive(Item):
 
 
 class Manual(Item):
-    skills = ['Block', 'Sprint', 'Lunge', 'Leap', 'Tackle', 'Flurry']
-    req = [2, 3, 4, 5, 6, 7]
+    skills = ['Peek', 'Block', 'Sprint', 'Leap', 'Offhand', 'Tackle', 'Lunge', 'Flurry', 'Slam', 'Charge']
 
     def __init__(self, loc):
         super().__init__(loc)
@@ -255,20 +447,32 @@ class Manual(Item):
         return 'Manual of ' + self.skill
 
     def describe(self):
-        return super().describe() + '\nTeaches skill [' + self.skill + ']'
+        r = super().describe() + '\nTeaches skill [' + self.skill + ']'
+        if self.skill in Item.description:
+            r += '\n' + Item.description[self.skill]
+        r += '\nRequires ' + str(self.get_req()) + ' Strength'
+        return r
+
+    def get_req(self):
+        req = 2
+        for i in self.host.action.skills:
+            if i.title() in Manual.skills:
+                req += 1
+        return req
 
     def use(self):
-        req = Manual.req[Manual.skills.index(self.skill)]
-        if self.host.attributes.strength > req:
-            skill = self.skill.lower()
-            if skill not in self.host.action.skills:
+        skill = self.skill.lower()
+        if skill not in self.host.action.skills:
+            req = self.get_req()
+            if self.host.attributes.strength >= req:
                 self.host.action.skills.append(skill)
                 if self.host == Global.player.character:
-                    Global.player.monologue.text('Learned ' + self.skill + '!')
+                    Global.player.character.say('Learned ' + self.skill + '!')
+                    self.die()
             elif self.host == Global.player.character:
-                Global.player.monologue.text('I already know ' + self.skill + '.')
+                Global.player.character.say('Need ' + str(req) + ' Strength to learn this skill!')
         elif self.host == Global.player.character:
-            Global.player.monologue.text('Need ' + str(req) + ' Strength to learn this skill!')
+            Global.player.character.say('I already know ' + self.skill + '.')
 
 
 class MemoryAmulet(Headgear):
@@ -320,3 +524,158 @@ class RubyAmulet(Headgear):
 
     def on_sleep(self, time):
         self.durability = self.weight
+
+
+class LifeAmulet(Headgear):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.visible = 0
+        self.max_durability = 3
+
+    def die(self):
+        if self.host:
+            return
+        super().die()
+
+    def on_sleep(self, time):
+        self.durability = min(self.max_durability, self.durability + time)
+
+    def enhance(self, rng):
+        r = super().enhance(rng)
+        if r:
+            self.max_durability += 3
+            self.weight += 1
+        return r
+
+
+class Glasses(Headgear):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.sight = 4
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.sight)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.sight = arg[index]
+        return index + 1
+
+    def activate(self):
+        super().activate()
+        if self.host == Global.player.character:
+            def done():
+                self.host.center_camera()
+            channel = self.host.states.add('Channel', 12)
+            channel.on_finish = done
+            new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
+                                                      distance=self.sight, flag=Tile.CHECK_LARGE)
+            from src.game.TempObject import TempObject
+            viewer = TempObject(new_pos)
+            from src.game.Camera import Camera
+            Camera.target = viewer
+
+
+class SafetyHat(Headgear):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.light = 4
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.light)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.light = arg[index]
+        return index + 1
+
+    def on_unequip(self):
+        light = self.host.states.get('Glow')
+        if light:
+            light.end()
+        super().on_unequip()
+
+    def activate(self):
+        super().activate()
+        light = self.host.states.get('Glow')
+        if light:
+            light.end()
+        else:
+            self.host.states.add('Glow', -1, var=self.light)
+
+
+class Tazer(Weapon):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.charge = 0
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.charge)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.charge = arg[index]
+        return index + 1
+
+    def describe(self):
+        return super().describe() + '\nCurrent charge: ' + str(self.charge)
+
+    def on_sleep(self, time):
+        self.charge = 100
+
+    def on_attack(self, target):
+        super().on_attack(target)
+        if self.charge >= 100:
+            target.states.add('Influence', 60, var='hit')
+            target.states.add('Effect', 60, var='zap')
+            self.charge = 0
+        else:
+            self.charge = self.charge + 50
+
+
+class Pickaxe(Weapon):
+    def attack(self, chance=0, delay=1, callback=None):
+        super().attack(chance, delay, callback)
+        breakables = Data.get_line('data/raw/raw.txt', 'breakable')[1]
+        for i in range(self.reach):
+            tile = self.host.location.collide_line(self.host.pos, self.host.next_target.x, self.host.next_target.y,
+                                                   lambda arg1, arg2: None, distance=i + 1)
+            if tile.terrain and tile.terrain.name.split(' ')[0] in breakables:
+                if not tile.things:
+                    down = self.location.get_tile(tile + (0, 1))
+                    below = self.host.location.collide_land(down, 0, 7, flag=[Tile.COLLIDE_TERRAIN], distance=7)
+                    if below != self.location.get_tile(tile + (0, 8)):
+                        from src.entity.Stock import Stock
+                        Stock.make('Break', tile)
+
+
+class Unnatural(Unit):
+    def hit(self, damage, accuracy=None, hitter=None):
+        from src.game.Tags import Tags
+        if hitter and Tags.silver in hitter.tags:
+            if accuracy:
+                accuracy *= 2
+            damage *= 2
+        return super().hit(damage, accuracy, hitter)
+
+
+class Phantom(Unit):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.host = None
+
+    def __str__(self):
+        return super().__str__() + ',[' + str(self.host) + ']'
+
+    def load(self, p):
+        index = super().load(p)
+        if p[index]:
+            from src.entity.Stock import Stock
+            self.set_host(Stock.get(p[index][2], p[index]))
+        return index + 1
+
+    def set_host(self, host):
+        self.host = host
+        self.form.organs[0].set(self.host.form)
+        self.loot = self.host.loot
+        self.host.loot = []

@@ -30,6 +30,7 @@ class Tile(Space):
 
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.frame = 0
         self.terrain = None
         self.things = List()
         self.light = 0
@@ -56,6 +57,12 @@ class Tile(Space):
             pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
             surface.blit(Global.player.background.image, pos,
                          (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
+
+    def update(self, loc):
+        self.frame += 1
+        if self.frame != loc.update_frame:
+            self.light = 0
+            self.frame = loc.update_frame
 
     def draw_overlay(self, surface):
         if self.light <= 0:

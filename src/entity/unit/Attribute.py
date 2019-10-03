@@ -37,14 +37,19 @@ class Attribute:
 
     def exert(self, muscle, mag):
         if muscle == 0:
-            self.body += mag
-            if self.body >= self.strength:
+            new = self.body + mag
+            if new >= self.strength:
                 return 1
+            self.body = new
         elif muscle == 1:
-            self.leg += mag
-            if self.leg >= self.strength * 3:
+            new = self.leg + mag
+            if new >= self.strength * 3:
                 return 1
+            self.leg = new
         return 0
+
+    def is_exhausted(self):
+        return self.body >= self.strength or self.leg >= self.strength * 3
 
     def rest(self):
         self.breath = self.strength + self.agility + self.intelligence

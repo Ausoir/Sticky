@@ -1,16 +1,7 @@
-town type should not overlap.
-
--- artifacts
-eel trident - gains charge over time, hits 100% when 100 charge
-dying dagger - instant kill if hits, destroyed if not
-lifegem amulet - auto regens to 3 durability every encounter
-interdimensional coin - spawn random item
-
--- settings
-cleansing potion - pus blood
-cleansing potion - body is already toxic
-food - silk worm
-cloth - silk worm
-
--- unidentified bugs
-Control threw error during Prophet power (~10 ticks in)
+town-sewer-nest
+town-graveyard
+town-slums-river(bridge)-crossroads-river-town
+crossroads - tower
+abyss map
+town/gambler
+pokeball

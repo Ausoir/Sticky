@@ -12,12 +12,13 @@ class Crafting:
                 return i[1]
 
     @staticmethod
-    def describe(item):
-        res = Crafting.get_ingredients(item)
+    def describe(item, resource=None):
         r = item
         r += '\nIngredients:'
-        if res:
-            for i in res:
+        if not resource:
+            resource = Crafting.get_ingredients(item)
+        if resource:
+            for i in resource:
                 if i.startswith('#'):
                     i = 'Any ' + Tags.name(i[1:]).title()
                 r += ' [' + i + ']'
@@ -29,13 +30,12 @@ class Crafting:
         return r
 
     @staticmethod
-    def is_craftable(host, item):
+    def is_craftable(host, resource):
         subjects = host.get_accessibles()
         materials = []
         for i in subjects:
             materials.append(i.name)
             materials.extend(i.tags)
-        resource = Crafting.get_ingredients(item)
         for mat in resource:
             if mat.startswith('#'):
                 mat = mat[1:]
@@ -44,8 +44,8 @@ class Crafting:
         return True
 
     @staticmethod
-    def craft(host, item):
-        resource = Crafting.get_ingredients(item)
+    def craft(host, item, resource):
+        resource = resource
         subjects = host.get_accessibles()
         for i in subjects:
             if i.name in resource:

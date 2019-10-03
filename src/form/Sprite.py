@@ -32,12 +32,10 @@ class Sprite(Form):
         if arg:
             self.size.load(arg)
             self.pivot = Space(self.size.x / 2, self.size.y / 2)
-        x_flip = self.direction != 1
-        y_flip = self.direction_y != 0
+        x_flip = 1 if self.direction != 1 else 0
+        y_flip = 1 if self.direction_y != 0 else 0
         if x_flip or y_flip:
-            dir_x = 1 if x_flip else 0
-            dir_y = 1 if y_flip else 0
-            self.image = pygame.transform.flip(self.orig_image, dir_x, dir_y)
+            self.image = pygame.transform.flip(self.orig_image, x_flip, y_flip)
         else:
             self.image = self.orig_image
         scale = [max(1, self.size.x), max(1, self.size.y)]

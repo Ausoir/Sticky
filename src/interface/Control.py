@@ -11,7 +11,7 @@ from src.tools.Data import Data
 
 class Control:
     def __init__(self, player):
-        Turn.add(self.turn)
+        Turn.fast_queue.append(self.turn)
         self.player = player
         self.keypress = []
         self.keyrelease = []

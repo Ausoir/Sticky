@@ -7,17 +7,18 @@ from src.map.Tile import Tile
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck', 'peek', 'power',
-               'run_left', 'run_right', 'item1', 'item2', 'item3', 'item4', 'item5', 'item6', 'trinket', 'attack']
+    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck', 'power',
+               'run_left', 'run_right', 'pocket_1', 'pocket_2', 'pocket_3', 'pocket_4',
+               'trinket', 'attack']
     priority = ['down', 'hit']
 
     def __init__(self, host):
         self.host = host
         self.current_action = 'idle'
+        self.current_action_fn = self.idle
         self.on_finish = None
         self.last_action = None
         self.skills = []
-        self.exhausted = 0
 
     def __str__(self):
         return ','.join(self.skills)
@@ -28,16 +29,19 @@ class Actions:
 
     def attempt(self, action, idle=True):
         if action in Actions.default or action in self.skills:
-            self.set(action)
-            return True
+            return self.set(action)
         elif idle:
             self.set('idle')
 
     def set(self, action):
-        self.host.location.attack.unregister(self.host)
-        if self.exhausted and action not in Actions.priority:
+        if self.host.attributes.is_exhausted() and action not in Actions.priority:
             action = 'rest'
-        self.current_action = action
+        if self.current_action != action:
+            frenzy = self.host.states.get('Frenzy')
+            if frenzy and action not in Actions.priority:
+                action = frenzy.var
+            self.current_action = action
+            self.current_action_fn = getattr(self, action)
         if self.on_finish:
             if self.host.delay:
                 self.on_finish = None
@@ -45,9 +49,9 @@ class Actions:
                 fn = self.on_finish  # prevent recursion
                 self.on_finish = None
                 fn()
-        getattr(self, action)()
+        r = self.current_action_fn()
         self.last_action = action
-        return 1
+        return r
 
     def set_animation(self, arg):
         if self.host.form.state_name != arg or self.host.form.animation_ended:
@@ -60,14 +64,11 @@ class Actions:
             self.set_animation(self.current_action)
         self.host.delay = turn
 
-    def exert(self, organ, mag):
-        self.exhausted = self.exhausted or self.host.attributes.exert(organ, mag)
-        return self.exhausted
-
     @staticmethod
     def knockdown(victim):
         if isinstance(victim, Unit):
-            victim.action.set('down')
+            if victim.action.current_action != 'down':
+                victim.action.set('down')
 
     def idle(self):
         if self.last_action == 'idle':
@@ -79,14 +80,16 @@ class Actions:
         self.host.weapon.form.rotate(20 * self.host.direction)
         self.make(animation='block', turn=2)
 
+    def offhand(self):
+        self.host.swap()
+        self.make(animation='block', turn=2)
+
     def rest(self):
-        self.exhausted = False
         self.host.attributes.body = 0
-        self.host.attributes.leg = 0
         if self.host.states.get('Exhaustion'):
             self.make(turn=16)
         else:
-            self.make(turn=4)
+            self.make(turn=5)
 
     def wield(self, pocket):
         if len(self.host.armor.pockets) > pocket:
@@ -104,23 +107,17 @@ class Actions:
                         break
         self.make(animation='block', turn=2)
 
-    def item1(self):
+    def pocket_1(self):
         self.wield(0)
 
-    def item2(self):
+    def pocket_2(self):
         self.wield(1)
 
-    def item3(self):
+    def pocket_3(self):
         self.wield(2)
 
-    def item4(self):
+    def pocket_4(self):
         self.wield(3)
-
-    def item5(self):
-        self.wield(4)
-
-    def item6(self):
-        self.wield(5)
 
     def trinket(self):
         if self.host.is_headgeared():
@@ -154,11 +151,6 @@ class Actions:
         self.attempt('sprint')
 
     def walk(self):
-        cripple = self.host.states.get('Cripple')
-        if cripple:
-            slow = 1
-        else:
-            slow = 0
         if self.host.gravity:
             front = self.host.get_offset_tile(self.host.direction, 0)
             if front.is_land(Tile.CHECK_FIRM):
@@ -168,13 +160,17 @@ class Actions:
                     self.set('idle')
             else:
                 for thing in front.things:
-                    if thing.faction == self.host.faction and isinstance(thing, Unit):
+                    if thing.faction == self.host.faction and isinstance(thing, Unit)\
+                            and thing.action.current_action == 'idle':
                         thing.move(-self.host.direction, 0, flag=Tile.CHECK_FIRM)
+                        self.host.move(self.host.direction, 0)
+                        self.make(turn=max(0, 2 - self.host.attributes.speed))
+                        return
                 self.host.move(self.host.direction, 0)
-                self.make(turn=1 - self.host.attributes.speed + slow)
+                self.make(turn=max(0, 1 - self.host.attributes.speed))
         else:
             self.host.move(self.host.direction, 0)
-            self.make(animation='swim', turn=4 - self.host.attributes.speed)
+            self.make(animation='swim', turn=max(0, 4 - self.host.attributes.speed))
 
     def hit(self):
         self.make(turn=2)
@@ -208,6 +204,13 @@ class Actions:
     def duck(self):
         ground = self.host.get_offset_tile(0, 1)
         if ground.is_climbable():
+            for thing in self.host.get_offset_tile(0, 1).things:
+                if thing.faction == self.host.faction and isinstance(thing, Unit)\
+                        and thing.action.current_action == 'idle':
+                    thing.move(0, -1, flag=Tile.CHECK_FIRM)
+                    self.host.move(0, 1)
+                    self.make(turn=3)
+                    return
             if self.host.pos != self.host.move(0, 1):
                 self.make('climb', turn=2)
         else:
@@ -226,13 +229,20 @@ class Actions:
             cripple = self.host.states.get('Cripple')
             if not cripple:
                 if self.host.pos.is_climbable():
+                    for thing in self.host.get_offset_tile(0, -1).things:
+                        if thing.faction == self.host.faction and isinstance(thing, Unit)\
+                                and thing.action.current_action == 'idle':
+                            thing.move(0, 1, flag=Tile.CHECK_FIRM)
+                            self.host.move(0, -1)
+                            self.make(turn=3)
+                            return
                     if self.host.pos != self.host.move(0, -1):
                         self.make('climb', turn=2)
                 else:
                     from src.entity.unit.Character import Character
                     self.host.location.sound.register(self.host.pos, 3)
-                    if not Character.check_var(self.host, 'power', 'Monk'):
-                        self.exert(1, 3)
+                    if not Character.check_var(self.host, 'power', 'Warrior'):
+                        self.host.attributes.leg += 2
                     destination = self.host.get_offset_tile(self.host.direction, -1)
                     if destination.is_land(Tile.CHECK_FIRM):
                         self.host.move(0, -1)
@@ -250,7 +260,7 @@ class Actions:
                     thing.move(self.host.direction, 0)
                     self.knockdown(thing)
         self.on_finish = fin
-        self.make(turn=10)
+        self.make(turn=11)
 
     def block(self):
         self.host.weapon.form.rotate(20 * self.host.direction)
@@ -274,24 +284,11 @@ class Actions:
             self.attempt('jump')
         else:
             self.host.location.sound.register(self.host.pos, 5)
-            cripple = self.host.states.get('Cripple')
-            if cripple:
-                slow = 1
-            else:
-                slow = 0
             from src.entity.unit.Character import Character
-            if not Character.check_var(self.host, 'power', 'Monk'):
-                self.exert(1, 1)
+            if not Character.check_var(self.host, 'power', 'Warrior'):
+                self.host.attributes.leg += 1
             self.host.move(self.host.direction, 0)
-            self.make(turn=slow)
-
-    def tackle(self):
-        self.exert(1, 18)
-        self.host.move(self.host.direction, 0)
-        self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
-                                           faction=self.host.faction, type='batter', callback=self.knockdown)
-        self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM)
-        self.make(animation='kick', turn=3)
+            self.make(turn=max(0, -self.host.attributes.speed))
 
     def use(self):
         self.host.use()
@@ -299,14 +296,16 @@ class Actions:
     def attack(self):
         def callback(target):
             self.host.states.trigger(['attack', target])
-        self.exert(0, 1)
+        self.host.attributes.body += 1
         front = self.host.get_offset_tile(self.host.direction, 0)
-        self.host.location.attack.register(1, front, type='batter', delay=0, chance=1, callback=callback)
+        chance = self.host.get_proficiency('attack') + 1
+        damage = self.host.get_proficiency('damage') + 1
+        self.host.location.attack.register(damage, front, hitter=self.host, delay=0, chance=chance, callback=callback)
         self.make(animation='attack', turn=4)
 
     def swing(self):
+        self.host.attributes.body += self.host.weapon.weight
         self.host.weapon.rotation = 60
-        self.exert(0, self.host.weapon.weight)
         self.host.form.rotate_appendage(19, 0, self.host.next_target, offset=50)
         self.host.weapon.attack()
         if self.host.weapon.speed < 4:
@@ -315,64 +314,141 @@ class Actions:
             self.make(animation='attack', turn=self.host.weapon.speed)
 
     def leap(self):
-        self.exert(1, 12)
-        degree = self.host.next_target.get_atan()
-        from src.tools.Math import Math
-        self.host.move(round(Math.cos(degree) * 2.4), round(Math.sin(degree) * 2.4))
-        self.make(animation='jump', turn=3)
+        if not self.host.attributes.exert(1, 6):
+            degree = self.host.next_target.get_atan()
+            from src.tools.Math import Math
+            self.host.move(round(Math.cos(degree) * 2.4), round(Math.sin(degree) * 2.4))
+            self.make(animation='jump', turn=3)
 
     def lunge(self):
+        if not self.host.attributes.exert(1, 3):
+            def hit(victim):
+                victim.move(self.host.direction, 0)
+                self.knockdown(victim)
+            self.host.attributes.body += self.host.weapon.weight + 1
+            self.host.weapon.rotation = 15
+            self.host.move(self.host.direction, 0)
+            rand = random.randint(-12, 12)
+            self.host.form.rotate_appendage(39, 0, self.host.next_target, offset=rand)
+            prof = self.host.get_proficiency('lunge')
+            self.host.weapon.attack(delay=2, chance=prof, callback=hit)
+            self.make(turn=2 + self.host.weapon.speed - prof)
+
+    def tackle(self):
         def hit(victim):
-            victim.move(self.host.direction, 0)
-            self.knockdown(victim)
-            victim.hit(1)
-            victim.states.add('Cripple', 40)
-        self.exert(0, self.host.weapon.weight + 1)
-        self.host.weapon.rotation = 15
-        self.host.move(self.host.direction, 0)
-        rand = random.randint(-15, 15)
-        self.host.form.rotate_appendage(40, 0, self.host.next_target, offset=rand)
-        prof = self.host.get_proficiency('lunge')
-        self.host.weapon.attack(delay=2, chance=prof, callback=hit)
-        self.make(turn=max(1, self.host.weapon.speed - prof))
+            if isinstance(victim, Unit):
+                victim.move(self.host.direction, 0)
+                self.knockdown(victim)
+                victim.states.add('Cripple', 40, var=1)
+        if not self.host.attributes.exert(1, 6):
+            self.host.location.sound.register(self.host.pos, 5)
+            self.host.move(self.host.direction, 0)
+            self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
+                                               hitter=self.host, callback=hit)
+            self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM)
+            self.make(animation='kick', turn=3)
+            return True
 
     def flurry(self):
-        if Global.player.stamina(1, host=self.host):
+        if not self.host.attributes.exert(1, 3):
+            self.host.attributes.body += self.host.weapon.weight
             self.host.weapon.rotation = 10
-            self.exert(1, 1)
             self.host.weapon.attack(chance=self.host.get_proficiency('flurry'))
             rand = random.randint(-15, 15)
             self.host.form.rotate_appendage(38, 0, self.host.next_target, offset=rand)
             self.host.form.rotate_appendage(38, 5, self.host.next_target, offset=rand)
             self.make(animation='flurry', turn=1)
+            return True
         else:
-            self.make(animation='idle', turn=1)
+            self.make(animation='rest', turn=2)
+
+    def slam(self):
+        if not self.host.attributes.exert(1, 3):
+            self.host.location.sound.register(self.host.pos, 9)
+            self.host.attributes.body += self.host.weapon.weight + 2
+            self.host.weapon.rotation = 10
+            self.host.weapon.attack(chance=self.host.get_proficiency('slam') * 2 + 2, delay=5)
+            self.host.weapon.attack(chance=self.host.get_proficiency('slam') * 2 + 2, delay=5)
+            self.make(turn=7)
+            return True
+        else:
+            self.make(animation='rest', turn=2)
+
+    def charge(self):
+        def hit(victim):
+            victim.move(self.host.direction, 0)
+            if isinstance(victim, Unit):
+                self.knockdown(victim)
+                victim.states.add('Cripple', 40, var=1)
+        frenzy = self.host.states.get('Influence')
+        if not frenzy:
+            if not self.host.attributes.exert(1, 3):
+                self.host.states.add('Influence', 12, var='charge')
+                self.host.states.add('Effect', 12, var='spin')
+            else:
+                self.make(animation='rest', turn=2)
+        else:
+            self.host.attributes.exert(1, 1)
+            self.host.location.sound.register(self.host.pos, 7)
+            self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
+                                               hitter=self.host, callback=hit)
+            if self.host.pos == self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM):
+                self.host.location.attack.register(1, self.host.pos, delay=0,
+                                                   hitter=self.host, callback=hit)
+                frenzy.end()
+                self.host.action.set('down')
+            else:
+                self.make(turn=0)
 
     def arch(self):
         def fin():
             def collision():
                 r.remove()
-                r.location.attack.register(1, r.pos, delay=0, chance=r.chance, type='batter', faction=r.faction)
+                r.location.attack.register(rating, r.pos, delay=0, chance=rating, hitter=self.host, faction=r.faction)
             r = Stock.make('Arrow', self.host.get_interact_pos())
             r.faction = self.host.faction
             r.shoot(dest.x, dest.y)
             r.on_collide = collision
             self.host.weapon.rotation = orig_rot
+        rating = 1 + self.host.get_proficiency('arch')
         orig_rot = self.host.weapon.rotation
         self.host.weapon.rotation = 0
-        self.exert(2, self.host.weapon.weight)
+        self.host.attributes.exert(0, self.host.weapon.weight)
         dest = self.host.next_target
+        self.host.form.rotate_appendage(32, 0, self.host.next_target)
         self.host.form.rotate_appendage(33, 0, self.host.next_target)
-        self.host.form.rotate_appendage(34, 0, self.host.next_target)
         self.on_finish = fin
-        self.make(turn=7)
+        self.make(turn=9)
+
+    def shoot(self):
+        def fin():
+            def collision():
+                r.remove()
+                r.location.attack.register(rating, r.pos, delay=0, chance=20, hitter=self.host, faction=r.faction)
+            r = Stock.make('Bullet', self.host.get_interact_pos())
+            r.gravity = False
+            r.friction = 1
+            r.lifetime = 10
+            r.faction = self.host.faction
+            r.shoot(dest.x, dest.y)
+            r.on_collide = collision
+            self.host.weapon.rotation = orig_rot
+        rating = (1 + self.host.get_proficiency('shoot')) * 3
+        orig_rot = self.host.weapon.rotation
+        self.host.weapon.rotation = 0
+        self.host.attributes.exert(0, self.host.weapon.weight)
+        dest = self.host.next_target
+        self.host.form.rotate_appendage(32, 0, self.host.next_target)
+        self.host.form.rotate_appendage(33, 0, self.host.next_target)
+        self.on_finish = fin
+        self.make(animation='block', turn=7)
 
     def power(self):
         from src.entity.unit.Powers import Power
         from src.entity.unit.Character import Character
         power = Power.get(self.host, Character.get_var(self.host, 'power').title())
         if power and power.is_valid():
-            if Global.player.stamina(power.stamina, host=self.host):
+            if self.host.stamina(power.stamina):
                 self.on_finish = power.on_cast
                 power.on_start()
                 self.make(animation=power.animation, turn=power.delay)

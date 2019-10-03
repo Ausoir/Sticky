@@ -1,6 +1,5 @@
 from src.entity.unit.Unit import Unit
 from src.game import Global
-from src.game.Interaction import Interaction
 
 
 class Humanoid(Unit):
@@ -75,10 +74,7 @@ class Humanoid(Unit):
         self.weapon.states.update()
 
     def use(self):
-        if Interaction.interact(self.weapon):
-            self.action.set('wait')
-        else:
-            self.weapon.use()
+        self.weapon.use()
 
     def relocate(self, x, y, force=0):
         super().relocate(x, y, force)
@@ -96,12 +92,13 @@ class Humanoid(Unit):
             self.weapon.die()
         self.durability = head_armor + armor + 1
 
-    def hit(self, damage):
-        r = super().hit(damage)
-        self.form.randomize_once(8)
-        self.offhand.hit(1)
-        if self.durability > 0:
-            self.update_durability(damage)
+    def hit(self, damage, accuracy=None, hitter=None):
+        r = super().hit(damage, accuracy, hitter)
+        if r == 1:
+            self.form.randomize_once(8)
+            self.offhand.hit(damage)
+            if self.durability > 0:
+                self.update_durability(damage)
         return r
 
     def die(self):
@@ -145,6 +142,9 @@ class Humanoid(Unit):
             else:
                 r += self.offhand.weight * 4 + 4
         return r
+
+    def get_hitter(self):
+        return self.weapon
 
     def make_fist(self):
         self.fist.on_equip(self)
@@ -214,36 +214,5 @@ class Humanoid(Unit):
         r += self.get_possessions()
         return r
 
-    def get_gold(self):
-        total = 0
-        items = self.get_accessibles()
-        for i in items:
-            if i.name == 'Gold':
-                total += i.durability
-        return total
-
-    def modify_gold(self, amount):
-        items = self.get_accessibles()
-        if amount > 0:
-            for i in items:
-                if i.name == 'Gold':
-                    space = min(amount, 8 - i.durability)
-                    i.durability += space
-                    amount -= space
-                if amount == 0:
-                    return True
-            if amount > 0:
-                from src.entity.Stock import Stock
-                Stock.make('Gold', self.pos).durability = amount
-        elif amount < 0:
-            amount = -amount
-            if self.get_gold() >= amount:
-                for i in items:
-                    if i.name == 'Gold':
-                        space = min(amount, i.durability)
-                        i.durability -= space
-                        amount -= space
-                        if i.durability == 0:
-                            i.die()
-                    if amount == 0:
-                        return True
+    def get_encumbrance(self):
+        return self.armor.weight + self.headgear.weight

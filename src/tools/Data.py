@@ -71,27 +71,40 @@ class Data:
 
     @staticmethod
     def process_raw(data):
-        r = ''
-        data_flag = 0
-        for x in data:
-            if x != '-':
-                if x not in ('[', ']', ',', '\n'):
-                    if data_flag == 0:
-                        if x.isdigit():
-                            data_flag = 2
-                        else:
-                            r += '\''
-                            data_flag = 1
-                else:
-                    if data_flag == 1:
-                        r += '\''
-                        data_flag = 0
-                    elif data_flag == 2:
-                        data_flag = 0
-            r += x
-        if data_flag == 1:
-            r += '\''
-        return ast.literal_eval(",".join('['+x+']' for x in r.split('\n')))
+        lines = data.split('\n')
+        if len(lines) > 1:
+            return Data.parse(",".join('['+x+']' for x in data.split('\n')))
+        return Data.parse(data)
+
+    @staticmethod
+    def parse(data):
+        r = []
+        raw = ''
+        while data:
+            code = data[0]
+            data = data[1:]
+            if code == '[':
+                data, result = Data.parse(data)
+                r.append(result)
+            elif code == ']':
+                if raw:
+                    if raw.isdigit() or raw[0] == '-':
+                        raw = int(raw)
+                    r.append(raw)
+                return data, r
+            elif code == ',':
+                if raw:
+                    if raw.isdigit() or raw[0] == '-':
+                        raw = int(raw)
+                    r.append(raw)
+                    raw = ''
+            else:
+                raw += code
+        if raw:
+            if raw.isdigit() or raw[0] == '-':
+                raw = int(raw)
+            r.append(raw)
+        return r
 
     @staticmethod
     def get_line(fdir, name):

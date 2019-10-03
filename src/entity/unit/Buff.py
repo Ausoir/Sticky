@@ -1,4 +1,4 @@
-from src.entity.Effect import Effect
+from src.entity.Particle import Particle
 from src.game import Global
 from src.game.Tags import Tags
 
@@ -58,6 +58,7 @@ class Buff:
 
 class BuffTags:
     magic = 'm'
+    harmful = 'h'
 
 
 class Modified(Buff):
@@ -68,13 +69,25 @@ class Modified(Buff):
         self.var = self.var + var
 
 
-class Hunger(Buff):
+class Thirst(Buff):
     def describe(self):
         return 'You cannot travel or perform any time consuming actions.'
 
     def is_valid(self):
         if Tags.insubstantial not in self.host.tags:
             return True
+
+
+class Nausea(Buff):
+    def describe(self):
+        from src.tools.Dialog import Dialog
+        return 'You cannot eat for ' + Dialog.day(self.var) + '.'
+
+    def trigger(self, arg):
+        if arg[0] == 'time':
+            self.var -= arg[1]
+            if self.var <= 0:
+                self.end()
 
 
 class Glow(Buff):
@@ -91,9 +104,16 @@ class Glow(Buff):
 
 class Insured(Buff):
     def describe(self):
+        data = self.var.split('/')
         from src.tools.Dialog import Dialog
-        return 'When you die you will be resurrected at the nearest medical guild. ' + \
-               'You have ' + Dialog.date(self.var) + ' remaining on the contract.'
+        if data[0] == 'Urban':
+            coverage = 'Urban package covers homicide and suicide.'
+        elif data[0] == 'Workers':
+            coverage = 'Workers package covers accidents, illness, and wildlife hazards.'
+        else:
+            coverage = 'Premium package covers everything.'
+        return 'If you die under a covered cause you will be resurrected at the nearest medical guild. ' + \
+               'You have ' + Dialog.day(int(data[1])) + ' remaining on the contract. Your ' + coverage
 
     def on_stack(self, duration, var):
         self.duration = duration
@@ -104,11 +124,22 @@ class Insured(Buff):
             self.var -= 1
             if self.var <= 0:
                 if self.host == Global.player.character:
-                    Global.player.monologue.text('Insurance expired.')
+                    Global.player.character.say('Insurance expired.')
                 self.end()
+        elif arg[0] == 'death':
+            coverage = self.var.split('/')[0]
+            if coverage == 'Urban' and arg[1] in ['Homicide', 'Suicide']:
+                return True
+            elif coverage == 'Workers' and arg[1] in ['Accidents', 'Illness', 'Wildlife']:
+                return True
+            elif coverage == 'Premium':
+                return True
 
 
 class Bleed(Buff):
+    def get_tags(self):
+        return [BuffTags.harmful]
+
     def describe(self):
         dmg = str(int(self.duration / 100))
         return 'Take ' + dmg + ' damage over ' + str(self.duration) + ' ticks.'
@@ -117,34 +148,36 @@ class Bleed(Buff):
         if Tags.flesh in self.host.tags and Tags.insubstantial not in self.host.tags:
             return True
 
-    def on_finish(self):
-        self.host.hit(self.var)
-
     def on_stack(self, duration, var):
-        self.var += 1
         self.duration += duration
 
     def on_update(self):
         if not self.duration % 100:
-            self.host.hit(1)
+            self.host.hit(1, hitter=self)
         if self.effect(9):
-            Effect.make('blood', self.host.vec)
+            Particle.make('blood', self.host.vec)
+
+    def trigger(self, arg):
+        if arg[0] == 'remove':
+            self.var = 1
+            self.end()
 
 
 class Distraction(Buff):
-    def describe(self):
-        return 'Being attacked in this state is likely lethal.'
+    def get_tags(self):
+        return [BuffTags.harmful]
 
-    def is_valid(self):
-        from src.entity.unit.Unit import Unit
-        if isinstance(self.host, Unit):
-            return True
+    def describe(self):
+        return 'Next attack will kill.'
 
     def on_stack(self, duration, var):
         self.duration = max(self.duration, duration)
 
 
 class Cripple(Buff):
+    def get_tags(self):
+        return [BuffTags.harmful]
+
     def describe(self):
         return 'You are unable to jump.'
 
@@ -160,28 +193,46 @@ class Cripple(Buff):
         if self.effect(19):
             self.host.form.randomize_once(8)
 
+    def on_start(self):
+        self.host.attributes.speed -= self.var
+
+    def on_load(self):
+        self.host.attributes.speed -= self.var
+
+    def on_finish(self):
+        self.host.attributes.speed += self.var
+
 
 class Weak(Buff):
+    def get_tags(self):
+        return [BuffTags.harmful]
+
     def describe(self):
         return 'Your defense is set to 0.'
 
     def on_update(self):
         if self.effect(8):
-            Effect.make('sweat', self.host.vec)
+            Particle.make('sweat', self.host.vec)
 
 
 class Exhaustion(Buff):
+    def get_tags(self):
+        return [BuffTags.harmful]
+
     def describe(self):
         return 'Your resting time is quadrupled.'
 
     def on_update(self):
         if self.effect(8):
-            Effect.make('sweat', self.host.vec)
+            Particle.make('sweat', self.host.vec)
 
 
 class Sick(Buff):
+    def get_tags(self):
+        return [BuffTags.harmful]
+
     def describe(self):
-        return 'You will die if this effect expires naturally.'
+        return 'You will die when this effect expires.'
 
     def is_valid(self):
         if Tags.insubstantial not in self.host.tags:
@@ -189,11 +240,12 @@ class Sick(Buff):
 
     def on_update(self):
         if self.effect(6):
-            Effect.make('poison', self.host.vec)
+            Particle.make('poison', self.host.vec)
 
     def on_finish(self):
         if self.var == 0:
-            self.host.die()
+            if not self.host.states.get('Healthy'):
+                self.host.die()
 
     def trigger(self, arg):
         if arg[0] == 'remove':
@@ -211,7 +263,7 @@ class Fire(Buff):
     def on_update(self):
         self.host.pos.light = 40
         if self.effect(6):
-            Effect.make('kindle', self.host.vec)
+            Particle.make('kindle', self.host.vec)
 
     def trigger(self, arg):
         if arg[0] == 'attack':
@@ -220,20 +272,24 @@ class Fire(Buff):
 
 class Shock(Buff):
     def get_tags(self):
-        return [BuffTags.magic]
+        return [BuffTags.magic, BuffTags.harmful]
 
     def describe(self):
-        return 'You are immune to shock.'
+        return 'Your stamina is draining.'
 
     def on_update(self):
         self.host.pos.light = 40
-        if self.effect(6):
-            Effect.make('shock', self.host.vec)
+        if self.effect(12):
+            self.host.action.set('hit')
+            self.host.attributes.breath = max(0, self.host.attributes.breath - 1)
+            self.host.attributes.exert(0, 1)
+            self.host.attributes.exert(1, 1)
+            Particle.make('shock', self.host.vec)
 
 
 class Burn(Buff):
     def get_tags(self):
-        return [BuffTags.magic]
+        return [BuffTags.magic, BuffTags.harmful]
 
     def describe(self):
         return 'Constantly take damage and spread to nearby flammables.'
@@ -244,21 +300,21 @@ class Burn(Buff):
             return True
 
     def on_start(self):
-        self.host.hit(1)
+        self.host.hit(1, hitter=self)
         if Tags.wood in self.host.tags:
             self.duration = 40
 
     def on_update(self):
         self.var += 1
-        self.host.glow(1)
-        if not self.var % 6:
-            self.host.hit(1)
-            x = Global.r.rand_int(-1, 1)
-            y = Global.r.rand_int(-1, 1)
-            for thing in self.host.get_offset_tile(x, y).things:
-                thing.states.add('Burn', 16)
-            self.var = 0
-        Effect.make('burn', self.host.vec)
+        if not self.var % 2:
+            Particle.make('burn', self.host.vec, glow=1)
+            if not self.var % 4:
+                self.host.hit(1, hitter=self)
+                x = Global.r.rand_int(-1, 1)
+                y = Global.r.rand_int(-1, 1)
+                for thing in self.host.get_offset_tile(x, y).things:
+                    thing.states.add('Burn', 12)
+                self.var = 0
 
 
 class Levitate(Buff):
@@ -286,53 +342,40 @@ class Levitate(Buff):
 
     def on_update(self):
         self.host.gravity = 0
-        Effect.make('zip', self.host.pos.get_center())
+        Particle.make('zip', self.host.pos.get_center())
 
 
 class Banish(Buff):
     def get_tags(self):
-        return [BuffTags.magic]
+        return [BuffTags.magic, BuffTags.harmful]
 
     def describe(self):
-        return 'You are being banished.'
+        return 'You are being banished to the abyss.'
 
     def on_finish(self):
         self.host.remove()
 
     def on_update(self):
-        if self.effect(7):
-            Effect.make('zwip', self.host.vec, offset=8)
+        if self.effect(14):
+            Particle.make('zwip', self.host.vec)
 
 
-class Stun(Buff):
+class Effect(Buff):
     def get_tags(self):
         return [BuffTags.magic]
 
     def describe(self):
-        return 'You are stunned.'
-
-    def is_valid(self):
-        from src.entity.unit.Unit import Unit
-        if isinstance(self.host, Unit):
-            return True
-
-    def on_start(self):
-        self.host.action.set('hit')
-        self.host.delay = self.duration
-
-    def on_load(self):
-        self.host.action.set('hit')
-        self.host.delay = self.duration
-
-    def on_finish(self):
-        self.host.action.exert(0, 99)
+        return 'Produces visual effect.'
 
     def on_update(self):
         if self.effect(6):
-            Effect.make('zap', self.host.pos.get_center())
+            Particle.make(self.var, self.host.pos.get_center())
 
 
 class Speed(Buff):
+    def get_tags(self):
+        return [BuffTags.harmful]
+
     def describe(self):
         return 'Your move speed is altered.'
 
@@ -360,6 +403,23 @@ class Venom(Buff):
             arg[1].states.add('Sick', self.var)
 
 
+class Healthy(Buff):
+    def describe(self):
+        return 'You are immune to Sickness for the duration.'
+
+    def on_stack(self, duration, var):
+        self.duration += duration
+        if self.duration > 500:
+            self.duration = -1
+        self.var = max(self.var, var)
+
+    def trigger(self, arg):
+        if arg[0] == 'time':
+            self.var -= 1
+            if self.var <= 0:
+                self.end()
+
+
 class Channel(Buff):
     def describe(self):
         return 'You are channeling magic.'
@@ -373,7 +433,7 @@ class Barkskin(Buff):
         return Tags.wood not in self.host.tags
 
     def on_start(self):
-        Effect.make('mist', self.host.vec)
+        Particle.make('mist', self.host.vec)
         self.host.tags.append(Tags.wood)
 
     def on_finish(self):
@@ -388,7 +448,7 @@ class Slowfall(Buff):
         return Tags.lightweight not in self.host.tags
 
     def on_start(self):
-        Effect.make('mist', self.host.vec)
+        Particle.make('mist', self.host.vec)
         self.host.tags.append(Tags.lightweight)
 
     def on_finish(self):
@@ -397,22 +457,22 @@ class Slowfall(Buff):
 
 class Lichform(Buff):
     def describe(self):
-        return 'You are immune to bleeding, sickness, and hunger.'
+        return 'You are immune to bleeding, sickness, and thirst.'
 
     def is_valid(self):
         return Tags.insubstantial not in self.host.tags
 
     def on_start(self):
-        Effect.make('mist', self.host.vec)
+        Particle.make('mist', self.host.vec)
         self.host.tags.append(Tags.insubstantial)
 
     def on_finish(self):
         self.host.tags.remove(Tags.insubstantial)
 
 
-class Polymorph(Buff):
+class Degenerate(Buff):
     def describe(self):
-        return 'You are morphed into another shape.'
+        return 'You are morphed into a slime.'
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -420,7 +480,7 @@ class Polymorph(Buff):
             return True
 
     def on_start(self):
-        Effect.make('mist', self.host.vec)
+        Particle.make('mist', self.host.vec)
         from src.entity.Stock import Stock
         r = Stock.make('Slime', self.host.pos)
         self.var = r.id
@@ -430,3 +490,66 @@ class Polymorph(Buff):
 
     def on_finish(self):
         self.host.tags.remove(Tags.lightweight)
+
+
+class Influence(Buff):
+    def get_tags(self):
+        return [BuffTags.magic, BuffTags.harmful]
+
+    def describe(self):
+        return 'You are forced action.'
+
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return True
+
+    def on_update(self):
+        self.host.next_action = self.var
+
+
+class Invisible(Buff):
+    def __init__(self, host, name, duration, var):
+        super().__init__(host, name, duration, var)
+        self.orig = None
+
+    def get_tags(self):
+        return [BuffTags.magic]
+
+    def describe(self):
+        return 'You are invisible.'
+
+    def draw(self, surface):
+        if not Global.player.editor_mode:
+            diff = self.host.pos.get_center() - self.host.vec
+            self.host.vec.x += diff.x * .07
+            self.host.vec.y += diff.y * .07
+        else:
+            self.orig(surface)
+
+    def on_start(self):
+        self.orig = self.host.draw
+        self.host.draw = self.draw
+
+    def on_load(self):
+        self.on_start()
+
+    def on_finish(self):
+        self.host.draw = self.orig
+
+
+class Immune(Buff):
+    def describe(self):
+        return 'You are immune to all status effects and resistant to dispell.'
+
+
+class Foresee(Buff):
+    def describe(self):
+        return 'You are experiencing the future.'
+
+    def on_update(self):
+        if self.effect(5):
+            Particle.make('portal', self.host.pos.get_center(), offset=128)
+
+    def on_finish(self):
+        self.trigger(None)

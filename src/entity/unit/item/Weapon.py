@@ -3,16 +3,16 @@ from src.entity.unit.item.Equipment import Equipment
 
 class Weapon(Equipment):
     def __str__(self):
-        return super().__str__() + ',' + str(self.form.pivot.y) + ',[' + ','.join(str(x) for x in self.range) + '],' \
-               + str(self.damage) + ',' + str(self.speed)
+        return super().__str__() + ',' + str(self.form.pivot.y) + ',' + str(self.reach) + ',' \
+               + str(self.accuracy) + ',' + str(self.speed)
 
     def load(self, arg):
         index = super().load(arg)
         self.form.pivot.y = arg[index]
         index += 1
-        self.range = arg[index]
+        self.reach = arg[index]
         index += 1
-        self.damage = arg[index]
+        self.accuracy = arg[index]
         index += 1
         self.speed = arg[index]
         return index + 1
@@ -27,9 +27,9 @@ class Weapon(Equipment):
 
     def describe(self):
         r = super().describe()
-        r += '\nRange: ' + ','.join(str(x) for x in self.range)
-        r += '\nAttack: ' + str(self.damage)
-        r += '\nDamage: ' + str(self.weight)
+        r += '\nRange: ' + str(self.reach)
+        r += '\nAttack: ' + str(self.accuracy)
+        r += '\nDamage: ' + str(self.damage)
         r += '\nSpeed: ' + Weapon.describe_speed(self.speed)
         return r
 
@@ -38,32 +38,34 @@ class Weapon(Equipment):
         if speed < 2:
             return 'Flurry'
         elif speed == 2:
-            return 'Fast'
+            return 'Very Fast'
         elif speed == 3:
-            return 'Normal'
+            return 'Fast'
         elif speed == 4:
+            return 'Normal'
+        elif speed == 5:
             return 'Slow'
-        elif speed > 4:
+        elif speed > 5:
             return 'Very Slow'
 
     def get_value(self):
-        if self.durability == -1:
-            hp = 4
+        if self.max_durability == -1:
+            hp = 2
+        elif self.max_durability >= 24:
+            hp = 1
         else:
-            if self.max_durability >= 16:
-                hp = 1
-            elif self.max_durability >= 32:
-                hp = 2
-            elif self.max_durability >= 64:
-                hp = 3
-            else:
-                hp = 0
-        reach = len(self.range)
+            hp = int((24 - self.max_durability) / 8)
+        if self.accuracy <= 1:
+            damage = 0
+        elif self.accuracy <= 3:
+            damage = 1
+        else:
+            damage = 2
         other = 0
         if 'ps' in self.tags:
             other += 1
         if 'is' in self.tags:
             other += 1
-        damage = int(self.damage / 2)
-        score = hp + other + reach + damage - self.speed
+        from src.entity.unit.item.Item import Item
+        score = Item.get_value(self) + hp + other + self.reach + damage - self.speed - self.weight + 5
         return max(1, score)

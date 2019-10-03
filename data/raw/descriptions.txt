@@ -1,16 +1,28 @@
 Repair Kit,Automatically repair items when spending time
 Jelly,A blob of slime goo
 Fiber,A fibrous material that can be used to repair equipment
-Food,Use to remove <Hunger> status
-Pocket,Attached to any armor to create additional pocket space
-Backpack,Attached to any armor with an empty center slot for additional inventory space
-Hammer,Can be used to build scaffolds from planks and buildings from scaffolds
-Medicine,Use to remove <Sick> status
-Cleansing Potion,Drink for a chance to increase a random attribute up to 3
-Amnesia Potion,Potion that makes the user forget a few spells or skills
+Pocket,Attach to worn armor for an additional pocket slot at the cost of durability
+Pouch,Attach to worn armor to add inventory space at the cost of encumbrance
+Hammer,Can be used to construct furniture at a constructor
+Saw,Can be used to construct furniture at a constructor
+Pickaxe,Can be used to destroy bricks and concrete
+Medicine,Use to counter sickness
+Amnesia Potion,Potion that makes the user forget few recipes
 Scorch,Create scorching ground that burns anything nearby
 Memory Amulet,Remembers the location that it was worn
 Ruby Amulet,Absorbs power from a corpse to protect the user
+Glasses,Activate to look farther. <E> is activate by default
+Strong Glasses,Activate to look farther. <E> is activate by default
+Headband,Can be worn or be used on headgear to make it indestructible
+Safety Helmet,Activate to provide light. <E> is activate by default
+Manual,Learn martial arts
+Block,<S> to increase defense against incoming attacks. Improved with block proficiency
+Offhand,<Q> to swap weapon into offhand. Used for extra carriage or to improve block defense
+Sprint,<SHIFT> while moving to move faster
+Tackle,Sprinting toward an enemy will knock it down and slow its movement
+Lunge,Attacking while blocking performs a powerful knock back attack
+Leap,Hold <SHIFT> while jumping to jump further toward the place you are pointing
+Flurry,Hold <SHIFT> while attacking lets you attack in quick succession. Requires energy
 Echo,Reveal sight of a location within sight range
 Dispell,Purge all magical effects in vicinity of caster
 Scry,Reveal sight of far away location

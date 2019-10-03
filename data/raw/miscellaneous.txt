@@ -1,18 +1,36 @@
-Beacon,Beacon,g_4x0,estate
-Interactive,Interactive,g_2x0,[xc,xh,@],-1,[],[],[travel,map,0,0]
-Bridge,Bridge,g_1x4,[cd,iw],8,[],[],[1,1]
-X,Beacon,g_1x0,2
-XA,Beacon,g_1x0,2
+Home,Script,g_3x0,[xh,xg,xc,@],-1,[],[],[[0]],[[enter,home,0,0]]
+Homeward,Script,g_2x0,[xh,xg,xc,@],-1,[],[],[[0]],[[travel,home,0,0]]
+Travel,Script,g_2x0,[xh,xg,xc,@],-1,[],[],[[0]],[[rand,make,1,town,graveyard],[make,0,town],[travel,town,0,0]]
+Script,Script,g_6x0,[xh,xg,xc],-1,[],[[Invisible,-1,0],[Immune,-1,0]],[[0]],[[0]]
+Remove,Script,g_6x0,[xh,xg,xc],-1,[],[],[[make],[chance,2,1]],[[remove,0,1]]
+Estate,Script,g_4x0,[xh,xg,xc],-1,[],[],[[make]],[[rand,load,1,#building],[load,0]]
+Spawn,Script,g_4x0,[xh,xg,xc],-1,[],[],[[make]],[[chance,5,1],[spawn,Slime,20]]
+Bridge,Bridge,g_12x3,[cd,iw],2,[],[],[1,1]
 Wall,Block,g_1x1,[iw],8,[Plank],[]
 Tile,Block,g_2x1,[cb,iw],8,[Plank],[]
 Window,Block,g_3x4,[cb,iw],2,[Plank],[]
-Gold,Gold,g_6x6,[xh],5,[],[],[1,1],16
+Cash,Wallet,g_6x6,[xh],5,[],[],[1,1]
 Corpse,Corpse,g_9x3,[if],6,[],[]
 Break,Break,g_1x3,[xc,xg,im],4,[],[]
-Hammer,Builder,data/image/hammer,[im],16,[],[],[1,1],16,3,14,[1],5,4
-Sonic,Sonic,g_0x0,[xh],80,[],[[Levitate,-1,0]]
+Sonic,Sonic,g_0x0,[xc,xh,xg],80,[],[]
 Fireball,Projectile,fireball,[xc,xg],-1,[],[]
-Arrow,Projectile,g_0x6,[xc],-1,[],[]
+Arrow,Projectile,g_14x0,[xc],-1,[],[]
+Bullet,Projectile,g_15x0,[xc],-1,[],[]
+Repair Kit,RepairKit,g_9x7,[],2,[],[],[1,1],30
 Manual,Manual,g_13x7,[ig,pf],1,[],[],[1,1],Random
 Memory Amulet,MemoryAmulet,data/image/unit/necklace,[],1,[],[],[1,1],1,1,current,[0,0]
-Ruby Amulet,RubyAmulet,data/image/unit/necklace,[],0,[],[],[1,1],1,1,current,[0,0]
+Life Amulet,LifeAmulet,data/image/unit/necklace,[],1,[],[],[1,1],1,2
+Ruby Amulet,RubyAmulet,data/image/unit/necklace,[],0,[],[],[1,1],1,2
+Spell,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Echo
+Staff,Spell,data/image/Staff,[ig,pf],9,[],[],[1,2],Staff,Echo
+Wand,Spell,data/image/Wand,[ig,pf],3,[],[],[1,2],Wand,Echo
+Bread,Food,half_0x1,[],1,[],[],[1,1],[-5,5,0] //expire, calories, protein
+Burger,Food,half_1x1,[],1,[],[],[1,1],[-3,24,7]
+Cheese,Food,half_2x1,[],1,[],[],[1,1],[-10,3,0]
+Drumstick,Food,half_3x1,[],1,[],[],[1,1],[-4,2,3]
+Fish,Food,half_4x1,[],1,[],[],[1,1],[-1,1,9,2]
+Fruit,Food,half_5x1,[],1,[],[],[1,1],[-5,7,0]
+Sandwich,Food,half_6x1,[],2,[],[],[1,1],[-3,14,2]
+Vegetable,Food,half_7x1,[],1,[],[],[1,1],[-6,3,0]
+Jerky,Food,half_8x1,[],1,[],[],[1,1],[-10,1,1]
+Raw Meat,Food,half_9x1,[],1,[],[],[1,1],[-1,0,0]

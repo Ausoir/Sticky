@@ -87,12 +87,14 @@ class Editor:
         elif action == 'sample':
             if action != self.prev_action:
                 self.tool.cancel()
-                objs = self.location.get_tile(m).things
+                objs = self.location.get_tile(m).things.copy()
                 if objs:
                     self.tool = ToolObject(self.location, 'props')
-                    obj = objs.copy().pop()
-                    self.tool.select(obj.name)
+                    obj = objs.pop()
+                    while objs and obj not in self.location.record:
+                        obj = objs.pop()
                     self.display_text = obj.__str__()
+                    self.tool.select(obj.name, data=Data.process_raw(self.display_text))
                 else:
                     self.tool = ToolTerrain(self.location)
                     terrain = self.location.get_tile(m).terrain
@@ -164,11 +166,61 @@ class Editor:
         params = Global.main.textbox.display_text.split(' ')
         if params[0] == 'set':
             if isinstance(self.tool, ToolObject):
-                if self.tool.selection.name == 'Beacon':
-                    self.tool.selection.var = params[1]
-                elif self.tool.selection.name == 'Interactive':
-                    self.tool.selection.argument = params[1].split(',')
+                if self.tool.selection.name == 'Script':
+                    script = Data.process_raw(params[1])
+                    self.tool.selection.condition = script[0]
+                    self.tool.selection.mechanism = script[1]
+                    self.display_text = self.tool.selection.__str__()
+                    self.tool.last_data = Data.process_raw(self.display_text)
                 self.display_text = '[' + params[1] + '] Applied'
+        elif params[0] == 'setc':
+            from src.entity.Other import Script
+            if isinstance(self.tool, ToolObject):
+                if isinstance(self.tool.selection, Script):
+                    self.tool.selection.condition = Data.process_raw(params[1])
+                    self.display_text = self.tool.selection.__str__()
+                    self.tool.last_data = Data.process_raw(self.display_text)
+            self.display_text = '[' + params[1] + '] Applied'
+        elif params[0] == 'setm':
+            from src.entity.Other import Script
+            if isinstance(self.tool, ToolObject):
+                if isinstance(self.tool.selection, Script):
+                    self.tool.selection.mechanism = Data.process_raw(params[1])
+                    self.display_text = self.tool.selection.__str__()
+                    self.tool.last_data = Data.process_raw(self.display_text)
+            self.display_text = '[' + params[1] + '] Applied'
+        elif params[0] == 'setc@':
+            from src.entity.Other import Script
+            if isinstance(self.tool, ToolObject):
+                if isinstance(self.tool.selection, Script):
+                    self.tool.selection.condition[int(params[1])] = params[2].split(',')
+                    self.display_text = self.tool.selection.__str__()
+                    self.tool.last_data = Data.process_raw(self.display_text)
+            self.display_text = '[' + params[2] + '] Applied'
+        elif params[0] == 'setm@':
+            from src.entity.Other import Script
+            if isinstance(self.tool, ToolObject):
+                if isinstance(self.tool.selection, Script):
+                    self.tool.selection.mechanism[int(params[1])] = params[2].split(',')
+                    self.display_text = self.tool.selection.__str__()
+                    self.tool.last_data = Data.process_raw(self.display_text)
+            self.display_text = '[' + params[2] + '] Applied'
+        elif params[0] == 'addc':
+            from src.entity.Other import Script
+            if isinstance(self.tool, ToolObject):
+                if isinstance(self.tool.selection, Script):
+                    self.tool.selection.condition.append(params[1].split(','))
+                    self.display_text = self.tool.selection.__str__()
+                    self.tool.last_data = Data.process_raw(self.display_text)
+            self.display_text = '[' + params[2] + '] Applied'
+        elif params[0] == 'addm':
+            from src.entity.Other import Script
+            if isinstance(self.tool, ToolObject):
+                if isinstance(self.tool.selection, Script):
+                    self.tool.selection.mechanism.append(params[1].split(','))
+                    self.display_text = self.tool.selection.__str__()
+                    self.tool.last_data = Data.process_raw(self.display_text)
+            self.display_text = '[' + params[2] + '] Applied'
         elif params[0] == 'loot':
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.loot = params[1].split(',')
@@ -176,10 +228,13 @@ class Editor:
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.set_form(params[1])
         elif params[0] == 'make':
-            self.location.construct_map(params[1])
+            self.location.construct_map(params[1], params[2])
             Global.player.switch()
             Global.player.travel('current', Space())
             Global.player.switch()
+        elif params[0] == 'create':
+            self.input('props', Space())
+            self.tool.select('Force', data=Data.parse('#-1,[0,0],' + params[1]))
         elif params[0] == 'background':
             self.location.header[2] = params[1]
         elif params[0] == 'camera':
@@ -220,12 +275,15 @@ class Editor:
             self.location.name = params[1]
             self.location.save()
             self.display_text = 'saved to ' + params[1]
+        elif params[0] == 'time':
+            Global.player.days = int(params[1])
+            Global.player.sleep(0)
         Global.main.textbox.display_text = ''
 
     def draw(self, surface):
         if self.display_text:
             surface.blit(Global.font.render(self.display_text, 1, (255, 255, 255)), (16, 16))
-            surface.blit(Global.font.render(self.display_subtext, 1, (255, 255, 255)), (500, 16))
+            surface.blit(Global.font.render(self.display_subtext, 1, (255, 255, 255)), (16, 42))
 
 
 class ToolTerrain:
@@ -252,7 +310,7 @@ class ToolTerrain:
         self.select(self.tile_list[self.current][0])
         return self.text
 
-    def select(self, text):
+    def select(self, text, data=None):
         self.text = text
 
     def enter(self, text):
@@ -319,6 +377,7 @@ class ToolObject:
         self.tile = loc.get_tile(0)
         self.object_list = list(Data.get_cache(object_type))
         self.current = 0
+        self.last_data = None
         self.last = None
 
     def cancel(self):
@@ -333,10 +392,11 @@ class ToolObject:
         self.select(self.object_list[self.current][0])
         return self.text
 
-    def select(self, text):
+    def select(self, text, data=None):
         self.text = text
+        self.last_data = data
         self.selection.remove()
-        self.selection = Stock.get(self.text)
+        self.selection = Stock.get(self.text, data=data)
         if self.selection:
             self.selection.add()
 
@@ -347,11 +407,14 @@ class ToolObject:
             self.selection.relocate(tile.x, tile.y, force=1)
             preexisting = 0
             for i in tile.things:
-                if i != self.selection and i.name == self.text:
+                if i != self.selection and i.name == self.text and (not self.last_data or i.id == self.last_data[0]):
                     preexisting = 1
                     break
             if not preexisting:
-                self.selection = Stock.get(self.text).add()
+                self.selection = Stock.get(self.text, self.last_data)
+                if not self.selection:
+                    self.selection = Stock.get('Crate')
+                self.selection.add()
                 self.selection.relocate(tile.x, tile.y, force=1)
         else:
             if self.last != tile:

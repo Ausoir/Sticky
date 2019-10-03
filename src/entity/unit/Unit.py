@@ -24,6 +24,7 @@ class Unit(Prop):
         self.depth = 4
         self.delay = 0
         self.standables = Tile.CHECK_LANDABLE
+        self.frame = 0
 
     def __str__(self):
         att = '[' + self.attributes.__str__() + '],[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
@@ -34,7 +35,7 @@ class Unit(Prop):
         self.faction = p[index]
         index += 1
         from src.entity.unit.ai import Pilot
-        self.pilot = getattr(Pilot, p[index][0])(self, p[index][1], p[index][2])
+        self.pilot = getattr(Pilot, p[index][0])(self, p[index][1])
         index += 1
         self.attributes.load(p[index])
         index += 1
@@ -69,8 +70,16 @@ class Unit(Prop):
         self.form.update()
 
     def turn(self):
-        super().turn()
         self.pilot.update()
+        super().turn()
+        self.frame += 1
+        if not self.frame % 8:
+            self.attributes.leg = max(0, self.attributes.leg - 1)
+            if self.action.current_action not in ['idle', 'walk', 'jump', 'duck']:
+                self.frame = 0
+            if self.frame > 160:
+                self.attributes.body = 0
+                self.frame = 0
         if self.delay > 0:
             self.delay -= 1
         elif self.delay == 0:
@@ -102,6 +111,8 @@ class Unit(Prop):
         self.form.face(direction)
 
     def fell(self, distance, me=False):
+        if self.get_proficiency('nimble'):
+            distance = min(distance, 2)
         super().fell(distance, me)
         if not me:
             self.action.set('down')
@@ -113,40 +124,44 @@ class Unit(Prop):
             self.attributes.exert(1, self.falling * 3)
             self.action.set('down')
             self.states.add('Cripple', self.falling * 4, var=1)
-            self.states.add('Speed', self.falling * 4, var=-1, stack=False)
             return True
         else:
             if self.action.current_action != 'down':
                 self.form.set('drop')
-
-    def is_hit(self, accuracy, faction=0):
-        if super().is_hit(accuracy, faction):
-            sick = self.states.get('Weak')
-            if sick:
-                chance = 1
-            else:
-                chance = accuracy / max(1, accuracy + self.get_dodge())
-            self.pilot.hit()
-            if Global.r.rand_float() < chance:
-                if self.states.get('Distraction'):
-                    self.die()
-                return 1
-            else:
-                self.form.set('hit')
-                self.form.randomize_once(8)
 
     def get_dodge(self):
         if self.action.current_action == 'down':
             return 0
         r = self.get_proficiency('dodge')
         if self.action.current_action == 'block':
-            self.action.exert(1, 1)
-            r += 4
+            r += 5
         return r
 
-    def hit(self, damage):
-        self.action.set('hit')
-        return super().hit(damage)
+    def hit(self, damage, accuracy=None, hitter=None):
+        if accuracy:
+            sick = self.states.get('Weak')
+            if sick:
+                chance = 1
+            else:
+                chance = accuracy / max(1, accuracy + self.get_dodge())
+            self.location.attack.unregister(self.get_hitter())
+            self.pilot.hit(hitter)
+            if Global.r.rand_float() < chance:
+                if self.states.get('Distraction'):
+                    self.die()
+                    return 2
+                self.action.set('hit')
+                return super().hit(damage, accuracy, hitter)
+            else:
+                self.form.set('hit')
+                self.form.randomize_once(8)
+        else:
+            self.action.set('hit')
+            return super().hit(damage, accuracy, hitter)
+        return 0
+
+    def get_hitter(self):
+        return self
 
     def die(self):
         if Tags.insubstantial not in self.tags:
@@ -159,3 +174,6 @@ class Unit(Prop):
 
     def get_proficiency(self, school):
         return 1 if school.lower() in self.proficiency else 0
+
+    def say(self, text):
+        pass

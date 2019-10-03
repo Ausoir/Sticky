@@ -1,4 +1,4 @@
-home
-0,current
-#0,[-3,0],Player,Character,unit/man,[if,ii],1651,[],[[Hunger,-1,0]],1,[Manual,Idle,-1],[3972,7,3,2,0,6,3],[sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap,sprint,leap],[],[#a,[-3,0],Falchion,Weapon,data/image/falchion,[ps,im],29,[],[],[1,3],32,3,4,[1],6,4],0,[#11,[45,0],Black Robe,Armor,data/image/unit/robe_black,[],1650,[Fiber],[],[4,4],13,9,0,[213,212,323,323],[[#b,[2,2],Ladder,Item,data/image/Ladder,[im,cli,cd],2,[Scrap],[],[1,1]],[#c,[2,3],Ladder,Item,data/image/Ladder,[im,cli,cd],2,[Scrap],[],[1,1]],[#d,[2,0],Ladder,Item,data/image/Ladder,[im,cli,cd],2,[Scrap],[],[1,1]],[#e,[0,2],Gold,Gold,g_6x6,[xh],3,[],[],[1,1],16],[#f,[0,3],Gold,Gold,g_6x6,[xh],2,[],[],[1,1],16]],[]],[#10,[8,0],Ruby Amulet,RubyAmulet,data/image/unit/necklace,[],0,[],[],[1,1],1,1],[exp1:0,exp2:0,exp3:0,power:Assassin]
-Scroll of Fireball,Staff of Fireball
+current
+13,0,sewer
+#0,[10,1],Player,Character,unit/man,[if,ii],396,[],[[Glow,-1,9]],1,[Manual,[]],[433,5,9,3,17,4,0],[sprint,charge,peek,slam],[],0,0,[#f,[14,-4],Jumpsuit,Armor,data/image/unit/jumpsuit,[],395,[],[],[3,2],1,0,0,[331,311],[[#c,[1,0],Alcohol,Explosive,g_6x7,[pf,pd],-1,[Bottle],[],[1,1]],[#d,[0,0],Pickaxe,Pickaxe,data/image/pickaxe,[im],5,[],[],[1,2],8,4,14,1,6,6]],[1]],[#e,[20,-4],Safety Helmet,SafetyHat,data/image/unit/safety_hat,[],-1,[],[],[2,1],-1,1,9],[protein:0,calories:0,power:Prophet,money:145,sign:Suicide,home:current]
+

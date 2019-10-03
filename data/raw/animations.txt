@@ -18,4 +18,7 @@ disintegrate,[gfx_4x4,gfx_4x5,gfx_4x6,gfx_4x7],4,0
 sweat,[gfx_5x4,gfx_5x5,gfx_5x6,gfx_5x7],4,0
 fireball,[gfx_6x4,gfx_6x5,gfx_6x6,gfx_6x7],4,1
 mist,[gfx_7x4,gfx_7x5,gfx_7x6,gfx_7x7],5,0
+slash,[gfx_8x4,gfx_8x5,gfx_8x6,gfx_8x7],5,0
+splat,[gfx_9x4,gfx_9x5,gfx_9x6,gfx_9x7],5,0
+heal,[gfx_10x4,gfx_10x5,gfx_10x6,gfx_10x7],5,0
 shout,[g_5x0],30,0

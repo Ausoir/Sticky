@@ -1,4 +1,3 @@
-from src.entity.Effect import Effect
 from src.game.Turn import Turn
 
 
@@ -8,34 +7,35 @@ class Field:
         self.registry = []
 
     def turn(self):
-        new_reg = []
-        while self.registry:
-            new = self.registry.pop(0)
-            if new[1] == 0:
-                self.hit(new)
+        count = len(self.registry)
+        while count > 0:
+            count -= 1
+            if self.registry[count][1] == 0:
+                self.perform(self.registry[count])
+                self.registry.pop(count)
+                count -= 1
+            elif self.registry[count][1] > 0:
+                self.registry[count][1] -= 1
             else:
-                new[1] -= 1
-                new_reg.append(new)
-        self.registry = new_reg
+                self.registry.pop(count)
+                count -= 1
 
-    def register(self, damage, pos, chance=4, delay=1, type=0, faction=0, hitter=None, callback=None):
-        data = [hitter, delay, pos, damage, chance, type, faction, callback]
+    def register(self, damage, pos, chance=4, delay=1, faction=0, hitter=None, callback=None):
+        data = [hitter, delay, pos, damage, chance, faction, callback]
         if delay == 0:
-            Field.hit(data)
+            Field.perform(data)
         else:
             self.registry.append(data)
 
-    def unregister(self, hitter):
+    def unregister(self, victim):
         for i in self.registry:
-            if i[0] == hitter:
-                self.registry.remove(i)
+            if i[0] == victim:
+                i[1] = -1
 
     @staticmethod
-    def hit(data):
+    def perform(data):
         for thing in data[2].things.copy():
-            if thing.is_hit(data[4], faction=data[6]):
-                if data[5]:
-                    Effect.make(data[5], data[2].get_center())
-                if not thing.hit(data[3]):
-                    if data[7]:
-                        data[7](thing)
+            if thing.is_hit(data[4], faction=data[5]):
+                if thing.hit(data[3], accuracy=data[4], hitter=data[0]) != 2:
+                    if data[6]:
+                        data[6](thing)

@@ -4,6 +4,7 @@ from src.game.Camera import Camera
 from src.game.Turn import Turn
 from src.map.Tile import Tile
 from src.tools.Data import Data
+from src.tools.Dialog import Dialog
 
 
 class Object(Image):
@@ -24,7 +25,7 @@ class Object(Image):
         self.falling = 0
 
     def __str__(self):
-        r = '[' + str(self.pos.x) + ',' + str(self.pos.y) + ']'
+        r = Dialog.space(self.pos)
         return super().__str__() + ',' + r + ',' + self.name + ',' + self.group + ',' + self.form_name
 
     def load(self, p):
@@ -67,12 +68,6 @@ class Object(Image):
             self.vec.y += diff.y * .07
         self.form.draw(surface, self.vec.x, self.vec.y)
 
-    def is_fall(self):
-        return self.gravity
-
-    def on_fall(self):
-        pass
-
     def turn(self):
         if self.is_fall():
             old = self.pos
@@ -86,6 +81,15 @@ class Object(Image):
                         self.on_fall()
             else:
                 self.falling = 0
+
+    def trigger(self):
+        pass
+
+    def is_fall(self):
+        return self.gravity
+
+    def on_fall(self):
+        pass
 
     def get_offset_tile(self, x, y):
         return self.location.get_tile(self.pos + (x, y))

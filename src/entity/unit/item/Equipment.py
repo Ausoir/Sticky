@@ -43,7 +43,7 @@ class Equipment(Item):
             return self.name
 
     def get_value(self):
-        r = max(1, int(self.durability / 3) - self.weight + 1)
+        r = max(1, int(self.durability / 4) - self.weight + super().get_value())
         return r
 
     def describe(self):
@@ -69,6 +69,3 @@ class Equipment(Item):
         damage -= final_damage
         total = max(0, total + self.durability)
         return total, damage
-
-    def on_sleep(self, time):
-        pass

@@ -20,6 +20,7 @@ class Main:
         from src.map.Tile import Tile
         from src.entity.Space import Space
         pygame.font.init()
+        self.background_color = (0, 0, 0)
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(Global.DISPLAY, pygame.DOUBLEBUF, 16)
         self.overlay = pygame.Surface((Global.BLOCK, Global.BLOCK), pygame.SRCALPHA, 16)
@@ -35,7 +36,7 @@ class Main:
         Global.font = pygame.font.Font(Data.direct('data/Ubuntu-Regular.ttf'), 20)
         pygame.display.set_icon(Data.get_cache('icon_1x0')[1])
         pygame.display.set_caption('Sticky', 'Sticky')
-        self.textbox = Textbox(self, 16, Global.DISPLAY[1] - 48)
+        self.textbox = Textbox(self, (16, Global.DISPLAY[1] - 48))
         self.text_mode = False
 
         self.on_pause = None
@@ -89,10 +90,9 @@ class Main:
     def draw(self):
         Camera.update()
         Group.update()
-        self.screen.fill((0, 0, 0))
+        self.screen.fill(self.background_color)
         Global.player.location.draw(self.screen)
         Group.effects.draw(self.screen)
-        Global.player.monologue.draw(self.screen)
         Global.menu.draw(self.screen)
         if self.fade > 0:
             color = self.colors[0]

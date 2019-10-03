@@ -119,7 +119,13 @@ class Window(Shape):
             r.append(newline)
         return r
 
-    def add(self, child):
-        self.children.append(child)
+    def add(self, child, index=-1, reverse=False):
+        if reverse:
+            self.next_y -= child.size.y + self.margin.y
+        if index == -1:
+            self.children.append(child)
+        else:
+            self.children.insert(index, child)
         child.vec.load(child.vec.x + self.margin.x + self.vec.x, child.vec.y + self.next_y)
-        self.next_y += child.size.y + self.margin.y
+        if not reverse:
+            self.next_y += child.size.y + self.margin.y

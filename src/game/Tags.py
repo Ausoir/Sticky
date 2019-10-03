@@ -14,6 +14,7 @@ class Tags:
     metal = 'im'
     wood = 'iw'
     silver = 'is'
+    drinkable = 'pd'
     sharp = 'ps'
     combustible = 'pf'
     intelligent = 'ii'

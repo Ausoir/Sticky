@@ -39,6 +39,7 @@ class Animation(Form):
         return r
 
     def face(self, direction):
-        if self.direction != direction:
-            self.direction = direction
-            self.rotate(self.rotation + 180)
+        self.direction = direction
+        for i in self.clips:
+            i.direction = direction
+            i.resize()

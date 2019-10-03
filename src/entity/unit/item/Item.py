@@ -5,16 +5,18 @@ from src.map.Tile import Tile
 
 class Item(Prop):
     description = {}
+    price = {}
 
     def __init__(self, loc):
         super().__init__(loc)
         self.collision_type = Tile.COLLIDE_ITEM
         self.host = None
         self.rotation = 60
-        self.range = [1]
+        self.reach = 1
         self.volume = [1, 1]
-        self.weight = 1  # not recorded
+        self.weight = 1
         self.speed = 5
+        self.accuracy = 1
         self.damage = 1
 
     def __str__(self):
@@ -59,6 +61,8 @@ class Item(Prop):
         self.add()
 
     def get_value(self):
+        if self.name in Item.price:
+            return Item.price[self.name]
         return 1
 
     def get_display_name(self):
@@ -92,28 +96,25 @@ class Item(Prop):
 
     def attack(self, chance=0, delay=1, callback=None):
         def on_attack(target):
-            self.location.sound.register(target.pos, 5)
-            self.hit(1)
-            self.states.trigger(['attack', target])
-            if Tags.sharp in self.tags:
-                target.states.add('Bleed', 40)
+            self.on_attack(target)
             if callback:
                 callback(target)
-        acc = self.damage + chance + self.host.get_proficiency(self.name)
-        dmg = self.weight
-        from src.entity.unit.Character import Character
-        if Character.check_var(self.host, 'power', 'Warrior'):
-            acc += 10
-            dmg *= 2
+        acc = self.accuracy + chance + self.host.get_proficiency(self.name)
+        for i in range(self.reach):
+            tile = self.host.location.collide_line(self.host.pos, self.host.next_target.x, self.host.next_target.y,
+                                                   lambda arg1, arg2: None, distance=i + 1)
+            self.location.attack.register(self.damage, tile, chance=acc, delay=delay,
+                                          hitter=self, callback=on_attack)
 
-        def fn(prev, tile):
-            return None
-        for i in self.range:
-            tile = self.host.location.collide_line(self.host.pos,
-                                                   self.host.next_target.x, self.host.next_target.y, fn,
-                                                   distance=i)
-            self.location.attack.register(dmg, tile, chance=acc, delay=delay, type='batter',
-                                          hitter=self.host, callback=on_attack)
+    def on_attack(self, target):
+        self.location.sound.register(target.pos, 5)
+        self.hit(1)
+        self.states.trigger(['attack', target])
+        if Tags.sharp in self.tags:
+            target.states.add('Bleed', 40)
 
     def update(self):
+        pass
+
+    def on_sleep(self, time):
         pass

@@ -4,13 +4,14 @@ from src.game import Global
 
 
 class Textbox:
-    def __init__(self, player, x, y):
+    def __init__(self, player, pos):
         self.player = player
         self.display = 0
         self.display_text = ''
         self.color1 = (220, 220, 220)
         self.color2 = (40, 40, 40)
-        self.pos = [x, y]
+        self.pos = pos
+        self.word_offset = 0
 
     def input(self, event):
         if event.type == pygame.KEYDOWN:
@@ -22,6 +23,10 @@ class Textbox:
                     Global.main.text_mode = False
                     Global.player.control.player.input('command', (0, 0))
                     return
+                elif Global.player.control.keymap[event.key] == 'quit':
+                    self.display_text = ''
+                    Global.main.text_mode = False
+                    return
             self.display = -1
             self.color1 = (220, 220, 220)
             self.color2 = (40, 40, 40)
@@ -30,7 +35,7 @@ class Textbox:
             elif event.key == pygame.K_SPACE:
                 self.display_text += ' '
             else:
-                self.display_text += pygame.key.name(event.key)
+                self.display_text += event.unicode
 
     def text(self, arg, time=200):
         self.display = time
@@ -38,10 +43,12 @@ class Textbox:
         length = 0
         for char in arg:
             length += Global.font.size(char)[0]
-        self.pos[0] = Global.CENTER[0] - int(length/2)
+        self.word_offset = -int(length/2)
 
     def draw(self, surface):
         if self.display:
-            surface.blit(Global.font.render(self.display_text, 1, self.color2), self.pos)
-            surface.blit(Global.font.render(self.display_text, 1, self.color1), (self.pos[0] + 3, self.pos[1] + 1))
+            text1 = Global.font.render(self.display_text, 1, self.color2)
+            surface.blit(text1, (self.pos[0] + self.word_offset, self.pos[1]))
+            text2 = Global.font.render(self.display_text, 1, self.color1)
+            surface.blit(text2, (self.pos[0] + self.word_offset + 3, self.pos[1] + 1))
             self.display -= 1

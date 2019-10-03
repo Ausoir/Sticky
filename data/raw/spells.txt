@@ -1,21 +1,13 @@
-Scorch Staff,Spell,data/image/Staff,[ig,pf],9,[],[],[1,3],Staff,Scorch
-Fireball Staff,Spell,data/image/Staff,[ig,pf],9,[],[],[1,3],Staff,Fireball
-Fireball Wand,Spell,data/image/Wand,[ig,pf],4,[],[],[1,2],Wand,Fireball
-Scroll of Echo,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Echo
-Scroll of Dispell,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Dispell
-Scroll of Scorch,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Scorch
-Scroll of Scry,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Scry
-Scroll of Levitate,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Levitate
-Scroll of Tornado,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Tornado
-Scroll of Crystallize,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Crystallize
-Scroll of Fireball,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Fireball
-Scroll of Immolation,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Immolation
-Scroll of Entomb,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Entomb
-Scroll of Gravitas,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Gravitas
-Scroll of Darkness,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Darkness
-Scroll of Haste,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Haste
-Scroll of Ensnare,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Ensnare
-Scroll of Transmute,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Transmute
-Scroll of Evacuate,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Evacuate
-Scroll of Blink,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Blink
-Scroll of Recharge,Spell,g_11x7,[ig,pf],1,[],[],[1,1],Scroll,Recharge
+Echo,Quill Pen,Cobalt
+Dispell,Quill Pen,Silver
+Scorch,Oil Pen,Ruby
+Scry,Quill Pen,Cobalt
+Levitate,Quill Pen,Cobalt
+Tornado,Quill Pen,Cobalt
+Crystallize,Ink Pen,Amber
+Fireball,Oil Pen,Ruby
+Immolation,Oil Pen,Ruby
+Darkness,Ink Pen,Amber
+Haste,Quill Pen,Silver
+Ensnare,Ink Pen,Amber
+Evacuate,Quill Pen,Silver

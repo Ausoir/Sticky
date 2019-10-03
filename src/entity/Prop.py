@@ -1,6 +1,7 @@
 from src.entity.Object import Object
 from src.game.Tags import Tags
 from src.map.Tile import Tile
+from src.tools.Dialog import Dialog
 
 
 class Prop(Object):
@@ -17,8 +18,8 @@ class Prop(Object):
         self.depth = 2
 
     def __str__(self):
-        tags = '[' + ','.join(self.tags) + ']'
-        loot = '[' + ','.join(str(x) for x in self.loot) + ']'
+        tags = Dialog.strlist(self.tags)
+        loot = Dialog.nonstrlist(self.loot)
         return ','.join([super().__str__(), tags, str(self.durability), loot, '[' + self.states.__str__() + ']'])
 
     def load(self, arg):
@@ -67,14 +68,20 @@ class Prop(Object):
                 pos.light = 40
 
     def die(self):
-        from src.entity.Effect import Effect
-        Effect.make('disintegrate', self.pos.get_center(), offset=0)
+        from src.entity.Particle import Particle
+        Particle.make('disintegrate', self.pos.get_center(), offset=0)
         if self.loot:
             from src.entity.Stock import Stock
             from src.game import Global
             loot = Global.r.rand_list(self.loot)
             if loot:
-                Stock.make(loot, self.pos)
+                if loot.startswith('#'):
+                    from src.entity.Stock import Stock
+                    from src.tools.Data import Data
+                    loot_table = Global.r.rand_list(Data.get_line('data/raw/trade.txt', loot[1:])[1])
+                    Stock.make(loot_table, self.pos)
+                else:
+                    Stock.make(loot, self.pos)
         self.remove()
 
     def is_hit(self, chance, faction=0):
@@ -85,18 +92,31 @@ class Prop(Object):
                 return chance > 2
             return 1
 
-    def hit(self, damage):
+    def hit(self, damage, accuracy=None, hitter=None):
+        if damage > 0:
+            if hitter:
+                if isinstance(hitter, Prop):
+                    direction = 1 if hitter.pos.x < self.pos.x else -1
+                    from src.entity.Particle import Particle
+                    if Tags.sharp in hitter.tags:
+                        if Tags.flesh in self.tags:
+                            Particle.make('splat', self.vec, direction=direction)
+                        else:
+                            Particle.make('slash', self.vec, direction=direction)
+                    else:
+                        Particle.make('batter', self.vec, direction=direction)
         if self.durability != -1:
             self.durability = max(0, self.durability - damage)
             if self.durability == 0:
                 self.durability = -1
                 self.die()
-                return 1
+                return 2
+        return 1
 
     def fell(self, distance, me=False):
         if distance > 1:
-            from src.entity.Effect import Effect
-            Effect.make('batter', self.pos.get_bottom(), offset=0)
+            from src.entity.Particle import Particle
+            Particle.make('batter', self.pos.get_bottom(), offset=0)
             self.hit(distance - 1)
 
     def on_fall(self):

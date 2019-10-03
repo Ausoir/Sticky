@@ -52,6 +52,18 @@ class Menu:
                     self.toggle()
                 self.display(1)
             return 1
+        elif event.type == pygame.KEYDOWN:
+            start = pygame.K_1
+            if start <= event.key < start + 6:
+                index = event.key - start
+                total = self.window.children + self.sub_window.children
+                if len(total) > index:
+                    for i in total:
+                        if i.on_click:
+                            if index == 0:
+                                i.on_click(i.name)
+                            index -= 1
+                return 1
 
     def toggle(self):
         self.history = [self.menu_main]
@@ -79,6 +91,8 @@ class Menu:
 
     @staticmethod
     def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, resize=False, hover=True):
+        if not color:
+            color = Window.fore_color_transparent
         button = Window([width, 40], name=name, color=color)
         button.set_text(text, resize=resize)
         button.on_click = callback
@@ -107,3 +121,11 @@ class Menu:
 
     def menu_main(self):
         self.window.add(Menu.make(['Main Menu'], None, None))
+
+    @staticmethod
+    def get_conversation(dialogs):
+        output = []
+        for sentence in dialogs:
+            new = ','.join(sentence)
+            output.append(new)
+        return output

@@ -13,7 +13,8 @@ class Terrain(Image):
         self.type = type
         self.background = background
         if flip_x == 1 or flip_y == 1:
-            self.form.direction = (1 if flip_x == 0 else 0, flip_y)
+            self.form.direction = 1 if flip_x == 0 else 0
+            self.form.direction_y = 0 if flip_y == 0 else 1
             self.form.resize()
 
     @classmethod

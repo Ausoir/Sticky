@@ -1,6 +1,7 @@
 from src.entity.Prop import Prop
 from src.entity.Space import Space
 from src.game import Global
+from src.map.Tile import Tile
 from src.tools.Math import Math
 
 
@@ -9,7 +10,7 @@ class Projectile(Prop):
         super().__init__(loc)
         self.faction = 0
         self.collision_type = 0
-        self.lifetime = 9
+        self.lifetime = 100
         self.gravity = 1
         self.hittable = 0
         self.durability = -1
@@ -17,11 +18,25 @@ class Projectile(Prop):
         self.speed_var = 4
         self.chance = 6
         self.depth = 5
-        self.fast = 1
+        self.friction = .96
         self.vel = Space()
         self.start = Space()
+        self.standables.append(Tile.COLLIDE_UNIT)
 
-    def set(self, gravity=1, lifetime=9, speed=24, speed_var=4, durability=-1):
+    def add(self):
+        self.removed = 0
+        self.relocate(self.pos.x, self.pos.y, force=1)
+        from src.game.Turn import Turn
+        Turn.fast_queue.append(self.turn)
+
+    def remove(self):
+        self.removed = 1
+        self.pos.things.remove(self)
+        from src.game.Turn import Turn
+        if self.turn in Turn.fast_queue:
+            Turn.fast_queue.remove(self.turn)
+
+    def set(self, gravity=1, lifetime=100, speed=24, speed_var=4, durability=-1):
         self.gravity = gravity
         self.lifetime = lifetime
         self.speed = speed
@@ -30,15 +45,9 @@ class Projectile(Prop):
 
     def draw(self, surface):
         if not self.removed:
-            self.vel *= .96
+            self.vel *= self.friction
             if self.is_fall():
                 self.vel.y += .5
-            if self.pos.is_land(self.standables) and self.pos != self.start:
-                self.on_collide()
-            else:
-                self.vec += self.vel
-                self.form.rotate(-self.vel.get_atan())
-                self.pos = self.location.get_tile_from_vec(self.vec.x, self.vec.y)
             self.form.draw(surface, self.vec.x, self.vec.y)
 
     def turn(self):
@@ -47,6 +56,12 @@ class Projectile(Prop):
         else:
             if self.lifetime > 0:
                 self.lifetime -= 1
+                if self.pos.is_land(self.standables) and self.pos != self.start:
+                    self.on_collide()
+                else:
+                    self.vec += self.vel
+                    self.form.rotate(-self.vel.get_atan())
+                    self.pos = self.location.get_tile_from_vec(self.vec.x, self.vec.y)
 
     def on_collide(self):
         self.remove()

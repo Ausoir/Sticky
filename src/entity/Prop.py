@@ -12,19 +12,23 @@ class Prop(Object):
         self.hittable = 1
         self.collision_type = Tile.COLLIDE_PROP
         self.faction = 0  # 0: Neutral, 1: Player, 2: Enemy, 3: Beast, 4: Undead
-        self.loot = []
         self.states = Buffs(self)
-        self.tags = []
+        self.tags = {}
         self.depth = 2
 
     def __str__(self):
-        tags = Dialog.strlist(self.tags)
-        loot = Dialog.nonstrlist(self.loot)
-        return ','.join([super().__str__(), tags, str(self.durability), loot, '[' + self.states.__str__() + ']'])
+        tags = Dialog.dict(self.tags)
+        return ','.join([super().__str__(), tags, str(self.durability), '[' + self.states.__str__() + ']'])
 
     def load(self, arg):
         index = super().load(arg)
-        self.tags = arg[index]
+        for i in arg[index]:
+            strings = i.split(':')
+            if len(strings) > 1:
+                if strings[1][0].isdigit() or strings[1][0] == '-':
+                    self.tags[strings[0]] = int(strings[1])
+                else:
+                    self.tags[strings[0]] = strings[1]
         index += 1
         if arg[index] >= -1:
             self.durability = arg[index]
@@ -33,26 +37,16 @@ class Prop(Object):
             variance = int(-arg[index] / 2)
             self.durability = Global.r.rand_int(-arg[index] - variance, -arg[index] + variance)
         index += 1
-        if arg[index]:
-            self.loot = arg[index]
-        index += 1
         self.states.load(arg[index])
         index += 1
-        if Tags.float not in self.tags:
+        if 'fly' not in self.tags:
             self.gravity = 1
-        if Tags.back in self.tags:
-            self.depth = 1
-            self.collision_type = Tile.COLLIDE_BACK
-        if Tags.front in self.tags:
-            self.depth = 5
-        if Tags.indestructible in self.tags:
+        if 'ind' in self.tags:
             self.hittable = 0
-        if Tags.intangible in self.tags:
-            self.collision_type = 0
-        elif Tags.fog in self.tags:
-            self.collision_type = Tile.COLLIDE_FOG
-        elif Tags.land in self.tags:
-            self.collision_type = Tile.COLLIDE_DOODAD
+        if 'dep' in self.tags:
+            self.depth = self.tags['dep']
+        if 'col' in self.tags:
+            self.collision_type = self.tags['col']
         return index
 
     def turn(self):
@@ -61,34 +55,34 @@ class Prop(Object):
 
     def glow(self, radius):
         if not radius:
-            self.pos.light = 40
+            self.pos.light = min(40, self.pos.light + 20)
         else:
             aoe = self.location.get_area(self.pos, radius, radius)
             for pos in aoe:
-                pos.light = 40
+                pos.light = min(40, pos.light + 20)
 
     def die(self):
         from src.entity.Particle import Particle
         Particle.make('disintegrate', self.pos.get_center(), offset=0)
-        if self.loot:
+        if 'loot' in self.tags:
             from src.entity.Stock import Stock
             from src.game import Global
-            loot = Global.r.rand_list(self.loot)
-            if loot:
-                if loot.startswith('#'):
-                    from src.entity.Stock import Stock
-                    from src.tools.Data import Data
-                    loot_table = Global.r.rand_list(Data.get_line('data/raw/trade.txt', loot[1:])[1])
-                    Stock.make(loot_table, self.pos)
-                else:
+            loot = self.tags['loot']
+            if loot.startswith('#'):
+                from src.entity.Stock import Stock
+                from src.tools.Data import Data
+                loot_table = Global.r.rand_list(Data.get_line('data/raw/trade.txt', loot[1:])[1])
+                Stock.make(loot_table, self.pos)
+            else:
+                if 'loot%' not in self.tags or Global.r.rand_int(1, 100) <= self.tags['loot%']:
                     Stock.make(loot, self.pos)
         self.remove()
 
     def is_hit(self, chance, faction=0):
         if self.hittable and (self.faction != faction or not faction or not self.faction):
-            if Tags.metal in self.tags:
+            if self.is_var('mat', 'Metal'):
                 return chance > 4
-            elif Tags.wood in self.tags:
+            elif self.is_var('mat', 'Wood'):
                 return chance > 2
             return 1
 
@@ -124,7 +118,7 @@ class Prop(Object):
             return
         copy = self.get_offset_tile(0, 1).things.copy()
         for thing in self.pos.things:
-            if thing.name == 'Water':
+            if thing.name in ['Water', 'Surface']:
                 return
             copy.append(thing)
         for thing in copy:
@@ -132,3 +126,7 @@ class Prop(Object):
                 thing.fell(self.falling, me=True)
             else:
                 thing.fell(self.falling)
+
+    def is_var(self, key, arg):
+        if key in self.tags:
+            return self.tags[key] == arg

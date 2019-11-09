@@ -1,128 +1,149 @@
+from src.entity.Particle import Particle
 from src.game import Global
 from src.game.Crafting import Crafting
 from src.interface.Menu import Menu
 from src.interface.MenuPlayer import MenuPlayer
 from src.interface.Window import Window
+from src.tools.Data import Data
 from src.tools.Dialog import Dialog
 
 
+# noinspection PyUnresolvedReferences
 class MenuAll(MenuPlayer):
-    def menu_choice(self):
-        if self.var[0]:
-            text = [self.var[0]]
-            self.window.add(Menu.make(text, None, None, color=Window.fore_color_transparent,
-                                      hover=False, width=320, resize=True))
-            self.window.next_y = self.window.size.y + self.window.vec.y
-            for i in range(len(self.var[1])):
-                button = Menu.make([self.var[1][i]], self.var[2][i], None, name=i, width=320)
-                self.window.add(button, reverse=True, index=0)
+    def topic(self, name):
+        if Data.get_line('data/raw/choices.txt', name):
+            self.var = [self.var[0], name]
+            self.direct(self.menu_conversation)
         else:
-            for i in range(len(self.var[1])):
-                button = Menu.make([self.var[1][i]], self.var[2][i], None, name=i, width=320)
-                self.window.add(button)
-        self.sub_window.display(1)
-
-    def menu_many_choice(self):
-        for k, v in enumerate(self.var):
-            button = Menu.make([self.var[k][0]], self.var[k][1], self.var[k][1], name=self.var[k][0])
-            if k < 6:
-                self.window.add(button)
-            else:
-                self.sub_window.add(button)
-        self.sub_window.display(1)
-
-    def menu_story(self):
-        def branch(name):
-            if Data.get_line('data/raw/choices.txt', name):
-                self.var = [self.var[0], name]
-                self.direct(self.menu_story)
+            if name.startswith('#'):
+                self.direct(getattr(self, 'menu_' + name[1:].lower()))
             else:
                 dialog = Data.get_line('data/raw/conversation.txt', name)
                 if dialog:
                     self.show_dialog([','.join(dialog[1])])
-        from src.tools.Data import Data
-        options = Data.get_line('data/raw/choices.txt', self.var[1])
-        length = len(options[1])
-        if length <= 6:
-            width = 320
-        else:
-            width = 160
-        for option in options[1][:6]:
-            self.window.add(Menu.make([option], branch, None, width=width, name=option))
-        for option in options[1][6:]:
-            self.sub_window.add(Menu.make([option], branch, None, width=width, name=option))
-        self.sub_window.display(1)
 
     def menu_conversation(self):
-        def conversation(name):
-            from src.tools.Data import Data
-            if 'talk' in self.var[0].var:
-                talk_type = self.var[0].var['talk']
-            else:
-                talk_type = 'none'
-            dialogs = Data.get_line('data/raw/conversation.txt', talk_type)[1:]
-            output = Menu.get_conversation(dialogs)
-            Global.menu.show_dialog([output[self.var[0].attributes.gene % len(output)]])
-
-        def tutorial(name):
-            self.var = [self.var[0], 'Start']
-            self.direct(self.menu_story)
-        self.history = [self.menu_conversation]
-        self.history_var = [self.var]
-        self.window.add(Menu.make(['[' + self.var[0].name + ']'], None, None, color=Window.fore_color_transparent,
-                                  hover=False))
-        if 'greet' in self.var[0].var:
-            greet = self.var[0].var['greet']
-        else:
-            greet = 'greet'
-        from src.tools.Data import Data
-        dialogs = Data.get_line('data/raw/conversation.txt', greet)[1:]
-        output = Menu.get_conversation(dialogs)
-        self.window.add(Menu.make([output[self.var[0].attributes.gene % len(output)]], None, None, color=None,
-                                  hover=False, resize=True))
-        from src.entity.unit.Humanoid import Humanoid
-        if isinstance(self.var[0], Humanoid):
-            from src.entity.unit.Character import Character
-            if isinstance(self.var[0], Character) and 'business' in self.var[0].var:
-                def talk(name):
-                    from src.game.Interaction import Interaction
-                    Interaction.talk(self.var[0])
-                rmb = self.get_message(['Bring up special dialogue options for this NPC'])
-                self.sub_window.add(Menu.make([self.var[0].var['business']], talk, rmb))
-            if self.var[0].is_armed() or self.var[0].is_headgeared() or self.var[0].armor.items:
-                rmb = self.get_message(['Exchange for an equipment'])
-                self.sub_window.add(Menu.make(['Exchange'], lambda l: self.direct(self.menu_exchange), rmb))
-        rmb = self.get_message(['Make a conversation'])
-        self.sub_window.add(Menu.make(['Talk'], conversation, rmb))
-        rmb = self.get_message(['Ask for hints and tips'])
-        self.sub_window.add(Menu.make(['Ask'], tutorial, rmb))
-        rmb = self.get_message(['Ask this unit to accompany you'])
-        self.sub_window.add(Menu.make(['Hire'], lambda l: self.direct(self.menu_hire), rmb))
+        if self.var[0]:
+            self.window.add(Menu.make(['[' + self.var[0].name + ']'], None, None, color=None, hover=False))
+        options = Data.get_line('data/raw/choices.txt', self.var[1])
+        self.window.add(Menu.make([options[1][0]], None, None, color=None, hover=False, resize=True))
+        for option in options[1][1:]:
+            self.sub_window.add(Menu.make([option.replace('#', '')], self.topic, None, width=160, name=option))
         self.sub_window.display(1)
 
-    def menu_travel(self):
-        self.history = [self.menu_travel]
-        self.history_var = [self.var]
-        destination = self.var[0].title()
-        option = 'Travel'
-        text = ['Travel to [' + destination + '] ?']
+    def menu_talk(self):
+        if 'talk' in self.var[0].var:
+            talk_type = self.var[0].var['talk']
+        else:
+            talk_type = 'none'
+        self.history.pop()
+        self.history_var.pop()
+        dialogs = Data.get_line('data/raw/conversation.txt', talk_type)[1:]
+        output = Menu.get_conversation(dialogs)
+        self.show_dialog([output[self.var[0].attributes.gene % len(output)]])
+
+    def menu_hire(self):
+        cost = self.var[0].attributes.get_total() + self.var[0].armor.get_value() + self.var[0].headgear.get_value()
+        cost += self.var[0].weapon.get_value() - 3
+        text = ['Hire this person for $' + str(cost) + '?']
         panel = Menu.make(text, None, None, color=Window.fore_color_transparent, hover=False, width=320)
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
         panel.redraw()
         self.window.add(panel)
-        from src.entity.Space import Space
 
-        def travel(name):
-            if Global.player.drink():
-                Global.player.sleep(1)
-                Global.player.travel(self.var[0], Space(int(self.var[1]), int(self.var[2])))
-            else:
-                self.toggle()
-        rmb = self.get_message(['Travel to ' + destination])
+        def hire(name):
+            if Global.player.character.require_var('money', cost):
+                from src.entity.unit.ai.Task import Follow
+                self.var[0].pilot.var['ally'] = Global.player.character.id
+                self.var[0].pilot.var['def'] = Follow(self.var[0].pilot)
+            self.toggle()
         self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-        self.window.add(Menu.make([option], travel, rmb, width=320))
+        self.window.add(Menu.make(['Hire'], hire, None, width=320))
         self.sub_window.display(1)
+
+    def menu_rent(self):
+        def buy(arg):
+            if charvar.var['own'] == 1 or Global.player.days >= charvar.var['due']:
+                if Global.player.character.require_var('money', cost):
+                    charvar.var['due'] = Global.player.days + 14
+                    charvar.var['own'] = 2
+                    charvar.say(Dialog.get('thanks'))
+                    self.toggle()
+            else:
+                from src.map.Location import Location
+                Location.make('static/storage', 'storage', overwrite=False)
+                from src.entity.Space import Space
+                Global.player.travel('storage', Space())
+        charvar = self.var[0]
+        cost = charvar.var['rent']
+        if charvar.var['own'] == 1 or Global.player.days >= charvar.var['due']:
+            self.var = [Dialog.get('?rent', [cost]), [Dialog.get('Yes')], [buy]]
+        else:
+            left = Dialog.day(charvar.var['due'] - Global.player.days)
+            self.var = [Dialog.get('?rententer', [left]), [Dialog.get('Enter')], [buy]]
+        self.state = self.menu_choice
+        self.display(1)
+
+    def menu_rest(self):
+        def stay(arg):
+            if Global.player.character.require_var('money', cost):
+                Global.player.sleep(2)
+                self.toggle()
+        cost = self.var[0].var['stay']
+        self.var = [Dialog.get('?inn', [cost]), [Dialog.get('Yes')], [stay]]
+        self.state = self.menu_choice
+        self.display(1)
+
+    def menu_loan(self):
+        def buy(arg):
+            if Global.player.character.var['debt'] <= 0:
+                Global.player.character.var['money'] += 50
+                Global.player.character.var['debt'] += 60
+                self.var[0].say(Dialog.get('thanks'))
+                self.toggle()
+        cost = self.var[0].var['loan']
+        if cost < 0:
+            cost = self.var[0].attributes.gene % 15 + 10
+        text = Dialog.get('innstay', [cost])
+        option = Dialog.get('getroom')
+        self.var = [text, [Dialog.get('?inn', [cost2]), option], [stay, buy]]
+        self.state = self.menu_choice
+        self.display(1)
+
+    def menu_invest(self):
+        def buy(arg):
+            if self.var[0].var['own'] == 1 or Global.player.days >= self.var[0].var['due']:
+                if Global.player.character.require_var('money', cost):
+                    self.var[0].var['due'] = Global.player.days + 14
+                    self.var[0].var['own'] = 2
+                    Global.player.character.say('Bought a place!')
+                    self.toggle()
+        cost = self.var[0].var['loan']
+        text = Dialog.get('innstay', [cost])
+        option = Dialog.get('getroom')
+        self.var = [text, [Dialog.get('?inn', [cost2]), option], [stay, buy]]
+        self.state = self.menu_choice
+        self.display(1)
+
+    def menu_pawn(self):
+        selling = Global.player.character.weapon
+        price = int(selling.get_value() * .7 - (self.var[0].attributes.gene % 3) - 1)
+        if Global.player.character.is_armed() and price > 0:
+            def sell(arg):
+                selling.loot = []
+                selling.die()
+                Global.player.character.var['money'] += price
+                self.var[0].say(Dialog.get('thanks'))
+                self.toggle()
+            text = Dialog.get('?sell', [selling.get_display_name(), str(price)])
+            self.var = [text, [Dialog.get('Yes')], [sell]]
+            self.state = self.menu_choice
+            self.display(1)
+        else:
+            self.dialog_text = ['You are not holding anything that you can sell here.']
+            self.state = self.menu_dialog
+            self.display(1)
 
     def menu_shop(self):
         def buy(item):
@@ -131,47 +152,65 @@ class MenuAll(MenuPlayer):
                 self.var[0].var['item'] = '&'.join([x.name for x in self.var[2]])
                 item.relocate(Global.player.character.pos.x, Global.player.character.pos.y, force=1)
                 item.add()
-            else:
-                self.toggle()
+                tgt.say(Dialog.get('thanks'))
+            self.toggle()
+        if Global.player.days >= self.var[0].var['due']:
+            from src.tools.Random import Random
+            from src.tools.Data import Data
+            rng = Random(self.var[0].attributes.gene + Global.player.days)
+            due_date = Global.player.days + (self.var[0].attributes.gene % 14) + 6
+            data = Data.get_line('data/raw/trade.txt', self.var[0].var['trade'])
+            merchandise = []
+            for i in range(rng.rand_int(3, 6)):
+                merchandise.append(rng.rand_list(data[1]))
+            self.var[0].var['item'] = '&'.join(merchandise)
+            self.var[0].var['due'] = due_date
         if not self.var[0].var['item']:
-            self.show_dialog(['I am all out of merchandise. Thank you for your patronage!'])
+            self.show_dialog([Dialog.get('soldout')])
         else:
-            for i in self.var[2]:
-                money = '$' + str(i.get_value() + int(self.var[1]))
-                rmb = self.get_message(i.describe().split('\n'))
-                self.window.add(Menu.make([i.name], buy, rmb, name=i))
-                self.sub_window.add(Menu.make([money], None, rmb, color=Window.fore_color_transparent, hover=False))
+            from src.entity.Stock import Stock
+            for i in self.var[0].var['item'].split('&'):
+                item = Stock.get(i)
+                if item:
+                    money = '$' + str(item.get_value() + int(self.var[0].attributes.gene % 2))
+                    rmb = self.get_message(item.describe().split('\n'))
+                    self.window.add(Menu.make([item.name], buy, rmb, name=i))
+                    self.sub_window.add(Menu.make([money], None, None, color=None, hover=False))
             self.sub_window.display(1)
 
     def menu_exchange(self):
         def buy(item):
-            if Global.player.character.require_var('money', item[1].get_value()):
+            if Global.player.character.require_var('money', item[1].get_value() + 2):
                 if item[0] == 'w':
                     self.var[0].drop()
+                elif item[0] == 'a':
+                    self.var[0].unarmor()
                 elif item[0] == 'h':
                     self.var[0].unheadgear()
                 elif item[0] == 'i':
                     self.var[0].armor.get_item(0).on_unequip()
                 item[1].relocate(Global.player.character.pos.x, Global.player.character.pos.y, force=1)
-            else:
-                self.toggle()
+                self.var[0].say(Dialog.get('exchanged'))
+            self.toggle()
         items = []
         if self.var[0].is_armed():
             items.append(['w', self.var[0].weapon])
+        if self.var[0].is_armored():
+            items.append(['a', self.var[0].armor])
         if self.var[0].is_headgeared():
             items.append(['h', self.var[0].headgear])
         if self.var[0].armor.items:
             items.append(['i', self.var[0].armor.items[0]])
         for i in items:
-            money = '$' + str(i[1].get_value() + 1)
+            money = '$' + str(i[1].get_value() + 2)
             rmb = self.get_message(i[1].describe().split('\n'))
             self.window.add(Menu.make([i[1].name], buy, rmb, name=i))
             self.sub_window.add(Menu.make([money], None, rmb, color=Window.fore_color_transparent, hover=False))
         self.sub_window.display(1)
 
-    def menu_trainer(self):
+    def menu_train(self):
         def click(button_arg):
-            if Global.player.drink():
+            if Global.player.eat():
                 Global.player.sleep(1)
                 if button_arg[1] == 'exp1':
                     Global.player.character.attributes.strength += 1
@@ -179,9 +218,9 @@ class MenuAll(MenuPlayer):
                     Global.player.character.attributes.agility += 1
                 elif button_arg[1] == 'exp3':
                     Global.player.character.attributes.intelligence += 1
-                Global.player.character.say('Level Up!')
+                Global.player.character.say(Dialog.get('Level Up!'))
             self.toggle()
-        text = ['I can help you level up an attribute. Tuition is $' + str(self.var[0].var['value']) + ' per lesson.']
+        text = [Dialog.get('tuition cost', [self.var[0].var['value']])]
         panel = Menu.make(text, None, None, color=Window.fore_color_transparent, width=320, hover=False, resize=True)
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
@@ -189,25 +228,49 @@ class MenuAll(MenuPlayer):
         self.window.add(panel)
         self.window.next_y = self.window.size.y + self.window.vec.y
         cost = Global.player.character.attributes.get_total()
-        rmb = self.get_message(['Train Intelligence. Requires ' + str(cost) + ' minerals.'])
-        self.window.add(Menu.make(['Intelligence'], click, rmb, width=320, name=[cost, 'exp3']), reverse=True, index=0)
-        rmb = self.get_message(['Train Agility. Requires ' + str(cost) + ' carbs.'])
-        self.window.add(Menu.make(['Agility'], click, rmb, width=320, name=[cost, 'exp2']), reverse=True, index=0)
-        rmb = self.get_message(['Train Strength. Requires ' + str(cost) + ' protein.'])
-        self.window.add(Menu.make(['Strength'], click, rmb, width=320, name=[cost, 'exp1']), reverse=True, index=0)
+        rmb = self.get_message([Dialog.get('trainint', [cost])])
+        self.window.add(Menu.make([Dialog.get('Intelligence')], click, rmb, width=320, name=[cost, 'exp3']), reverse=True, index=0)
+        rmb = self.get_message([Dialog.get('trainagi', [cost])])
+        self.window.add(Menu.make([Dialog.get('Agility')], click, rmb, width=320, name=[cost, 'exp2']), reverse=True, index=0)
+        rmb = self.get_message([Dialog.get('trainstr', [cost])])
+        self.window.add(Menu.make([Dialog.get('Strength')], click, rmb, width=320, name=[cost, 'exp1']), reverse=True, index=0)
         self.sub_window.display(1)
+
+    def menu_provide(self):
+        if Global.player.days >= self.var[0].var['due']:
+            from src.tools.Data import Data
+            from src.tools.Random import Random
+            from src.entity.Stock import Stock
+            data = Data.get_line('data/raw/trade.txt', self.var[0].var['type'])
+            rng = Random(self.var[0].attributes.gene + Global.player.days)
+            due_date = Global.player.days + rng.rand_int(2, 5)
+            item = rng.rand_list(data[1])
+            value = Stock.get(item).get_value()
+            self.var[0].var['due'] = due_date
+            self.var[0].var['item'] = item
+            self.var[0].var['amount'] = rng.rand_int(1, 7)
+            self.var[0].var['value'] = rng.rand_int(1, 8) + int(value * self.var[0].var['amount'] * .7)
+        self.state = self.menu_guild
+        self.display(1)
+
+    def menu_supply(self):
+        if Global.player.days >= self.var[0].var['due']:
+            from src.entity.Stock import Stock
+            self.var[0].var['due'] = Global.player.days + self.var[0].var['time']
+            self.var[0].var['amount'] = self.var[0].var['need']
+        self.state = self.menu_guild
+        self.display(1)
 
     def menu_guild(self):
         if self.var[0].var['amount'] <= 0:
             dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
-            self.show_dialog(['We do not need anything for now. Come back in ' + dur + '.'])
+            self.show_dialog([Dialog.get('dealeroff', [dur])])
             return
         else:
             dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
             reward = self.var[0].var['value']
-            text = ['We are in need of ' + str(self.var[0].var['amount']) + ' ' + self.var[0].var['item'] + '.',
-                    'Deliver full amount in ' + dur + ' to receive $' + str(reward) + '.']
-            panel = Menu.make(text, None, None, color=Window.fore_color_transparent, hover=False, width=320, resize=True)
+            text = [Dialog.get('dealerdeal', [self.var[0].var['amount'], self.var[0].var['item'], dur, reward])]
+            panel = Menu.make(text, None, None, color=None, hover=False, width=320, resize=True)
             panel.redraw()
             self.window.add(panel)
 
@@ -221,56 +284,69 @@ class MenuAll(MenuPlayer):
                         count += 1
                 self.var[0].var['amount'] -= count
                 if self.var[0].var['amount'] <= 0:
-                    Global.player.character.say('Completed delivery!')
+                    Global.player.character.say(Dialog.get('dealcomplete'))
                     Global.player.character.var['money'] += reward
                 elif count > 0:
-                    Global.player.character.say('Provided ' + str(count) + ' ' + self.var[0].var['item'])
+                    Global.player.character.say(Dialog.get('dealdelivery', [count, self.var[0].var['item']]))
                 else:
                     Global.player.character.say('No ' + self.var[0].var['item'] + '...')
-            rmb = self.get_message(['Provide ' + self.var[0].var['item']])
+            rmb = self.get_message([Dialog.get('provideitem', [self.var[0].var['item']])])
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-            self.window.add(Menu.make(['Provide ' + self.var[0].var['item']], sell, rmb, width=320))
+            self.window.add(Menu.make([Dialog.get('provideitem', [self.var[0].var['item']])], sell, rmb, width=320))
             self.sub_window.display(1)
 
+    def menu_quest(self):
+        def proceed(arg):
+            Global.player.character.say('FAR')
+        import math
+        mission = int(math.sin(Global.player.days + self.var[0].attributes.gene) * 10) % 3 + 1
+        reward = 40
+        self.var = [Dialog.get('sergentquest' + str(mission), [reward]),
+                    [Dialog.get('Accept and Proceed')], [proceed]]
+        self.state = self.menu_choice
+        self.display(1)
+
+    def menu_diagnose(self):
+        def treat(arg):
+            if Global.player.character.require_var('money', self.var[0].var['value']):
+                from src.entity.unit.Buff import BuffTags
+                Global.player.character.states.clear(lambda x: BuffTags.harmful in x.tags)
+                self.toggle()
+                Global.player.character.say(Dialog.get('treated'))
+        self.var = [Dialog.get('treated', [self.var[0].var['value']]), [Dialog.get('Cure')], [treat]]
+        self.state = self.menu_choice
+        self.display(1)
+
+    def menu_examine(self):
+        def exam(arg):
+            self.direct(self.menu_effects)
+        self.var = [Dialog.get('diagnose'), [Dialog.get('Yes')], [exam]]
+        self.state = self.menu_choice
+        self.display(1)
+
     def menu_insurance(self):
-        contract = self.var[0].var['due'] - Global.player.days
-        if contract <= 0:
+        contract = Global.player.character.states.get('Revive')
+        if not contract:
             def package(arg):
-                def insure(arg2):
-                    if Global.player.character.require_var('money', value):
-                        Global.player.character.states.add('Insured', -1, packages[arg] + '/' + str(time))
-                        tgt.var['due'] = Global.player.days + time
-                        self.toggle()
-                Global.menu.var = [descriptions[arg] + ' Take the ' + packages[arg] +
-                                   ' package for $' + str(costs[arg]) + '?',
-                                   ['Pay'], [insure]]
-                Global.player.menu(Global.menu.menu_choice)
+                if Global.player.character.require_var('money', value):
+                    Global.player.character.states.add('Revive', -1, 'Insurance')
+                    Global.player.character.say(Dialog.get('insurebought'))
+                    tgt.var['record'] += 1
+                    tgt.say(Dialog.get('thanks'))
+                    self.toggle()
             text = []
             tgt = self.var[0]
-            time = (self.var[0].attributes.gene % 21 + 7) * 2
-            value = int(time / 3) + (self.var[0].attributes.gene % 8)
-            packages = ['Premium', 'Workers', 'Urban']
-            costs = [value * 2, value, max(1, value - 4)]
-            descriptions = ['The premium package covers everything: accidents, illness, suicide, homicide, '
-                            'and wildlife hazards. You are guaranteed a second chance!',
-                            'The workers package covers against all accidents, illness, and wildlife.',
-                            'The urban package covers homicide and suicide.']
-            text.append('Insurance contract lasts for ' + Dialog.day(time) +
-                        '. Each package provide different coverage.')
+            value = int(self.var[0].attributes.gene % 9 + 4) + (tgt.var['record'] * tgt.var['inc'])
+            text.append(Dialog.get('dsc_insurance', [str(value)]))
             panel = Menu.make(text, None, None, color=Window.fore_color_transparent,
                               hover=False, width=320, resize=True)
             self.window.add(panel)
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-            self.window.add(Menu.make(['Get Premium Package'], package, None, width=320, name=0))
-            self.window.next_y = self.window.size.y + self.window.vec.y - 80 - self.window.margin.y * 2
-            self.window.add(Menu.make(['Get Workers Package'], package, None, width=320, name=1))
-            self.window.next_y = self.window.size.y + self.window.vec.y - 120 - self.window.margin.y * 3
-            self.window.add(Menu.make(['Get Urban Package'], package, None, width=320, name=2))
+            self.window.add(Menu.make([Dialog.get('insureyes', [str(value)])], package, None, width=320))
             self.sub_window.display(1)
             return
         else:
-            self.show_dialog(['You cannot be insured again until your current insurance contract is over.',
-                              'Your current contract ends in ' + Dialog.day(contract)])
+            self.show_dialog([Dialog.get('insurefull')])
 
     def menu_craft(self):
         def add_button(window, item, ingreds, callback):
@@ -285,7 +361,7 @@ class MenuAll(MenuPlayer):
                 rmb = self.get_message(Crafting.describe(item, ingreds).split('\n'))
                 button = Menu.make([item], craft, rmb, name=item)
             else:
-                rmb = self.get_message((Crafting.describe(item, ingreds) + '\nRequirements not met.').split('\n'))
+                rmb = self.get_message((Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet')).split('\n'))
                 button = Menu.make([item], rmb, rmb, name=item, color=Window.fore_color_disabled)
             window.add(button)
         self.history = [self.menu_craft]
@@ -298,25 +374,23 @@ class MenuAll(MenuPlayer):
             self.window.display(1)
             self.sub_window.display(1)
         else:
-            self.show_dialog(['You do not know of anything that can be crafted here.'])
+            self.show_dialog([Dialog.get('nocraftables')])
 
     def menu_anvil(self):
         self.history = [self.menu_anvil]
         self.history_var = [self.var]
         from src.entity.unit.item.Weapon import Weapon
         if self.host.is_armed() and isinstance(self.host.weapon, Weapon):
-            text = 'Modify [' + self.host.weapon.get_display_name() + ']'
-            desc = self.get_message(['Modify and upgrade the properties of your weapon'])
+            text = Dialog.get('modifyitem', [self.host.weapon.get_display_name()])
+            desc = self.get_message([Dialog.get('dsc_modifyweapon')])
             self.window.add(Menu.make([text], lambda l: self.direct(self.menu_mod_weapon), desc, width=320))
         if self.host.is_armored():
-            text = 'Modify [' + self.host.armor.get_display_name() + ']'
-            desc = self.get_message(['Modify and upgrade the properties of your armor'])
+            text = Dialog.get('modifyitem', [self.host.armor.get_display_name()])
+            desc = self.get_message([Dialog.get('dsc_modifyarmor')])
             self.window.add(Menu.make([text], lambda l: self.direct(self.menu_mod_armor), desc, width=320))
         self.sub_window.display(1)
 
     def menu_mod_weapon(self):
-        from src.entity.Particle import Particle
-
         def reinforce(arg):
             if self.host.weapon.enhance(Global.r.rand_int(1, 100)):
                 self.host.weapon.max_durability *= 2
@@ -365,11 +439,11 @@ class MenuAll(MenuPlayer):
             arg.die()
             self.toggle()
 
-        text = 'Modification Success Chance - ' + str(self.host.weapon.get_enhance_chance()) + '%'
+        text = Dialog.get('modchance', [self.host.weapon.get_enhance_chance()])
         self.window.add(Menu.make([text], None, None, width=320, resize=True, color=Window.fore_color_transparent))
         items = self.host.get_accessibles()
         flag = ['Scrap', 'Rubber', 'Tooth', 'Plating', 'Plating']
-        deny = self.get_message(['No materials...'])
+        deny = self.get_message([Dialog.get('nomaterial')])
         for i in items:
             if i.name == flag[0]:
                 flag[0] = i
@@ -381,47 +455,50 @@ class MenuAll(MenuPlayer):
                 flag[3] = i
             if i.name == flag[4]:
                 flag[4] = i
+        desc = self.get_message([Dialog.get('dsc_reinforcewith', [Dialog.get('Scrap')])])
         if isinstance(flag[0], str):
-            self.window.add(Menu.make(['Reinforce with Scrap'], deny, deny, width=320, name=flag[0],
-                                      color=Window.fore_color_disabled))
+            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Scrap')])],
+                                      deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            desc = self.get_message(['Reinforce to double maximum durability. Requires Scrap.'])
-            self.window.add(Menu.make(['Reinforce with Scrap'], reinforce, desc, width=320, name=flag[0]))
+            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Scrap')])],
+                                      reinforce, desc, width=320, name=flag[0]))
         if self.host.weapon.speed > 1:
             if isinstance(flag[1], str):
-                self.window.add(Menu.make(['Improve Grip with Rubber'], deny, deny, width=320, name=flag[0],
-                                          color=Window.fore_color_disabled))
+                self.window.add(Menu.make([Dialog.get('improvegripwith', [Dialog.get('Rubber')])], deny, deny,
+                                          width=320, name=flag[0], color=Window.fore_color_disabled))
             else:
-                desc = self.get_message(['Improve grip, increasing weapon speed. Requires Rubber.'])
-                self.window.add(Menu.make(['Improve Grip with Rubber'], grip, desc, width=320, name=flag[1]))
+                desc = self.get_message([Dialog.get('dsc_improvewith', [Dialog.get('Rubber')])])
+                self.window.add(Menu.make([Dialog.get('improvegripwith', [Dialog.get('Rubber')])],
+                                          grip, desc, width=320, name=flag[1]))
         if self.host.weapon.speed > 1:
+            desc = self.get_message([Dialog.get('dsc_modifybladewith', [Dialog.get('Tooth')])])
             if isinstance(flag[2], str):
-                self.window.add(Menu.make(['Modify Blade with Tooth'], deny, deny, width=320, name=flag[0],
-                                          color=Window.fore_color_disabled))
+                self.window.add(Menu.make([Dialog.get('modifybladewith', [Dialog.get('Tooth')])],
+                                          deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
             else:
-                desc = self.get_message(['Grind or attach weapon blade, improving attack by 1 ~ 3. Requires Tooth.'])
-                self.window.add(Menu.make(['Modify Blade with Tooth'], blade, desc, width=320, name=flag[2]))
+                self.window.add(Menu.make([Dialog.get('modifybladewith', [Dialog.get('Tooth')])],
+                                          blade, desc, width=320, name=flag[2]))
         if self.host.weapon.weight > 1:
+            desc = self.get_message([])
             if isinstance(flag[3], str):
-                self.window.add(Menu.make(['Modify Body with Plating'], deny, deny, width=320, name=flag[0],
-                                          color=Window.fore_color_disabled))
+                self.window.add(Menu.make([Dialog.get('dsc_modifybodywith', [Dialog.get('Plating')])],
+                                          deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
             else:
-                desc = self.get_message(['Modify weapon body, decreasing weight. Requires Plating.'])
-                self.window.add(Menu.make(['Modify Body with Plating'], body, desc, width=320, name=flag[3]))
+                self.window.add(Menu.make([Dialog.get('dsc_modifybodywith', [Dialog.get('Plating')])],
+                                          body, desc, width=320, name=flag[3]))
+        desc = self.get_message([Dialog.get('dsc_fortifybodywith', [Dialog.get('Plating')])])
         if isinstance(flag[4], str):
-            self.window.add(Menu.make(['Fortify Body with Plating'], deny, deny, width=320, name=flag[0],
-                                      color=Window.fore_color_disabled))
+            self.window.add(Menu.make([Dialog.get('fortifybodywith', [Dialog.get('Plating')])],
+                                      deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            desc = self.get_message(['Fortify weapon body, increasing weight. Requires Plating.'])
-            self.window.add(Menu.make(['Fortify Body with Plating'], fortify, desc, width=320, name=flag[3]))
+            self.window.add(Menu.make([Dialog.get('fortifybodywith', [Dialog.get('Plating')])],
+                                      fortify, desc, width=320, name=flag[3]))
         self.sub_window.display(1)
 
     def menu_mod_armor(self):
-        from src.entity.Particle import Particle
-
         def reinforce(arg):
             if self.host.armor.enhance(Global.r.rand_int(1, 100)):
-                self.host.armor.max_durability += Global.r.rand_int(1, 8)
+                self.host.armor.max_durability += 1
             else:
                 Particle.make('disintegrate', self.host.vec)
                 self.host.armor.die()
@@ -446,7 +523,7 @@ class MenuAll(MenuPlayer):
             arg.die()
             self.toggle()
 
-        text = 'Modification Success Chance - ' + str(self.host.armor.get_enhance_chance()) + '%'
+        text = Dialog.get('modchance', [self.host.armor.get_enhance_chance()])
         self.window.add(Menu.make([text], None, None, width=320, resize=True, color=Window.fore_color_transparent))
         items = self.host.get_accessibles()
         flag = ['Cloth', 'Plating', 'Tooth']
@@ -458,70 +535,31 @@ class MenuAll(MenuPlayer):
                 flag[1] = i
             if i.name == flag[2]:
                 flag[2] = i
+        desc = self.get_message([Dialog.get('dsc_reinforcearmorwith', [Dialog.get('Cloth')])])
         if isinstance(flag[0], str):
-            self.window.add(Menu.make(['Reinforce with Cloth'], deny, deny, width=320, name=flag[0],
-                                      color=Window.fore_color_disabled))
+            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Cloth')])],
+                                      deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            desc = self.get_message(['Improve maximum durability by 1 ~ 8. Requires Cloth.'])
-            self.window.add(Menu.make(['Reinforce with Cloth'], reinforce, desc, width=320, name=flag[0]))
+            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Cloth')])],
+                                      reinforce, desc, width=320, name=flag[0]))
+        desc = self.get_message([Dialog.get('dsc_padwith', [Dialog.get('Cloth')])])
         if isinstance(flag[1], str):
-            self.window.add(Menu.make(['Pad with Plating'], deny, deny, width=320, name=flag[0],
-                                      color=Window.fore_color_disabled))
+            self.window.add(Menu.make([Dialog.get('padwith', [Dialog.get('Plating')])],
+                                      deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            desc = self.get_message(['Improve defense by 1. Requires Plating.'])
-            self.window.add(Menu.make(['Pad with Plating'], pad, desc, width=320, name=flag[1]))
+            self.window.add(Menu.make([Dialog.get('padwith', [Dialog.get('Plating')])],
+                                      pad, desc, width=320, name=flag[1]))
+        desc = self.get_message([Dialog.get('dsc_refitwith', [Dialog.get('Tooth')])])
         if isinstance(flag[2], str):
-            self.window.add(Menu.make(['Refit with Tooth'], deny, deny, width=320, name=flag[0],
-                                      color=Window.fore_color_disabled))
+            self.window.add(Menu.make([Dialog.get('refitwith', [Dialog.get('Tooth')])],
+                                      deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            desc = self.get_message(['Decrease encumbrance by 1. Requires Tooth.'])
-            self.window.add(Menu.make(['Refit with Tooth'], refit, desc, width=320, name=flag[2]))
+            self.window.add(Menu.make([Dialog.get('refitwith', [Dialog.get('Tooth')])],
+                                      refit, desc, width=320, name=flag[2]))
         self.sub_window.display(1)
 
-    def menu_hire(self):
-        cost = self.var[0].attributes.get_total()
-        text = ['Will you hire this person for $' + str(cost) + '?']
-        panel = Menu.make(text, None, None, color=Window.fore_color_transparent, hover=False, width=320)
-        panel.normal_font_color = Window.font_color1
-        panel.hover_font_color = Window.font_color3
-        panel.redraw()
-        self.window.add(panel)
-
-        def hire(name):
-            if Global.player.character.require_var('money', cost):
-                from src.entity.unit.ai.Task import Follow
-                self.var[0].pilot.var['ally'] = Global.player.character.id
-                self.var[0].pilot.var['def'] = Follow(self.var[0].pilot)
+    def menu_skip(self):
+        if self.visible == 1:
             self.toggle()
-        self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-        self.window.add(Menu.make(['Hire'], hire, None, width=320))
-        self.sub_window.display(1)
-
-    def menu_beg(self):
-        if not self.host.states.get('Thirst'):
-            self.show_dialog(['You do not look desperate enough to beg. Go away.'])
-        elif self.var[0].attributes.gene % 4 == 0:
-            def beg(arg):
-                self.host.states.get('Thirst').end()
-                del self.var[0].var['business']
-                from src.entity.Particle import Particle
-                Particle.make('barrier', self.host.vec, offset=0)
-                self.toggle()
-            from src.tools.Data import Data
-            dialogs = Data.get_line('data/raw/conversation.txt', 'beg')[1:]
-            output = []
-            for sentence in dialogs:
-                new = ','.join(sentence)
-                output.append(new)
-            text = [output[self.var[0].attributes.gene % len(output)]]
-            panel = Menu.make(text, None, None, color=Window.fore_color_transparent, hover=False, width=320, resize=True)
-            panel.normal_font_color = Window.font_color1
-            panel.hover_font_color = Window.font_color3
-            panel.redraw()
-            self.window.add(panel)
-            self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-            self.window.add(Menu.make(['Beg'], beg, None, width=320))
-            self.sub_window.display(1)
-        else:
-            del self.var[0].var['business']
-            self.show_dialog(['Go away!'])
+        from src.entity.Space import Space
+        Global.player.travel('start', Space())

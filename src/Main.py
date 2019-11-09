@@ -22,11 +22,12 @@ class Main:
         pygame.font.init()
         self.background_color = (0, 0, 0)
         self.clock = pygame.time.Clock()
-        self.screen = pygame.display.set_mode(Global.DISPLAY, pygame.DOUBLEBUF, 16)
+        self.screen = pygame.display.set_mode(Global.DISPLAY, pygame.DOUBLEBUF|pygame.RESIZABLE|pygame.OPENGL, 16)
         self.overlay = pygame.Surface((Global.BLOCK, Global.BLOCK), pygame.SRCALPHA, 16)
         self.overlay = self.overlay.convert_alpha(self.overlay)
         self.colors = [[0, 0, 0, 0], [0, 0, 0, 0]]
         self.fade = 0
+        self.overlay_active = False
         Math.init()
         Global.r = Random()  # todo: set to constant on production
         Space.reusable = Space()
@@ -50,6 +51,8 @@ class Main:
         self.overlay.fill((0, 0, 0, 0))
         for layer in self.colors:
             self.overlay.fill(layer, special_flags=pygame.BLEND_RGBA_MAX)
+            if layer[3] != 0:
+                self.overlay_active = True
 
     def resize(self, width, height):
         Global.DISPLAY = (width, height)
@@ -61,18 +64,23 @@ class Main:
         Main.screen = pygame.display.set_mode(Global.DISPLAY, pygame.RESIZABLE, 16)
 
     def loop(self):
-        dt = 0
-        fps = 60
-        frame = 0
+        target = 17
         last = 0
+        total = 0
+        count = 0
         while not self.pause:
-            self.clock.tick(fps + dt)
-            dt = self.clock.get_time()
-            frame += 1
-            if frame > 100:
-                print(str(int(pygame.time.get_ticks() - last)/100))
-                last = pygame.time.get_ticks()
-                frame = 0
+            now = pygame.time.get_ticks()
+            elapsed = now - last
+            last = now
+            diff = target - elapsed
+            total += elapsed
+            ret = pygame.time.wait(diff)
+            # print('waited: ' + str(diff) + '  elapsed: ' + str(elapsed) + ' returned: ' + str(ret))
+            count += 1
+            if count > 99:
+                print(str(total / count))
+                count = 0
+                total = 0
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     Global.player.control.quit()
@@ -98,6 +106,8 @@ class Main:
             color = self.colors[0]
             self.colorize(0, [color[0], color[1], color[2], color[3]], self.fade)
             self.colors[0][3] = max(0, self.colors[0][3] - self.fade)
+            if self.colors[0][3] <= 0 and self.colors[1][3] <= 0:
+                self.overlay_active = False
         self.textbox.draw(self.screen)
         pygame.display.flip()
 

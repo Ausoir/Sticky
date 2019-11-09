@@ -1,5 +1,4 @@
 from src.entity.unit.item.Equipment import Equipment
-from src.game import Global
 from src.tools.Data import Data
 
 

@@ -1,4 +1,30 @@
-Repair Kit,Automatically repair items when spending time
+Pr.Dodge,Grants 1 Defense.
+Pr.Attack,Increase basic attack Attack by 1.
+Pr.Damage,Increase basic attack Damage by 1.
+Pr.Nimble,Minimize fall damage to 1 regardless of height.
+Pr.Lunge,Increase lunge Attack by 1.
+Pr.Charge,Increase charge Attack by 1.
+Pr.Peek,Increase peek range by 7.
+Pr.Block,Quadruple block defense.
+Pr.Tackle,Increase tackle Attack by 1.
+Pr.Lunge,Increase lunge Attack by 1.
+Pr.Leap,Increase leap range by 2.
+Pr.Flurry,Increase flurry Attack by 1.
+Pr.Charge,Halve stamina loss from charging.
+Pr.Slam,Hit 3 times instead of 2.
+Pr.Bow,Increase archery Attack and Damage by 1.
+Pr.Gun,Halve shooting delay.
+Sk.Peek,<SHIFT> + <RMB> to peek without being spotted
+Sk.Block,<S> to increase defense against incoming attacks
+Sk.Offhand,<Q> to swap weapon into offhand. Used for extra carriage or to improve block defense
+Sk.Sprint,<SHIFT> + <A> or <SHIFT> + <D> to move faster at the cost of stamina
+Sk.Tackle,Sprinting toward an enemy will knock it down and slow its movement
+Sk.Lunge,<S> + <LMB> to perform a knock back attack
+Sk.Leap,<SHIFT> + <W> to jump further toward the place you are pointing
+Sk.Flurry,<SHIFT> + <LMB> to attack in quick succession
+Sk.Charge,<SHIFT> + <E> to charge forward, knocking down and pushing away everything in path
+Sk.Slam,<SHIFT> + <Q> to attack with increased Attack and hit twice.
+Repair Kit,Repair items without resting
 Jelly,A blob of slime goo
 Fiber,A fibrous material that can be used to repair equipment
 Pocket,Attach to worn armor for an additional pocket slot at the cost of durability
@@ -16,13 +42,8 @@ Strong Glasses,Activate to look farther. <E> is activate by default
 Headband,Can be worn or be used on headgear to make it indestructible
 Safety Helmet,Activate to provide light. <E> is activate by default
 Manual,Learn martial arts
-Block,<S> to increase defense against incoming attacks. Improved with block proficiency
-Offhand,<Q> to swap weapon into offhand. Used for extra carriage or to improve block defense
-Sprint,<SHIFT> while moving to move faster
-Tackle,Sprinting toward an enemy will knock it down and slow its movement
-Lunge,Attacking while blocking performs a powerful knock back attack
-Leap,Hold <SHIFT> while jumping to jump further toward the place you are pointing
-Flurry,Hold <SHIFT> while attacking lets you attack in quick succession. Requires energy
+Perfume,Charm an enemy
+Handcuff,Capture an object
 Echo,Reveal sight of a location within sight range
 Dispell,Purge all magical effects in vicinity of caster
 Scry,Reveal sight of far away location

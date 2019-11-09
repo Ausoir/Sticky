@@ -1,4 +1,4 @@
-current
-13,0,sewer
-#0,[10,1],Player,Character,unit/man,[if,ii],396,[],[[Glow,-1,9]],1,[Manual,[]],[433,5,9,3,17,4,0],[sprint,charge,peek,slam],[],0,0,[#f,[14,-4],Jumpsuit,Armor,data/image/unit/jumpsuit,[],395,[],[],[3,2],1,0,0,[331,311],[[#c,[1,0],Alcohol,Explosive,g_6x7,[pf,pd],-1,[Bottle],[],[1,1]],[#d,[0,0],Pickaxe,Pickaxe,data/image/pickaxe,[im],5,[],[],[1,2],8,4,14,1,6,6]],[1]],[#e,[20,-4],Safety Helmet,SafetyHat,data/image/unit/safety_hat,[],-1,[],[],[2,1],-1,1,9],[protein:0,calories:0,power:Prophet,money:145,sign:Suicide,home:current]
+town
+0,0,instance
+#0,[-2,0],Player,Character,unit/man,[mat:Flesh,intel:1],245,[],1,manual,[1829,9,9,3,21,4,0],[sprint,charge,tackle,peek,slam],[dodge,peek],0,0,[#3c,[4,0],Jumpsuit,Armor,data/image/unit/jumpsuit,[],244,[],[3,2],333,0,0,[211,111],[],[-1]],[#3b,[20,-4],Safety Helmet,SafetyHat,data/image/unit/safety_hat,[],-1,[],[2,1],-1,1,9],[protein:0,calories:0,talent:None,money:14,sign:Accident,home:town,debt:0]
 

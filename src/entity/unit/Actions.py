@@ -1,15 +1,15 @@
 import random
 
+from src.entity.Particle import Particle
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
-from src.game import Global
 from src.map.Tile import Tile
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck', 'power',
+    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck', 'attack',
                'run_left', 'run_right', 'pocket_1', 'pocket_2', 'pocket_3', 'pocket_4',
-               'trinket', 'attack']
+               'power_1', 'power_2', 'power_3', 'power_4', 'trinket']
     priority = ['down', 'hit']
 
     def __init__(self, host):
@@ -93,18 +93,34 @@ class Actions:
 
     def wield(self, pocket):
         if len(self.host.armor.pockets) > pocket:
-            item = self.host.armor.get_item(self.host.armor.pockets[pocket])
-            armed = self.host.is_armed()
-            if item and not armed:
-                item.on_equip(self.host)
-            elif not item and armed:
-                rows = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2], [3, 0], [3, 1], [3, 2]]
-                for i in rows:
+            if self.host.is_armed():
+                item = None
+                pos = None
+                if self.host.armor.pockets[pocket] != -1:
+                    pos = self.host.armor.items[self.host.armor.pockets[pocket]].pos.to_list()
+                    item = self.host.armor.get_item(self.host.armor.pockets[pocket])
                     weapon = self.host.weapon
+                    item.on_equip(self.host)
+                else:
+                    weapon = self.host.weapon
+                fit = False
+                rows = [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]]
+                for i in rows:
                     if self.host.armor.is_vacant(weapon, i[0], i[1]):
+                        fit = True
                         self.host.drop()
                         self.host.armor.pockets[pocket] = self.host.armor.add_inventory(weapon, i[0], i[1])
                         break
+                if item:
+                    if fit:
+                        item.on_equip(self.host)
+                    else:
+                        self.host.armor.pockets[pocket] = self.host.armor.add_inventory(item, pos[0], pos[1])
+                        weapon.on_equip(self.host)
+            else:
+                item = self.host.armor.get_item(self.host.armor.pockets[pocket])
+                if item:
+                    item.on_equip(self.host)
         self.make(animation='block', turn=2)
 
     def pocket_1(self):
@@ -125,6 +141,30 @@ class Actions:
                 self.host.headgear.activate()
             self.on_finish = fin
             self.make(animation='cast', turn=4)
+
+    def ability(self, arg):
+        from src.entity.unit.AdvAction import AdvAction
+        from src.entity.unit.Character import Character
+        name = Character.get_var(self.host, arg)
+        if name:
+            ability = AdvAction.get(self.host, name.title())
+            if ability and ability.is_valid():
+                if self.host.stamina(ability.energy):
+                    self.on_finish = ability.on_cast
+                    ability.on_start()
+                    self.make(animation=ability.animation, turn=ability.delay)
+
+    def power_1(self):
+        self.ability('power1')
+
+    def power_2(self):
+        self.ability('power2')
+
+    def power_3(self):
+        self.ability('power3')
+
+    def power_4(self):
+        self.ability('power4')
 
     def left(self):
         self.host.face(-1)
@@ -217,7 +257,8 @@ class Actions:
             if self.host.gravity:
                 from src.game.Interaction import Interaction
                 if Interaction.trigger(self.host.pos):
-                    self.make(animation='interact', turn=4)
+                    if self.host.action.current_action == 'duck':
+                        self.make(animation='interact', turn=4)
                 else:
                     self.attempt('block')
             else:
@@ -241,8 +282,7 @@ class Actions:
                 else:
                     from src.entity.unit.Character import Character
                     self.host.location.sound.register(self.host.pos, 3)
-                    if not Character.check_var(self.host, 'power', 'Warrior'):
-                        self.host.attributes.leg += 2
+                    self.host.attributes.leg += 2
                     destination = self.host.get_offset_tile(self.host.direction, -1)
                     if destination.is_land(Tile.CHECK_FIRM):
                         self.host.move(0, -1)
@@ -270,8 +310,9 @@ class Actions:
         def fin():
             self.host.center_camera()
         self.on_finish = fin
+        prof = self.host.get_proficiency('peek') * 7 + 1
         new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                                  distance=1, flag=Tile.CHECK_LARGE)
+                                                  distance=prof, flag=Tile.CHECK_LARGE)
         from src.game.TempObject import TempObject
         viewer = TempObject(new_pos)
         from src.game.Camera import Camera
@@ -285,7 +326,7 @@ class Actions:
         else:
             self.host.location.sound.register(self.host.pos, 5)
             from src.entity.unit.Character import Character
-            if not Character.check_var(self.host, 'power', 'Warrior'):
+            if not Character.check_var(self.host, 'talent', 'Scout'):
                 self.host.attributes.leg += 1
             self.host.move(self.host.direction, 0)
             self.make(turn=max(0, -self.host.attributes.speed))
@@ -305,9 +346,12 @@ class Actions:
 
     def swing(self):
         self.host.attributes.body += self.host.weapon.weight
-        self.host.weapon.rotation = 60
-        self.host.form.rotate_appendage(19, 0, self.host.next_target, offset=50)
-        self.host.weapon.attack()
+        if self.host.is_armed():
+            self.host.weapon.rotation = 40
+            self.host.form.rotate_appendage(19, 0, self.host.next_target, offset=45)
+        else:
+            self.host.form.rotate_appendage(19, 0, self.host.next_target, offset=15)
+        self.host.weapon.attack(self.host.get_proficiency('attack'))
         if self.host.weapon.speed < 4:
             self.make(animation='slash', turn=self.host.weapon.speed)
         else:
@@ -317,7 +361,8 @@ class Actions:
         if not self.host.attributes.exert(1, 6):
             degree = self.host.next_target.get_atan()
             from src.tools.Math import Math
-            self.host.move(round(Math.cos(degree) * 2.4), round(Math.sin(degree) * 2.4))
+            prof = self.host.get_proficiency('leap') * 2 + 2.4
+            self.host.move(round(Math.cos(degree) * prof), round(Math.sin(degree) * prof))
             self.make(animation='jump', turn=3)
 
     def lunge(self):
@@ -330,7 +375,7 @@ class Actions:
             self.host.move(self.host.direction, 0)
             rand = random.randint(-12, 12)
             self.host.form.rotate_appendage(39, 0, self.host.next_target, offset=rand)
-            prof = self.host.get_proficiency('lunge')
+            prof = self.host.get_proficiency('lunge') * 2
             self.host.weapon.attack(delay=2, chance=prof, callback=hit)
             self.make(turn=2 + self.host.weapon.speed - prof)
 
@@ -343,8 +388,9 @@ class Actions:
         if not self.host.attributes.exert(1, 6):
             self.host.location.sound.register(self.host.pos, 5)
             self.host.move(self.host.direction, 0)
+            prof = self.host.get_proficiency('tackle') + 1
             self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
-                                               hitter=self.host, callback=hit)
+                                               chance=prof, hitter=self.host, callback=hit)
             self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM)
             self.make(animation='kick', turn=3)
             return True
@@ -363,12 +409,14 @@ class Actions:
             self.make(animation='rest', turn=2)
 
     def slam(self):
-        if not self.host.attributes.exert(1, 3):
+        if not self.host.attributes.exert(1, 9):
             self.host.location.sound.register(self.host.pos, 9)
             self.host.attributes.body += self.host.weapon.weight + 2
             self.host.weapon.rotation = 10
-            self.host.weapon.attack(chance=self.host.get_proficiency('slam') * 2 + 2, delay=5)
-            self.host.weapon.attack(chance=self.host.get_proficiency('slam') * 2 + 2, delay=5)
+            self.host.weapon.attack(chance=2, delay=5)
+            self.host.weapon.attack(chance=2, delay=5)
+            if self.host.get_proficiency('slam'):
+                self.host.weapon.attack(chance=2, delay=5)
             self.make(turn=7)
             return True
         else:
@@ -376,7 +424,9 @@ class Actions:
 
     def charge(self):
         def hit(victim):
-            victim.move(self.host.direction, 0)
+            from src.game.Tags import Tags
+            if Tags.back not in victim.tags:
+                victim.move(self.host.direction * 2, 0)
             if isinstance(victim, Unit):
                 self.knockdown(victim)
                 victim.states.add('Cripple', 40, var=1)
@@ -388,7 +438,8 @@ class Actions:
             else:
                 self.make(animation='rest', turn=2)
         else:
-            self.host.attributes.exert(1, 1)
+            prof = 1 - self.host.get_proficiency('charge')
+            self.host.attributes.exert(1, 1 + prof)
             self.host.location.sound.register(self.host.pos, 7)
             self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
                                                hitter=self.host, callback=hit)
@@ -402,53 +453,64 @@ class Actions:
 
     def arch(self):
         def fin():
+            def check_collision():
+                col = r.pos.is_land(Tile.CHECK_FIRM)
+                if not col:
+                    for i in r.pos.things:
+                        if isinstance(i, Unit) and i.faction != r.faction:
+                            return True
+                return col
+
             def collision():
                 r.remove()
                 r.location.attack.register(rating, r.pos, delay=0, chance=rating, hitter=self.host, faction=r.faction)
-            r = Stock.make('Arrow', self.host.get_interact_pos())
+            r = Stock.make('Arrow', self.host.get_front_tile())
             r.faction = self.host.faction
             r.shoot(dest.x, dest.y)
+            r.is_collide = check_collision
             r.on_collide = collision
             self.host.weapon.rotation = orig_rot
-        rating = 1 + self.host.get_proficiency('arch')
+        rating = 1 + self.host.get_proficiency('bow')
         orig_rot = self.host.weapon.rotation
         self.host.weapon.rotation = 0
         self.host.attributes.exert(0, self.host.weapon.weight)
         dest = self.host.next_target
         self.host.form.rotate_appendage(32, 0, self.host.next_target)
+        self.host.form.rotate_appendage(33, 3, self.host.next_target, offset=-60)
         self.host.form.rotate_appendage(33, 0, self.host.next_target)
         self.on_finish = fin
         self.make(turn=9)
 
     def shoot(self):
         def fin():
+            def check_collision():
+                col = r.pos.is_land(Tile.CHECK_FIRM)
+                if not col:
+                    for i in r.pos.things:
+                        if isinstance(i, Unit) and i.faction != r.faction:
+                            return True
+                return col
+
             def collision():
                 r.remove()
-                r.location.attack.register(rating, r.pos, delay=0, chance=20, hitter=self.host, faction=r.faction)
-            r = Stock.make('Bullet', self.host.get_interact_pos())
+                r.location.attack.register(3, r.pos, delay=0, chance=20, hitter=self.host, faction=r.faction)
+                Particle.make('slash', r.vec)
+            r = Stock.make('Bullet', self.host.get_front_tile())
             r.gravity = False
             r.friction = 1
             r.lifetime = 10
             r.faction = self.host.faction
             r.shoot(dest.x, dest.y)
+            r.is_collide = check_collision
             r.on_collide = collision
             self.host.weapon.rotation = orig_rot
-        rating = (1 + self.host.get_proficiency('shoot')) * 3
+        rating = 7 - (self.host.get_proficiency('gun') * 3)
         orig_rot = self.host.weapon.rotation
         self.host.weapon.rotation = 0
         self.host.attributes.exert(0, self.host.weapon.weight)
         dest = self.host.next_target
-        self.host.form.rotate_appendage(32, 0, self.host.next_target)
-        self.host.form.rotate_appendage(33, 0, self.host.next_target)
+        self.host.form.rotate_appendage(29, 0, self.host.next_target)
+        self.host.form.rotate_appendage(29, 5, self.host.next_target)
+        self.host.form.rotate_appendage(29, 3, self.host.next_target, offset=-60)
         self.on_finish = fin
-        self.make(animation='block', turn=7)
-
-    def power(self):
-        from src.entity.unit.Powers import Power
-        from src.entity.unit.Character import Character
-        power = Power.get(self.host, Character.get_var(self.host, 'power').title())
-        if power and power.is_valid():
-            if self.host.stamina(power.stamina):
-                self.on_finish = power.on_cast
-                power.on_start()
-                self.make(animation=power.animation, turn=power.delay)
+        self.make(animation='block', turn=rating)

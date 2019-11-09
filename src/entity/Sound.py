@@ -34,5 +34,5 @@ class Sound:
         for i in tiles:
             tile = self.location.get_tile(i)
             for thing in tile.things:
-                if isinstance(thing, Unit) and Tags.listener in thing.tags:
+                if isinstance(thing, Unit) and 'hear' in thing.tags:
                     thing.pilot.hear(data[0])

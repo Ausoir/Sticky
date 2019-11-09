@@ -5,47 +5,43 @@ from src.game.Crafting import Crafting
 from src.interface.CanvasWindow import CanvasWindow
 from src.interface.Menu import Menu
 from src.interface.Window import Window
+from src.tools.Dialog import Dialog
 
 
 class MenuPlayer(Menu):
     def menu_main(self):
-        self.window.add(Menu.make(['Character'], lambda x: self.direct(self.menu_character), None))
-        self.window.add(Menu.make(['Equipment'], lambda x: self.direct(self.menu_equipment), None))
+        self.window.add(Menu.make([Dialog.get('character')], lambda x: self.direct(self.menu_character), None))
+        self.window.add(Menu.make([Dialog.get('equipment')], lambda x: self.direct(self.menu_equipment), None))
         if len(Global.player.knowledge) > 0:
-            self.window.add(Menu.make(['Knowledge'], lambda x: self.direct(self.menu_knowledge), None))
+            self.window.add(Menu.make([Dialog.get('knowledge')], lambda x: self.direct(self.menu_knowledge), None))
+        if self.host.action.skills or self.host.proficiency:
+            self.window.add(Menu.make([Dialog.get('skill')], lambda l: self.direct(self.menu_martial), None))
 
     def menu_character(self):
         color = Window.fore_color_transparent
-        rmb = self.get_message(['Hit Point represents how many attacks you can endure.',
-                                'Hit Point is usually equal to your armor durability + 1.'])
-        self.sub_window.add(Menu.make([str(self.host.durability) + ' HP'], rmb, rmb, color=color))
-        rmb = self.get_message(['Strength represents your maximum stamina.',
-                                'More stamina allows you to perform actions without having to rest.',
-                                'Increase this stat by finding a target dummy or find a trainer.',
-                                'Protein is required to level up this attribute.'])
-        self.sub_window.add(Menu.make([str(self.host.attributes.strength) + ' Strength'], rmb, rmb, color=color))
-        rmb = self.get_message(['Agility represents your maximum encumbrance.',
-                                'More encumbrance allows you to wear more advanced equipment.',
-                                'Increase this stat by finding a target dummy or find a trainer.',
-                                'Calories are required to level up this attribute.'])
-        self.sub_window.add(Menu.make([str(self.host.attributes.agility) + ' Agility'], rmb, rmb, color=color))
-        rmb = self.get_message(['Intelligence represents your maximum memory.',
-                                'More memory allows you to craft more spells and items from memory.',
-                                'Increase this stat by casting Clairvoyance or find a trainer.',
-                                'Calories are required to level up this attribute.'])
-        self.sub_window.add(Menu.make([str(self.host.attributes.intelligence) + ' Intelligence'], rmb, rmb, color=color))
-        if self.host.var['power'] != 'Power':
-            rmb = self.get_message(['Energy is required to perform some unique skills.',
-                                    'Energy can be restored by resting at a bed or sofa.',
-                                    'Maximum Energy is equal to the sum of Strength, Agility, and Intelligence.'])
-            self.sub_window.add(Menu.make([str(self.host.attributes.breath) + ' Energy'], rmb, rmb, color=color))
-        self.window.add(Menu.make(['Status'], lambda l: self.direct(self.menu_status), None))
-        if self.host.states.buffs:
-            self.window.add(Menu.make(['Condition'], lambda l: self.direct(self.menu_effects), None))
-        if self.host.proficiency:
-            self.window.add(Menu.make(['Proficiency'], lambda l: self.direct(self.menu_proficiency), None))
-        if self.host.action.skills:
-            self.window.add(Menu.make(['Skills'], lambda l: self.direct(self.menu_martial), None))
+        rmb = self.get_message([Dialog.get('dsc_HP')])
+        text = [str(self.host.durability) + ' ' + Dialog.get('HP')]
+        self.window.add(Menu.make(text, rmb, rmb, color=color))
+        rmb = self.get_message([Dialog.get('dsc_STR', [self.host.var['protein']])])
+        text = [str(self.host.attributes.strength) + ' ' + Dialog.get('Strength')]
+        self.window.add(Menu.make(text, rmb, rmb, color=color))
+        rmb = self.get_message([Dialog.get('dsc_AGI', [self.host.var['calories']])])
+        text = [str(self.host.attributes.agility) + ' ' + Dialog.get('Agility')]
+        self.window.add(Menu.make(text, rmb, rmb, color=color))
+        rmb = self.get_message([Dialog.get('dsc_INT', [self.host.var['calories']])])
+        text = [str(self.host.attributes.intelligence) + ' ' + Dialog.get('Intelligence')]
+        self.window.add(Menu.make(text, rmb, rmb, color=color))
+        if 'power_1' in self.host.var:
+            rmb = self.get_message([Dialog.get('dsc_ENG')])
+            text = [str(self.host.attributes.breath) + ' ' + Dialog.get('Energy')]
+            self.window.add(Menu.make(text, rmb, rmb, color=color))
+        rmb = self.get_message([Dialog.get('dsc_location')])
+        self.sub_window.add(Menu.make([Global.player.character.location.name.title()], rmb, rmb, color=None))
+        rmb = self.get_message([Dialog.get('dsc_date')])
+        self.sub_window.add(Menu.make([Dialog.date(Global.player.days)], rmb, rmb, color=None))
+        rmb = self.get_message([Dialog.get('dsc_hunger')])
+        if self.host.states.get('Hunger'):
+            self.sub_window.add(Menu.make([Dialog.get('Hungry')], rmb, rmb, color=None))
         self.sub_window.display(1)
 
     def menu_knowledge(self):
@@ -53,9 +49,9 @@ class MenuPlayer(Menu):
         for i in Global.player.knowledge:
             count += 1
             if Global.player.is_spell(i):
-                rmb = self.get_message((Crafting.describe(i) + '\nCraft this spell at a Desk.').split('\n'))
+                rmb = self.get_message((Crafting.describe(i) + '\n' + Dialog.get('dsc_craftDesk')).split('\n'))
             else:
-                rmb = self.get_message((Crafting.describe(i) + '\nCraft this item at a Workbench.').split('\n'))
+                rmb = self.get_message((Crafting.describe(i) + '\n' + Dialog.get('dsc_craftWorkbench')).split('\n'))
             button = Menu.make([i], rmb, rmb, resize=False)
             if count <= 6:
                 self.window.add(button)
@@ -72,14 +68,15 @@ class MenuPlayer(Menu):
         key_buttons = []
         for k, v in control.keymap.items():
             if v.startswith('pocket_'):
-                button = Menu.make(['Key [' + control.get_key_name(k) + ']'], None, None, color=(0, 0, 0, 0))
+                text = [Dialog.get('Key') + ' [' + control.get_key_name(k) + ']']
+                button = Menu.make(text, None, None, color=(0, 0, 0, 0))
                 button.hover_font_color = None
                 key_buttons.append(button)
                 self.window.add(button)
         for k, v in enumerate(self.host.armor.pockets):
             if v == -1:
-                desc = self.get_message(['Click to assign item.'])
-                action_button = Menu.make(['<Assign>'], assign, desc, name=k)
+                desc = self.get_message([Dialog.get('assign item')])
+                action_button = Menu.make(['<' + Dialog.get('Assign') + '>'], assign, desc, name=k)
             else:
                 action_button = Menu.make([self.host.armor.items[v].name], assign, None, name=k)
             self.sub_window.add(action_button)
@@ -118,7 +115,7 @@ class MenuPlayer(Menu):
                     self.host.drop()
                     self.host.armor.add_inventory(weapon, arg[0], arg[1])
                 else:
-                    Global.player.character.say(weapon.get_display_name() + ' cannot fit in there!')
+                    Global.player.character.say(Dialog.get('cant fit', [weapon.get_display_name()]))
             else:
                 item = self.host.armor.get_item_at(arg[0], arg[1], pop=1)
                 if item:
@@ -129,7 +126,7 @@ class MenuPlayer(Menu):
                     self.host.action.on_finish = change
                     self.host.delay = 12
                 else:
-                    Global.player.character.say('Nothing to store in that inventory slot!')
+                    Global.player.character.say(Dialog.get('cant store'))
             self.state = self.menu_equipment
             self.display(1)
 
@@ -138,39 +135,39 @@ class MenuPlayer(Menu):
             if item:
                 self.show_dialog(item.describe().split('\n'))
             else:
-                self.show_dialog(['This is an inventory slot. Click on this slot while holding an item small enough.'])
+                self.show_dialog([Dialog.get('dsc_inventoryslot')])
 
         rmb = self.get_message(self.host.headgear.describe().split('\n'))
         display = self.host.headgear.get_display_name()
         if not self.host.is_headgeared():
-            display = '<No Accessory>'
+            display = '<' + Dialog.get('noaccessory') + '>'
         self.window.add(Menu.make([display], click_headgear, rmb, resize=False))
         rmb = self.get_message(self.host.armor.describe().split('\n'))
         display = self.host.armor.get_display_name()
         if not self.host.is_armored():
-            display = '<No Armor>'
+            display = '<' + Dialog.get('noarmor') + '>'
         self.window.add(Menu.make([display], click_armor, rmb, resize=False))
         if len(self.host.armor.pockets) > 0:
             rmb = self.get_message(['Designate items for quick access.'])
-            button = Menu.make(['Pockets'], lambda l: self.direct(self.menu_pocket), rmb, color=Window.fore_color3)
+            button = Menu.make([Dialog.get('Pockets')], lambda l: self.direct(self.menu_pocket), rmb, color=Window.fore_color3)
             self.window.add(button)
         if 'offhand' in self.host.action.skills:
             rmb = self.get_message(self.host.offhand.describe().split('\n'))
             display = self.host.offhand.get_display_name()
             if not self.host.is_shielded():
-                display = '<No Offhand>'
+                display = '<' + Dialog.get('nooffhand') + '>'
             self.window.add(Menu.make([display], lambda l: self.host.swap(), rmb, resize=False))
         rmb = self.get_message(self.host.weapon.describe().split('\n'))
         display = self.host.weapon.get_display_name()
         if not self.host.is_armed():
-            display = '<No Weapon>'
+            display = '<' + Dialog.get('noweapon') + '>'
         self.window.add(Menu.make([display], lambda l: self.host.drop(), rmb, resize=False))
         if self.host.armor.get_inventory_slots() > 0:
-            rmb = self.get_message(['Each white square below represents an empty inventory slot.'])
-            inventory = Menu.make(['Inventory Slots'], rmb, rmb, color=Window.fore_color_transparent)
+            rmb = self.get_message([Dialog.get('dsc_inventory')])
+            inventory = Menu.make([Dialog.get('inventoryslots')], rmb, rmb, color=Window.fore_color_transparent)
         else:
-            rmb = self.get_message(['Your armor does not provide any inventory space.'])
-            inventory = Menu.make(['No Inventory'], rmb, rmb, color=Window.fore_color_transparent)
+            rmb = self.get_message([Dialog.get('dsc_noinventory')])
+            inventory = Menu.make([Dialog.get('noinventory')], rmb, rmb, color=Window.fore_color_transparent)
         self.sub_window.add(inventory)
         for ky, vy in enumerate(self.host.armor.inventory):
             for kx, vx in enumerate(vy):
@@ -203,70 +200,81 @@ class MenuPlayer(Menu):
         self.sub_window.display(1)
 
     def menu_status(self):
-        rmb = self.get_message(['Your current location.'])
-        self.window.add(Menu.make(['Location'], rmb, rmb, color=None))
+        rmb = self.get_message([Dialog.get('dsc_location')])
+        self.window.add(Menu.make([Dialog.get('Location')], rmb, rmb, color=None))
         self.sub_window.add(Menu.make([Global.player.character.location.name.title()], rmb, rmb, color=None))
-        rmb = self.get_message(['Current date, in YYYY/MM/DD format.'])
-        self.window.add(Menu.make(['Date'], rmb, rmb, color=None))
-        from src.tools.Dialog import Dialog
+        rmb = self.get_message([Dialog.get('dsc_date')])
+        self.window.add(Menu.make([Dialog.get('Date')], rmb, rmb, color=None))
         self.sub_window.add(Menu.make([Dialog.date(Global.player.days)], rmb, rmb, color=None))
-        rmb = self.get_message(['You cannot perform time consuming actions like resting or travelling while thirsty.',
-                                'Become quenched by putting drinkable items in inventory or drinking them manually.'])
-        if self.host.states.get('Thirst'):
-            self.window.add(Menu.make(['Thirsty'], rmb, rmb, color=None))
-        else:
-            self.window.add(Menu.make(['Quenched'], rmb, rmb, color=None))
-        self.sub_window.add(Menu.make([''], None, None, color=None, hover=False))
+        rmb = self.get_message([Dialog.get('dsc_hunger')])
+        if self.host.states.get('Hunger'):
+            self.window.add(Menu.make([Dialog.get('Hungry')], rmb, rmb, color=None))
+            self.sub_window.add(Menu.make([''], None, None, color=None, hover=False))
         if self.host.var['calories'] > 0:
-            rmb = self.get_message(['Calories are essential for training Agility and Intelligence.',
-                                    'You cannot consume food while you have calories more than 0.'])
-            self.window.add(Menu.make(['Calories'], rmb, rmb, color=None))
+            rmb = self.get_message([Dialog.get('dsc_calories')])
+            self.window.add(Menu.make([Dialog.get('Calories')], rmb, rmb, color=None))
             self.sub_window.add(Menu.make([str(self.host.var['calories'])], None, None, color=None))
         if self.host.var['protein'] > 0:
-            rmb = self.get_message(['Protein are essential for training Strength.'])
-            self.window.add(Menu.make(['Protein'], rmb, rmb, color=None))
+            rmb = self.get_message([Dialog.get('dsc_protein')])
+            self.window.add(Menu.make([Dialog.get('Protein')], rmb, rmb, color=None))
             self.sub_window.add(Menu.make([str(self.host.var['protein'])], None, None, color=None))
         self.sub_window.display(1)
 
-    def menu_proficiency(self):
-        count = 0
-        for i in self.host.proficiency:
-            button = Menu.make([i.title()], None, None)
-            if count < 6:
-                self.window.add(button)
-            else:
-                self.sub_window.add(button)
-            count += 1
-        self.sub_window.display(1)
-
     def menu_martial(self):
-        count = 0
+        from src.entity.unit.item.Item import Item
+        buttons = []
         for i in self.host.action.skills:
-            button = Menu.make([i.title()], None, None)
-            if count < 6:
-                self.window.add(button)
-            else:
-                self.sub_window.add(button)
+            name = i.title()
+            rmb = self.get_message(Item.description['Sk.' + name].split('\n'))
+            button = Menu.make([name], rmb, rmb, color=None)
+            buttons.append(button)
+        for i in self.host.proficiency:
+            name = i.title()
+            rmb = self.get_message(Item.description['Pr.' + name].split('\n'))
+            button = Menu.make([name + ' Expertise'], rmb, rmb, color=None)
+            buttons.append(button)
+        count = 0
+        for i in buttons:
             count += 1
+            if count < 6:
+                self.window.add(i)
+            else:
+                self.sub_window.add(i)
         self.sub_window.display(1)
 
     def menu_effects(self):
         for i in self.host.states.buffs:
-            rmb = self.get_message(i.describe().split('\n'))
-            self.window.add(Menu.make([i.name.title()], rmb, rmb, color=Window.fore_color_transparent))
             if i.duration == -1:
-                dur = 'Persistent'
+                dur = Dialog.get('persistent')
             else:
                 dur = str(i.duration)
-            self.sub_window.add(Menu.make([dur], None, None, color=Window.fore_color_transparent))
+            rmb = self.get_message(i.describe().split('\n') + ['Duration: ' + dur])
+            self.window.add(Menu.make([i.name.title()], rmb, rmb, color=Window.fore_color_transparent))
+            self.sub_window.add(Menu.make([dur], None, None, color=Window.fore_color_transparent, hover=False))
         self.sub_window.display(1)
 
-    def menu_dead(self):
-        if self.var[0] == 0:
-            self.show_dialog(['You die...', 'Sign: ' + self.var[1]])
-        elif self.var[0] == 1:
-            self.show_dialog(['You have been revived by your medical guild.',
-                              'Your insurance expires.', 'Good luck!'])
+    def menu_travel(self):
+        self.history = [self.menu_travel]
+        self.history_var = [self.var]
+        if len(self.var) > 3:
+            destination = self.var[3]
         else:
-            self.show_dialog(['Your ' + self.var[2] + ' insurance does not cover death via ' + self.var[1] + '.',
-                              ' You die...'])
+            destination = self.var[0].title()
+        text = [Dialog.get('travelto?', [destination])]
+        panel = Menu.make(text, None, None, color=Window.fore_color_transparent, hover=False, width=320)
+        panel.normal_font_color = Window.font_color1
+        panel.hover_font_color = Window.font_color3
+        panel.redraw()
+        self.window.add(panel)
+        from src.entity.Space import Space
+
+        def travel(name):
+            if Global.player.eat():
+                Global.player.sleep(1)
+                Global.player.travel(self.var[0], Space(int(self.var[1]), int(self.var[2])))
+            else:
+                self.toggle()
+        rmb = self.get_message([Dialog.get('travelto', [destination])])
+        self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
+        self.window.add(Menu.make([Dialog.get('Travel')], travel, rmb, width=320))
+        self.sub_window.display(1)

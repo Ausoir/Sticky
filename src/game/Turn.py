@@ -4,10 +4,12 @@ class Turn:
     remove_queue = None
     frame = 0
     queue_turn = 0
+    rounds = 1
 
     @staticmethod
     def init():
         Turn.queue = [[], [], [], [], [], [], [], [], [], []]
+        Turn.rounds = len(Turn.queue)
         Turn.fast_queue = []
         Turn.remove_queue = []
         Turn.frame = 0
@@ -25,14 +27,14 @@ class Turn:
         for i in Turn.fast_queue:
             i()
         Turn.frame += 1
-        if Turn.frame >= 10:
+        if Turn.frame >= Turn.rounds:
             Turn.frame = 0
 
     @staticmethod
     def add(arg):
         Turn.queue[Turn.queue_turn].append(arg)
         Turn.queue_turn += 1
-        if Turn.queue_turn >= 10:
+        if Turn.queue_turn >= Turn.rounds:
             Turn.queue_turn = 0
 
     @staticmethod

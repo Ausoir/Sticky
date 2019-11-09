@@ -36,11 +36,17 @@ class Humanoid(Unit):
         head = Data.run_cache(Humanoid.faces[self.attributes.gene % len(Humanoid.faces)])
         self.form.organs[3].set(head)
         if p[index]:
-            weapon = Stock.get(p[index][2], p[index])
+            if isinstance(p[index], str):
+                weapon = Stock.get(p[index])
+            else:
+                weapon = Stock.get(p[index][2], p[index])
             weapon.on_equip(self)
         index += 1
         if p[index]:
-            offhand = Stock.get(p[index][2], p[index])
+            if isinstance(p[index], str):
+                offhand = Stock.get(p[index])
+            else:
+                offhand = Stock.get(p[index][2], p[index])
             weapon = self.weapon
             offhand.on_equip(self)
             self.offhand = self.weapon
@@ -49,14 +55,20 @@ class Humanoid(Unit):
         self.headgear = self.head
         index += 1
         if p[index]:
-            armor = Stock.get(p[index][2], p[index])
+            if isinstance(p[index], str):
+                armor = Stock.get(p[index])
+            else:
+                armor = Stock.get(p[index][2], p[index])
             armor.host = self
             armor.use()
         else:
             self.make_armor()
         index += 1
         if p[index]:
-            headgear = Stock.get(p[index][2], p[index])
+            if isinstance(p[index], str):
+                headgear = Stock.get(p[index])
+            else:
+                headgear = Stock.get(p[index][2], p[index])
             headgear.host = self
             headgear.use()
         else:
@@ -69,8 +81,6 @@ class Humanoid(Unit):
 
     def turn(self):
         super().turn()
-        if self.action.current_action == 'idle':
-            self.weapon.rotation = 60
         self.weapon.states.update()
 
     def use(self):
@@ -135,13 +145,13 @@ class Humanoid(Unit):
     def get_dodge(self):
         if self.action.current_action == 'down':
             return 0
-        r = self.get_proficiency('dodge') + self.armor.armor
         if self.action.current_action == 'block':
+            r = self.offhand.weight * 4 + 4
             if self.get_proficiency('block'):
-                return self.offhand.weight * 10 + 10
-            else:
-                r += self.offhand.weight * 4 + 4
-        return r
+                return r * 4
+            return r
+        else:
+            return self.get_proficiency('dodge') + self.armor.armor
 
     def get_hitter(self):
         return self.weapon
@@ -166,8 +176,10 @@ class Humanoid(Unit):
 
     def drop(self):
         if self.is_armed():
+            r = self.weapon
             self.weapon.on_unequip()
             self.make_fist()
+            return r
 
     def unarmor(self):
         if self.is_armored():

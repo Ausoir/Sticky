@@ -18,12 +18,4 @@ Ruby,15
 Cobalt,15
 Amber,12
 Silver,8
-Bread,2
-Burger,2
-Cheese,2
-Drumstick,2
-Fish,2
-Fruit,2
-Sandwich,2
-Vegetable,2
-Jerky,2
+Bow,7

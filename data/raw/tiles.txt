@@ -39,3 +39,9 @@ sand edge left,g_14x2,1,1,0,0
 sand edge right,g_14x2,1,0,0,0
 sand corner left,g_15x2,1,1,0,0
 sand corner right,g_15x2,1,0,0,0
+mound,g_2x2,2,0,0,0
+mound top,g_3x2,4,0,0,0
+mound left,g_4x2,4,1,0,1
+mound right,g_4x2,4,0,0,1
+mound edge left,g_4x2,4,1,0,1
+mound edge right,g_4x2,4,0,0,1

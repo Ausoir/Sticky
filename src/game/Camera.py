@@ -33,5 +33,6 @@ class Camera:
         rel = Camera.get_relative_pos(Camera.pos[0], Camera.pos[1])
         sight = [Camera.sight[0] * Global.BLOCK, Camera.sight[1] * Global.BLOCK]
         in_x = -rel[0] - sight[0] < x < -rel[0] + sight[0]
+
         in_y = -rel[1] - sight[1] < y < -rel[1] + sight[1]
         return in_x and in_y

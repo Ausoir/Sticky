@@ -46,30 +46,33 @@ class Tile(Space):
         self.terrain = Terrain.load_from_name(self * [Global.BLOCK, Global.BLOCK], terrain)
         return self.terrain
 
-    def draw(self, surface):
+    def get_depth(self):
         if self.terrain:
-            if self.terrain.background:
-                pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-                surface.blit(Global.player.background.image, pos,
-                             (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
-            self.terrain.draw(surface)
-        else:
+            if self.terrain.type == 1:
+                return 2
+            return 1
+        return 0
+
+    def draw(self, surface):
+        self.terrain.draw(surface)
+
+    def draw_background(self, surface):
+        pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
+        surface.blit(Global.player.background.image, pos,
+                     (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
+
+    def draw_overlay(self, surface):
+        if self.light <= 0 and Global.main.fade != 0:
             pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-            surface.blit(Global.player.background.image, pos,
-                         (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
+            surface.blit(Global.main.overlay, (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
+        else:
+            self.light -= 1
 
     def update(self, loc):
         self.frame += 1
         if self.frame != loc.update_frame:
             self.light = 0
             self.frame = loc.update_frame
-
-    def draw_overlay(self, surface):
-        if self.light <= 0:
-            pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-            surface.blit(Global.main.overlay, (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
-        else:
-            self.light -= 1
 
     def get_vec(self):
         return self * Global.BLOCK
@@ -82,7 +85,7 @@ class Tile(Space):
 
     def is_climbable(self):
         for i in self.things:
-            if Tags.climb in i.tags:
+            if 'climb' in i.tags:
                 return 1
         return 0
 
@@ -91,6 +94,8 @@ class Tile(Space):
             if self.terrain.type == 1 and Tile.COLLIDE_TERRAIN in check:
                 return 1
             elif self.terrain.type == 3 and Tile.COLLIDE_FOG in check:
+                return 1
+            elif self.terrain.type == 4 and Tile.COLLIDE_DOODAD in check:
                 return 1
         for i in self.things:
             if i.collision_type in check:

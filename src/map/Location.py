@@ -18,6 +18,16 @@ from src.tools.Random import Random
 
 
 class Location:
+    @staticmethod
+    def make(target, alias, overwrite=True):
+        if overwrite or not Data.is_file('data/save/' + target + '.map'):
+            r = Location(alias, list(Data.process_raw(Data.read('data/map/' + target + '.map'))))
+            from src.entity.Other import Script
+            for obj in r.record.copy():
+                if isinstance(obj, Script):
+                    obj.trigger_make()
+            r.save()
+
     def __init__(self, name, data):
         Stock.location = self
         Turn.add(self.turn)
@@ -91,22 +101,35 @@ class Location:
     def turn(self):
         if not self.delay:
             self.delay = 40
-            self.save()
+            # self.save()
         self.update_frame += 1
         self.update_fog()
 
     def draw(self, surface):
         self.draw_frame += 1
+        terrains = []
         objects = [[], [], [], [], [], []]
-        items = self.draw_tiles.values()
-        for v in items:
-            v.draw(surface)
+        tiles = self.draw_tiles.values()
+        for v in tiles:
+            tile_type = v.get_depth()
+            if tile_type == 1:
+                if v.terrain.background:
+                    v.draw_background(surface)
+                v.draw(surface)
+            elif tile_type == 0:
+                v.draw_background(surface)
+            else:
+                if v.terrain.background:
+                    v.draw_background(surface)
+                terrains.append(v)
             for thing in v.things:
                 objects[thing.depth - 1].append(thing)
         for depth in objects:
             for i in depth:
                 i.draw(surface)
-        for v in items:
+        for i in terrains:
+            i.draw(surface)
+        for v in tiles:
             v.draw_overlay(surface)
 
     def save(self):
@@ -114,7 +137,7 @@ class Location:
 
     def resize(self):
         self.display_tiles_x = min(int(Global.SCREEN_TILES[0] / 2), self.sight_range)
-        self.display_tiles_y = min(int(Global.SCREEN_TILES[1] / 2), int(self.sight_range * .6))
+        self.display_tiles_y = min(int(Global.SCREEN_TILES[1] / 2), int(self.sight_range * .7))
         self.sight_tiles = [[], []]
         for x in range(-self.display_tiles_x, self.display_tiles_x + 1):
             for y in range(-self.display_tiles_y, 0):
@@ -201,18 +224,19 @@ class Location:
         direction = Global.player.character.direction
         start = [x * Global.BLOCK + Global.HALF_BLOCK + (Global.HALF_BLOCK * direction) - direction,
                  y * Global.BLOCK + Global.BLOCK - 1]
+        view_y = int(self.view_range * .7)
         for i in self.sight_tiles[0]:
             sight = self.collide_sight(start, i)
             if sight:
                 sight.update(self)
-                if (abs(sight.x - x) < self.view_range and abs(sight.y - y) < self.view_range) or sight.light:
+                if (abs(sight.x - x) < self.view_range and abs(sight.y - y) < view_y) or sight.light:
                     self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
         start[1] = y * Global.BLOCK + 1
         for i in self.sight_tiles[1]:
             sight = self.collide_sight(start, i)
             if sight:
                 sight.update(self)
-                if (abs(sight.x - x) < self.view_range and abs(sight.y - y) < self.view_range) or sight.light:
+                if (abs(sight.x - x) < self.view_range and abs(sight.y - y) < view_y) or sight.light:
                     self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
 
     def get_id(self):

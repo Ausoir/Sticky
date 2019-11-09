@@ -47,6 +47,8 @@ class Stock:
                 data = [object_id, pos] + record
                 r = globals()[record[1]](loc)
             else:
+                name = name or 'UNDEFINED'
+                print("Cannot load Stock Object " + name)
                 return None
         else:
             r = globals()[data[3]](loc)

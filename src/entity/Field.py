@@ -36,6 +36,6 @@ class Field:
     def perform(data):
         for thing in data[2].things.copy():
             if thing.is_hit(data[4], faction=data[5]):
-                if thing.hit(data[3], accuracy=data[4], hitter=data[0]) != 2:
+                if thing.hit(data[3], accuracy=data[4], hitter=data[0]) == 1:
                     if data[6]:
                         data[6](thing)

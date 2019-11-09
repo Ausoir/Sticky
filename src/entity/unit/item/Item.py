@@ -99,7 +99,7 @@ class Item(Prop):
             self.on_attack(target)
             if callback:
                 callback(target)
-        acc = self.accuracy + chance + self.host.get_proficiency(self.name)
+        acc = self.accuracy + chance
         for i in range(self.reach):
             tile = self.host.location.collide_line(self.host.pos, self.host.next_target.x, self.host.next_target.y,
                                                    lambda arg1, arg2: None, distance=i + 1)

@@ -168,7 +168,7 @@ class Spell(Item):
                     thing.states.add('Burn', 24)
             r.remove()
         from src.entity.Stock import Stock
-        r = Stock.make('Fireball', host.get_interact_pos())
+        r = Stock.make('Fireball', host.get_front_tile())
         r.set(speed=12, speed_var=2)
         r.shoot(host.next_target.x, host.next_target.y)
         r.on_collide = effect
@@ -283,9 +283,16 @@ class Spell(Item):
                 return
 
     @staticmethod
+    def charm(host):
+        tile = host.get_front_tile()
+        Particle.make('heal', tile.get_center())
+        for i in tile.things:
+            i.faction = host.faction
+
+    @staticmethod
     def clairvoyance(host):
         if host.require_var('calories', host.attributes.intelligence, cost=False):
-            if Global.player.drink():
+            if Global.player.eat():
                 Particle.make('barrier', host.vec)
                 Global.player.sleep(1)
                 host.require_var('calories', host.attributes.intelligence, cost=True)

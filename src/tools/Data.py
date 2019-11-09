@@ -80,10 +80,16 @@ class Data:
     def parse(data):
         r = []
         raw = ''
+        special = False
         while data:
             code = data[0]
             data = data[1:]
-            if code == '[':
+            if code == '\\':
+                special = True
+            elif special:
+                raw += code
+                special = False
+            elif code == '[':
                 data, result = Data.parse(data)
                 r.append(result)
             elif code == ']':

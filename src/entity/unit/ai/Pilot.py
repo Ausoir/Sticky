@@ -1,4 +1,5 @@
 from src.entity.unit.Unit import Unit
+from src.entity.unit.ai import Routes
 from src.entity.unit.ai.Task import *
 from src.tools.Dialog import Dialog
 
@@ -12,6 +13,8 @@ class Manual:
             strings = i.split(':')
             if strings[0] in ['now', 'def', 'move', 'atk']:
                 self.var[strings[0]] = getattr(AllTask, strings[1])(self)
+            elif strings[0] == 'path':
+                self.var[strings[0]] = getattr(Routes, strings[1])(self.host.location, self.host.standables)
             else:
                 self.var[strings[0]] = strings[1]
         if 'now' not in self.var:
@@ -35,34 +38,6 @@ class Manual:
 
     def hear(self, pos):
         pass
-
-    def get_routes(self, pos):
-        options = []
-        right = self.host.location.get_tile(pos + (1, 0))
-        upright = self.host.location.get_tile(pos + (1, -1))
-        left = self.host.location.get_tile(pos + (-1, 0))
-        upleft = self.host.location.get_tile(pos + (-1, -1))
-        ground = self.host.location.get_tile(pos + (0, 1))
-        air = self.host.location.get_tile(pos + (0, -1))
-        if not air.is_land(Tile.CHECK_FIRM) and pos.is_climbable():
-            options.append((0, -1))
-        if not right.is_land(Tile.CHECK_FIRM):
-            if self.host.location.get_tile(pos + (1, 1)).is_land(self.host.standables):
-                options.append((1, 0))
-            elif self.host.location.get_tile(pos + (1, 2)).is_land(self.host.standables):
-                options.append((1, 1))
-        if not upright.is_land(Tile.CHECK_FIRM) and right.is_land(self.host.standables):
-            options.append((1, -1))
-        if not left.is_land(Tile.CHECK_FIRM):
-            if self.host.location.get_tile(pos + (-1, 1)).is_land(self.host.standables):
-                options.append((-1, 0))
-            elif self.host.location.get_tile(pos + (-1, 2)).is_land(self.host.standables):
-                options.append((-1, 1))
-        if not upleft.is_land(Tile.CHECK_FIRM) and left.is_land(self.host.standables):
-            options.append((-1, -1))
-        if not ground.is_land(Tile.CHECK_FIRM) and ground.is_climbable():
-            options.append((0, 1))
-        return options
 
 
 class Guard(Manual):
@@ -129,7 +104,7 @@ class Pilot(Guard):
 
     def perceive(self, sight, offset=(0, 0)):
         perceived = []
-        aoe = self.host.location.get_area(self.host.pos + (offset[0], offset[1]), sight, int(sight/2))
+        aoe = self.host.location.get_area(self.host.pos + (offset[0], offset[1]), sight, int(sight * .8))
         for i in aoe:
             if i.light or abs(i.x - self.host.pos.x) < self.host.location.view_range:
                 for thing in i.things:
@@ -159,19 +134,9 @@ class Pilot(Guard):
         for i in targets:
             t = (i.pos - self.host.pos).distance()
             if t < nearest_dist:
-                if self.reachable(i.pos):
-                    nearest_dist = t
-                    nearest = i
+                nearest_dist = t
+                nearest = i
         return nearest
-
-    def reachable(self, pos):
-        routes = self.get_routes(self.host.pos)
-        can = pos.x == self.host.pos.x
-        can = can or pos.x - self.host.pos.x > 0 and ((1, 0) in routes or (1, 1) in routes or (1, -1) in routes)
-        can = can or pos.x - self.host.pos.x < 0 and ((-1, 0) in routes or (-1, 1) in routes or (-1, -1) in routes)
-        can = can or pos.y - self.host.pos.y < 0 and (0, -1) in routes
-        can = can or pos.y - self.host.pos.y > 0 and (0, 1) in routes
-        return can
 
     def spot_enemy(self, targets):
         var = self.prioritize(targets)
@@ -193,8 +158,6 @@ class Sentient(Pilot):
         self.var['now'].update()
         if self.host.delay == 0:
             if not self.dodge():
-                if self.priority < 3:
-                    self.strategize()
                 self.act()
 
     def dodge(self):
@@ -203,17 +166,3 @@ class Sentient(Pilot):
                 if i[2] == self.host.pos and i[1] < 3:
                     self.host.input('block', None)
                     return True
-
-    def strategize(self):
-        from src.entity.unit.Humanoid import Humanoid
-        if isinstance(self.host, Humanoid):
-            from src.entity.unit.item.Spell import Spell
-            if self.host.weapon.name == 'Bow':
-                if self.var['atk'].__class__ != Range:
-                    self.var['atk'] = Range(self)
-            elif isinstance(self.host.weapon, Spell):
-                if self.var['atk'].__class__ != Magic:
-                    self.var['atk'] = Magic(self)
-            else:
-                if self.var['atk'].__class__ != Melee:
-                    self.var['atk'] = Melee(self)

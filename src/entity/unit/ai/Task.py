@@ -49,6 +49,16 @@ class Idle(Task):
         self.pilot.var['now'] = self.pilot.var['def']
 
 
+class Post(Task):
+    def on_set(self):
+        self.pilot.priority = 4
+
+    def perform(self):
+        super().perform()
+        if not self.lifetime % 20:
+            self.host.face(self.host.direction * -1)
+
+
 class Wander(Task):
     def __init__(self, pilot):
         super().__init__(pilot)
@@ -70,7 +80,7 @@ class Wander(Task):
     def perform(self):
         super().perform()
         if not self.stop and Global.player.is_daytime():
-            routes = self.pilot.get_routes(self.host.pos)
+            routes = self.pilot.var['path'].get(self.host.pos)
             choice = [0]
             if (0, -1) in routes and self.direction_y != 1:
                 choice.append(-1)
@@ -125,9 +135,7 @@ class Move(Task):
             dist = self.host.pos - self.target
         direction = 1 if dist.x >= 0 else -1
         if dist.y > 1 and dist.x == 0:
-            land = self.host.get_offset_tile(0, 1)
-            if not land.is_land([Tile.COLLIDE_TERRAIN]):
-                self.host.input('use', land - self.host.pos)
+            self.host.input('duck', dist)
         else:
             front = self.host.get_offset_tile(direction, 0)
             top = self.host.get_offset_tile(direction, -1)
@@ -138,10 +146,6 @@ class Move(Task):
                     self.host.input('walk', dist)
             elif not top.is_land(Tile.CHECK_LARGE):
                 self.host.input('jump', dist)
-            elif not top.is_land([Tile.COLLIDE_TERRAIN]):
-                self.host.input('use', top - self.host.pos)
-            elif not front.is_land([Tile.COLLIDE_TERRAIN]):
-                self.host.input('use', front - self.host.pos)
 
 
 class Path(Task):  # path finding A*
@@ -179,7 +183,7 @@ class Path(Task):  # path finding A*
         achieved = (node.node - self.target).distance()
         if achieved < 2:
             return node
-        options = self.pilot.get_routes(node.node)
+        options = self.pilot.var['path'].get(node.node)
         for i in options:
             pos = self.host.location.get_tile(node.node + i)
             if self.check_loop(self.closed, pos):
@@ -286,7 +290,7 @@ class Attack(TargetTask):
             self.pilot.var['move'].perform()
 
 
-class Melee(Attack):
+class Martial(Attack):
     def on_set(self):
         self.pilot.priority = 1
 
@@ -341,21 +345,25 @@ class Range(Attack):
 
     def perform(self):
         if self.target:
-            diff = self.target.pos - self.host.pos
-            reach = self.host.location.collide_land(self.host.pos, diff.x, diff.y,
-                                                    distance=9, flag=Tile.CHECK_FIRM)
-            if reach == self.target.pos:
-                dist = diff.distance()
-                if dist > 4:
-                    self.host.input('use', diff)
+            if not self.host.weapon.is_reloaded():
+                self.host.input('interact', self.host.next_target)
+            else:
+                diff = self.target.pos - self.host.pos
+                reach = self.host.location.collide_land(self.host.pos, diff.x, diff.y,
+                                                        distance=9, flag=Tile.CHECK_FIRM)
+                if reach == self.target.pos:
+                    dist = diff.distance()
+                    if dist > 4:
+                        self.host.input('use', diff)
+                    else:
+                        self.move.target = self.target.pos
+                        self.move.perform()
+                        if self.host.next_action == 'idle':
+                            self.host.input('use', diff)
+                    return True
                 else:
                     self.move.target = self.target.pos
-                    self.move.perform()
-                self.pilot.strategize()
-                return True
-            else:
-                self.move.target = self.target.pos
-                self.pilot.var['move'].perform()
+                    self.pilot.var['move'].perform()
 
 
 class Magic(Attack):
@@ -387,7 +395,7 @@ class Magic(Attack):
             if self.perform_gapcloser(diff):
                 return True
             dist = round(diff.distance())
-            if self.in_range(dist):
+            if dist < 6:
                 if -1 <= diff.y <= 1:
                     self.perform_attack(diff)
                     return True
@@ -397,6 +405,36 @@ class Magic(Attack):
                 return True
             self.pilot.var['move'].target = self.target.pos
             self.pilot.var['move'].perform()
+
+
+class Melee(Task):
+    def __init__(self, pilot):
+        super().__init__(pilot)
+        self.attack = None
+        self.strategize()
+
+    def on_set(self):
+        self.pilot.priority = 1
+
+    def update(self):
+        self.attack.update()
+
+    def perform(self):
+        self.strategize()
+        self.attack.perform()
+
+    def strategize(self):
+        from src.entity.unit.item.Spell import Spell
+        from src.entity.Other import Ballistic
+        if isinstance(self.host.weapon, Ballistic):
+            if self.attack.__class__ != Range:
+                self.attack = Range(self.pilot)
+        elif isinstance(self.host.weapon, Spell):
+            if self.attack.__class__ != Magic:
+                self.attack = Magic(self.pilot)
+        else:
+            if self.attack.__class__ != Martial:
+                self.attack = Martial(self.pilot)
 
 
 class Follow(Task):

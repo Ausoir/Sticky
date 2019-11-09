@@ -63,13 +63,13 @@ class BuffTags:
 
 class Modified(Buff):
     def describe(self):
-        return 'This object has a +' + self.var + ' modification.'
+        return 'Target object has a +' + self.var + ' modification.'
 
     def on_stack(self, duration, var):
         self.var = self.var + var
 
 
-class Thirst(Buff):
+class Hunger(Buff):
     def describe(self):
         return 'You cannot travel or perform any time consuming actions.'
 
@@ -102,38 +102,14 @@ class Glow(Buff):
         self.host.glow(self.var)
 
 
-class Insured(Buff):
+class Revive(Buff):
     def describe(self):
-        data = self.var.split('/')
         from src.tools.Dialog import Dialog
-        if data[0] == 'Urban':
-            coverage = 'Urban package covers homicide and suicide.'
-        elif data[0] == 'Workers':
-            coverage = 'Workers package covers accidents, illness, and wildlife hazards.'
-        else:
-            coverage = 'Premium package covers everything.'
-        return 'If you die under a covered cause you will be resurrected at the nearest medical guild. ' + \
-               'You have ' + Dialog.day(int(data[1])) + ' remaining on the contract. Your ' + coverage
+        return Dialog.get('dsc_revive')
 
     def on_stack(self, duration, var):
         self.duration = duration
         self.var = var
-
-    def trigger(self, arg):
-        if arg[0] == 'time':
-            self.var -= 1
-            if self.var <= 0:
-                if self.host == Global.player.character:
-                    Global.player.character.say('Insurance expired.')
-                self.end()
-        elif arg[0] == 'death':
-            coverage = self.var.split('/')[0]
-            if coverage == 'Urban' and arg[1] in ['Homicide', 'Suicide']:
-                return True
-            elif coverage == 'Workers' and arg[1] in ['Accidents', 'Illness', 'Wildlife']:
-                return True
-            elif coverage == 'Premium':
-                return True
 
 
 class Bleed(Buff):
@@ -297,6 +273,9 @@ class Burn(Buff):
     def is_valid(self):
         if Tags.indestructible not in self.host.tags and Tags.is_combustible(self.host.tags)\
                 and not self.host.states.get('Fire'):
+            for i in self.host.pos.things:
+                if i.name in ['Water', 'Surface']:
+                    return False
             return True
 
     def on_start(self):
@@ -457,7 +436,7 @@ class Slowfall(Buff):
 
 class Lichform(Buff):
     def describe(self):
-        return 'You are immune to bleeding, sickness, and thirst.'
+        return 'You are immune to bleeding, sickness, and hunger.'
 
     def is_valid(self):
         return Tags.insubstantial not in self.host.tags
@@ -497,7 +476,7 @@ class Influence(Buff):
         return [BuffTags.magic, BuffTags.harmful]
 
     def describe(self):
-        return 'You are forced action.'
+        return 'You are forced an action.'
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit

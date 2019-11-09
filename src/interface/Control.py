@@ -160,7 +160,14 @@ class Control:
                 elif command == 'switch':
                     self.clear_press(code)
                     Global.player.switch()
-                else:
+                elif command == 'help':
+                    self.clear_press(code)
+                    if Global.menu.visible == 1:
+                        Global.menu.toggle()
+                    else:
+                        Global.menu.var = [None, 'Ask']
+                        Global.menu.topic('Ask')
+                elif Global.menu.visible != 1:
                     if not Global.player.click(command, mouse):
                         self.player.input(command, mouse)
         else:

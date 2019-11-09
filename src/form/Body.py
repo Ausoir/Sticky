@@ -42,16 +42,17 @@ class Body(Form):
                 int_parent = int(parent[k][1])
                 x.set_parent(self.organs[int_parent], parent[k][0])
         self.set('idle')
-        for k, organ in enumerate(self.organs):
-            # noinspection PyTypeChecker
-            x = self.current_animation[k][0] + self.current_animation[len(self.current_animation) - 2][0]
-            # noinspection PyTypeChecker
-            y = self.current_animation[k][1] + self.current_animation[len(self.current_animation) - 2][1]
-            organ.lower_joint.load(x, y)
 
     def randomize(self, seed):
         self.seed = seed
         self.randomize_body(seed)
+        self.current_animation = self.animation[self.motion['idle'][0]]
+        for i in range(len(self.organs)):
+            for k, organ in enumerate(self.organs):
+                x = self.current_animation[k][0] + self.current_animation[len(self.current_animation) - 2][0]
+                y = self.current_animation[k][1] + self.current_animation[len(self.current_animation) - 2][1]
+                organ.lower_joint.load(organ.upper_joint.x + x, organ.upper_joint.y + y)
+                organ.update()
 
     def draw(self, surface, x, y):
         for i in self.organs:
@@ -86,7 +87,7 @@ class Body(Form):
             self.current_clip -= 1
             self.animation_ended = 1
         self.current_animation = self.animation[current_motion[self.current_clip]]
-        frame = self.current_animation[self.current_animation.__len__()-1]
+        frame = self.current_animation[self.current_animation.__len__() - 1]
         self.timer.set(frame)
         self.current_clip += 1
 

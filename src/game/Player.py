@@ -1,5 +1,4 @@
 from src.Editor import Editor
-from src.entity.Particle import Particle
 from src.game import Global
 from src.game.Group import Group
 from src.game.Interaction import Interaction
@@ -30,7 +29,7 @@ class Player:
         self.knowledge = data[3]
         self.temporary = None
         self.character = self.load_player(self.location, data[2])
-        self.set_power(self.character.var['power'])
+        self.set_ability(self.character.var['talent'])
         self.turn()
         self.sleep(0)
 
@@ -71,23 +70,24 @@ class Player:
         if spell:
             return True
 
-    def set_power(self, passive):
-        if passive == 'Warrior':
+    def set_ability(self, passive):
+        if passive == 'Brawler':
             self.character.fist.weight = 0
 
     def sleep(self, time):
         self.days += time
         if Global.player and time >= 1:
             self.character.attributes.rest()
-            self.character.var['protein'] = max(0, self.character.var['protein'] - 1)
-            self.character.var['calories'] = max(0, self.character.var['calories'] - 1)
+            self.character.var['protein'] = max(0, self.character.var['protein'] - self.character.attributes.strength)
+            cal_upkeep = self.character.attributes.agility + self.character.attributes.intelligence - 1
+            self.character.var['calories'] = max(0, self.character.var['calories'] - cal_upkeep)
             for i in self.character.get_possessions():
                 i.on_sleep(time)
             for i in self.character.states.buffs:
                 i.trigger(['time', time])
         for i in self.location.draw_tiles.values():
-            i.light = 0
-        Global.main.colorize(0, [0, 0, 0, 255], fade=2)
+            i.light = -120
+        Global.main.colorize(0, [0, 0, 0, 255], fade=3)
         self.set_darkness()
 
     def set_darkness(self):
@@ -111,9 +111,10 @@ class Player:
             self.background.resize(Global.DISPLAY)
 
     def travel(self, to_map, to_pos):
-        Global.main.colorize(0, [0, 0, 0, 255], fade=2)
+        Global.main.colorize(0, [0, 0, 0, 255], fade=3)
         self.depart = self.character.location.name
-        self.character.location.save()
+        if self.character.location.name != to_map:
+            self.character.location.save()
         self.character.action.set('idle')
         self.character.form.set('interact')
         self.character.relocate(to_pos.x, to_pos.y, force=1)
@@ -162,42 +163,35 @@ class Player:
                 self.character.var['money'] = 0
                 self.character.var['protein'] = 0
                 self.character.var['calories'] = 0
-                death = 'Accident'
-                if 'sign' in self.character.var:
-                    death = self.character.var['sign']
-                elif self.character.durability > 0:
-                    death = 'Illness'
-                insurance = self.character.states.get('Insured')
+                death = self.character.var['sign']
+                insurance = self.character.states.get('Revive')
                 if insurance:
-                    if insurance.trigger(['death', death]):
-                        self.character.states.get('Insured').end()
-                        self.dead = 0
-                        self.character.removed = 0
-                        Global.main.colorize(0, [0, 0, 0, 255], fade=1)
-                        from src.entity.Space import Space
-                        self.travel('home', Space(0, 0))
-                        Global.menu.var = [1]
-                        Global.menu.state = Global.menu.menu_dead
-                        Global.menu.display(1)
-                    else:
-                        Global.menu.var = [2, death, insurance.var.split('/')[0]]
-                        Global.menu.state = Global.menu.menu_dead
-                        Global.menu.display(1)
+                    self.character.states.get('Revive').end()
+                    coma = Global.r.rand_int(3, 60)
+                    self.sleep(coma)
+                    self.dead = 0
+                    self.character.removed = 0
+                    Global.main.colorize(0, [0, 0, 0, 255], fade=1)
+                    from src.entity.Space import Space
+                    self.travel('home', Space())
+                    Global.menu.var = [1, coma]
+                    from src.tools.Dialog import Dialog
+                    text = Dialog.get('insurerevive', [Dialog.date(coma)])
+                    Global.menu.show_dialog([text, Dialog.get('sign', [death])])
                 else:
-                    Global.menu.var = [0, death]
-                    Global.menu.state = Global.menu.menu_dead
-                    Global.menu.display(1)
+                    from src.tools.Dialog import Dialog
+                    Global.menu.show_dialog([Dialog.get('youdie'), Dialog.get('sign', [death])])
             else:
                 self.dead += 1
         else:
-            if self.character.var['power'] == 'Rogue':
-                for x in range(-6, 7):
-                    for y in range(-6, 7):
+            if self.character.var['talent'] == 'Rogue':
+                for x in range(-5, 6):
+                    for y in range(-5, 6):
                         tile = self.character.get_offset_tile(x, y)
                         if tile.is_land([Tile.COLLIDE_UNIT]):
                             pos = str(self.character.pos.x + x) + ',' + str(self.character.pos.y + y)
                             if pos not in self.location.draw_tiles:
-                                Particle.make('sonic', tile.get_center())
+                                self.location.draw_tiles[pos] = self.character.get_offset_tile(x, y)
             r = self.location.name + '\n'
             r += str(self.days) + ',' + str(Turn.frame) + ',' + str(self.depart) + '\n'
             r += self.character.__str__() + '\n'
@@ -218,18 +212,18 @@ class Player:
         Global.menu.state = menu
         Global.menu.display(1)
 
-    def drink(self):
+    def eat(self):
         items = self.character.get_accessibles()
-        from src.game.Tags import Tags
+        from src.entity.Other import Food
         for i in items:
-            if Tags.drinkable in i.tags:
+            if isinstance(i, Food):
                 i.hit(1)
                 return True
-        thirst = self.character.states.get('Thirst')
-        if thirst:
-            self.character.say('Too thirsty!')
+        hunger = self.character.states.get('Hunger')
+        if hunger:
+            self.character.say('Too hungry!')
             return False
-        self.character.states.add('Thirst', -1, 0)
+        self.character.states.add('Hunger', -1, 0)
         return True
 
     def memorize(self):

@@ -20,7 +20,7 @@ class Menu:
         self.last_input = None
         self.history = []
         self.history_var = []
-        self.var = 0
+        self.var = []
 
     def draw(self, surface):
         if self.visible == 1:
@@ -129,3 +129,27 @@ class Menu:
             new = ','.join(sentence)
             output.append(new)
         return output
+
+    def menu_choice(self):
+        if self.var[0]:
+            text = [self.var[0]]
+            self.window.add(Menu.make(text, None, None, color=Window.fore_color_transparent,
+                                      hover=False, width=320, resize=True))
+            self.window.next_y = self.window.size.y + self.window.vec.y
+            for i in range(len(self.var[1])):
+                button = Menu.make([self.var[1][i]], self.var[2][i], None, name=i, width=320)
+                self.window.add(button, reverse=True, index=0)
+        else:
+            for i in range(len(self.var[1])):
+                button = Menu.make([self.var[1][i]], self.var[2][i], None, name=i, width=320)
+                self.window.add(button)
+        self.sub_window.display(1)
+
+    def menu_many_choice(self):
+        for k, v in enumerate(self.var):
+            button = Menu.make([self.var[k][0]], self.var[k][1], self.var[k][1], name=self.var[k][0])
+            if k < 6:
+                self.window.add(button)
+            else:
+                self.sub_window.add(button)
+        self.sub_window.display(1)

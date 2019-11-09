@@ -1,0 +1,7 @@
+manual,Manual,[]
+walker,Pilot,[path:Ground,def:Idle,move:Move,atk:Attack]
+fighter,Sentient,[def:Idle,move:Path,atk:Martial]
+archer,Sentient,[def:Post,move:Path,atk:Martial]
+phantom,Sentient,[def:Follow,move:Path,atk:Attack]
+resident,Pilot,[def:Wander,move:Path,atk:Martial]
+merchant,Guard,[def:Idle,move:Path,atk:Martial]

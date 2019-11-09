@@ -43,11 +43,15 @@ class Character(Humanoid):
         self.monologue.text(text)
 
     def use(self):
-        if not Interaction.interact(self.weapon):
+        if 'use' in self.weapon.tags:
+            Interaction.interact(self.weapon.tags['use'], self.weapon)
+        else:
             super().use()
 
     def fell(self, distance, me=False):
-        if not Character.check_var(self, 'power', 'Assassin') or not me:
+        if not Character.check_var(self, 'talent', 'Assassin') or not me:
+            if distance > 1:
+                self.var['sign'] = 'Accident'
             super().fell(distance, me)
 
     def hit(self, damage, accuracy=None, hitter=None):
@@ -56,7 +60,7 @@ class Character(Humanoid):
             from src.entity.unit.Unit import Unit
             from src.entity.unit.Buff import Buff
             from src.entity.unit.item.Item import Item
-            if hitter == self or hitter == self.weapon:
+            if hitter == self.weapon:
                 self.var['sign'] = 'Suicide'
             elif isinstance(hitter, Humanoid) or (isinstance(hitter, Item) and hitter.host):
                 self.var['sign'] = 'Homicide'
@@ -65,6 +69,10 @@ class Character(Humanoid):
             elif isinstance(hitter, Buff):
                 self.var['sign'] = 'Illness'
         return r
+
+    def out_of_bounds(self):
+        self.var['sign'] = 'Accident'
+        super().out_of_bounds()
 
     def is_bright(self):
         from src.game import Global
@@ -81,10 +89,11 @@ class Character(Humanoid):
             return False
 
     def require_var(self, var, mag, cost=True):
-        if self.var[var] >= mag:
-            if cost:
-                self.var[var] -= mag
-            return True
-        else:
-            self.say('Not enough ' + var + '!')
-            return False
+        if var in self.var:
+            if self.var[var] >= mag:
+                if cost:
+                    self.var[var] -= mag
+                return True
+            else:
+                self.say('Not enough ' + var + '!')
+                return False

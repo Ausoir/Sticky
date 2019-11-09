@@ -1,3 +1,5 @@
+import pygame
+
 from src.entity.Image import Image
 from src.entity.Space import Space
 from src.game.Camera import Camera
@@ -54,6 +56,7 @@ class Object(Image):
         Turn.remove(self.turn)
         self.location.record.remove(self)
         self.pos.things.remove(self)
+        del self
 
     def set_form(self, arg):
         self.form_name = arg
@@ -74,13 +77,16 @@ class Object(Image):
             new = self.move(0, 4, flag=self.standables)
             if new != old:
                 if self.pos.y > self.location.edge + 8:
-                    self.remove()
+                    self.out_of_bounds()
                 else:
                     self.falling += new.y - old.y
                     if self.get_offset_tile(0, 1).is_land(self.standables):
                         self.on_fall()
             else:
                 self.falling = 0
+
+    def out_of_bounds(self):
+        self.remove()
 
     def trigger(self):
         pass

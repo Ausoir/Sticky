@@ -3,6 +3,7 @@ from src.entity.Space import Space
 from src.entity.unit.Attribute import Attribute
 from src.form.Body import Body
 from src.game import Global
+from src.game.Camera import Camera
 from src.game.Tags import Tags
 from src.map.Tile import Tile
 from src.tools.Math import Math
@@ -21,6 +22,7 @@ class Unit(Prop):
         self.collision_type = Tile.COLLIDE_UNIT
         self.attributes = Attribute()
         self.pilot = None
+        self.pilot_name = None
         self.depth = 4
         self.delay = 0
         self.standables = Tile.CHECK_LANDABLE
@@ -28,14 +30,17 @@ class Unit(Prop):
 
     def __str__(self):
         att = '[' + self.attributes.__str__() + '],[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
-        return super().__str__() + ',' + str(self.faction) + ',' + self.pilot.__str__() + ',' + att
+        return super().__str__() + ',' + str(self.faction) + ',' + self.pilot_name + ',' + att
 
     def load(self, p):
         index = super().load(p)
         self.faction = p[index]
         index += 1
         from src.entity.unit.ai import Pilot
-        self.pilot = getattr(Pilot, p[index][0])(self, p[index][1])
+        from src.tools.Data import Data
+        template = Data.get_line('data/raw/behaviors.txt', p[index])
+        self.pilot_name = p[index]
+        self.pilot = getattr(Pilot, template[1])(self, template[2])
         index += 1
         self.attributes.load(p[index])
         index += 1
@@ -55,11 +60,15 @@ class Unit(Prop):
         self.form_name = arg
         self.form = Body(arg)
 
-    def draw(self, surface):
+    def draw_synchronize(self):
         if self.draw_frame != self.location.draw_frame:
             self.update_vec()
             self.draw_frame = self.location.draw_frame
         self.draw_frame += 1
+
+    def draw(self, surface):
+        if Camera.target != self:
+            self.draw_synchronize()
         diff = self.pos.get_center() - self.vec
         self.vec.x += diff.x * .07
         if 0 < diff.y and self.gravity and self.form.state_name != 'climb':
@@ -90,6 +99,9 @@ class Unit(Prop):
             self.action.attempt(self.next_action)
             self.next_action = 'idle'
 
+    def center_camera(self):
+        super().center_camera()
+
     def input(self, action, target):
         self.next_action = action
         if target:
@@ -101,14 +113,15 @@ class Unit(Prop):
     def get_target_tile(self):
         return self.location.get_tile(self.pos + self.next_target)
 
-    def get_interact_pos(self):
+    def get_front_tile(self):
         degree = self.next_target.get_atan()
         target = self.pos + (round(Math.cos(degree) * 1.4), round(Math.sin(degree) * 1.4))
         return self.location.get_tile(target)
 
     def face(self, direction):
-        self.direction = direction
-        self.form.face(direction)
+        if not self.states.get('Influence'):
+            self.direction = direction
+            self.form.face(direction)
 
     def fell(self, distance, me=False):
         if self.get_proficiency('nimble'):
@@ -134,7 +147,7 @@ class Unit(Prop):
             return 0
         r = self.get_proficiency('dodge')
         if self.action.current_action == 'block':
-            r += 5
+            r += 8
         return r
 
     def hit(self, damage, accuracy=None, hitter=None):

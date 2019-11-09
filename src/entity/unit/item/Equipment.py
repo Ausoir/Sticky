@@ -43,7 +43,8 @@ class Equipment(Item):
             return self.name
 
     def get_value(self):
-        r = max(1, int(self.durability / 4) - self.weight + super().get_value())
+        enc = 1 + (self.get_level() * self.get_level() * .05)
+        r = int(max(1, self.durability - self.weight + super().get_value()) * enc)
         return r
 
     def describe(self):

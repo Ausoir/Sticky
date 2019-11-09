@@ -24,7 +24,7 @@ class Editor:
         self.visible = 1
         self.mouse = [0, 0]
         self.tool = ToolTerrain(self.location)
-        self.display_text = ''
+        self.display_text = self.location.name
         self.display_subtext = ''
         self.enter = 0
         self.prev_mouse = [0, 0]
@@ -32,7 +32,10 @@ class Editor:
         self.prev_command = None
         self.fog_update = True
         self.selection = None
-        Stock.make('Force', Global.player.character.pos).center_camera()
+        self.text_color = (150, 40, 40)
+        center = Stock.make('Force', Global.player.character.pos)
+        center.center_camera()
+        self.location.record.remove(center)
         Camera.target.location.remove(Camera.target)
 
     def update(self):
@@ -164,7 +167,10 @@ class Editor:
     def command(self):
         self.prev_command = Global.main.textbox.display_text
         params = Global.main.textbox.display_text.split(' ')
-        if params[0] == 'set':
+        arg1 = ' '.join(params[1:])
+        if params[0] == 'color':
+            self.text_color = [int(x) for x in params[1].split(',')]
+        elif params[0] == 'set':
             if isinstance(self.tool, ToolObject):
                 if self.tool.selection.name == 'Script':
                     script = Data.process_raw(params[1])
@@ -177,23 +183,23 @@ class Editor:
             from src.entity.Other import Script
             if isinstance(self.tool, ToolObject):
                 if isinstance(self.tool.selection, Script):
-                    self.tool.selection.condition = Data.process_raw(params[1])
+                    self.tool.selection.condition = Data.process_raw(arg1)
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = '[' + params[1] + '] Applied'
+            self.display_text = 'Applied condition'
         elif params[0] == 'setm':
             from src.entity.Other import Script
             if isinstance(self.tool, ToolObject):
                 if isinstance(self.tool.selection, Script):
-                    self.tool.selection.mechanism = Data.process_raw(params[1])
+                    self.tool.selection.mechanism = Data.process_raw(arg1)
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = '[' + params[1] + '] Applied'
+            self.display_text = 'Applied mechanics'
         elif params[0] == 'setc@':
             from src.entity.Other import Script
             if isinstance(self.tool, ToolObject):
                 if isinstance(self.tool.selection, Script):
-                    self.tool.selection.condition[int(params[1])] = params[2].split(',')
+                    self.tool.selection.condition[int(params[1])] = Data.process_raw(' '.join(params[2:]))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
             self.display_text = '[' + params[2] + '] Applied'
@@ -201,7 +207,7 @@ class Editor:
             from src.entity.Other import Script
             if isinstance(self.tool, ToolObject):
                 if isinstance(self.tool.selection, Script):
-                    self.tool.selection.mechanism[int(params[1])] = params[2].split(',')
+                    self.tool.selection.mechanism[int(params[1])] = Data.process_raw(' '.join(params[2:]))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
             self.display_text = '[' + params[2] + '] Applied'
@@ -209,34 +215,38 @@ class Editor:
             from src.entity.Other import Script
             if isinstance(self.tool, ToolObject):
                 if isinstance(self.tool.selection, Script):
-                    self.tool.selection.condition.append(params[1].split(','))
+                    self.tool.selection.condition.append(Data.process_raw(arg1))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = '[' + params[2] + '] Applied'
         elif params[0] == 'addm':
             from src.entity.Other import Script
             if isinstance(self.tool, ToolObject):
                 if isinstance(self.tool.selection, Script):
-                    self.tool.selection.mechanism.append(params[1].split(','))
+                    self.tool.selection.mechanism.append(Data.process_raw(arg1))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = '[' + params[2] + '] Applied'
         elif params[0] == 'loot':
             if isinstance(self.tool, ToolObject):
-                self.tool.selection.loot = params[1].split(',')
+                self.tool.selection.loot = arg1.split(',')
         elif params[0] == 'image':
             if isinstance(self.tool, ToolObject):
-                self.tool.selection.set_form(params[1])
+                self.tool.selection.set_form(arg1)
         elif params[0] == 'make':
-            self.location.construct_map(params[1], params[2])
+            from src.map.Location import Location
+            from src.entity.Other import Script
+            r = Location(params[2], list(Data.process_raw(Data.read('data/map/' + params[1] + '.map'))))
+            for obj in r.record.copy():
+                if isinstance(obj, Script):
+                    obj.trigger_make()
+            r.save()
             Global.player.switch()
-            Global.player.travel('current', Space())
+            Global.player.travel(params[2], Space())
             Global.player.switch()
         elif params[0] == 'create':
             self.input('props', Space())
-            self.tool.select('Force', data=Data.parse('#-1,[0,0],' + params[1]))
+            self.tool.select('Force', data=Data.parse('#-1,[0,0],' + arg1))
         elif params[0] == 'background':
-            self.location.header[2] = params[1]
+            self.location.header[2] = arg1
         elif params[0] == 'camera':
             pos = params[1].split(',')
             Camera.target.relocate(int(pos[0]), int(pos[1]), force=1)
@@ -255,26 +265,27 @@ class Editor:
                 i.move(int(pos[0]), int(pos[1]), distance=9999, flag=[])
         elif params[0] == 'new':
             from src.map.Location import Location
-            new = Location(params[1], ['0,[0,0,0,1],field', '', ''])
+            new = Location(params[1], Data.process_raw('0,[0,0,0,1],field\n\n'))
             new.save()
             Global.player.switch()
             Global.player.travel(params[1], Space())
             Global.player.switch()
         elif params[0] == 'load':
             maps = Data.get_files('save', lambda x: x.endswith('.map'))
-            if params[1] + '.map' in maps:
+            if arg1 + '.map' in maps:
                 Global.player.switch()
-                Global.player.travel(params[1], Space())
+                Global.player.travel(arg1, Space())
                 Global.player.switch()
         elif params[0] == 'loadraw':
-            Global.player.switch()
-            Global.player.travel('../data/map/' + params[1], Space())
-            Global.player.switch()
+            if Data.is_file('data/map/' + arg1 + '.map'):
+                Global.player.switch()
+                Global.player.travel('../data/map/' + arg1, Space())
+                Global.player.switch()
         elif params[0] == 'save':
             self.tool.cancel()
-            self.location.name = params[1]
+            self.location.name = arg1
             self.location.save()
-            self.display_text = 'saved to ' + params[1]
+            self.display_text = 'saved to ' + arg1
         elif params[0] == 'time':
             Global.player.days = int(params[1])
             Global.player.sleep(0)
@@ -282,8 +293,14 @@ class Editor:
 
     def draw(self, surface):
         if self.display_text:
-            surface.blit(Global.font.render(self.display_text, 1, (255, 255, 255)), (16, 16))
-            surface.blit(Global.font.render(self.display_subtext, 1, (255, 255, 255)), (16, 42))
+            display_y = 10
+            for i in range(int(len(self.display_text) / 120) + 1):
+                start = i * 120
+                end = start + 120
+                display = self.display_text[start:end]
+                surface.blit(Global.font.render(display, 1, self.text_color), (16, display_y))
+                display_y += 30
+            surface.blit(Global.font.render(self.display_subtext, 1, self.text_color), (16, display_y))
 
 
 class ToolTerrain:
@@ -342,7 +359,8 @@ class ToolTerrain:
         tile = self.location.get_tile([x, y])
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
-            if name_type in ['dirt', 'rock', 'bush', 'sand']:
+            data = Data.get_line('data/raw/raw.txt', 'tileset')[1]
+            if name_type in data:
                 grid = [self.is_terrain(x, y - 1, name_type), self.is_terrain(x - 1, y, name_type),
                         self.is_terrain(x + 1, y, name_type), self.is_terrain(x, y + 1, name_type)]
                 if grid in [[0, 1, 1, 1], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' top'):

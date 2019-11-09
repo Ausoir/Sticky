@@ -1,9 +1,9 @@
 ESCAPE,quit
-F1,switch
+F1,help
+BACKQUOTE,switch
 TAB,menu
 w,jump
 s,duck
-RETURN,duck
 a,left
 d,right
 LS+a,run_left
@@ -16,10 +16,13 @@ LS+q,slam
 LS+e,charge
 RMB,interact
 LS+RMB,peek
-SPACE,power
 q,offhand
 e,trinket
 1,pocket_1
 2,pocket_2
 3,pocket_3
 4,pocket_4
+SPACE,power_1
+z,power_2
+x,power_3
+c,power_4

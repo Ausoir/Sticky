@@ -1,5 +1,6 @@
 from src.game.Tags import Tags
 from src.tools.Data import Data
+from src.tools.Dialog import Dialog
 
 
 class Crafting:
@@ -14,16 +15,16 @@ class Crafting:
     @staticmethod
     def describe(item, resource=None):
         r = item
-        r += '\nIngredients:'
+        r += '\n' + Dialog.get('ingredients') + ':'
         if not resource:
             resource = Crafting.get_ingredients(item)
         if resource:
             for i in resource:
                 if i.startswith('#'):
-                    i = 'Any ' + Tags.name(i[1:]).title()
+                    i = Dialog.get('any', [Tags.name(i[1:]).title()])
                 r += ' [' + i + ']'
         else:
-            r += ' None'
+            r += ' ' + Dialog.get('none')
         from src.entity.unit.item.Item import Item
         if item in Item.description:
             return r + '\n' + Item.description[item]

@@ -56,12 +56,15 @@ class Projectile(Prop):
         else:
             if self.lifetime > 0:
                 self.lifetime -= 1
-                if self.pos.is_land(self.standables) and self.pos != self.start:
+                if self.is_collide() and self.pos != self.start:
                     self.on_collide()
                 else:
                     self.vec += self.vel
                     self.form.rotate(-self.vel.get_atan())
                     self.pos = self.location.get_tile_from_vec(self.vec.x, self.vec.y)
+
+    def is_collide(self):
+        return self.pos.is_land(self.standables)
 
     def on_collide(self):
         self.remove()

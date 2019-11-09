@@ -1,7 +1,14 @@
-town-sewer-nest
-town-graveyard
-town-slums-river(bridge)-crossroads-river-town
+town-gate-bridge-field-bridge-town
+field = crossroads/desert/field/mountain tower/city
+town-park-arena
 crossroads - tower
 abyss map
-town/gambler
-pokeball
+arena (*2 reward per win, $$$ entrance)
+uniques - spends 40$ for respawn, minion allies, power
+sewer - debuffer, regener, darkness
+nest - poisoner, fast
+slums - ranger, specialer
+crypt - revive, summoner, healer
+
+optimization
+- update fog only at the start of move action

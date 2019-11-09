@@ -7,7 +7,6 @@ class Random:
     def __init__(self, seed=0):
         if not seed:
             self.seed = Random.rand_seed()
-            print(str(self.seed))
         else:
             self.seed = seed
         self.random = random.Random(self.seed)
@@ -35,3 +34,13 @@ class Random:
     @staticmethod
     def rand_seed():
         return random.SystemRandom().randint(1, 999999)
+
+    @staticmethod
+    def seed_list(seed, arg):
+        return arg[seed % len(arg)]
+
+    @staticmethod
+    def seed_int(seed, arg1, arg2):
+        if arg1 == arg2:
+            return arg1
+        return seed % (arg2 - arg1 + 1) + arg1

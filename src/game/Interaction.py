@@ -151,7 +151,7 @@ class Interaction:
                 def rest(arg):
                     Global.menu.toggle()
                     Global.player.character.attributes.rest()
-                    Global.main.colorize(0, [0, 0, 0, 255], fade=2)
+                    Global.draw_group.colorize(0, [0, 0, 0, 255], fade=2)
                     Global.player.sleep(1)
                 Global.menu.var = [Dialog.get('?rest', [target.name]), [Dialog.get('Rest')], [rest]]
                 Global.menu.direct(Global.menu.menu_choice)

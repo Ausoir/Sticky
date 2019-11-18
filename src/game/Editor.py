@@ -1,24 +1,19 @@
 import sys
 
-import pygame
-
 from src.entity.Space import Space
 from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Camera import Camera
-from src.game.Group import Group
 from src.game.Turn import Turn
 from src.tools.Data import Data
 
 
 class Editor:
-    scroll = 2
-
     def __init__(self, loc, control):
         self.backup = Turn.update
         Turn.update = self.update
-        Group.effects.append(self)
-        control.set_keymap('data/editor_keymap.txt')
+        Global.draw_group.other.append(self)
+        control.set_keymap('editor_keymap.txt')
         self.control = control
         self.location = loc
         self.visible = 1
@@ -27,10 +22,10 @@ class Editor:
         self.display_text = self.location.name
         self.display_subtext = ''
         self.enter = 0
+        self.moving = [0, 0]
         self.prev_mouse = [0, 0]
         self.prev_action = None
         self.prev_command = None
-        self.fog_update = True
         self.selection = None
         self.text_color = (150, 40, 40)
         center = Stock.make('Force', Global.player.character.pos)
@@ -40,18 +35,18 @@ class Editor:
 
     def update(self):
         self.control.turn()
-        if self.fog_update:
-            self.location.update_fog()
-            self.fog_update = False
+        Camera.target.move(self.moving[0], self.moving[1], 1, [])
+        Global.map_view.update_fog()
+        self.moving = [0, 0]
 
     def remove(self):
         self.tool.cancel()
         Camera.target.remove()
-        Group.remove(self)
         Turn.update = self.backup
 
     def input(self, action, target):
         m = Camera.target.pos + target
+        m.y = -m.y
         self.prev_mouse = m
         self.display_subtext = 'X:' + str(m.x) + ' Y:' + str(m.y)
         if action == 'idle':
@@ -76,17 +71,13 @@ class Editor:
             if action != self.prev_action:
                 self.display_text = self.tool.cycle(1, specific=True)
         elif action == 'up':
-            Camera.target.move(0, -1, Editor.scroll, [])
-            self.fog_update = True
+            self.moving = [0, -1]
         elif action == 'down':
-            Camera.target.move(0, 1, Editor.scroll, [])
-            self.fog_update = True
+            self.moving = [0, 1]
         elif action == 'left':
-            Camera.target.move(-1, 0, Editor.scroll, [])
-            self.fog_update = True
+            self.moving = [-1, 0]
         elif action == 'right':
-            Camera.target.move(1, 0, Editor.scroll, [])
-            self.fog_update = True
+            self.moving = [1, 0]
         elif action == 'sample':
             if action != self.prev_action:
                 self.tool.cancel()
@@ -159,7 +150,6 @@ class Editor:
             self.display_text = 'saved to ' + self.location.name
         elif action == 'quit':
             self.tool.cancel()
-            pygame.quit()
             sys.exit()
         self.prev_action = action
         return 0
@@ -291,16 +281,16 @@ class Editor:
             Global.player.sleep(0)
         Global.main.textbox.display_text = ''
 
-    def draw(self, surface):
+    def draw(self):
         if self.display_text:
             display_y = 10
             for i in range(int(len(self.display_text) / 120) + 1):
                 start = i * 120
                 end = start + 120
                 display = self.display_text[start:end]
-                surface.blit(Global.font.render(display, 1, self.text_color), (16, display_y))
+                # surface.blit(Global.font.render(display, 1, self.text_color), (16, display_y))
                 display_y += 30
-            surface.blit(Global.font.render(self.display_subtext, 1, self.text_color), (16, display_y))
+            # surface.blit(Global.font.render(self.display_subtext, 1, self.text_color), (16, display_y))
 
 
 class ToolTerrain:
@@ -334,14 +324,13 @@ class ToolTerrain:
         self.text = text
 
     def input(self, button, tile):
-        text = self.text
         if not button:
             self.cancel()
         elif button == 2:
             self.tile.set_terrain('')
         self.tile = tile
         self.prev_tile = tile.terrain
-        self.tile.set_terrain(text)
+        self.tile.set_terrain(self.text)
         if button == 1:
             self.update(self.tile.x - 1, self.tile.y)
             self.update(self.tile.x + 1, self.tile.y)
@@ -359,7 +348,7 @@ class ToolTerrain:
         tile = self.location.get_tile([x, y])
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
-            data = Data.get_line('data/raw/raw.txt', 'tileset')[1]
+            data = Data.get_line('raw/raw.txt', 'tileset')[1]
             if name_type in data:
                 grid = [self.is_terrain(x, y - 1, name_type), self.is_terrain(x - 1, y, name_type),
                         self.is_terrain(x + 1, y, name_type), self.is_terrain(x, y + 1, name_type)]

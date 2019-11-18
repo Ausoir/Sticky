@@ -77,7 +77,7 @@ class Actions:
             self.make(turn=0)
 
     def wait(self):
-        self.host.weapon.form.rotate(20 * self.host.direction)
+        self.host.weapon.form.rotation = 20 * self.host.direction
         self.make(animation='block', turn=2)
 
     def offhand(self):
@@ -303,7 +303,7 @@ class Actions:
         self.make(turn=11)
 
     def block(self):
-        self.host.weapon.form.rotate(20 * self.host.direction)
+        self.host.weapon.form.rotation = 20 * self.host.direction
         self.make(turn=1)
 
     def peek(self):

@@ -498,17 +498,17 @@ class Invisible(Buff):
     def describe(self):
         return 'You are invisible.'
 
-    def draw(self, surface):
+    def render(self):
         if not Global.player.editor_mode:
             diff = self.host.pos.get_center() - self.host.vec
             self.host.vec.x += diff.x * .07
             self.host.vec.y += diff.y * .07
         else:
-            self.orig(surface)
+            self.orig()
 
     def on_start(self):
-        self.orig = self.host.draw
-        self.host.draw = self.draw
+        self.orig = self.host.render
+        self.host.render = self.render
 
     def on_load(self):
         self.on_start()

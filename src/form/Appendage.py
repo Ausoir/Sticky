@@ -1,38 +1,52 @@
 from src.entity.Space import Space
+from src.game import Global
 
 
-class Appendage:
-    def __init__(self, sprite, meta):
-        self.form = sprite
+class Limb:
+    def __init__(self):
+        self.form = Global.blank_form
         self.upper_joint = Space()
         self.lower_joint = Space()
-        self.length = None
-        self.rotation = 0
-        self.meta = meta  # resize, flip x, flip y
-        self.set(sprite)
 
     def __str__(self):
         return self.upper_joint.__str__() + ',' + self.lower_joint.__str__()
 
     def set(self, sprite):
-        self.form = sprite
-        self.form.pivot = Space(self.form.size.x / 2, 0)
-        self.length = self.form.size.y
-        self.form.flip(self.meta[1], self.meta[2])
+        pass
 
-    def update(self):
+    def place(self, x, y):
         diff = self.lower_joint - self.upper_joint
-        self.rotation = -diff.get_atan() + 90
-        if self.meta[0]:
-            self.length = int(diff.distance() * 1.5)
-            self.form.size.y = self.length
-        self.form.rotate(self.rotation)
+        self.form.rotation = diff.get_atan() - 90
 
-    def draw(self, surface, x, y):
-        self.form.draw(surface, x + self.upper_joint.x, y + self.upper_joint.y)
-
-    def set_parent(self, parent, type):
-        if type == 'u':
+    def set_parent(self, parent, joint):
+        if joint == 'u':
             self.upper_joint = parent.lower_joint
-        elif type == 'd':
+        elif joint == 'd':
             self.upper_joint = parent.upper_joint
+
+
+class Appendage(Limb):
+    def __init__(self, sprite, meta):
+        super().__init__()
+        self.meta = meta  # resize, flip x, flip y
+        self.set(sprite)
+
+    def set(self, sprite):
+        self.form = sprite
+        self.form.flip(self.meta[1], self.meta[2])
+        if self.meta[2]:
+            self.form.image.anchor_y = 4
+        else:
+            self.form.image.anchor_y = self.form.image.height
+
+    def place(self, x, y):
+        diff = self.lower_joint - self.upper_joint
+        self.form.rotation = diff.get_atan() - 90
+        if self.meta[0]:
+            length = int(diff.distance() * 1.2)
+            if length > 0:
+                length = max(length, 1)
+            else:
+                length = min(length, -1)
+            self.form.resize(y=length)
+        self.form.place(x + self.upper_joint.x, y + self.upper_joint.y)

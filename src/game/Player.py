@@ -1,6 +1,5 @@
-from src.Editor import Editor
+from src.game.Editor import Editor
 from src.game import Global
-from src.game.Group import Group
 from src.game.Interaction import Interaction
 from src.game.Turn import Turn
 from src.map.Location import Location
@@ -10,17 +9,14 @@ from src.tools.Data import Data
 
 class Player:
     def __init__(self):
-        Group.init()
-        Turn.init()
         Turn.add(self.turn)
         self.control = None
-        data = Data.process_raw(Data.read('save/player.char'))
+        data = Data.process_raw(Data.read('../save/player.char'))
         if not data:
             data = Data.process_raw(Data.read('map/template.char'))
-        map_data = list(Data.process_raw(Data.read('save/' + data[0][0] + '.map')))
+        map_data = list(Data.process_raw(Data.read('../save/' + data[0][0] + '.map')))
         self.location = Location(data[0][0], map_data)
         self.dead = 0
-        self.background = None
         self.days = data[1][0]
         Turn.frame = data[1][1]
         self.depart = data[1][2]
@@ -66,7 +62,7 @@ class Player:
 
     @staticmethod
     def is_spell(knowledge):
-        spell = Data.get_line('data/raw/spells.txt', knowledge)
+        spell = Data.get_line('raw/spells.txt', knowledge)
         if spell:
             return True
 
@@ -85,33 +81,28 @@ class Player:
                 i.on_sleep(time)
             for i in self.character.states.buffs:
                 i.trigger(['time', time])
-        for i in self.location.draw_tiles.values():
-            i.light = -120
-        Global.main.colorize(0, [0, 0, 0, 255], fade=3)
+        Global.map_view.set_light(-120)
+        Global.draw_group.colorize(0, [0, 0, 0, 255], fade=3)
         self.set_darkness()
 
     def set_darkness(self):
+        name = 'image/background/' + self.location.header[2]
         if self.is_daytime():
-            Global.main.colorize(1, [0, 0, 0, 0])
-            self.location.sight_range = 12
-            self.location.view_range = 12
-            self.location.resize()
-            self.background = Data.run_cache('data/image/background/' + self.location.header[2])
-            self.background.resize(Global.DISPLAY)
+            Global.draw_group.colorize(1, [0, 0, 0, 0])
+            Global.map_view.sight_range = 11
+            Global.map_view.view_range = 11
         else:
-            Global.main.colorize(1, [10, 0, 30, 160])
-            self.location.sight_range = 8
-            self.location.view_range = 5
-            self.location.resize()
-            name = 'data/image/background/' + self.location.header[2] + '_night'
-            if Data.is_file(name + '.png'):
-                self.background = Data.run_cache(name)
-            else:
-                self.background = Data.run_cache(name[:-6])
-            self.background.resize(Global.DISPLAY)
+            Global.draw_group.colorize(1, [10, 0, 30, 160])
+            Global.map_view.sight_range = 8
+            Global.map_view.view_range = 5
+            if Data.is_file(name + '_night.png'):
+                name = name + '_night'
+        Global.map_view.on_sight_change()
+        Global.map_view.on_resize()
+        Global.draw_group.set_background(name)
 
     def travel(self, to_map, to_pos):
-        Global.main.colorize(0, [0, 0, 0, 255], fade=3)
+        Global.draw_group.colorize(0, [0, 0, 0, 255], fade=3)
         self.depart = self.character.location.name
         if self.character.location.name != to_map:
             self.character.location.save()
@@ -131,16 +122,16 @@ class Player:
             self.editor_mode = True
             self.editor = Editor(self.location, self.control)
             self.control.player = self.editor
-            self.temporary = self.location.sight_block
-            self.location.sight_block = []
+            self.temporary = Global.map_view.sight_block
+            Global.map_view.sight_block = []
             self.location.save()
         else:
             self.editor_mode = False
             self.editor.remove()
-            self.control.set_keymap('data/keymap.txt')
+            self.control.set_keymap('keymap.txt')
             self.control.player = self.character
             self.character.center_camera()
-            self.location.sight_block = self.temporary
+            Global.map_view.sight_block = self.temporary
             self.location.save()
 
     def click(self, command, mouse):
@@ -171,7 +162,7 @@ class Player:
                     self.sleep(coma)
                     self.dead = 0
                     self.character.removed = 0
-                    Global.main.colorize(0, [0, 0, 0, 255], fade=1)
+                    Global.draw_group.colorize(0, [0, 0, 0, 255], fade=1)
                     from src.entity.Space import Space
                     self.travel('home', Space())
                     Global.menu.var = [1, coma]
@@ -190,13 +181,13 @@ class Player:
                         tile = self.character.get_offset_tile(x, y)
                         if tile.is_land([Tile.COLLIDE_UNIT]):
                             pos = str(self.character.pos.x + x) + ',' + str(self.character.pos.y + y)
-                            if pos not in self.location.draw_tiles:
-                                self.location.draw_tiles[pos] = self.character.get_offset_tile(x, y)
+                            if pos not in Global.map_view.draw_tiles:
+                                Global.map_view.draw_tiles[pos] = self.character.get_offset_tile(x, y)
             r = self.location.name + '\n'
             r += str(self.days) + ',' + str(Turn.frame) + ',' + str(self.depart) + '\n'
             r += self.character.__str__() + '\n'
             r += ','.join(self.knowledge) + '\n'
-            Data.write('save/player.char', r)
+            Data.write('../save/player.char', r)
 
     def is_safe(self):
         from src.entity.unit.Unit import Unit

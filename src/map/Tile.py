@@ -2,7 +2,6 @@ from src.entity.Space import Space
 from src.form.Shape import Shape
 from src.game import Global
 from src.game.Camera import Camera
-from src.game.Tags import Tags
 from src.map.Terrain import Terrain
 from src.tools.List import List
 
@@ -26,7 +25,7 @@ class Tile(Space):
 
     @staticmethod
     def init():
-        Tile.fog = Shape(None, (0, 0, 0, 255), Shape.make_rect([Global.BLOCK, Global.BLOCK]))
+        Tile.fog = Shape(width=Global.BLOCK, height=Global.BLOCK, color=(0, 0, 0, 255))
 
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -43,7 +42,7 @@ class Tile(Space):
         return '[' + super().__str__() + ',' + terrain + ']'
 
     def set_terrain(self, terrain):
-        self.terrain = Terrain.load_from_name(self * [Global.BLOCK, Global.BLOCK], terrain)
+        self.terrain = Terrain.load_from_name(terrain)
         return self.terrain
 
     def get_depth(self):
@@ -53,22 +52,18 @@ class Tile(Space):
             return 1
         return 0
 
-    def draw(self, surface):
-        self.terrain.draw(surface)
+    def update(self):
+        self.terrain.update()
 
-    def draw_background(self, surface):
-        pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-        surface.blit(Global.player.background.image, pos,
-                     (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
-
-    def draw_overlay(self, surface):
-        if self.light <= 0 and Global.main.fade != 0:
+    def draw_overlay(self):
+        if self.light <= 0 and Global.draw_group.fade != 0:
             pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-            surface.blit(Global.main.overlay, (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
+            Tile.fog.draw()
+            # surface.blit(Global.main.overlay, (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
         else:
             self.light -= 1
 
-    def update(self, loc):
+    def update_light(self, loc):
         self.frame += 1
         if self.frame != loc.update_frame:
             self.light = 0

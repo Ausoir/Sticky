@@ -242,7 +242,7 @@ class Script(Prop):
                     if i.get_value() >= arg[1]:
                         i.remove()
         elif arg[0] == 'color':
-            Global.main.colorize(1, [arg[1], arg[2], arg[3], arg[4]])
+            Global.draw_group.colorize(1, [arg[1], arg[2], arg[3], arg[4]])
         elif arg[0] == 'darkness':
             self.location.view_range = arg[1]
             self.location.sight_range = arg[2]
@@ -460,7 +460,7 @@ class Corpse(Prop):
         self.collision_type = 0
         self.depth = 3
         self.standables = Tile.CHECK_LANDABLE
-        self.form = Data.run_cache('g_9x3')
+        self.form = Data.get_form('g_9x3', group=Global.draw_group.objects)
         self.is_ragdoll = False
 
     def invalid(self, state):
@@ -476,15 +476,15 @@ class Corpse(Prop):
         self.durability = 8
         dead = 'dead' + str(Global.r.rand_int(1, 2))
         self.form.randomize_clip(dead, 8)
-        # noinspection PyArgumentList
         self.form.set(dead)
         self.form.set = self.invalid
+        self.form.enable(True)
         return self
 
-    def draw(self, surface):
-        super().draw(surface)
+    def update(self):
+        super().update()
         if self.is_ragdoll:
-            self.form.update()
+            self.form.place(self.vec.x, self.vec.y)
 
     def is_hit(self, chance, faction=0):
         if self.hittable:

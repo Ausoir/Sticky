@@ -1,51 +1,30 @@
-import pygame
+from pyglet.gl import *
 
 from src.entity.Space import Space
 from src.form.Line import Line
-from src.game.Camera import Camera
 
 
 class Shape:
-    def __init__(self, vec, color, vertices, border=0):
-        self.vec = vec
-        self.vertices = vertices
+    def __init__(self, x=0, y=0, width=40, height=40, color=(0, 0, 0, 0), border=0):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
         self.color = color
-        self.lines = []
-        self.canvas = None
         self.border = border
-        self.redraw()
-
-    @staticmethod
-    def make_rect(size):
-        return ((0, 0),
-                (size[0]-1, 0),
-                (size[0]-1, size[1]-1),
-                (0, size[1]-1))
-
-    def redraw(self):
-        self.lines = []
-        prev_pt = None
-        high_x = 0
-        high_y = 0
-        for i in self.vertices:
-            if prev_pt is not None:
-                self.lines.append(Line(Space(prev_pt), Space(i)))
-            prev_pt = i
-            high_x = max(high_x, i[0])
-            high_y = max(high_y, i[1])
-        self.lines.append(Line(Space(prev_pt), Space(self.vertices[0])))
-        self.canvas = pygame.Surface((high_x+1, high_y+1), pygame.SRCALPHA, 16)
-        self.canvas = self.canvas.convert_alpha(self.canvas)
-        pygame.draw.polygon(self.canvas, self.color, self.vertices)
-        if self.border:
-            pygame.draw.polygon(self.canvas, (0, 0, 0), self.vertices, self.border)
 
     def draw(self, surface):
-        surface.blit(self.canvas, [self.vec.x + Camera.pos[0], self.vec.y + Camera.pos[1]])
+        glClear(GL_COLOR_BUFFER_BIT)
+        glLoadIdentity()
+        glBegin(GL_TRIANGLES)
+        glVertex2f(self.x, self.y)
+        glVertex2f(self.x + surface.width, self.y)
+        glVertex2f(self.x + surface.width, self.y + surface.height)
+        glVertex2f(self.x, self.y + surface.height)
+        glEnd()
 
     def collide(self, point):
-        mouse = Line(Space(-self.vec), Space(point) - self.vec)
-        r = 0
-        for line in self.lines:
-            r += (1 if line.cross_line(mouse) else 0)
-        return r % 2 == 1
+        pt = Space(point)
+        if self.x <= pt.x <= self.x + self.width:
+            if self.y <= pt.y <= self.y + self.height:
+                return True

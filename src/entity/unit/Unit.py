@@ -38,7 +38,7 @@ class Unit(Prop):
         index += 1
         from src.entity.unit.ai import Pilot
         from src.tools.Data import Data
-        template = Data.get_line('data/raw/behaviors.txt', p[index])
+        template = Data.get_line('raw/behaviors.txt', p[index])
         self.pilot_name = p[index]
         self.pilot = getattr(Pilot, template[1])(self, template[2])
         index += 1
@@ -61,12 +61,12 @@ class Unit(Prop):
         self.form = Body(arg)
 
     def draw_synchronize(self):
-        if self.draw_frame != self.location.draw_frame:
+        if self.draw_frame != Global.map_view.draw_frame:
             self.update_vec()
-            self.draw_frame = self.location.draw_frame
+            self.draw_frame = Global.map_view.draw_frame
         self.draw_frame += 1
 
-    def draw(self, surface):
+    def update(self):
         if Camera.target != self:
             self.draw_synchronize()
         diff = self.pos.get_center() - self.vec
@@ -75,8 +75,7 @@ class Unit(Prop):
             self.vec.y += min(16, diff.y)
         else:
             self.vec.y += diff.y * .07
-        self.form.draw(surface, self.vec.x, self.vec.y)
-        self.form.update()
+        self.form.place(self.vec.x, self.vec.y)
 
     def turn(self):
         self.pilot.update()
@@ -177,13 +176,14 @@ class Unit(Prop):
         return self
 
     def die(self):
+        pos = self.pos
+        super().die()
         if Tags.insubstantial not in self.tags:
             from src.entity.Stock import Stock
             r = Stock.get('Corpse')
             r.durability = int(self.attributes.get_total() / 3)
-            r.relocate(self.pos.x, self.pos.y, force=1)
+            r.relocate(pos.x, pos.y, force=1)
             r.set(self.form)
-        super().die()
 
     def get_proficiency(self, school):
         return 1 if school.lower() in self.proficiency else 0

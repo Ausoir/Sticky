@@ -77,7 +77,7 @@ class Pilot(Guard):
         self.var['now'].perform()
 
     def get_sight(self):
-        return max(self.host.attributes.intelligence, int(self.host.location.sight_range / 2))
+        return max(self.host.attributes.intelligence, int(Global.map_view.sight_range / 2))
 
     def hit(self, hitter):
         if self.priority > 1:
@@ -106,7 +106,7 @@ class Pilot(Guard):
         perceived = []
         aoe = self.host.location.get_area(self.host.pos + (offset[0], offset[1]), sight, int(sight * .8))
         for i in aoe:
-            if i.light or abs(i.x - self.host.pos.x) < self.host.location.view_range:
+            if i.light or abs(i.x - self.host.pos.x) < Global.map_view.view_range:
                 for thing in i.things:
                     if thing != self.host:
                         perceived.append(thing)
@@ -116,7 +116,7 @@ class Pilot(Guard):
             seen = thing.pos == self.host.pos
             if not seen:
                 to = (thing.pos - self.host.pos).to_list()
-                seen = self.host.location.collide_sight(host_pos, to)
+                seen = Global.map_view.collide_sight(host_pos, to)
             if seen:
                 if isinstance(thing, Unit):
                     if self.host.faction != thing.faction and not thing.states.get('Invisible'):

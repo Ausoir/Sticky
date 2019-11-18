@@ -1,7 +1,6 @@
-import pygame
-
 from src.entity.Image import Image
 from src.entity.Space import Space
+from src.game import Global
 from src.game.Camera import Camera
 from src.game.Turn import Turn
 from src.map.Tile import Tile
@@ -46,6 +45,7 @@ class Object(Image):
 
     def add(self):
         self.removed = 0
+        self.form.enable(True)
         Turn.add(self.turn)
         self.relocate(self.pos.x, self.pos.y, force=1)
         self.location.record.append(self)
@@ -53,6 +53,7 @@ class Object(Image):
 
     def remove(self):
         self.removed = 1
+        self.form.enable(False)
         Turn.remove(self.turn)
         self.location.record.remove(self)
         self.pos.things.remove(self)
@@ -60,16 +61,16 @@ class Object(Image):
 
     def set_form(self, arg):
         self.form_name = arg
-        self.form = Data.run_cache(arg)
+        self.form = Data.get_form(arg, group=Global.draw_group.objects)
 
-    def draw(self, surface):
+    def update(self):
         diff = self.pos.get_center() - self.vec
         self.vec.x += diff.x * .07
         if 0 < diff.y and self.gravity:
             self.vec.y += min(16, diff.y)
         else:
             self.vec.y += diff.y * .07
-        self.form.draw(surface, self.vec.x, self.vec.y)
+        self.form.place(self.vec.x, self.vec.y)
 
     def turn(self):
         if self.is_fall():
@@ -86,7 +87,8 @@ class Object(Image):
                 self.falling = 0
 
     def out_of_bounds(self):
-        self.remove()
+        from src.tools.Turnee import Turnee
+        Turnee(self.remove, 0)
 
     def trigger(self):
         pass
@@ -122,3 +124,4 @@ class Object(Image):
 
     def center_camera(self):
         Camera.target = self
+        Global.map_view.on_sight_change()

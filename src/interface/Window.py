@@ -21,7 +21,7 @@ class Window(Shape):
         self.color = color
         self.size = Space(size)
         self.vec = Space(vec)
-        super().__init__(self.vec, color=self.color, vertices=Shape.make_rect(size))
+        super().__init__(x=self.vec.x, y=self.vec.y, color=self.color, width=size, height=size)
 
         self.children = []
         self.visible = -1

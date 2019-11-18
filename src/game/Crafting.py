@@ -4,7 +4,7 @@ from src.tools.Dialog import Dialog
 
 
 class Crafting:
-    recipe = Data.process_raw(Data.get_cache_file('data/raw/recipes.txt'))
+    recipe = Data.process_raw(Data.get_cache_file('raw/recipes.txt'))
 
     @staticmethod
     def get_ingredients(item):

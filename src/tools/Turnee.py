@@ -12,4 +12,5 @@ class Turnee:
             self.lifetime -= 1
             self.fn()
         elif self.lifetime == 0:
+            self.fn()
             Turn.remove(self.turn)

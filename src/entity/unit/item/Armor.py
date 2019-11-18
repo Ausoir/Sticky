@@ -1,4 +1,5 @@
 from src.entity.unit.item.Equipment import Equipment
+from src.game import Global
 from src.tools.Data import Data
 
 
@@ -50,12 +51,12 @@ class Armor(Equipment):
         return index + 1
 
     def set_form(self, arg):
-        Data.initialize_image(self.name, arg, (16, 32))
-        super().set_form(self.name + '_0x0')
-        self.form_armL = Data.run_cache(self.name + '_1x0')
-        self.form_armR = self.form_armL.clone()
-        self.form_legL = Data.run_cache(self.name + '_2x0')
-        self.form_legR = self.form_legL.clone()
+        Data.initialize_image(self.name, Data.get_image(arg, 0), (16, 32))
+        self.form = Data.get_form(self.name + '_0x0', group=Global.draw_group.units)
+        self.form_armL = Data.get_form(self.name + '_1x0', group=Global.draw_group.units)
+        self.form_armR = Data.get_form(self.name + '_1x0', group=Global.draw_group.units)
+        self.form_legL = Data.get_form(self.name + '_2x0', group=Global.draw_group.units)
+        self.form_legR = Data.get_form(self.name + '_2x0', group=Global.draw_group.units)
         self.form_name = arg
 
     def die(self):
@@ -105,9 +106,9 @@ class Armor(Equipment):
                 self.host.drop()
             host.face(1)
             forms = [self.form_armL, self.form_legL, self.form_legR, None, self.form, self.form_armR]
-            for k, i in enumerate(host.form.organs):
-                if forms[k]:
-                    i.set(forms[k])
+            for i in range(len(forms)):
+                if forms[i]:
+                    host.form.organs[i].set(forms[i])
             self.remove()
             host.update_durability(0)
             self.host = host

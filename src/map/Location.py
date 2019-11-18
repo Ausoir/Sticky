@@ -4,17 +4,12 @@ from src.entity.Sound import Sound
 from src.entity.Space import Space
 from src.entity.Stock import Stock
 from src.game import Global
-from src.game.Camera import Camera
 from src.game.Turn import Turn
 from src.map.Terrain import Terrain
 from src.map.Tile import Tile
 from src.tools.Data import Data
 from src.tools.List import List
 from src.tools.Math import Math
-
-
-# Handles both map and save functions
-from src.tools.Random import Random
 
 
 class Location:
@@ -35,7 +30,6 @@ class Location:
         self.seed = 0
         self.identity = 0
         self.name = name
-        self.draw_frame = 0
         self.update_frame = 0
         self.attack = Field()
         self.sound = Sound(self)
@@ -44,16 +38,7 @@ class Location:
         self.edge = 0
         self.record = List()
         self.header = None
-        self.draw_tiles = {}
-        self.sight_block = [Tile.COLLIDE_FOG, Tile.COLLIDE_PROP, Tile.COLLIDE_TERRAIN]
-        self.last_pos = None
         self.load(data)
-        self.sight_range = 12
-        self.view_range = 12
-        self.display_tiles_x = None
-        self.display_tiles_y = None
-        self.sight_tiles = []
-        self.resize()
 
     def __str__(self):
         high_x = -9999
@@ -102,49 +87,9 @@ class Location:
         if not self.delay:
             self.delay = 40
             # self.save()
-        self.update_frame += 1
-        self.update_fog()
-
-    def draw(self, surface):
-        self.draw_frame += 1
-        terrains = []
-        objects = [[], [], [], [], [], []]
-        tiles = self.draw_tiles.values()
-        for v in tiles:
-            tile_type = v.get_depth()
-            if tile_type == 1:
-                if v.terrain.background:
-                    v.draw_background(surface)
-                v.draw(surface)
-            elif tile_type == 0:
-                v.draw_background(surface)
-            else:
-                if v.terrain.background:
-                    v.draw_background(surface)
-                terrains.append(v)
-            for thing in v.things:
-                objects[thing.depth - 1].append(thing)
-        for depth in objects:
-            for i in depth:
-                i.draw(surface)
-        for i in terrains:
-            i.draw(surface)
-        for v in tiles:
-            v.draw_overlay(surface)
 
     def save(self):
-        Data.write('save/' + self.name + '.map', self.__str__())
-
-    def resize(self):
-        self.display_tiles_x = min(int(Global.SCREEN_TILES[0] / 2), self.sight_range)
-        self.display_tiles_y = min(int(Global.SCREEN_TILES[1] / 2), int(self.sight_range * .7))
-        self.sight_tiles = [[], []]
-        for x in range(-self.display_tiles_x, self.display_tiles_x + 1):
-            for y in range(-self.display_tiles_y, 0):
-                self.sight_tiles[0].append([x, y])
-            for y in range(self.display_tiles_y + 1):
-                if y != 0 or x != 0:
-                    self.sight_tiles[1].append([x, y])
+        Data.write('../save/' + self.name + '.map', self.__str__())
 
     def load_map(self, arg, new=False, offset=(0, 0), flip=False):
         tile_data = Data.get_cache('tiles')
@@ -173,7 +118,7 @@ class Location:
                 tile = self.get_tile(((middle - i[0][0] - middle) + offset[0], i[0][1] + offset[1]))
             else:
                 tile = self.get_tile((i[0][0] + offset[0], i[0][1] + offset[1]))
-            tile.terrain = Terrain(i[1], tile * Global.BLOCK, data[0], data[1], data[2], data[3], data[4], data[5])
+            tile.terrain = Terrain(i[1], data[0], data[1], data[2], data[3], data[4], data[5])
             if tile.y > self.edge:
                 self.edge = tile.y
         objs = []
@@ -188,56 +133,6 @@ class Location:
             obj.add()
             objs.append(obj)
         return objs
-
-    def spawn_mobs(self, number, mob_list, rand=None, spawns=None):
-        if number > 0:
-            if not rand:
-                rand = Random()
-            if not spawns:
-                spawns = []
-            tiles = []
-            for i in self.tiles.values():
-                if i.terrain and i.is_land(Tile.CHECK_FIRM):
-                    tiles.append(i)
-            for i in tiles:
-                above = self.get_tile(i + (0, -1))
-                if above.terrain and not above.is_land(Tile.CHECK_FIRM):
-                    spawns.append(above)
-            overlaps = []
-            if spawns:
-                for i in range(number):
-                    index = rand.rand_int(0, len(spawns) - 1)
-                    pos = spawns[index]
-                    overlaps.append(spawns.pop(index))
-                    if len(spawns) == 0:
-                        spawns = overlaps
-                    mob = rand.rand_list(mob_list)
-                    if mob:
-                        Stock.make(mob, pos)
-
-    def update_fog(self):
-        x = Camera.target.pos.x
-        y = Camera.target.pos.y
-        center = self.get_tile(Camera.target.pos)
-        center.update(self)
-        self.draw_tiles = {str(x) + ',' + str(y): center}
-        direction = Global.player.character.direction
-        start = [x * Global.BLOCK + Global.HALF_BLOCK + (Global.HALF_BLOCK * direction) - direction,
-                 y * Global.BLOCK + Global.BLOCK - 1]
-        view_y = int(self.view_range * .7)
-        for i in self.sight_tiles[0]:
-            sight = self.collide_sight(start, i)
-            if sight:
-                sight.update(self)
-                if (abs(sight.x - x) < self.view_range and abs(sight.y - y) < view_y) or sight.light:
-                    self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
-        start[1] = y * Global.BLOCK + 1
-        for i in self.sight_tiles[1]:
-            sight = self.collide_sight(start, i)
-            if sight:
-                sight.update(self)
-                if (abs(sight.x - x) < self.view_range and abs(sight.y - y) < view_y) or sight.light:
-                    self.draw_tiles[str(sight.x) + ',' + str(sight.y)] = sight
 
     def get_id(self):
         self.identity += 1
@@ -287,32 +182,6 @@ class Location:
             if tile.is_land(flag):
                 return prev
         return self.collide_line(vec_from, x, y, fn, distance)
-
-    def collide_sight(self, vec_from, tile_to):
-        abs_x = abs(tile_to[0])
-        abs_y = abs(tile_to[1])
-        if abs_x >= abs_y:
-            sign = 1 if tile_to[0] >= 0 else -1
-            if tile_to[1] == 0:
-                slope = [abs_x, Global.BLOCK * sign, 0]
-            else:
-                slope = [abs_x, Global.BLOCK * sign, tile_to[1] / abs_x * Global.BLOCK]
-        else:
-            sign = 1 if tile_to[1] >= 0 else -1
-            if tile_to[0] == 0:
-                slope = [abs_y, 0, Global.BLOCK * sign]
-            else:
-                slope = [abs_y, tile_to[0] / abs_y * Global.BLOCK, Global.BLOCK * sign]
-        distance = slope[0]
-        current = vec_from
-        tile_from = None
-        while distance > 0:
-            distance -= 1
-            current = [current[0] + slope[1], current[1] + slope[2]]
-            tile_from = self.get_tile_from_vec(current[0], current[1])
-            if tile_from.is_land(self.sight_block) and distance > 0:
-                return None
-        return tile_from
 
     def get_area(self, center_tile, range_x, range_y):
         tiles = []

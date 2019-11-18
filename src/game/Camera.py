@@ -10,8 +10,8 @@ class Camera:
 
     @staticmethod
     def update():
-        Camera.pos = [round(-Camera.target.vec.x + Global.CENTER[0]),
-                      round(-Camera.target.vec.y + Global.CENTER[1])]
+        Camera.pos = [round(Global.CENTER[0] - Camera.target.vec.x),
+                      round(Global.CENTER[1] - Camera.target.vec.y)]
 
     @staticmethod
     def get_relative_tile_pos(x, y):

@@ -1,5 +1,4 @@
 from src.entity.unit.item.Equipment import Equipment
-from src.game import Global
 
 
 class Headgear(Equipment):
@@ -20,6 +19,12 @@ class Headgear(Equipment):
             self.host = host
         else:
             self.host.say('Total encumbrance exceeds Agility!')
+
+    def set_form(self, arg):
+        from src.tools.Data import Data
+        from src.game import Global
+        self.form_name = arg
+        self.form = Data.get_form(arg, group=Global.draw_group.units)
 
     def activate(self):
         self.host.action.set('wait')

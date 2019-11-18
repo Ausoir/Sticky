@@ -186,3 +186,6 @@
 10/31 Dialog (3), tile depth (1)
 11/02 Pilot template (1), tiles depth (1)
 11/05 tag system redone and removed loot param (5)
+---- PUSH
+11/16 moved from pygame to pyglet (10)
+---- PUSH

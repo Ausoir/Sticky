@@ -43,7 +43,7 @@ class Item(Prop):
         super().die()
 
     def face(self, direction):
-        self.form.direction = direction
+        self.form.face(direction)
 
     def on_equip(self, host):
         self.face(host.direction)
@@ -54,6 +54,7 @@ class Item(Prop):
         self.remove()
 
     def on_unequip(self):
+        self.form.rotation = 0
         self.vec = self.vec + 0
         self.relocate(self.host.pos.x, self.host.pos.y, force=1)
         self.host = None
@@ -112,9 +113,6 @@ class Item(Prop):
         self.states.trigger(['attack', target])
         if Tags.sharp in self.tags:
             target.states.add('Bleed', 40)
-
-    def update(self):
-        pass
 
     def on_sleep(self, time):
         pass

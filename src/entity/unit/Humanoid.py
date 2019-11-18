@@ -33,8 +33,8 @@ class Humanoid(Unit):
         from src.entity.Stock import Stock
         from src.tools.Data import Data
         self.form.randomize_clip('hit', 4)
-        head = Data.run_cache(Humanoid.faces[self.attributes.gene % len(Humanoid.faces)])
-        self.form.organs[3].set(head)
+        self.head.form.set(Data.get_cache(Humanoid.faces[self.attributes.gene % len(Humanoid.faces)]))
+        self.form.organs[3].set(self.head.form)
         if p[index]:
             if isinstance(p[index], str):
                 weapon = Stock.get(p[index])
@@ -121,26 +121,26 @@ class Humanoid(Unit):
         self.headgear.face(direction)
         super().face(direction)
 
-    def draw(self, surface):
+    def update(self):
         vec_y = self.vec.y + Global.HALF_BLOCK
         x = self.vec.x + self.form.organs[0].lower_joint.x
         y = vec_y + self.form.organs[0].lower_joint.y + 2
-        arm = -(self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
-        self.weapon.form.rotate(arm + 90 + (self.weapon.rotation * self.direction))
-        self.weapon.form.draw(surface, x, y)
-        super().draw(surface)
-        if self.headgear.visible:
-            x = self.vec.x + self.form.organs[3].upper_joint.x
-            y = vec_y + self.form.organs[3].upper_joint.y
-            arm = -(self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
-            self.headgear.form.pivot.y = self.headgear.form.size.y
-            self.headgear.form.rotate(arm - 90)
-            self.headgear.form.draw(surface, x, y)
+        arm = (self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
+        self.weapon.form.rotation = arm - 90 + (self.direction * -50)
+        self.weapon.form.place(x, y)
+        self.weapon.form.visible = True
+        super().update()
+        x = self.vec.x + self.form.organs[3].upper_joint.x
+        y = vec_y + self.form.organs[3].upper_joint.y - self.headgear.form.height / 3
+        arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
+        self.headgear.form.rotation = arm + 90
+        self.headgear.form.place(x, y)
+        self.headgear.form.visible = True
         x = self.vec.x + self.form.organs[5].lower_joint.x
         y = vec_y + self.form.organs[5].lower_joint.y
-        arm = -(self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
-        self.offhand.form.rotate(arm + 110 + (self.offhand.rotation * self.direction))
-        self.offhand.form.draw(surface, x, y)
+        arm = (self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
+        self.offhand.form.rotation = arm * -self.direction
+        self.offhand.form.place(x, y)
 
     def get_dodge(self):
         if self.action.current_action == 'down':

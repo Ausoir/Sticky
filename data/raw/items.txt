@@ -1,5 +1,5 @@
 Plank,Item,g_0x6,[mat:Wood],1,[],[1,1] //Name,image,tags,dur,loot,state,size
-Ladder,Item,data/image/Ladder,[mat:Metal,climb:1,col:35,loot:Stick],2,[],[1,1]
+Ladder,Item,image/Ladder,[mat:Metal,climb:1,col:35,loot:Stick],2,[],[1,1]
 Fiber,Item,g_1x6,[ig],1,[],[1,1]
 Scrap,Item,g_3x6,[ig,mat:Metal],2,[],[1,1]
 Mushroom,Mushroom,g_10x3,[pf],1,[],[1,1]

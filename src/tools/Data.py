@@ -1,10 +1,10 @@
-import ast
 import os
 
-import pygame
+import pyglet
+from pyglet.image import TextureRegion
 
 from src.form.Animation import Animation
-from src.form.Sprite import Sprite
+from src.form.Picture import Picture
 
 
 class Data:
@@ -13,22 +13,23 @@ class Data:
 
     @staticmethod
     def init():
-        Data.set_cache('tiles', Data.process_raw(Data.get_cache_file('data/raw/tiles.txt')))
+        Data.set_cache('tiles', Data.process_raw(Data.get_cache_file('raw/tiles.txt')))
         for i in Data.registry_list:
-            Data.set_cache(i, Data.process_raw(Data.get_cache_file('data/raw/' + i + '.txt')))
-        res = Data.process_raw(Data.read('data/raw/resource.txt'))
+            Data.set_cache(i, Data.process_raw(Data.get_cache_file('raw/' + i + '.txt')))
+        res = Data.process_raw(Data.read('raw/resource.txt'))
         for i in res:
-            Data.initialize_image(i[0], i[1], i[2])
-        anim = Data.process_raw(Data.read('data/raw/animations.txt'))
-        for i in anim:
+            image = Data.get_image(i[1], 0)
+            Data.initialize_image(i[0], image, i[2])
+        animation = Data.process_raw(Data.read('raw/animations.txt'))
+        for i in animation:
             sequence = []
             for sprite in i[1]:
-                sequence.append(Data.run_cache(sprite))
-            Data.set_cache(i[0], [Animation, sequence, i[2], i[3]])
+                sequence.append(Data.get_cache(sprite))
+            Data.set_cache(i[0], [sequence, i[2], i[3]])
 
     @staticmethod
-    def direct(fdir):
-        return os.path.join('../' + fdir)
+    def direct(fdir, path='../data/'):
+        return os.path.join(path + fdir)
 
     @staticmethod
     def read(fdir):
@@ -63,11 +64,17 @@ class Data:
             Data.cache[fdir] = arg
 
     @staticmethod
-    def run_cache(fdir):
-        t = Data.get_cache(fdir)
-        if not t:
-            t = Data.get_image(fdir, 1)
-        return t[0](t[1:])
+    def get_form(fdir, **kwargs):
+        cache = Data.get_cache(fdir)
+        if cache:
+            if isinstance(cache, TextureRegion):
+                return Picture(cache, **kwargs)
+            elif isinstance(cache, list):
+                return Animation(cache, **kwargs)
+            else:
+                return cache
+        else:
+            return Picture(Data.get_image(fdir, False), **kwargs)
 
     @staticmethod
     def process_raw(data):
@@ -120,29 +127,23 @@ class Data:
                 return i
 
     @staticmethod
-    def initialize_image(name, fdir, subset_size):
-        image = Data.get_image(fdir, 0)
-        size = image.get_size()
-        if subset_size == 0:
-            surface = pygame.Surface((size[0], size[1]), pygame.SRCALPHA, 32)
-            surface.blit(image, (0, 0))
-            Data.cache[name] = [Sprite, surface]
-        else:
-            cols = int(size[0] / subset_size[0])
-            rows = int(size[1] / subset_size[1])
-            for x in range(0, cols+1):
-                for y in range(0, rows+1):
-                    surface = pygame.Surface((subset_size[0], subset_size[1]), pygame.SRCALPHA, 32)
-                    surface.blit(image, (0, 0), (subset_size[0]*x, subset_size[1]*y, subset_size[0], subset_size[1]))
-                    Data.cache[name+'_'+str(x)+'x'+str(y)] = [Sprite, surface]
+    def initialize_image(name, texture, subset_size):
+        cols = int(texture.width / subset_size[0])
+        rows = int(texture.height / subset_size[1])
+        for x in range(0, cols+1):
+            for y in range(0, rows+1):
+                left = subset_size[0] * x
+                bottom = texture.height - subset_size[1] * (y + 1)
+                region = texture.get_region(left, bottom, subset_size[0], subset_size[1])
+                Data.cache[name+'_'+str(x)+'x'+str(y)] = region
 
     @staticmethod
     def get_image(fdir, cache):
         if cache:
-            Data.cache[fdir] = [Sprite, pygame.image.load(Data.direct(fdir + '.png')).convert_alpha()]
+            Data.cache[fdir] = Picture(pyglet.resource.image(Data.direct(fdir + '.png', path='')))
             return Data.cache[fdir]
         else:
-            return pygame.image.load(Data.direct(fdir + '.png')).convert_alpha()
+            return pyglet.resource.image(Data.direct(fdir + '.png', path=''))
 
     @staticmethod
     def get_cache_file(fdir):
@@ -158,7 +159,7 @@ class Data:
         cache = Data.get_cache(fdir)
         if not cache:
             r = []
-            clip = Data.read('data/' + fdir + '.2d')
+            clip = Data.read(fdir + '.2d')
             lines = clip.split('\n\n')
             r.append(Data.process_raw(lines[0]))
             r.append(Data.process_raw(lines[1]))

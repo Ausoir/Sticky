@@ -3,12 +3,12 @@ from src.entity.unit.item.Equipment import Equipment
 
 class Weapon(Equipment):
     def __str__(self):
-        return super().__str__() + ',' + str(self.form.pivot.y) + ',' + str(self.reach) + ',' \
+        return super().__str__() + ',' + str(self.form.image.height - self.form.image.anchor_y) + ',' + str(self.reach) + ',' \
                + str(self.accuracy) + ',' + str(self.speed)
 
     def load(self, arg):
         index = super().load(arg)
-        self.form.pivot.y = arg[index]
+        self.form.image.anchor_y = self.form.image.height - arg[index]
         index += 1
         self.reach = arg[index]
         index += 1
@@ -20,10 +20,6 @@ class Weapon(Equipment):
     def set_form(self, arg):
         if not self.form:
             super().set_form(arg)
-
-    def on_unequip(self):
-        self.form.rotate(0)
-        super().on_unequip()
 
     def describe(self):
         r = super().describe()

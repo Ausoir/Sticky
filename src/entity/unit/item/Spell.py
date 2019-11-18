@@ -217,7 +217,7 @@ class Spell(Item):
         def casting():
             if channel.effect(4):
                 Particle.make('spin', host.vec, glow=-1)
-                Global.main.colorize(1, [30, 0, 0, 60 + (channel.frame * 4)])
+                Global.draw_group.colorize(1, [30, 0, 0, 60 + (channel.frame * 4)])
                 host.location.sight_range = max(4, host.location.sight_range - 1)
                 host.location.resize()
                 host.location.update_fog()

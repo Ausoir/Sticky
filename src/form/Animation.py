@@ -1,35 +1,35 @@
-from src.entity.Space import Space
-from src.form.Form import Form
+from src.form.Picture import Picture
 
 
-class Animation(Form):
-    def __init__(self, args):
-        super().__init__()
-        self.clips = args[0]
+class Animation(Picture):
+    def __init__(self, args, **kwargs):
+        super().__init__(args[0][0], **kwargs)
+        self.clips = []
         self.speed = args[1]
         self.current = 0
         self.repeat = args[2]
         self.ended = 0
-        self.size = self.clips[0].size
-        self.pivot = Space(self.size.x / 2, self.size.y / 2)
+        for i in args[0]:
+            self.clips.append(i)
+        self.enable(True)
 
-    def draw(self, surface, x, y):
-        if self.visible:
-            frame = self.get_current_frame()
-            self.clips[frame].draw(surface, x, y)
+    def place(self, x, y):
+        frame = self.get_current_frame()
+        if frame != -1:
+            self.set(self.clips[frame])
+            super().place(x, y)
 
     def rotate(self, angle):
-        self.rotation = angle
         for i in self.clips:
-            i.rotate(angle)
+            i.rotation = angle
 
     def get_current_frame(self):
         r = int(self.current/self.speed)
         if r >= self.clips.__len__():
             self.ended = 1
             if self.repeat == 0:
-                self.current = 0
-                self.visible = 0
+                self.current = -1
+                self.enable(False)
             elif self.repeat == 1:
                 self.current = 0
             elif self.repeat == 2:
@@ -37,9 +37,3 @@ class Animation(Form):
             r -= 1
         self.current += 1
         return r
-
-    def face(self, direction):
-        self.direction = direction
-        for i in self.clips:
-            i.direction = direction
-            i.resize()

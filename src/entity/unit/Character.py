@@ -33,11 +33,11 @@ class Character(Humanoid):
                     self.var[strings[0]] = strings[1]
         return index + 1
 
-    def draw(self, surface):
-        super().draw(surface)
+    def draw(self):
+        super().draw()
         from src.game.Camera import Camera
-        self.monologue.pos = [self.vec.x + Camera.pos[0], self.vec.y + Camera.pos[1] - 60]
-        self.monologue.draw(surface)
+        # self.monologue.pos = [self.vec.x + Camera.pos[0], self.vec.y + Camera.pos[1] - 60]
+        # self.monologue.draw(surface)
 
     def say(self, text):
         self.monologue.text(text)

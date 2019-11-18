@@ -1,6 +1,6 @@
 import sys
 
-import pygame
+import pyglet
 
 from src.entity.Space import Space
 from src.game import Global
@@ -13,10 +13,11 @@ class Control:
     def __init__(self, player):
         Turn.fast_queue.append(self.turn)
         self.player = player
+        self.mouse = [0, 0]
         self.keypress = []
         self.keyrelease = []
         self.keymap = {}
-        self.directory = 'data/keymap.txt'
+        self.directory = 'keymap.txt'
         self.set_keymap(self.directory)
 
     def set_keymap(self, fdir):
@@ -49,76 +50,63 @@ class Control:
     @staticmethod
     def get_key_code(name):
         if name == 'LMB':
-            return 501
+            return 1
         elif name == 'MMB':
-            return 502
+            return 2
         elif name == 'RMB':
-            return 503
+            return 4
         elif name == 'Wheel+':
             return 504
         elif name == 'Wheel-':
             return 505
         elif str(name).startswith('LS+'):
-            return 2000 + Control.get_key_code(name[3:])
-        return getattr(pygame, 'K_' + str(name))
+            return 100000 + Control.get_key_code(name[3:])
+        return getattr(pyglet.window.key, str(name))
 
     @staticmethod
     def get_key_name(key):
-        if key == 501:
+        if key == 1:
             return 'LMB'
-        elif key == 502:
+        elif key == 2:
             return 'MMB'
-        elif key == 503:
+        elif key == 4:
             return 'RMB'
         elif key == 504:
             return 'Wheel+'
         elif key == 505:
             return 'Wheel-'
-        elif key > 2000:
-            return 'LS+' + Control.get_key_name(key - 2000)
-        return pygame.key.name(key)
+        elif key > 100000:
+            return 'LS+' + Control.get_key_name(key - 100000)
+        return pyglet.window.key.symbol_string(key)
 
-    @staticmethod
-    def get_event_code(event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            return event.button + 500
-        elif event.type == pygame.MOUSEBUTTONUP:
-            return -(event.button + 500)
-        elif event.type == pygame.KEYDOWN:
-            return event.key
-        elif event.type == pygame.KEYUP:
-            return -event.key
-        return 0
-
-    def input(self, event):
+    def input(self, code):
         if Global.menu.visible == 1:
-            if Global.menu.input(event):
+            if Global.menu.input(code):
                 return 1
-        code = Control.get_event_code(event)
         if code > 0:
             if code not in self.keypress:
-                if code == 304:
+                if code == 65505:
                     for k, v in enumerate(self.keypress):
                         if self.keypress[k] not in self.keyrelease:
-                            self.keypress[k] = 2000 + v
-                    self.keypress.insert(0, 304)
+                            self.keypress[k] = 100000 + v
+                    self.keypress.insert(0, 65505)
                 else:
-                    if 304 in self.keypress:
-                        self.keypress.append(2000 + code)
+                    if 65505 in self.keypress:
+                        self.keypress.append(100000 + code)
                     else:
                         self.keypress.append(code)
         elif code < 0:
             if -code not in self.keyrelease:
-                if 304 in self.keypress:
-                    if (2000 - code) in self.keypress:
-                        self.keypress.remove(2000 - code)
+                if 65505 in self.keypress:
+                    if (100000 - code) in self.keypress:
+                        self.keypress.remove(100000 - code)
                 else:
                     self.keyrelease.append(-code)
-                if -code == 304:
+                if -code == 65505:
                     self.keypress.remove(-code)
                     for k, v in enumerate(self.keypress):
-                        if v > 2000:
-                            self.keypress[k] = v - 2000
+                        if v > 100000:
+                            self.keypress[k] = v - 100000
         return 0
 
     def clear_press(self, code=None):
@@ -132,17 +120,13 @@ class Control:
             self.keypress.clear()
 
     def quit(self):
-        mouse = pygame.mouse.get_pos()
-        mouse = Space(Camera.get_relative_tile_pos(mouse[0], mouse[1]))
-        self.player.input('quit', mouse)
+        self.player.input('quit', Space())
         self.player.location.delay = 0
         self.player.location.turn()
-        pygame.quit()
         sys.exit()
 
     def turn(self):
-        mouse = pygame.mouse.get_pos()
-        mouse = Space(Camera.get_relative_tile_pos(mouse[0], mouse[1]))
+        mouse = Space(Camera.get_relative_tile_pos(self.mouse[0], self.mouse[1]))
         length = self.keypress.__len__()
         if length > 0:
             code = self.keypress[length - 1]
@@ -176,7 +160,7 @@ class Control:
             self.keyrelease.remove(i)
             if i in self.keypress:
                 self.keypress.remove(i)
-            if i > 2000:
-                realkey = i - 2000
+            if i > 100000:
+                realkey = i - 100000
                 if realkey in self.keypress:
                     self.keypress.remove(realkey)

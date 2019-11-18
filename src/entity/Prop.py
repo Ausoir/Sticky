@@ -64,6 +64,10 @@ class Prop(Object):
     def die(self):
         from src.entity.Particle import Particle
         Particle.make('disintegrate', self.pos.get_center(), offset=0)
+        self.spawn_loot()
+        self.remove()
+
+    def spawn_loot(self):
         if 'loot' in self.tags:
             from src.entity.Stock import Stock
             from src.game import Global
@@ -76,7 +80,6 @@ class Prop(Object):
             else:
                 if 'loot%' not in self.tags or Global.r.rand_int(1, 100) <= self.tags['loot%']:
                     Stock.make(loot, self.pos)
-        self.remove()
 
     def is_hit(self, chance, faction=0):
         if self.hittable and (self.faction != faction or not faction or not self.faction):

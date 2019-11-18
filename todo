@@ -10,5 +10,5 @@ nest - poisoner, fast
 slums - ranger, specialer
 crypt - revive, summoner, healer
 
-optimization
-- update fog only at the start of move action
+pyglet
+- garbage collect Pictures after object removal

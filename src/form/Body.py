@@ -1,21 +1,21 @@
 import math
 import random
 
-from src.form.Appendage import Appendage
-from src.form.Form import Form
+from src.form.Appendage import Appendage, Limb
 from src.game import Global
 from src.tools.Data import Data
 from src.tools.Math import Math
 from src.tools.Timer import Timer
 
 
-class Body(Form):
+class Body:
     LEG = 2
 
     def __init__(self, model_name):
         super().__init__()
         data = Data.get_cache_clip(model_name).copy()
         self.seed = 1
+        self.direction = 1
         self.model_name = model_name
         self.model = data[0]
         self.animation = data[1]
@@ -33,7 +33,10 @@ class Body(Form):
         parent = []
         for x in self.model:
             parent.append([x[0], x[1]])
-            organ = Appendage(Data.run_cache(x[2]), meta=x[3])
+            if x[2]:
+                organ = Appendage(Data.get_form(x[2], group=Global.draw_group.units), meta=x[3])
+            else:
+                organ = Limb()
             self.organs.append(organ)
         for k, x in enumerate(self.organs):
             if parent[k][0] == 'r':
@@ -42,6 +45,14 @@ class Body(Form):
                 int_parent = int(parent[k][1])
                 x.set_parent(self.organs[int_parent], parent[k][0])
         self.set('idle')
+
+    def enable(self, arg):
+        for i in self.organs:
+            i.form.enable(arg)
+
+    def delete(self):
+        for i in self.organs:
+            i.form.delete()
 
     def randomize(self, seed):
         self.seed = seed
@@ -52,13 +63,8 @@ class Body(Form):
                 x = self.current_animation[k][0] + self.current_animation[len(self.current_animation) - 2][0]
                 y = self.current_animation[k][1] + self.current_animation[len(self.current_animation) - 2][1]
                 organ.lower_joint.load(organ.upper_joint.x + x, organ.upper_joint.y + y)
-                organ.update()
 
-    def draw(self, surface, x, y):
-        for i in self.organs:
-            i.draw(surface, x, y + Global.HALF_BLOCK)
-
-    def update(self):
+    def place(self, x, y):
         if self.timer.update():
             self.update_clip()
         else:
@@ -67,7 +73,7 @@ class Body(Form):
                 dx = ((self.current_animation[k][0] * self.direction) + diff.x) / self.timer.max
                 dy = (self.current_animation[k][1] + diff.y) / self.timer.max
                 organ.lower_joint += (dx, dy)
-                organ.update()
+                organ.place(x, y + Global.HALF_BLOCK)
             self.root.upper_joint.load(self.current_animation[len(self.current_animation) - 2])
 
     def set(self, state):
@@ -94,8 +100,7 @@ class Body(Form):
     def face(self, direction):
         self.direction = direction
         for x in self.organs:
-            x.form.direction = self.direction
-            x.form.direction_y = 0
+            x.form.face(self.direction)
 
     def randomize_once(self, mag):
         r = []
@@ -119,7 +124,7 @@ class Body(Form):
 
     def randomize_body(self, seed):
         random.seed(seed)
-        mag = random.gauss(.6, .1)
+        mag = random.gauss(.7, .1)
         r = []
         for clip in self.animation:
             r1 = []
@@ -134,7 +139,6 @@ class Body(Form):
     def rotate_appendage(self, frame, organ, target, offset=0):
         animation = Data.get_cache_clip(self.model_name)[1]
         length = math.sqrt(pow(animation[frame][organ][0], 2) + pow(animation[frame][organ][1], 2))
-        atan = target.to_int().get_atan() + (offset * self.direction)
-        self.animation[frame][organ][0] = length*Math.cos(atan)*self.direction
-        self.animation[frame][organ][1] = length*Math.sin(atan)
-
+        tan = target.to_int().get_atan() + (offset * self.direction)
+        self.animation[frame][organ][0] = length*Math.cos(tan)*self.direction
+        self.animation[frame][organ][1] = length*Math.sin(tan)

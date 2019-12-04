@@ -25,7 +25,7 @@ class Tile(Space):
 
     @staticmethod
     def init():
-        Tile.fog = Shape(width=Global.BLOCK, height=Global.BLOCK, color=(0, 0, 0, 255))
+        Tile.fog = Shape(0, 0, width=Global.BLOCK, height=Global.BLOCK, color=(0, 0, 0, 255))
 
     def __init__(self, x, y):
         super().__init__(x, y)

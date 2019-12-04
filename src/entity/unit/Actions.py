@@ -7,10 +7,10 @@ from src.map.Tile import Tile
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'walk', 'hit', 'down', 'interact', 'use', 'jump', 'duck', 'attack',
-               'run_left', 'run_right', 'pocket_1', 'pocket_2', 'pocket_3', 'pocket_4',
+    default = ['idle', 'left', 'right', 'up', 'down', 'fall' 'walk', 'hit', 'interact', 'use', 'attack',
+               'pocket_1', 'pocket_2', 'pocket_3', 'pocket_4',
                'power_1', 'power_2', 'power_3', 'power_4', 'trinket']
-    priority = ['down', 'hit']
+    priority = ['fall', 'hit']
 
     def __init__(self, host):
         self.host = host
@@ -55,7 +55,7 @@ class Actions:
 
     def set_animation(self, arg):
         if self.host.form.state_name != arg or self.host.form.animation_ended:
-            self.host.form.set(arg)
+            self.host.form.set_state(arg)
 
     def make(self, animation=None, turn=0):
         if animation:
@@ -67,8 +67,8 @@ class Actions:
     @staticmethod
     def knockdown(victim):
         if isinstance(victim, Unit):
-            if victim.action.current_action != 'down':
-                victim.action.set('down')
+            if victim.action.current_action != 'fall':
+                victim.action.set('fall')
 
     def idle(self):
         if self.last_action == 'idle':
@@ -167,50 +167,47 @@ class Actions:
         self.ability('power4')
 
     def left(self):
-        self.host.face(-1)
-        self.set('walk')
+        if self.host.direction != 1:
+            self.host.face(1)
+            self.make(turn=1, animation='idle')
+        else:
+            self.set('walk')
+
+    def up(self):
+        if self.host.direction != 2:
+            self.host.face(2)
+            self.make(turn=1, animation='idle')
+        else:
+            self.set('walk')
 
     def right(self):
-        self.host.face(1)
-        self.set('walk')
+        if self.host.direction != 3:
+            self.host.face(3)
+            self.make(turn=1, animation='idle')
+        else:
+            self.set('walk')
 
-    def run_left(self):
-        self.host.face(-1)
-        self.set('run_attempt')
-
-    def run_right(self):
-        self.host.face(1)
-        self.set('run_attempt')
-
-    def run_attempt(self):
-        front = self.host.get_offset_tile(self.host.direction, 0)
-        far = self.host.get_offset_tile(self.host.direction * 2, 0)
-        if far.is_land([Tile.COLLIDE_UNIT]) or front.is_land([Tile.COLLIDE_UNIT]):
-            if self.attempt('tackle', idle=False):
-                return
-        self.attempt('sprint')
+    def down(self):
+        if self.host.direction != 4:
+            self.host.face(4)
+            self.make(turn=1, animation='idle')
+        else:
+            self.set('walk')
 
     def walk(self):
-        if self.host.gravity:
-            front = self.host.get_offset_tile(self.host.direction, 0)
-            if front.is_land(Tile.CHECK_FIRM):
-                if not self.host.get_offset_tile(self.host.direction, -1).is_land(Tile.CHECK_FIRM):
-                    self.set('jump')
-                else:
-                    self.set('idle')
-            else:
-                for thing in front.things:
-                    if thing.faction == self.host.faction and isinstance(thing, Unit)\
-                            and thing.action.current_action == 'idle':
-                        thing.move(-self.host.direction, 0, flag=Tile.CHECK_FIRM)
-                        self.host.move(self.host.direction, 0)
-                        self.make(turn=max(0, 2 - self.host.attributes.speed))
-                        return
-                self.host.move(self.host.direction, 0)
-                self.make(turn=max(0, 1 - self.host.attributes.speed))
+        front = self.host.get_front_tile(self.host.direction)
+        if front.is_land(Tile.CHECK_FIRM):
+            self.set('idle')
         else:
-            self.host.move(self.host.direction, 0)
-            self.make(animation='swim', turn=max(0, 4 - self.host.attributes.speed))
+            for thing in front.things:
+                if thing.faction == self.host.faction and isinstance(thing, Unit)\
+                        and thing.action.current_action == 'idle':
+                    thing.move(-self.host.direction, 0, flag=Tile.CHECK_FIRM)
+                    self.host.move_toward(self.host.direction)
+                    self.make(turn=max(0, 3 - self.host.attributes.speed))
+                    return
+            self.host.move_toward(self.host.direction)
+            self.make(turn=max(0, 2 - self.host.attributes.speed))
 
     def hit(self):
         self.make(turn=2)
@@ -219,81 +216,14 @@ class Actions:
         self.make(turn=3)
         if not self.host.is_armed():
             from src.entity.unit.item.Item import Item
-            for thing in reversed(self.host.pos.things):
-                if thing != self.host.weapon and isinstance(thing, Item):
+            for thing in reversed(self.host.get_target_tile().things):
+                if isinstance(thing, Item):
                     thing.on_equip(self.host)
                     return
         else:
-            if self.host.weapon.name == 'Ladder':
-                y = 0
-                end = False
-                while not end:
-                    end = True
-                    for thing in self.host.get_offset_tile(0, y).things:
-                        if thing.name == 'Ladder':
-                            y -= 1
-                            end = False
-                            break
-                self.make(animation='interact', turn=2)
-                weapon = self.host.weapon
-                self.host.drop()
-                weapon.move(0, y)
-            else:
-                self.host.drop()
+            self.host.drop()
 
-    def duck(self):
-        ground = self.host.get_offset_tile(0, 1)
-        if ground.is_climbable():
-            for thing in self.host.get_offset_tile(0, 1).things:
-                if thing.faction == self.host.faction and isinstance(thing, Unit)\
-                        and thing.action.current_action == 'idle':
-                    thing.move(0, -1, flag=Tile.CHECK_FIRM)
-                    self.host.move(0, 1)
-                    self.make(turn=3)
-                    return
-            if self.host.pos != self.host.move(0, 1):
-                self.make('climb', turn=2)
-        else:
-            if self.host.gravity:
-                from src.game.Interaction import Interaction
-                if Interaction.trigger(self.host.pos):
-                    if self.host.action.current_action == 'duck':
-                        self.make(animation='interact', turn=4)
-                else:
-                    self.attempt('block')
-            else:
-                self.host.move(0, 1)
-                self.make(animation='swim', turn=4)
-
-    def jump(self):
-        if self.host.gravity:
-            cripple = self.host.states.get('Cripple')
-            if not cripple:
-                if self.host.pos.is_climbable():
-                    for thing in self.host.get_offset_tile(0, -1).things:
-                        if thing.faction == self.host.faction and isinstance(thing, Unit)\
-                                and thing.action.current_action == 'idle':
-                            thing.move(0, 1, flag=Tile.CHECK_FIRM)
-                            self.host.move(0, -1)
-                            self.make(turn=3)
-                            return
-                    if self.host.pos != self.host.move(0, -1):
-                        self.make('climb', turn=2)
-                else:
-                    from src.entity.unit.Character import Character
-                    self.host.location.sound.register(self.host.pos, 3)
-                    self.host.attributes.leg += 2
-                    destination = self.host.get_offset_tile(self.host.direction, -1)
-                    if destination.is_land(Tile.CHECK_FIRM):
-                        self.host.move(0, -1)
-                    else:
-                        self.host.move(self.host.direction * 1, -1)
-                    self.make(turn=2)
-        else:
-            self.host.move(0, -1)
-            self.make(animation='swim', turn=6)
-
-    def down(self):
+    def fall(self):
         def fin():
             for thing in self.host.pos.things:
                 if thing != self.host and isinstance(thing, Unit):
@@ -319,18 +249,6 @@ class Actions:
         Camera.target = viewer
         self.make(animation='idle', turn=1)
 
-    def sprint(self):
-        front = self.host.get_offset_tile(self.host.direction, 0)
-        if front.is_land(Tile.CHECK_FIRM):
-            self.attempt('jump')
-        else:
-            self.host.location.sound.register(self.host.pos, 5)
-            from src.entity.unit.Character import Character
-            if not Character.check_var(self.host, 'talent', 'Scout'):
-                self.host.attributes.leg += 1
-            self.host.move(self.host.direction, 0)
-            self.make(turn=max(0, -self.host.attributes.speed))
-
     def use(self):
         self.host.use()
 
@@ -348,14 +266,8 @@ class Actions:
         self.host.attributes.body += self.host.weapon.weight
         if self.host.is_armed():
             self.host.weapon.rotation = 40
-            self.host.form.rotate_appendage(19, 0, self.host.next_target, offset=45)
-        else:
-            self.host.form.rotate_appendage(19, 0, self.host.next_target, offset=15)
         self.host.weapon.attack(self.host.get_proficiency('attack'))
-        if self.host.weapon.speed < 4:
-            self.make(animation='slash', turn=self.host.weapon.speed)
-        else:
-            self.make(animation='attack', turn=self.host.weapon.speed)
+        self.make(animation='slash', turn=self.host.weapon.speed)
 
     def leap(self):
         if not self.host.attributes.exert(1, 6):
@@ -374,7 +286,6 @@ class Actions:
             self.host.weapon.rotation = 15
             self.host.move(self.host.direction, 0)
             rand = random.randint(-12, 12)
-            self.host.form.rotate_appendage(39, 0, self.host.next_target, offset=rand)
             prof = self.host.get_proficiency('lunge') * 2
             self.host.weapon.attack(delay=2, chance=prof, callback=hit)
             self.make(turn=2 + self.host.weapon.speed - prof)
@@ -394,19 +305,6 @@ class Actions:
             self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM)
             self.make(animation='kick', turn=3)
             return True
-
-    def flurry(self):
-        if not self.host.attributes.exert(1, 3):
-            self.host.attributes.body += self.host.weapon.weight
-            self.host.weapon.rotation = 10
-            self.host.weapon.attack(chance=self.host.get_proficiency('flurry'))
-            rand = random.randint(-15, 15)
-            self.host.form.rotate_appendage(38, 0, self.host.next_target, offset=rand)
-            self.host.form.rotate_appendage(38, 5, self.host.next_target, offset=rand)
-            self.make(animation='flurry', turn=1)
-            return True
-        else:
-            self.make(animation='rest', turn=2)
 
     def slam(self):
         if not self.host.attributes.exert(1, 9):
@@ -447,7 +345,7 @@ class Actions:
                 self.host.location.attack.register(1, self.host.pos, delay=0,
                                                    hitter=self.host, callback=hit)
                 frenzy.end()
-                self.host.action.set('down')
+                self.host.action.set('fall')
             else:
                 self.make(turn=0)
 
@@ -475,9 +373,6 @@ class Actions:
         self.host.weapon.rotation = 0
         self.host.attributes.exert(0, self.host.weapon.weight)
         dest = self.host.next_target
-        self.host.form.rotate_appendage(32, 0, self.host.next_target)
-        self.host.form.rotate_appendage(33, 3, self.host.next_target, offset=-60)
-        self.host.form.rotate_appendage(33, 0, self.host.next_target)
         self.on_finish = fin
         self.make(turn=9)
 
@@ -509,8 +404,5 @@ class Actions:
         self.host.weapon.rotation = 0
         self.host.attributes.exert(0, self.host.weapon.weight)
         dest = self.host.next_target
-        self.host.form.rotate_appendage(29, 0, self.host.next_target)
-        self.host.form.rotate_appendage(29, 5, self.host.next_target)
-        self.host.form.rotate_appendage(29, 3, self.host.next_target, offset=-60)
         self.on_finish = fin
         self.make(animation='block', turn=rating)

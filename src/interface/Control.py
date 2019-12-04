@@ -13,7 +13,8 @@ class Control:
     def __init__(self, player):
         Turn.fast_queue.append(self.turn)
         self.player = player
-        self.mouse = [0, 0]
+        self.cursor = [0, 0]
+        self.cursor_tile = [0, 0]
         self.keypress = []
         self.keyrelease = []
         self.keymap = {}
@@ -120,13 +121,13 @@ class Control:
             self.keypress.clear()
 
     def quit(self):
-        self.player.input('quit', Space())
+        self.player.input('quit')
         self.player.location.delay = 0
         self.player.location.turn()
         sys.exit()
 
     def turn(self):
-        mouse = Space(Camera.get_relative_tile_pos(self.mouse[0], self.mouse[1]))
+        self.cursor_tile = Space(Camera.get_relative_tile_pos(self.cursor[0], self.cursor[1]))
         length = self.keypress.__len__()
         if length > 0:
             code = self.keypress[length - 1]
@@ -152,10 +153,10 @@ class Control:
                         Global.menu.var = [None, 'Ask']
                         Global.menu.topic('Ask')
                 elif Global.menu.visible != 1:
-                    if not Global.player.click(command, mouse):
-                        self.player.input(command, mouse)
+                    if not Global.player.click(command, self.cursor_tile):
+                        self.player.input(command)
         else:
-            self.player.input('idle', mouse)
+            self.player.input('idle')
         for i in self.keyrelease:
             self.keyrelease.remove(i)
             if i in self.keypress:

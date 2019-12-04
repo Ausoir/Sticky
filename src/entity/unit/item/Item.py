@@ -1,4 +1,5 @@
 from src.entity.Prop import Prop
+from src.game import Global
 from src.game.Tags import Tags
 from src.map.Tile import Tile
 
@@ -43,17 +44,17 @@ class Item(Prop):
         super().die()
 
     def face(self, direction):
-        self.form.face(direction)
+        self.form.face_cardinal(direction)
 
     def on_equip(self, host):
-        self.face(host.direction)
-        self.rotation = 60
         self.host = host
         host.weapon = self
         self.vec = host.vec
         self.remove()
+        self.form.show(True)
 
     def on_unequip(self):
+        self.form.group = Global.draw_group.objects
         self.form.rotation = 0
         self.vec = self.vec + 0
         self.relocate(self.host.pos.x, self.host.pos.y, force=1)

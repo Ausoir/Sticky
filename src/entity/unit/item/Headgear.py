@@ -1,4 +1,6 @@
 from src.entity.unit.item.Equipment import Equipment
+from src.game import Global
+from src.tools import Direction
 
 
 class Headgear(Equipment):
@@ -7,24 +9,27 @@ class Headgear(Equipment):
             self.host.unheadgear()
         super().die()
 
+    def face(self, direction):
+        self.form.switch(Direction.numeral[direction])
+        self.form.reset()
+        super().face(direction)
+
     def use(self):
         self.host.action.set('wait')
-        if self.host.attributes.agility >= self.weight + self.host.armor.weight:
-            self.host.headgear = self
-            host = self.host
-            if self.host.weapon == self:
-                self.host.drop()
-            self.remove()
-            host.update_durability(0)
-            self.host = host
-        else:
-            self.host.say('Total encumbrance exceeds Agility!')
+        self.host.headgear = self
+        host = self.host
+        if self.host.weapon == self:
+            self.host.drop()
+        self.remove()
+        host.update_durability(0)
+        self.form.show(True)
+        self.form.group = Global.draw_group.units
+        self.host = host
 
     def set_form(self, arg):
         from src.tools.Data import Data
-        from src.game import Global
         self.form_name = arg
-        self.form = Data.get_form(arg, group=Global.draw_group.units)
+        self.form = Data.get_form(arg, form='Head', group=Global.draw_group.objects)
 
     def activate(self):
         self.host.action.set('wait')

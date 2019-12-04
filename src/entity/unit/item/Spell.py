@@ -183,7 +183,7 @@ class Spell(Item):
             for thing in tile.things:
                 thing.move(host.pos.x - thing.pos.x, host.pos.y - thing.pos.y)
                 if isinstance(thing, Unit):
-                    thing.action.set('down')
+                    thing.action.set('fall')
 
     @staticmethod
     def gravitas(host):

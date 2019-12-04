@@ -303,24 +303,10 @@ class Levitate(Buff):
     def describe(self):
         return 'You are flying.'
 
-    def is_valid(self):
-        if self.host.gravity:
-            return True
-
-    def on_start(self):
-        self.host.gravity = 0
-
-    def on_load(self):
-        self.host.gravity = 0
-
     def on_stack(self, duration, var):
         self.duration = max(self.duration, duration)
 
-    def on_finish(self):
-        self.host.gravity = 1
-
     def on_update(self):
-        self.host.gravity = 0
         Particle.make('zip', self.host.pos.get_center())
 
 

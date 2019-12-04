@@ -2,7 +2,7 @@ icon,Icon,[24,24] //Name, Directory, Subset, instanced
 gfx,image/_effect,[40,40]
 g,image/_single,[40,40]
 half,image/_half,[20,20]
-body,image/unit/body,[16,32]
+body,image/unit/body,[16,96]
 dog,image/unit/dog,[16,32]
 rat,image/unit/rat,[16,32]
 worm,image/unit/worm,[16,32]

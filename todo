@@ -12,3 +12,5 @@ crypt - revive, summoner, healer
 
 pyglet
 - garbage collect Pictures after object removal
+- attack animation cut off
+  *change Body.timer to match weapon speed

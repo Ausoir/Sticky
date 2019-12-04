@@ -458,7 +458,6 @@ class Corpse(Prop):
         super().__init__(loc)
         self.direction = 1
         self.collision_type = 0
-        self.depth = 3
         self.standables = Tile.CHECK_LANDABLE
         self.form = Data.get_form('g_9x3', group=Global.draw_group.objects)
         self.is_ragdoll = False
@@ -476,8 +475,8 @@ class Corpse(Prop):
         self.durability = 8
         dead = 'dead' + str(Global.r.rand_int(1, 2))
         self.form.randomize_clip(dead, 8)
-        self.form.set(dead)
-        self.form.set = self.invalid
+        self.form.set_state(dead)
+        self.form.set_state = self.invalid
         self.form.enable(True)
         return self
 
@@ -791,7 +790,7 @@ class Tazer(Weapon):
 class Pickaxe(Weapon):
     def attack(self, chance=0, delay=1, callback=None):
         super().attack(chance, delay, callback)
-        breakables = Data.get_line('data/raw/raw.txt', 'breakable')[1]
+        breakables = Data.get_line('raw/raw.txt', 'breakable')[1]
         for i in range(self.reach):
             tile = self.host.location.collide_line(self.host.pos, self.host.next_target.x, self.host.next_target.y,
                                                    lambda arg1, arg2: None, distance=i + 1)
@@ -860,5 +859,5 @@ class Phantom(Unit):
     def set_host(self, host):
         self.host = host
         self.form.organs[0].set(self.host.form)
-        self.loot = self.host.loot
+        self.tags = self.host.tags
         self.host.loot = []

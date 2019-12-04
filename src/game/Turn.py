@@ -8,7 +8,7 @@ class Turn:
 
     @staticmethod
     def init():
-        Turn.queue = [[], [], [], [], [], [], [], [], [], []]
+        Turn.queue = [[], [], [], []]
         Turn.rounds = len(Turn.queue)
         Turn.fast_queue = []
         Turn.remove_queue = []

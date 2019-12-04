@@ -2,7 +2,7 @@ from src.tools.Data import Data
 
 
 class Dialog:
-    dialog = Data.process_raw(Data.get_cache_file('raw/dialog.txt'))
+    dialog = Data.process_raw(Data.read('raw/dialog.txt'))
 
     @staticmethod
     def get(topic, var=None):

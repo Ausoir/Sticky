@@ -1,5 +1,6 @@
 from src.entity.unit.Unit import Unit
 from src.game import Global
+from src.tools import Direction
 
 
 class Humanoid(Unit):
@@ -9,7 +10,6 @@ class Humanoid(Unit):
         super().__init__(loc)
         self.armor = None
         self.headgear = None
-        self.aim_angle = 0
         from src.entity.Stock import Stock
         self.fist = Stock.get('Fist')
         self.body = Stock.get('Body')
@@ -19,6 +19,7 @@ class Humanoid(Unit):
         self.fist.host = self
         self.body.host = self
         self.head.host = self
+        self.head_layer = None
 
     def __str__(self):
         weapon = '['+self.weapon.__str__()+']' if self.is_armed() else '0'
@@ -31,10 +32,7 @@ class Humanoid(Unit):
     def load(self, p):
         index = super().load(p)
         from src.entity.Stock import Stock
-        from src.tools.Data import Data
         self.form.randomize_clip('hit', 4)
-        self.head.form.set(Data.get_cache(Humanoid.faces[self.attributes.gene % len(Humanoid.faces)]))
-        self.form.organs[3].set(self.head.form)
         if p[index]:
             if isinstance(p[index], str):
                 weapon = Stock.get(p[index])
@@ -63,6 +61,8 @@ class Humanoid(Unit):
             armor.use()
         else:
             self.make_armor()
+        self.head.form = self.make_face()
+        self.form.organs[3].set(self.head.form)
         index += 1
         if p[index]:
             if isinstance(p[index], str):
@@ -78,6 +78,15 @@ class Humanoid(Unit):
         for i in self.get_possessions():
             i.id = Stock.location.get_id()
         return index
+
+    def add_batch(self, add):
+        super().add_batch(add)
+        self.headgear.add_batch(add)
+
+    def show(self, visible):
+        super().show(visible)
+        self.weapon.show(visible)
+        self.headgear.show(visible)
 
     def turn(self):
         super().turn()
@@ -115,35 +124,71 @@ class Humanoid(Unit):
         self.drop()
         super().die()
 
-    def face(self, direction):
-        self.weapon.face(direction)
-        self.offhand.face(direction)
-        self.headgear.face(direction)
-        super().face(direction)
-
     def update(self):
-        vec_y = self.vec.y + Global.HALF_BLOCK
-        x = self.vec.x + self.form.organs[0].lower_joint.x
-        y = vec_y + self.form.organs[0].lower_joint.y + 2
-        arm = (self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
-        self.weapon.form.rotation = arm - 90 + (self.direction * -50)
-        self.weapon.form.place(x, y)
-        self.weapon.form.visible = True
         super().update()
-        x = self.vec.x + self.form.organs[3].upper_joint.x
-        y = vec_y + self.form.organs[3].upper_joint.y - self.headgear.form.height / 3
+        if self.direction == 2:
+            x = self.vec.x + self.form.organs[0].lower_joint.x
+            y = self.vec.y + self.form.organs[0].lower_joint.y + 2
+            arm = (self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
+            self.weapon.form.rotation = arm + 50
+            self.weapon.form.place(x, y)
+        elif self.direction == 4:
+            x = self.vec.x + self.form.organs[5].lower_joint.x
+            y = self.vec.y + self.form.organs[5].lower_joint.y + 2
+            arm = (self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
+            self.weapon.form.rotation = arm - 120
+            self.weapon.form.place(x, y)
+        else:
+            x = self.vec.x + self.form.organs[0].lower_joint.x
+            y = self.vec.y + self.form.organs[0].lower_joint.y + 2
+            arm = (self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
+            self.weapon.form.rotation = arm - 90 + (self.direction * 90) + (Direction.side[self.direction] * 20)
+            self.weapon.form.place(x, y)
+        x = self.vec.x + self.form.organs[3].lower_joint.x
+        y = self.vec.y + self.form.organs[3].lower_joint.y - 2
         arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
         self.headgear.form.rotation = arm + 90
         self.headgear.form.place(x, y)
-        self.headgear.form.visible = True
-        x = self.vec.x + self.form.organs[5].lower_joint.x
-        y = vec_y + self.form.organs[5].lower_joint.y
-        arm = (self.form.organs[5].lower_joint - self.form.organs[5].upper_joint).get_atan()
-        self.offhand.form.rotation = arm * -self.direction
-        self.offhand.form.place(x, y)
+
+    def face(self, direction):
+        self.armor.face(direction)
+        self.weapon.face(direction)
+        self.offhand.face(direction)
+        self.headgear.face(direction)
+        self.update_perspective(direction)
+        super().face(direction)
+        if direction == 4:
+            self.add_batch(False)
+            self.weapon.add_batch(False)
+            self.weapon.form.group = Global.draw_group.units
+            for i in [0, 1, 2, 3, 4, -1, 6]:
+                if i == -1:
+                    self.weapon.add_batch(True)
+                else:
+                    self.form.organs[i].form.add_batch(True)
+        else:
+            self.add_batch(True)
+            self.weapon.form.group = Global.draw_group.objects
+            self.weapon.add_batch(True)
+
+    def update_perspective(self, direction):
+        numeral = Direction.numeral[direction] * 3
+        forms = [1, 2, 2, None, 0, 1]
+        for i in range(len(forms)):
+            if forms[i] is not None:
+                organ = self.form.organs[i]
+                self.armor.form.switch(forms[i] + numeral)
+                organ.form.set(self.armor.form.image)
+                organ.form.reset()
+                organ.set(organ.form)
+        organ = self.form.organs[3]
+        self.head.form.switch(Direction.numeral[direction])
+        organ.form.set(self.head.form.image)
+        organ.form.reset()
+        organ.set(organ.form)
 
     def get_dodge(self):
-        if self.action.current_action == 'down':
+        if self.action.current_action == 'fall':
             return 0
         if self.action.current_action == 'block':
             r = self.offhand.weight * 4 + 4
@@ -158,6 +203,7 @@ class Humanoid(Unit):
 
     def make_fist(self):
         self.fist.on_equip(self)
+        self.fist.form.show(False)
 
     def make_armor(self):
         self.armor = self.body
@@ -169,11 +215,6 @@ class Humanoid(Unit):
         self.headgear.host = self
         self.headgear.use()
 
-    def swap(self):
-        weapon = self.offhand
-        self.offhand = self.weapon
-        self.weapon = weapon
-
     def drop(self):
         if self.is_armed():
             r = self.weapon
@@ -183,7 +224,6 @@ class Humanoid(Unit):
 
     def unarmor(self):
         if self.is_armored():
-            self.armor.relocate(self.pos.x, self.pos.y, force=1)
             self.armor.on_unequip()
             self.make_armor()
             self.update_durability(0)
@@ -192,9 +232,9 @@ class Humanoid(Unit):
 
     def unheadgear(self):
         if self.is_headgeared():
-            self.headgear.relocate(self.pos.x, self.pos.y, force=1)
             self.headgear.on_unequip()
             self.make_headgear()
+            self.update_durability(0)
             return 1
         return 0
 
@@ -228,3 +268,9 @@ class Humanoid(Unit):
 
     def get_encumbrance(self):
         return self.armor.weight + self.headgear.weight
+
+    def make_face(self):
+        from src.form.Model import Model
+        face = Humanoid.faces[self.attributes.gene % len(Humanoid.faces)]
+        model = Model(face, group=Global.draw_group.units)
+        return model

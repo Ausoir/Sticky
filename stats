@@ -189,3 +189,11 @@
 ---- PUSH
 11/16 moved from pygame to pyglet (10)
 ---- PUSH
+11/22 pyglet Menu (5), top down test (3)
+11/23 face perspective test (1)
+11/25 face perspectives (1)
+11/27 switch to pyglet.Animation (1)
+12/02 switched to shadow casting line of sight system (8)
+12/03 Appendage scale/rotation glitch fix - length was set to 1 which doesnt trigger resize (2)
+12/03 Cardinal attack motion with correct depth (3)
+---- PUSH

@@ -1,4 +1,4 @@
-Force,Prop,g_0x0,[col:0,fly:1,ind:1],-1,[] //Name, Image, Flag, Durability, Loot, State
+Force,Prop,none,[col:0,fly:1,ind:1],-1,[] //Name, Image, Flag, Durability, Loot, State
 Flame,Prop,scorch,[col:0,fly:1],12,[[Burn,-1,0]]
 Roof,Prop,g_16x1,[col:35,fly:1,ind:1],2,[]
 Signpost,Prop,g_13x3,[mat:Wood,col:0],1,[]

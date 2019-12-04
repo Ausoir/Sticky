@@ -1,4 +1,4 @@
-import pygame
+import pyglet
 
 from src.game import Global
 
@@ -13,29 +13,28 @@ class Textbox:
         self.pos = pos
         self.word_offset = 0
 
-    def input(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key in Global.player.control.keymap:
-                if Global.player.control.keymap[event.key] == 'text':
-                    self.display = 100
-                    self.color1 = (200, 230, 200)
-                    self.color2 = (60, 100, 60)
-                    Global.main.text_mode = False
-                    Global.player.control.player.input('command', (0, 0))
-                    return
-                elif Global.player.control.keymap[event.key] == 'quit':
-                    self.display_text = ''
-                    Global.main.text_mode = False
-                    return
-            self.display = -1
-            self.color1 = (220, 220, 220)
-            self.color2 = (40, 40, 40)
-            if event.key == pygame.K_BACKSPACE:
-                self.display_text = self.display_text[:-1]
-            elif event.key == pygame.K_SPACE:
-                self.display_text += ' '
-            else:
-                self.display_text += event.unicode
+    def input(self, code):
+        if code in Global.player.control.keymap:
+            if Global.player.control.keymap[code] == 'text':
+                self.display = 100
+                self.color1 = (200, 230, 200)
+                self.color2 = (60, 100, 60)
+                Global.main.text_mode = False
+                Global.player.control.player.input('command', (0, 0))
+                return
+            elif Global.player.control.keymap[code] == 'quit':
+                self.display_text = ''
+                Global.main.text_mode = False
+                return
+        self.display = -1
+        self.color1 = (220, 220, 220)
+        self.color2 = (40, 40, 40)
+        if code == pyglet.window.key.BACKSPACE:
+            self.display_text = self.display_text[:-1]
+        elif code == pyglet.window.key.SPACE:
+            self.display_text += ' '
+        else:
+            self.display_text += pyglet.window.key.symbol_string(code)
 
     def text(self, arg, time=200):
         self.display = time

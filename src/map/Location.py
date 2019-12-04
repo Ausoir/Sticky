@@ -65,7 +65,6 @@ class Location:
             if tile.terrain:
                 rt.append(tile.__str__())
         tiles = ','.join(rt)
-
         r = []
         for i in self.record:
             r.append('['+i.__str__()+']')
@@ -121,7 +120,7 @@ class Location:
             tile.terrain = Terrain(i[1], data[0], data[1], data[2], data[3], data[4], data[5])
             if tile.y > self.edge:
                 self.edge = tile.y
-        objs = []
+        objects = []
         for i in arg[2]:
             obj = Stock.get(i[2], i, loc=self)
             if new:
@@ -131,8 +130,8 @@ class Location:
             else:
                 obj.relocate(obj.pos.x + offset[0], obj.pos.y + offset[1], force=1)
             obj.add()
-            objs.append(obj)
-        return objs
+            objects.append(obj)
+        return objects
 
     def get_id(self):
         self.identity += 1

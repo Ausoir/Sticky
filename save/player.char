@@ -1,4 +1,4 @@
 instance
-0,1,town
-#0,[-4,0],Player,Character,unit/man,[mat:Flesh,intel:1],235,[[Glow,-1,9]],1,manual,[543,9,9,3,21,0,0],[sprint,charge,tackle,peek,slam],[dodge,peek],[#4,[-4,0],Cleaver,Weapon,image/dagger,[mat:Metal],16,[],[1,1],16,1,6,1,1,2],0,[#6,[4,0],Jumpsuit,Armor,image/unit/jumpsuit,[],234,[],[3,2],333,0,0,[211,111],[],[-1]],[#5,[20,-4],Safety Helmet,SafetyHat,image/unit/safety_hat,[],-1,[],[2,1],-1,1,9],[protein:0,calories:0,talent:None,money:14,sign:Accident,home:town,debt:0]
+0,2,town
+#0,[-1,-5],Player,Character,unit/man,[mat:Flesh,intel:1],236,[],1,manual,[0,9,9,3,21,0,0],[charge,tackle,peek,slam],[dodge,peek],[#16,[-1,-5],Dagger,Weapon,image/dagger,[mat:Metal],8,[],[1,1],8,1,4,1,1,1],0,[#6,[-3,-5],Jumpsuit,Armor,image/unit/scalemail,[],234,[],[3,2],333,0,0,[211,111],[],[-1]],[#5,[-3,-2],Safety Helmet,SafetyHat,image/unit/safety_hat,[],1,[],[2,1],1,1,9],[protein:0,calories:0,talent:None,money:14,sign:Accident,home:town,debt:0]
 

@@ -1,21 +1,18 @@
-import math
 import random
 
 from src.form.Appendage import Appendage, Limb
 from src.game import Global
 from src.tools.Data import Data
-from src.tools.Math import Math
 from src.tools.Timer import Timer
 
 
 class Body:
-    LEG = 2
-
     def __init__(self, model_name):
         super().__init__()
         data = Data.get_cache_clip(model_name).copy()
         self.seed = 1
-        self.direction = 1
+        self.side = 1
+        self.direction = 3
         self.model_name = model_name
         self.model = data[0]
         self.animation = data[1]
@@ -34,7 +31,7 @@ class Body:
         for x in self.model:
             parent.append([x[0], x[1]])
             if x[2]:
-                organ = Appendage(Data.get_form(x[2], group=Global.draw_group.units), meta=x[3])
+                organ = Appendage(Data.get_form(x[2], form='Humanoid', group=Global.draw_group.units), meta=x[3])
             else:
                 organ = Limb()
             self.organs.append(organ)
@@ -44,25 +41,23 @@ class Body:
             else:
                 int_parent = int(parent[k][1])
                 x.set_parent(self.organs[int_parent], parent[k][0])
-        self.set('idle')
+        self.current_animation = self.animation[self.motion['idle'][0]]
+        for k, organ in enumerate(self.organs):
+            x = self.current_animation[k][0] + self.current_animation[len(self.current_animation) - 2][0]
+            y = self.current_animation[k][1] + self.current_animation[len(self.current_animation) - 2][1]
+            organ.lower_joint.load(organ.upper_joint.x + x, organ.upper_joint.y + y)
 
-    def enable(self, arg):
+    def show(self, visible):
         for i in self.organs:
-            i.form.enable(arg)
+            i.form.show(visible)
+
+    def add_batch(self, add):
+        for i in self.organs:
+            i.form.add_batch(add)
 
     def delete(self):
         for i in self.organs:
             i.form.delete()
-
-    def randomize(self, seed):
-        self.seed = seed
-        self.randomize_body(seed)
-        self.current_animation = self.animation[self.motion['idle'][0]]
-        for i in range(len(self.organs)):
-            for k, organ in enumerate(self.organs):
-                x = self.current_animation[k][0] + self.current_animation[len(self.current_animation) - 2][0]
-                y = self.current_animation[k][1] + self.current_animation[len(self.current_animation) - 2][1]
-                organ.lower_joint.load(organ.upper_joint.x + x, organ.upper_joint.y + y)
 
     def place(self, x, y):
         if self.timer.update():
@@ -70,13 +65,13 @@ class Body:
         else:
             for k, organ in enumerate(self.organs):
                 diff = organ.upper_joint - organ.lower_joint
-                dx = ((self.current_animation[k][0] * self.direction) + diff.x) / self.timer.max
-                dy = (self.current_animation[k][1] + diff.y) / self.timer.max
+                dx = ((self.current_animation[k][0] * self.side) + diff.x) / (self.timer.time + 1)
+                dy = (self.current_animation[k][1] + diff.y) / (self.timer.time + 1)
                 organ.lower_joint += (dx, dy)
-                organ.place(x, y + Global.HALF_BLOCK)
+                organ.place(x, y)
             self.root.upper_joint.load(self.current_animation[len(self.current_animation) - 2])
 
-    def set(self, state):
+    def set_state(self, state):
         if state in self.motion:
             self.state_name = state
         else:
@@ -86,7 +81,7 @@ class Body:
 
     def update_clip(self):
         self.animation_ended = 0
-        current_motion = self.motion[self.state_name]
+        current_motion = self.motion[self.get_directional_motion()]
         if self.current_clip >= current_motion.__len__():
             self.current_clip = 0
         if current_motion[self.current_clip] == -1:
@@ -97,10 +92,39 @@ class Body:
         self.timer.set(frame)
         self.current_clip += 1
 
+    def get_directional_motion(self):
+        if self.direction == 2 and self.state_name + 'U' in self.motion:
+            return self.state_name + 'U'
+        elif self.direction == 4 and self.state_name + 'D' in self.motion:
+            return self.state_name + 'D'
+        return self.state_name
+
     def face(self, direction):
         self.direction = direction
+        if direction <= 2:
+            self.face_side(-1)
+        else:
+            self.face_side(1)
+
+    def face_side(self, side):
+        self.side = side
         for x in self.organs:
-            x.form.face(self.direction)
+            x.form.face(x=side)
+
+    def randomize(self, seed):
+        self.seed = seed
+        random.seed(seed)
+        mag = random.gauss(.8, .1)
+        r = []
+        for clip in self.animation:
+            r1 = []
+            for k, i in enumerate(clip):
+                if k < len(clip) - 1:
+                    r1.append([int(i[0] * mag), int(i[1] * mag)])
+                else:
+                    r1.append(i)
+            r.append(r1)
+        self.animation = r
 
     def randomize_once(self, mag):
         r = []
@@ -121,24 +145,3 @@ class Body:
                     else:
                         r.append(i)
                 self.animation[clip] = r
-
-    def randomize_body(self, seed):
-        random.seed(seed)
-        mag = random.gauss(.7, .1)
-        r = []
-        for clip in self.animation:
-            r1 = []
-            for k, i in enumerate(clip):
-                if k < len(clip) - 1:
-                    r1.append([int(i[0] * mag), int(i[1] * mag)])
-                else:
-                    r1.append(i)
-            r.append(r1)
-        self.animation = r
-
-    def rotate_appendage(self, frame, organ, target, offset=0):
-        animation = Data.get_cache_clip(self.model_name)[1]
-        length = math.sqrt(pow(animation[frame][organ][0], 2) + pow(animation[frame][organ][1], 2))
-        tan = target.to_int().get_atan() + (offset * self.direction)
-        self.animation[frame][organ][0] = length*Math.cos(tan)*self.direction
-        self.animation[frame][organ][1] = length*Math.sin(tan)

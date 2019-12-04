@@ -1,11 +1,10 @@
 from pyglet.gl import *
 
-from src.entity.Space import Space
-from src.form.Line import Line
+from src.game import Global
 
 
 class Shape:
-    def __init__(self, x=0, y=0, width=40, height=40, color=(0, 0, 0, 0), border=0):
+    def __init__(self, x, y, width=40, height=40, color=(0, 0, 0, 0), border=0):
         self.x = x
         self.y = y
         self.width = width
@@ -13,18 +12,18 @@ class Shape:
         self.color = color
         self.border = border
 
-    def draw(self, surface):
-        glClear(GL_COLOR_BUFFER_BIT)
-        glLoadIdentity()
-        glBegin(GL_TRIANGLES)
-        glVertex2f(self.x, self.y)
-        glVertex2f(self.x + surface.width, self.y)
-        glVertex2f(self.x + surface.width, self.y + surface.height)
-        glVertex2f(self.x, self.y + surface.height)
-        glEnd()
+    def draw(self):
+        right = self.x + self.width
+        up = Global.DISPLAY[1] - self.y
+        down = up - self.height
+        vertices = [self.x, up,
+                    right, up,
+                    right, down,
+                    self.x, down]
+        color = self.color + self.color + self.color + self.color
+        pyglet.graphics.draw(4, pyglet.gl.GL_QUADS, ('v2i', vertices), ('c4B', color))
 
-    def collide(self, point):
-        pt = Space(point)
-        if self.x <= pt.x <= self.x + self.width:
-            if self.y <= pt.y <= self.y + self.height:
+    def collide(self, point_x, point_y):
+        if self.x <= point_x <= self.x + self.width:
+            if self.y <= point_y <= self.y + self.height:
                 return True

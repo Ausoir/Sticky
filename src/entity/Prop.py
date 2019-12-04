@@ -14,7 +14,6 @@ class Prop(Object):
         self.faction = 0  # 0: Neutral, 1: Player, 2: Enemy, 3: Beast, 4: Undead
         self.states = Buffs(self)
         self.tags = {}
-        self.depth = 2
 
     def __str__(self):
         tags = Dialog.dict(self.tags)
@@ -39,12 +38,8 @@ class Prop(Object):
         index += 1
         self.states.load(arg[index])
         index += 1
-        if 'fly' not in self.tags:
-            self.gravity = 1
         if 'ind' in self.tags:
             self.hittable = 0
-        if 'dep' in self.tags:
-            self.depth = self.tags['dep']
         if 'col' in self.tags:
             self.collision_type = self.tags['col']
         return index

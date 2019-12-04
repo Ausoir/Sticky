@@ -17,7 +17,6 @@ class Projectile(Prop):
         self.speed = 24
         self.speed_var = 4
         self.chance = 6
-        self.depth = 5
         self.friction = .96
         self.vel = Space()
         self.start = Space()

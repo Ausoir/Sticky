@@ -6,6 +6,7 @@ from src.game.Turn import Turn
 from src.map.Tile import Tile
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
+from src.tools import Direction
 
 
 class Object(Image):
@@ -14,20 +15,19 @@ class Object(Image):
     def __init__(self, loc):
         super().__init__(Space())
         self.location = loc
-        self.group = None
+        self.class_name = None
         self.pos = self.location.get_tile(0)
+        self.old_pos = self.pos
         self.delay = 0
-        self.gravity = 0
         self.collision_type = Tile.COLLIDE_OBJECT
-        self.visible = 1
         self.standables = Tile.CHECK_FOUNDATION.copy()
         self.removed = 0
-        self.depth = 1
         self.falling = 0
+        self.in_sight = False
 
     def __str__(self):
         r = Dialog.space(self.pos)
-        return super().__str__() + ',' + r + ',' + self.name + ',' + self.group + ',' + self.form_name
+        return super().__str__() + ',' + r + ',' + self.name + ',' + self.class_name + ',' + self.form_name
 
     def load(self, p):
         index = super().load(p)
@@ -37,7 +37,7 @@ class Object(Image):
         index += 1
         self.name = p[index]
         index += 1
-        self.group = p[index]
+        self.class_name = p[index]
         index += 1
         self.set_form(p[index])
         index += 1
@@ -45,7 +45,7 @@ class Object(Image):
 
     def add(self):
         self.removed = 0
-        self.form.enable(True)
+        self.form.show(True)
         Turn.add(self.turn)
         self.relocate(self.pos.x, self.pos.y, force=1)
         self.location.record.append(self)
@@ -53,7 +53,7 @@ class Object(Image):
 
     def remove(self):
         self.removed = 1
-        self.form.enable(False)
+        self.form.show(False)
         Turn.remove(self.turn)
         self.location.record.remove(self)
         self.pos.things.remove(self)
@@ -63,28 +63,19 @@ class Object(Image):
         self.form_name = arg
         self.form = Data.get_form(arg, group=Global.draw_group.objects)
 
+    def add_batch(self, add):
+        self.form.add_batch(add)
+
     def update(self):
         diff = self.pos.get_center() - self.vec
-        self.vec.x += diff.x * .07
-        if 0 < diff.y and self.gravity:
-            self.vec.y += min(16, diff.y)
-        else:
-            self.vec.y += diff.y * .07
+        self.vec += diff * .07
         self.form.place(self.vec.x, self.vec.y)
 
     def turn(self):
-        if self.is_fall():
-            old = self.pos
-            new = self.move(0, 4, flag=self.standables)
-            if new != old:
-                if self.pos.y > self.location.edge + 8:
-                    self.out_of_bounds()
-                else:
-                    self.falling += new.y - old.y
-                    if self.get_offset_tile(0, 1).is_land(self.standables):
-                        self.on_fall()
-            else:
-                self.falling = 0
+        pass
+
+    def show(self, visible):
+        self.form.show(visible)
 
     def out_of_bounds(self):
         from src.tools.Turnee import Turnee
@@ -93,14 +84,11 @@ class Object(Image):
     def trigger(self):
         pass
 
-    def is_fall(self):
-        return self.gravity
-
-    def on_fall(self):
-        pass
-
     def get_offset_tile(self, x, y):
         return self.location.get_tile(self.pos + (x, y))
+
+    def get_front_tile(self, direction):
+        return self.location.get_tile(self.pos + Direction.coord[direction])
 
     def relocate(self, x, y, force=0):
         if force or x != self.pos.x or y != self.pos.y:
@@ -108,11 +96,18 @@ class Object(Image):
             self.location.get_tile(self.pos).things.remove(self)
             new = self.location.get_tile(self.pos + diff)
             new.things.append(self)
+            self.old_pos = self.pos
             self.pos = new
             if force:
                 self.update_vec()
             return abs(diff[0]), abs(diff[1])
         return 0
+
+    def move_toward(self, direction, mag=1, distance=8, flag=Tile.CHECK_LARGE):
+        coord = Direction.coord[direction]
+        new_pos = self.location.collide_land(self.pos, coord[0] * mag, coord[1] * mag, flag=flag, distance=distance)
+        self.relocate(new_pos.x, new_pos.y)
+        return new_pos
 
     def move(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
         new_pos = self.location.collide_land(self.pos, x, y, distance=distance, flag=flag)

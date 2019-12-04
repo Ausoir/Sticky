@@ -17,7 +17,6 @@ class Editor:
         self.control = control
         self.location = loc
         self.visible = 1
-        self.mouse = [0, 0]
         self.tool = ToolTerrain(self.location)
         self.display_text = self.location.name
         self.display_subtext = ''
@@ -36,6 +35,7 @@ class Editor:
     def update(self):
         self.control.turn()
         Camera.target.move(self.moving[0], self.moving[1], 1, [])
+        Global.map_view.update_region()
         Global.map_view.update_fog()
         self.moving = [0, 0]
 
@@ -44,9 +44,8 @@ class Editor:
         Camera.target.remove()
         Turn.update = self.backup
 
-    def input(self, action, target):
-        m = Camera.target.pos + target
-        m.y = -m.y
+    def input(self, action):
+        m = Camera.target.pos + self.control.cursor_tile
         self.prev_mouse = m
         self.display_subtext = 'X:' + str(m.x) + ' Y:' + str(m.y)
         if action == 'idle':
@@ -233,7 +232,7 @@ class Editor:
             Global.player.travel(params[2], Space())
             Global.player.switch()
         elif params[0] == 'create':
-            self.input('props', Space())
+            self.input('props')
             self.tool.select('Force', data=Data.parse('#-1,[0,0],' + arg1))
         elif params[0] == 'background':
             self.location.header[2] = arg1

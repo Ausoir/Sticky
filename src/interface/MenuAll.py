@@ -24,11 +24,11 @@ class MenuAll(MenuPlayer):
 
     def menu_conversation(self):
         if self.var[0]:
-            self.window.add(Menu.make(['[' + self.var[0].name + ']'], None, None, color=None, hover=False))
+            self.window.add(Menu.make('[' + self.var[0].name + ']', None, None, color=None, hover=False))
         options = Data.get_line('data/raw/choices.txt', self.var[1])
-        self.window.add(Menu.make([options[1][0]], None, None, color=None, hover=False, resize=True))
+        self.window.add(Menu.make(options[1][0], None, None, color=None, hover=False, resize=True))
         for option in options[1][1:]:
-            self.sub_window.add(Menu.make([option.replace('#', '')], self.topic, None, width=160, name=option))
+            self.sub_window.add(Menu.make(option.replace('#', ''), self.topic, None, width=160, name=option))
         self.sub_window.display(1)
 
     def menu_talk(self):
@@ -45,7 +45,7 @@ class MenuAll(MenuPlayer):
     def menu_hire(self):
         cost = self.var[0].attributes.get_total() + self.var[0].armor.get_value() + self.var[0].headgear.get_value()
         cost += self.var[0].weapon.get_value() - 3
-        text = ['Hire this person for $' + str(cost) + '?']
+        text = 'Hire this person for $' + str(cost) + '?'
         panel = Menu.make(text, None, None, color=Window.fore_color_transparent, hover=False, width=320)
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
@@ -59,7 +59,7 @@ class MenuAll(MenuPlayer):
                 self.var[0].pilot.var['def'] = Follow(self.var[0].pilot)
             self.toggle()
         self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-        self.window.add(Menu.make(['Hire'], hire, None, width=320))
+        self.window.add(Menu.make('Hire', hire, None, width=320))
         self.sub_window.display(1)
 
     def menu_rent(self):
@@ -174,8 +174,8 @@ class MenuAll(MenuPlayer):
                 if item:
                     money = '$' + str(item.get_value() + int(self.var[0].attributes.gene % 2))
                     rmb = self.get_message(item.describe().split('\n'))
-                    self.window.add(Menu.make([item.name], buy, rmb, name=i))
-                    self.sub_window.add(Menu.make([money], None, None, color=None, hover=False))
+                    self.window.add(Menu.make(item.name, buy, rmb, name=i))
+                    self.sub_window.add(Menu.make(money, None, None, color=None, hover=False))
             self.sub_window.display(1)
 
     def menu_exchange(self):
@@ -204,8 +204,8 @@ class MenuAll(MenuPlayer):
         for i in items:
             money = '$' + str(i[1].get_value() + 2)
             rmb = self.get_message(i[1].describe().split('\n'))
-            self.window.add(Menu.make([i[1].name], buy, rmb, name=i))
-            self.sub_window.add(Menu.make([money], None, rmb, color=Window.fore_color_transparent, hover=False))
+            self.window.add(Menu.make(i[1].name, buy, rmb, name=i))
+            self.sub_window.add(Menu.make(money, None, rmb, color=Window.fore_color_transparent, hover=False))
         self.sub_window.display(1)
 
     def menu_train(self):
@@ -220,7 +220,7 @@ class MenuAll(MenuPlayer):
                     Global.player.character.attributes.intelligence += 1
                 Global.player.character.say(Dialog.get('Level Up!'))
             self.toggle()
-        text = [Dialog.get('tuition cost', [self.var[0].var['value']])]
+        text = Dialog.get('tuition cost', [self.var[0].var['value']])
         panel = Menu.make(text, None, None, color=Window.fore_color_transparent, width=320, hover=False, resize=True)
         panel.normal_font_color = Window.font_color1
         panel.hover_font_color = Window.font_color3
@@ -229,11 +229,11 @@ class MenuAll(MenuPlayer):
         self.window.next_y = self.window.size.y + self.window.vec.y
         cost = Global.player.character.attributes.get_total()
         rmb = self.get_message([Dialog.get('trainint', [cost])])
-        self.window.add(Menu.make([Dialog.get('Intelligence')], click, rmb, width=320, name=[cost, 'exp3']), reverse=True, index=0)
+        self.window.add(Menu.make(Dialog.get('Intelligence'), click, rmb, width=320, name=[cost, 'exp3']), reverse=True, index=0)
         rmb = self.get_message([Dialog.get('trainagi', [cost])])
-        self.window.add(Menu.make([Dialog.get('Agility')], click, rmb, width=320, name=[cost, 'exp2']), reverse=True, index=0)
+        self.window.add(Menu.make(Dialog.get('Agility'), click, rmb, width=320, name=[cost, 'exp2']), reverse=True, index=0)
         rmb = self.get_message([Dialog.get('trainstr', [cost])])
-        self.window.add(Menu.make([Dialog.get('Strength')], click, rmb, width=320, name=[cost, 'exp1']), reverse=True, index=0)
+        self.window.add(Menu.make(Dialog.get('Strength'), click, rmb, width=320, name=[cost, 'exp1']), reverse=True, index=0)
         self.sub_window.display(1)
 
     def menu_provide(self):
@@ -269,7 +269,7 @@ class MenuAll(MenuPlayer):
         else:
             dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
             reward = self.var[0].var['value']
-            text = [Dialog.get('dealerdeal', [self.var[0].var['amount'], self.var[0].var['item'], dur, reward])]
+            text = Dialog.get('dealerdeal', [self.var[0].var['amount'], self.var[0].var['item'], dur, reward])
             panel = Menu.make(text, None, None, color=None, hover=False, width=320, resize=True)
             panel.redraw()
             self.window.add(panel)
@@ -292,7 +292,7 @@ class MenuAll(MenuPlayer):
                     Global.player.character.say('No ' + self.var[0].var['item'] + '...')
             rmb = self.get_message([Dialog.get('provideitem', [self.var[0].var['item']])])
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-            self.window.add(Menu.make([Dialog.get('provideitem', [self.var[0].var['item']])], sell, rmb, width=320))
+            self.window.add(Menu.make(Dialog.get('provideitem', [self.var[0].var['item']]), sell, rmb, width=320))
             self.sub_window.display(1)
 
     def menu_quest(self):
@@ -342,7 +342,7 @@ class MenuAll(MenuPlayer):
                               hover=False, width=320, resize=True)
             self.window.add(panel)
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-            self.window.add(Menu.make([Dialog.get('insureyes', [str(value)])], package, None, width=320))
+            self.window.add(Menu.make(Dialog.get('insureyes', [str(value)]), package, None, width=320))
             self.sub_window.display(1)
             return
         else:
@@ -359,10 +359,10 @@ class MenuAll(MenuPlayer):
                 self.toggle()
             if Crafting.is_craftable(self.host, ingreds):
                 rmb = self.get_message(Crafting.describe(item, ingreds).split('\n'))
-                button = Menu.make([item], craft, rmb, name=item)
+                button = Menu.make(item, craft, rmb, name=item)
             else:
                 rmb = self.get_message((Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet')).split('\n'))
-                button = Menu.make([item], rmb, rmb, name=item, color=Window.fore_color_disabled)
+                button = Menu.make(item, rmb, rmb, name=item, color=Window.fore_color_disabled)
             window.add(button)
         self.history = [self.menu_craft]
         self.history_var = [self.var]
@@ -383,11 +383,11 @@ class MenuAll(MenuPlayer):
         if self.host.is_armed() and isinstance(self.host.weapon, Weapon):
             text = Dialog.get('modifyitem', [self.host.weapon.get_display_name()])
             desc = self.get_message([Dialog.get('dsc_modifyweapon')])
-            self.window.add(Menu.make([text], lambda l: self.direct(self.menu_mod_weapon), desc, width=320))
+            self.window.add(Menu.make(text, lambda l: self.direct(self.menu_mod_weapon), desc, width=320))
         if self.host.is_armored():
             text = Dialog.get('modifyitem', [self.host.armor.get_display_name()])
             desc = self.get_message([Dialog.get('dsc_modifyarmor')])
-            self.window.add(Menu.make([text], lambda l: self.direct(self.menu_mod_armor), desc, width=320))
+            self.window.add(Menu.make(text, lambda l: self.direct(self.menu_mod_armor), desc, width=320))
         self.sub_window.display(1)
 
     def menu_mod_weapon(self):
@@ -440,7 +440,7 @@ class MenuAll(MenuPlayer):
             self.toggle()
 
         text = Dialog.get('modchance', [self.host.weapon.get_enhance_chance()])
-        self.window.add(Menu.make([text], None, None, width=320, resize=True, color=Window.fore_color_transparent))
+        self.window.add(Menu.make(text, None, None, width=320, resize=True, color=Window.fore_color_transparent))
         items = self.host.get_accessibles()
         flag = ['Scrap', 'Rubber', 'Tooth', 'Plating', 'Plating']
         deny = self.get_message([Dialog.get('nomaterial')])
@@ -457,41 +457,41 @@ class MenuAll(MenuPlayer):
                 flag[4] = i
         desc = self.get_message([Dialog.get('dsc_reinforcewith', [Dialog.get('Scrap')])])
         if isinstance(flag[0], str):
-            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Scrap')])],
+            self.window.add(Menu.make(Dialog.get('reinforcewith', [Dialog.get('Scrap')]),
                                       deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Scrap')])],
+            self.window.add(Menu.make(Dialog.get('reinforcewith', [Dialog.get('Scrap')]),
                                       reinforce, desc, width=320, name=flag[0]))
         if self.host.weapon.speed > 1:
             if isinstance(flag[1], str):
-                self.window.add(Menu.make([Dialog.get('improvegripwith', [Dialog.get('Rubber')])], deny, deny,
+                self.window.add(Menu.make(Dialog.get('improvegripwith', [Dialog.get('Rubber')]), deny, deny,
                                           width=320, name=flag[0], color=Window.fore_color_disabled))
             else:
                 desc = self.get_message([Dialog.get('dsc_improvewith', [Dialog.get('Rubber')])])
-                self.window.add(Menu.make([Dialog.get('improvegripwith', [Dialog.get('Rubber')])],
+                self.window.add(Menu.make(Dialog.get('improvegripwith', [Dialog.get('Rubber')]),
                                           grip, desc, width=320, name=flag[1]))
         if self.host.weapon.speed > 1:
             desc = self.get_message([Dialog.get('dsc_modifybladewith', [Dialog.get('Tooth')])])
             if isinstance(flag[2], str):
-                self.window.add(Menu.make([Dialog.get('modifybladewith', [Dialog.get('Tooth')])],
+                self.window.add(Menu.make(Dialog.get('modifybladewith', [Dialog.get('Tooth')]),
                                           deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
             else:
-                self.window.add(Menu.make([Dialog.get('modifybladewith', [Dialog.get('Tooth')])],
+                self.window.add(Menu.make(Dialog.get('modifybladewith', [Dialog.get('Tooth')]),
                                           blade, desc, width=320, name=flag[2]))
         if self.host.weapon.weight > 1:
             desc = self.get_message([])
             if isinstance(flag[3], str):
-                self.window.add(Menu.make([Dialog.get('dsc_modifybodywith', [Dialog.get('Plating')])],
+                self.window.add(Menu.make(Dialog.get('dsc_modifybodywith', [Dialog.get('Plating')]),
                                           deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
             else:
-                self.window.add(Menu.make([Dialog.get('dsc_modifybodywith', [Dialog.get('Plating')])],
+                self.window.add(Menu.make(Dialog.get('dsc_modifybodywith', [Dialog.get('Plating')]),
                                           body, desc, width=320, name=flag[3]))
         desc = self.get_message([Dialog.get('dsc_fortifybodywith', [Dialog.get('Plating')])])
         if isinstance(flag[4], str):
-            self.window.add(Menu.make([Dialog.get('fortifybodywith', [Dialog.get('Plating')])],
+            self.window.add(Menu.make(Dialog.get('fortifybodywith', [Dialog.get('Plating')]),
                                       deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            self.window.add(Menu.make([Dialog.get('fortifybodywith', [Dialog.get('Plating')])],
+            self.window.add(Menu.make(Dialog.get('fortifybodywith', [Dialog.get('Plating')]),
                                       fortify, desc, width=320, name=flag[3]))
         self.sub_window.display(1)
 
@@ -537,24 +537,24 @@ class MenuAll(MenuPlayer):
                 flag[2] = i
         desc = self.get_message([Dialog.get('dsc_reinforcearmorwith', [Dialog.get('Cloth')])])
         if isinstance(flag[0], str):
-            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Cloth')])],
+            self.window.add(Menu.make(Dialog.get('reinforcewith', [Dialog.get('Cloth')]),
                                       deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            self.window.add(Menu.make([Dialog.get('reinforcewith', [Dialog.get('Cloth')])],
+            self.window.add(Menu.make(Dialog.get('reinforcewith', [Dialog.get('Cloth')]),
                                       reinforce, desc, width=320, name=flag[0]))
         desc = self.get_message([Dialog.get('dsc_padwith', [Dialog.get('Cloth')])])
         if isinstance(flag[1], str):
-            self.window.add(Menu.make([Dialog.get('padwith', [Dialog.get('Plating')])],
+            self.window.add(Menu.make(Dialog.get('padwith', [Dialog.get('Plating')]),
                                       deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            self.window.add(Menu.make([Dialog.get('padwith', [Dialog.get('Plating')])],
+            self.window.add(Menu.make(Dialog.get('padwith', [Dialog.get('Plating')]),
                                       pad, desc, width=320, name=flag[1]))
         desc = self.get_message([Dialog.get('dsc_refitwith', [Dialog.get('Tooth')])])
         if isinstance(flag[2], str):
-            self.window.add(Menu.make([Dialog.get('refitwith', [Dialog.get('Tooth')])],
+            self.window.add(Menu.make(Dialog.get('refitwith', [Dialog.get('Tooth')]),
                                       deny, desc, width=320, name=flag[0], color=Window.fore_color_disabled))
         else:
-            self.window.add(Menu.make([Dialog.get('refitwith', [Dialog.get('Tooth')])],
+            self.window.add(Menu.make(Dialog.get('refitwith', [Dialog.get('Tooth')]),
                                       refit, desc, width=320, name=flag[2]))
         self.sub_window.display(1)
 

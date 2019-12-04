@@ -24,16 +24,20 @@ class Stock:
     @staticmethod
     def init():
         for i in Data.registry_list:
-            registry_items = Data.process_raw(Data.get_cache_file('raw/' + i + '.txt'))
+            registry_items = Data.process_raw(Data.read('raw/' + i + '.txt'))
             for item in registry_items:
                 Stock.registry[item[0]] = item
-        item_desc = Data.process_raw(Data.get_cache_file('raw/descriptions.txt'))
+        item_desc = Data.process_raw(Data.read('raw/descriptions.txt'))
         for i in item_desc:
             Item.description[i[0]] = i[1]
-        item_price = Data.process_raw(Data.get_cache_file('raw/prices.txt'))
+        item_price = Data.process_raw(Data.read('raw/prices.txt'))
         for i in item_price:
             Item.price[i[0]] = i[1]
-        Humanoid.faces = Data.get_line('raw/raw.txt', 'face')[1]
+        for model in Data.get_line('raw/raw.txt', 'face')[1]:
+            face = []
+            for image in model:
+                face.append(Data.get_cache(image))
+            Humanoid.faces.append(face)
 
     @staticmethod
     def get(name, data=None, loc=None):

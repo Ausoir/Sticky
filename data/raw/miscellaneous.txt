@@ -13,7 +13,7 @@ Glass,Block,g_17x1,[dep:1,col:15],1,[]
 Cash,Credit,g_6x6,[ind:1],1,[],[1,1],money,5
 Corpse,Corpse,g_9x3,[mat:Flesh],6,[]
 Break,Break,g_1x3,[col:0,fly:1,mat:Metal],4,[]
-Sonic,Sonic,g_0x0,[col:0,ind:1,fly:1],80,[]
+Sonic,Sonic,none,[col:0,ind:1,fly:1],80,[]
 Fireball,Projectile,fireball,[col:0,fly:1],-1,[]
 Arrow,Projectile,g_14x0,[col:0],-1,[]
 Bullet,Projectile,g_15x0,[col:0],-1,[]

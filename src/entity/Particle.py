@@ -24,7 +24,6 @@ class Particle(Prop):
         self.lifetime = 4
         self.collision_type = 0
         self.offset = None
-        self.depth = 4
 
     def add(self):
         self.removed = 0

@@ -1,5 +1,3 @@
-import pygame
-
 from src.game import Global
 from src.game.Turn import Turn
 from src.interface.Window import Window
@@ -12,9 +10,12 @@ class Menu:
         self.visible = -1
         self.state = self.menu_main
         self.current_state = self.menu_main
-        self.window = Window([180, 300], (300, 120))
-        self.sub_window = Window(self.window.size.to_list(), (self.window.vec.x + self.window.size.x, 120))
-        self.dialog = Window([400, 300], (300, 120))
+        width = 180
+        self.window = Window(300, 120, width=width, height=300)
+        self.window.hover_color = None
+        self.sub_window = Window(self.window.x + width, 120, width=width, height=self.window.height)
+        self.sub_window.hover_color = None
+        self.dialog = Window(300, 120, width=400, height=300)
         self.dialog.color = Window.fore_color1
         self.dialog_text = []
         self.last_input = None
@@ -22,48 +23,44 @@ class Menu:
         self.history_var = []
         self.var = []
 
-    def draw(self, surface):
+    def draw(self):
         if self.visible == 1:
-            self.sub_window.draw(surface)
-            self.window.draw(surface)
+            self.window.draw()
+            self.sub_window.draw()
 
     def turn(self):
         if self.visible == 1:
             self.state = self.current_state
             self.display(1)
-            if self.last_input:
-                self.input(self.last_input)
+            if not self.window.input(0):
+                self.sub_window.input(0)
 
     def input(self, event):
-        if event.type == pygame.MOUSEMOTION:
-            self.last_input = event
         if self.window.input(event):
             return 1
         if self.sub_window.input(event):
             return 1
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 3:
-                self.history.pop()
-                self.history_var.pop()
-                if self.history:
-                    self.state = self.history[len(self.history) - 1]
-                    self.var = self.history_var[len(self.history_var) - 1]
-                else:
-                    self.toggle()
-                self.display(1)
+        if event == 1:
             return 1
-        elif event.type == pygame.KEYDOWN:
-            start = pygame.K_1
-            if start <= event.key < start + 6:
-                index = event.key - start
-                total = self.window.children + self.sub_window.children
-                if len(total) > index:
-                    for i in total:
-                        if i.on_click:
-                            if index == 0:
-                                i.on_click(i.name)
-                            index -= 1
-                return 1
+        elif event == 4:
+            self.history.pop()
+            self.history_var.pop()
+            if self.history:
+                self.state = self.history[len(self.history) - 1]
+                self.var = self.history_var[len(self.history_var) - 1]
+            else:
+                self.toggle()
+            self.display(1)
+        elif 0x031 <= event <= 0x039:
+            index = event - 0x031
+            total = self.window.children + self.sub_window.children
+            if len(total) > index:
+                for i in total:
+                    if i.on_click:
+                        if index == 0:
+                            i.on_click(i.name)
+                        index -= 1
+            return 1
 
     def toggle(self):
         self.history = [self.menu_main]
@@ -93,12 +90,12 @@ class Menu:
     def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, resize=False, hover=True):
         if not color:
             color = Window.fore_color_transparent
-        button = Window([width, 40], name=name, color=color)
+        button = Window(0, 0, width=width, height=40, name=name, color=color)
         button.set_text(text, resize=resize)
         button.on_click = callback
         button.on_r_click = r_callback
         if not hover:
-            button.hover_font_color = button.normal_font_color
+            button.hover_color = None
         return button
 
     def show_dialog(self, text):
@@ -106,11 +103,11 @@ class Menu:
         self.direct(self.menu_dialog)
 
     def menu_dialog(self):
-        x = self.window.size.x + self.sub_window.size.x - self.window.margin.x * 2
-        textbox = Window([x, 1], color=Window.fore_color2)
-        textbox.text_spacing = Global.font.size('A')[1] + 2
-        textbox.set_text(self.dialog_text + [' '])
-        textbox.hover_font_color = textbox.normal_font_color
+        x = self.window.width + self.sub_window.width - self.window.margin.x * 2
+        textbox = Window(0, 0, width=x, height=1, color=Window.fore_color2)
+        textbox.text_spacing = Global.font.ascent - Global.font.descent + 2
+        textbox.set_text(self.dialog_text)
+        textbox.hover_color = None
         self.window.add(textbox)
         self.sub_window.display(1)
 
@@ -120,7 +117,7 @@ class Menu:
         return message
 
     def menu_main(self):
-        self.window.add(Menu.make(['Main Menu'], None, None))
+        self.window.add(Menu.make('Main Menu', None, None))
 
     @staticmethod
     def get_conversation(dialogs):
@@ -132,22 +129,22 @@ class Menu:
 
     def menu_choice(self):
         if self.var[0]:
-            text = [self.var[0]]
+            text = self.var[0]
             self.window.add(Menu.make(text, None, None, color=Window.fore_color_transparent,
                                       hover=False, width=320, resize=True))
-            self.window.next_y = self.window.size.y + self.window.vec.y
+            self.window.next_y = self.window.height + self.window.y
             for i in range(len(self.var[1])):
-                button = Menu.make([self.var[1][i]], self.var[2][i], None, name=i, width=320)
+                button = Menu.make(self.var[1][i], self.var[2][i], None, name=i, width=320)
                 self.window.add(button, reverse=True, index=0)
         else:
             for i in range(len(self.var[1])):
-                button = Menu.make([self.var[1][i]], self.var[2][i], None, name=i, width=320)
+                button = Menu.make(self.var[1][i], self.var[2][i], None, name=i, width=320)
                 self.window.add(button)
         self.sub_window.display(1)
 
     def menu_many_choice(self):
         for k, v in enumerate(self.var):
-            button = Menu.make([self.var[k][0]], self.var[k][1], self.var[k][1], name=self.var[k][0])
+            button = Menu.make(self.var[k][0], self.var[k][1], self.var[k][1], name=self.var[k][0])
             if k < 6:
                 self.window.add(button)
             else:

@@ -13,10 +13,6 @@ class Armor(Equipment):
         self.inventory = []
         self.items = []
         self.pockets = [0]
-        self.form_armL = None
-        self.form_armR = None
-        self.form_legL = None
-        self.form_legR = None
         self.armor = 0
 
     def __str__(self):
@@ -51,13 +47,8 @@ class Armor(Equipment):
         return index + 1
 
     def set_form(self, arg):
-        Data.initialize_image(self.name, Data.get_image(arg, 0), (16, 32))
-        self.form = Data.get_form(self.name + '_0x0', group=Global.draw_group.units)
-        self.form_armL = Data.get_form(self.name + '_1x0', group=Global.draw_group.units)
-        self.form_armR = Data.get_form(self.name + '_1x0', group=Global.draw_group.units)
-        self.form_legL = Data.get_form(self.name + '_2x0', group=Global.draw_group.units)
-        self.form_legR = Data.get_form(self.name + '_2x0', group=Global.draw_group.units)
         self.form_name = arg
+        self.form = Data.get_form(arg, form='Humanoid', group=Global.draw_group.objects)
 
     def die(self):
         pos = self.pos
@@ -97,25 +88,18 @@ class Armor(Equipment):
 
     def use(self):
         self.host.action.set('wait')
-        if self.host.attributes.agility >= self.weight + self.host.headgear.weight:
-            if self.host.is_armored():
-                self.host.unarmor()
-            self.host.armor = self
-            host = self.host
-            if self.host.weapon == self:
-                self.host.drop()
-            host.face(1)
-            forms = [self.form_armL, self.form_legL, self.form_legR, None, self.form, self.form_armR]
-            for i in range(len(forms)):
-                if forms[i]:
-                    host.form.organs[i].set(forms[i])
-            self.remove()
-            host.update_durability(0)
-            self.host = host
-            for i in self.items:
-                i.host = host
-        else:
-            self.host.say('Total encumbrance exceeds Agility!')
+        if self.host.is_armored():
+            self.host.unarmor()
+        self.host.armor = self
+        host = self.host
+        if self.host.weapon == self:
+            self.host.drop()
+        self.remove()
+        host.update_durability(0)
+        self.host = host
+        self.host.update_perspective(1)
+        for i in self.items:
+            i.host = host
 
     def is_vacant(self, item, x, y):
         for ix in range(x, x + item.volume[0]):

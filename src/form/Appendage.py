@@ -35,18 +35,15 @@ class Appendage(Limb):
         self.form = sprite
         self.form.flip(self.meta[1], self.meta[2])
         if self.meta[2]:
-            self.form.image.anchor_y = 4
+            self.form.image.anchor_y = 2
         else:
-            self.form.image.anchor_y = self.form.image.height
+            self.form.image.anchor_y = self.form.height
 
     def place(self, x, y):
         diff = self.lower_joint - self.upper_joint
         self.form.rotation = diff.get_atan() - 90
         if self.meta[0]:
             length = int(diff.distance() * 1.2)
-            if length > 0:
-                length = max(length, 1)
-            else:
-                length = min(length, -1)
-            self.form.resize(y=length)
+            if abs(length) > 2:
+                self.form.resize(y=length)
         self.form.place(x + self.upper_joint.x, y + self.upper_joint.y)

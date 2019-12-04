@@ -86,20 +86,15 @@ class Player:
         self.set_darkness()
 
     def set_darkness(self):
-        name = 'image/background/' + self.location.header[2]
         if self.is_daytime():
             Global.draw_group.colorize(1, [0, 0, 0, 0])
-            Global.map_view.sight_range = 11
-            Global.map_view.view_range = 11
+            Global.map_view.sight_range = 13
+            Global.map_view.view_range = 13
         else:
             Global.draw_group.colorize(1, [10, 0, 30, 160])
             Global.map_view.sight_range = 8
-            Global.map_view.view_range = 5
-            if Data.is_file(name + '_night.png'):
-                name = name + '_night'
+            Global.map_view.view_range = 4
         Global.map_view.on_sight_change()
-        Global.map_view.on_resize()
-        Global.draw_group.set_background(name)
 
     def travel(self, to_map, to_pos):
         Global.draw_group.colorize(0, [0, 0, 0, 255], fade=3)
@@ -107,7 +102,7 @@ class Player:
         if self.character.location.name != to_map:
             self.character.location.save()
         self.character.action.set('idle')
-        self.character.form.set('interact')
+        self.character.form.set_state('interact')
         self.character.relocate(to_pos.x, to_pos.y, force=1)
         if to_map == 'home':
             to_map = Global.player.character.var['home']

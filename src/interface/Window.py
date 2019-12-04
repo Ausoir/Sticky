@@ -1,39 +1,36 @@
-import pygame
+from pyglet.text.document import FormattedDocument
+from pyglet.text.layout import TextLayout
 
 from src.entity.Space import Space
 from src.form.Shape import Shape
 from src.game import Global
-from src.game.Camera import Camera
 
 
 class Window(Shape):
     fore_color_transparent = (0, 0, 0, 0)
     fore_color1 = (68, 102, 120, 160)
     fore_color2 = (95, 112, 120, 220)
-    fore_color3 = (210, 220, 240, 60)
+    fore_color3 = (120, 130, 150, 250)
     fore_color_disabled = (210, 140, 140, 80)
     font_color1 = (205, 209, 227, 255)
     font_color2 = (120, 180, 140, 200)
     font_color3 = (60, 80, 80, 220)
 
-    def __init__(self, size, vec=(0, 0), name=0, color=fore_color1):
+    def __init__(self, x, y, width, height, name=0, color=fore_color1):
+        super().__init__(x, y, width=width, height=height, color=color)
         self.name = name
-        self.color = color
-        self.size = Space(size)
-        self.vec = Space(vec)
-        super().__init__(x=self.vec.x, y=self.vec.y, color=self.color, width=size, height=size)
-
         self.children = []
         self.visible = -1
-        self.text = []
         self.on_click = None
         self.on_r_click = None
         self.margin = Space(8, 8)
-        self.normal_font_color = Window.font_color1
-        self.hover_font_color = Window.font_color2
-        self.font_color = self.normal_font_color
+        self.normal_color = self.color
+        self.hover_color = Window.fore_color3
         self.text_spacing = 40
-        self.next_y = self.vec.y + self.margin.y
+        self.next_y = self.y + self.margin.y
+        doc = FormattedDocument(' ')
+        doc.set_style(0, 1, dict(font_name='Default Font', font_size=16, color=Window.font_color1))
+        self.text = TextLayout(doc, width, height, multiline=True)
 
     def display(self, visible):
         self.visible = visible
@@ -41,7 +38,7 @@ class Window(Shape):
             i.display(visible)
 
     def flush(self):
-        self.next_y = self.vec.y + self.margin.y
+        self.next_y = self.y + self.margin.y
         for i in self.children:
             i.flush()
         self.children = []
@@ -52,50 +49,40 @@ class Window(Shape):
         for i in self.children:
             if i.input(event):
                 return 1
-        if event.type == pygame.MOUSEMOTION:
-            mouse = pygame.mouse.get_pos()
-            if self.text:
-                self.glow(self.collide(mouse))
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            mouse = pygame.mouse.get_pos()
-            if self.collide(mouse):
-                if event.button == 1 and self.on_click is not None:
+        if event == 0:
+            mouse = Global.player.control.cursor
+            if self.hover_color:
+                self.glow(self.collide(mouse[0], mouse[1]))
+        if event in [1, 4]:
+            mouse = Global.player.control.cursor
+            if self.collide(mouse[0], mouse[1]):
+                if event == 1 and self.on_click is not None:
                     self.on_click(self.name)
                     return 1
-                elif event.button == 3 and self.on_r_click is not None:
+                elif event == 4 and self.on_r_click is not None:
                     self.on_r_click(self.name)
                     return 1
         return 0
 
     def glow(self, on):
         if on:
-            if self.hover_font_color:
-                self.font_color = self.hover_font_color
+            self.color = self.hover_color
         else:
-            self.font_color = self.normal_font_color
+            self.color = self.normal_color
 
-    def draw(self, surface):
+    def draw(self):
         if self.visible == 1:
-            self.vec.x -= Camera.pos[0]
-            self.vec.y -= Camera.pos[1]
-            super().draw(surface)
-            self.vec.x += Camera.pos[0]
-            self.vec.y += Camera.pos[1]
-            position = [self.vec.x + self.margin.x, self.vec.y + self.margin.y]
-            for i in self.text:
-                surface.blit(Global.font.render(i, 1, self.font_color), position)
-                position[1] += self.text_spacing
+            super().draw()
+            if self.text.document.text != '':
+                position = [self.x + self.margin.x, self.y + self.margin.y]
+                self.text.x = position[0]
+                self.text.y = Global.DISPLAY[1] - position[1] - self.text_spacing
+                self.text.draw()
             for i in self.children:
-                i.draw(surface)
+                i.draw()
 
     def set_text(self, text, resize=True):
-        if resize:
-            self.text = Window.resize_text(text, self.size.x - (self.margin.x * 2) - 24)
-        else:
-            self.text = text
-        self.size.y = self.text_spacing * len(self.text)
-        self.vertices = Shape.make_rect(self.size.to_list())
-        self.redraw()
+        self.text.document.text = text
 
     @staticmethod
     def resize_text(text, size):
@@ -126,6 +113,7 @@ class Window(Shape):
             self.children.append(child)
         else:
             self.children.insert(index, child)
-        child.vec.load(child.vec.x + self.margin.x + self.vec.x, child.vec.y + self.next_y)
+        child.x += self.margin.x + self.x
+        child.y += self.next_y
         if not reverse:
-            self.next_y += child.size.y + self.margin.y
+            self.next_y += child.height + self.margin.y

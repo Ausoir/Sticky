@@ -17,7 +17,7 @@ assign item,Click to Assign Item
 cant fit,# cannot fit in there!
 cant store,Nothing to store in that inventory slot!
 dsc_inventoryslot,This is an inventory slot. Click on this slot while holding an item small enough. Number keys can quick access items if you have pockets in your armor.
-noaccessory,No Accessory
+noaccessory,No Hat
 noarmor,No Armor
 nooffhand,No Offhand
 noweapon,No Weapon

@@ -2,7 +2,6 @@ import sys
 
 import pyglet
 
-from src.entity.Space import Space
 from src.game import Global
 from src.game.Camera import Camera
 from src.game.Turn import Turn
@@ -14,10 +13,11 @@ class Control:
         Turn.fast_queue.append(self.turn)
         self.player = player
         self.cursor = [0, 0]
-        self.cursor_tile = [0, 0]
+        self.cursor_tile = None
         self.keypress = []
         self.keyrelease = []
         self.keymap = {}
+        self.text_mode = False
         self.directory = 'keymap.txt'
         self.set_keymap(self.directory)
 
@@ -50,7 +50,9 @@ class Control:
 
     @staticmethod
     def get_key_code(name):
-        if name == 'LMB':
+        if name == 'DRAG':
+            return 0
+        elif name == 'LMB':
             return 1
         elif name == 'MMB':
             return 2
@@ -66,7 +68,9 @@ class Control:
 
     @staticmethod
     def get_key_name(key):
-        if key == 1:
+        if key == 0:
+            return 'DRAG'
+        elif key == 1:
             return 'LMB'
         elif key == 2:
             return 'MMB'
@@ -80,34 +84,47 @@ class Control:
             return 'LS+' + Control.get_key_name(key - 100000)
         return pyglet.window.key.symbol_string(key)
 
+    def on_text(self, key):
+        if self.text_mode:
+            Global.main.monologue.set(Global.main.monologue.label.text + key)
+
     def input(self, code):
-        if Global.menu.visible == 1:
-            if Global.menu.input(code):
-                return 1
-        if code > 0:
-            if code not in self.keypress:
-                if code == 65505:
-                    for k, v in enumerate(self.keypress):
-                        if self.keypress[k] not in self.keyrelease:
-                            self.keypress[k] = 100000 + v
-                    self.keypress.insert(0, 65505)
-                else:
-                    if 65505 in self.keypress:
-                        self.keypress.append(100000 + code)
+        if self.text_mode:
+            if code in self.keymap and self.keymap[code] == 'text':
+                self.text_mode = False
+                self.player.input('command')
+                Global.main.monologue.set('')
+            elif code > 5:
+                if code == pyglet.window.key.BACKSPACE:
+                    Global.main.monologue.set(Global.main.monologue.label.text[:-1])
+        else:
+            if Global.menu.visible == 1:
+                if Global.menu.input(code):
+                    return 1
+            if code > 0:
+                if code not in self.keypress:
+                    if code == 65505:
+                        for k, v in enumerate(self.keypress):
+                            if self.keypress[k] not in self.keyrelease:
+                                self.keypress[k] = 100000 + v
+                        self.keypress.insert(0, 65505)
                     else:
-                        self.keypress.append(code)
-        elif code < 0:
-            if -code not in self.keyrelease:
-                if 65505 in self.keypress:
-                    if (100000 - code) in self.keypress:
-                        self.keypress.remove(100000 - code)
-                else:
-                    self.keyrelease.append(-code)
-                if -code == 65505:
-                    self.keypress.remove(-code)
-                    for k, v in enumerate(self.keypress):
-                        if v > 100000:
-                            self.keypress[k] = v - 100000
+                        if 65505 in self.keypress:
+                            self.keypress.append(100000 + code)
+                        else:
+                            self.keypress.append(code)
+            elif code < 0:
+                if -code not in self.keyrelease:
+                    if 65505 in self.keypress:
+                        if (100000 - code) in self.keypress:
+                            self.keypress.remove(100000 - code)
+                    else:
+                        self.keyrelease.append(-code)
+                    if -code == 65505:
+                        self.keypress.remove(-code)
+                        for k, v in enumerate(self.keypress):
+                            if v > 100000:
+                                self.keypress[k] = v - 100000
         return 0
 
     def clear_press(self, code=None):
@@ -127,7 +144,9 @@ class Control:
         sys.exit()
 
     def turn(self):
-        self.cursor_tile = Space(Camera.get_relative_tile_pos(self.cursor[0], self.cursor[1]))
+        self.cursor_tile = Camera.get_relative_tile_pos(self.cursor[0], self.cursor[1])
+        self.cursor_tile[0] += Camera.target.pos.x
+        self.cursor_tile[1] += Camera.target.pos.y
         length = self.keypress.__len__()
         if length > 0:
             code = self.keypress[length - 1]
@@ -140,8 +159,8 @@ class Control:
                     Global.menu.toggle()
                 elif command == 'text':
                     self.clear_press(code)
-                    Global.main.textbox.display_text = ''
-                    Global.main.text_mode = True
+                    Global.main.monologue.set('')
+                    self.text_mode = True
                 elif command == 'switch':
                     self.clear_press(code)
                     Global.player.switch()
@@ -153,8 +172,7 @@ class Control:
                         Global.menu.var = [None, 'Ask']
                         Global.menu.topic('Ask')
                 elif Global.menu.visible != 1:
-                    if not Global.player.click(command, self.cursor_tile):
-                        self.player.input(command)
+                    self.player.input(command)
         else:
             self.player.input('idle')
         for i in self.keyrelease:

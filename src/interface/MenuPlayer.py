@@ -2,7 +2,6 @@ from src.entity.unit.item.Armor import Armor
 from src.entity.unit.item.Headgear import Headgear
 from src.game import Global
 from src.game.Crafting import Crafting
-from src.interface.CanvasWindow import CanvasWindow
 from src.interface.Menu import Menu
 from src.interface.Window import Window
 from src.tools.Dialog import Dialog
@@ -12,6 +11,7 @@ class MenuPlayer(Menu):
     def menu_main(self):
         self.window.add(Menu.make(Dialog.get('character'), lambda x: self.direct(self.menu_character), None))
         self.window.add(Menu.make(Dialog.get('equipment'), lambda x: self.direct(self.menu_equipment), None))
+        self.window.add(Menu.make(Dialog.get('inventory'), lambda x: self.direct(self.menu_inventory), None))
         if len(Global.player.knowledge) > 0:
             self.window.add(Menu.make(Dialog.get('knowledge'), lambda x: self.direct(self.menu_knowledge), None))
         if self.host.action.skills or self.host.proficiency:
@@ -52,7 +52,7 @@ class MenuPlayer(Menu):
                 rmb = self.get_message((Crafting.describe(i) + '\n' + Dialog.get('dsc_craftDesk')))
             else:
                 rmb = self.get_message((Crafting.describe(i) + '\n' + Dialog.get('dsc_craftWorkbench')))
-            button = Menu.make(i, rmb, rmb, resize=False)
+            button = Menu.make(i, rmb, rmb)
             if count <= 6:
                 self.window.add(button)
             else:
@@ -108,119 +108,83 @@ class MenuPlayer(Menu):
                 self.host.weapon.use()
             self.direct(self.menu_equipment)
 
-        def make_pocket(arg):
-            if self.host.is_armed():
-                weapon = self.host.weapon
-                if self.host.armor.is_vacant(weapon, arg[0], arg[1]):
-                    self.host.drop()
-                    self.host.armor.add_inventory(weapon, arg[0], arg[1])
-                else:
-                    Global.player.character.say(Dialog.get('cant fit', [weapon.get_display_name()]))
-            else:
-                item = self.host.armor.get_item_at(arg[0], arg[1], pop=1)
-                if item:
-                    def change():
-                        item.on_equip(self.host)
-                    self.host.action.set('wait')
-                    self.host.action.set_animation('interact')
-                    self.host.action.on_finish = change
-                    self.host.delay = 12
-                else:
-                    Global.player.character.say(Dialog.get('cant store'))
-            self.state = self.menu_equipment
-            self.display(1)
-
-        def make_pocket_desc(arg):
-            item = self.host.armor.get_item_at(arg[0], arg[1])
-            if item:
-                self.show_dialog(item.describe())
-            else:
-                self.show_dialog(Dialog.get('dsc_inventoryslot'))
-
-        rmb = self.get_message(self.host.headgear.describe())
-        if not self.host.is_headgeared():
+        if not self.host.headgear:
+            rmb = None
             display = '<' + Dialog.get('noaccessory') + '>'
         else:
+            rmb = self.get_message(self.host.headgear.describe())
             display = self.host.headgear.get_display_name()
-        self.window.add(Menu.make(display, click_headgear, rmb, resize=False))
+        self.window.add(Menu.make(Dialog.get('headgear'), None, None, color=None, hover=False))
+        self.sub_window.add(Menu.make(display, click_headgear, rmb))
         rmb = self.get_message(self.host.armor.describe())
         if not self.host.is_armored():
             display = '<' + Dialog.get('noarmor') + '>'
         else:
             display = self.host.armor.get_display_name()
-        self.window.add(Menu.make(display, click_armor, rmb, resize=False))
+        self.window.add(Menu.make(Dialog.get('body'), None, None, color=None, hover=False))
+        self.sub_window.add(Menu.make(display, click_armor, rmb))
         if len(self.host.armor.pockets) > 0:
             rmb = self.get_message('Designate items for quick access.')
             button = Menu.make('<' + Dialog.get('Pockets') + '>', lambda l: self.direct(self.menu_pocket), rmb)
-            self.window.add(button)
-        if 'offhand' in self.host.action.skills:
-            rmb = self.get_message(self.host.offhand.describe())
-            display = self.host.offhand.get_display_name()
-            if not self.host.is_shielded():
-                display = '<' + Dialog.get('nooffhand') + '>'
-            self.window.add(Menu.make(display, lambda l: self.host.swap(), rmb, resize=False))
+            self.window.add(Menu.make(Dialog.get('pockets'), None, None, color=None, hover=False))
+            self.sub_window.add(button)
         rmb = self.get_message(self.host.weapon.describe())
         if not self.host.is_armed():
             display = '<' + Dialog.get('noweapon') + '>'
         else:
             display = self.host.weapon.get_display_name()
-        self.window.add(Menu.make(display, lambda l: self.host.drop(), rmb, resize=False))
-        if self.host.armor.get_inventory_slots() > 0:
-            rmb = self.get_message(Dialog.get('dsc_inventory'))
-            inventory = Menu.make(Dialog.get('inventoryslots'), rmb, rmb, color=Window.fore_color_transparent)
-        else:
-            rmb = self.get_message(Dialog.get('dsc_noinventory'))
-            inventory = Menu.make(Dialog.get('noinventory'), rmb, rmb, color=Window.fore_color_transparent)
-        self.sub_window.add(inventory)
-        for ky, vy in enumerate(self.host.armor.inventory):
-            for kx, vx in enumerate(vy):
-                if vx == Armor.VACANT:
-                    color = Window.fore_color3
-                elif vx == Armor.OCCUPIED:
-                    color = (120, 120, 120, 220)
-                else:
-                    color = Window.fore_color_transparent
-                slot = Window(0, 0, width=40, height=40, name=[kx, ky], color=color)
-                slot.x = kx * 48
-                slot.y = ky * 48 + 48
-                slot.on_click = make_pocket
-                slot.on_r_click = make_pocket_desc
-                slot.hover_color = None
-                self.sub_window.next_y = self.sub_window.y + 8
-                self.sub_window.add(slot)
-        inventory_items = self.host.armor.items
-        for i in inventory_items:
-            pos = (i.pos * 48)
-            pos.x += (48 * i.volume[0]) / 2
-            pos.y += (48 * i.volume[1]) / 2 + 48
-            pos.x -= (i.form.width/2 - i.form.image.anchor_x)
-            pos.y -= (i.form.height/2 - i.form.image.anchor_y)
-            item_canvas = CanvasWindow(pos.x, pos.y, i.form.image)
-            self.sub_window.next_y = self.sub_window.y + 8
-            self.sub_window.add(item_canvas)
-            item_canvas.display(1)
+        self.window.add(Menu.make(Dialog.get('weapon'), None, None, color=None, hover=False))
+        self.sub_window.add(Menu.make(display, lambda l: self.host.drop(), rmb))
         money = Menu.make('$' + str(Global.player.character.var['money']), None, None, color=None)
-        self.window.add(money)
+        self.sub_window.add(money)
         self.sub_window.display(1)
+
+    def menu_inventory(self):
+        def click(index):
+            item = self.host.armor.items[index]
+            if item:
+                def change():
+                    item.on_equip(self.host)
+                self.host.action.set('wait')
+                self.host.action.set_animation('pocket')
+                self.host.action.on_finish = change
+                self.host.delay = 4
+        temp = self.window.margin.y
+        self.window.margin.y = 2
+        count = 0
+        for i in self.host.armor.items:
+            button = Window(0, 0, width=0, height=0, multi_line=False, name=count)
+            button.on_click = click
+            size = 12 + i.weight
+            button.document.set_style(0, 1, dict(font_size=min(24, size)))
+            button.text_spacing = 0
+            button.height = size + 10
+            button.set_text(i.get_display_name())
+            button.margin.y = 2
+            button.width = button.text.content_width + 16
+            self.window.add(button)
+            count += 1
+        self.sub_window.display(1)
+        self.window.margin.y = temp
 
     def menu_status(self):
         rmb = self.get_message(Dialog.get('dsc_location'))
-        self.window.add(Menu.make(Dialog.get('Location'), rmb, rmb, color=None))
+        self.window.add(Menu.make(Dialog.get('location'), rmb, rmb, color=None))
         self.sub_window.add(Menu.make(Global.player.character.location.name.title(), rmb, rmb, color=None))
         rmb = self.get_message(Dialog.get('dsc_date'))
-        self.window.add(Menu.make(Dialog.get('Date'), rmb, rmb, color=None))
+        self.window.add(Menu.make(Dialog.get('date'), rmb, rmb, color=None))
         self.sub_window.add(Menu.make(Dialog.date(Global.player.days), rmb, rmb, color=None))
         rmb = self.get_message(Dialog.get('dsc_hunger'))
         if self.host.states.get('Hunger'):
-            self.window.add(Menu.make(Dialog.get('Hungry'), rmb, rmb, color=None))
+            self.window.add(Menu.make(Dialog.get('hungry'), rmb, rmb, color=None))
             self.sub_window.add(Menu.make('', None, None, color=None, hover=False))
         if self.host.var['calories'] > 0:
             rmb = self.get_message(Dialog.get('dsc_calories'))
-            self.window.add(Menu.make(Dialog.get('Calories'), rmb, rmb, color=None))
+            self.window.add(Menu.make(Dialog.get('calories'), rmb, rmb, color=None))
             self.sub_window.add(Menu.make(str(self.host.var['calories']), None, None, color=None))
         if self.host.var['protein'] > 0:
             rmb = self.get_message(Dialog.get('dsc_protein'))
-            self.window.add(Menu.make(Dialog.get('Protein'), rmb, rmb, color=None))
+            self.window.add(Menu.make(Dialog.get('protein'), rmb, rmb, color=None))
             self.sub_window.add(Menu.make(str(self.host.var['protein']), None, None, color=None))
         self.sub_window.display(1)
 

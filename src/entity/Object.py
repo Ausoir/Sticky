@@ -4,9 +4,9 @@ from src.game import Global
 from src.game.Camera import Camera
 from src.game.Turn import Turn
 from src.map.Tile import Tile
+from src.tools import Direction
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
-from src.tools import Direction
 
 
 class Object(Image):
@@ -16,11 +16,11 @@ class Object(Image):
         super().__init__(Space())
         self.location = loc
         self.class_name = None
+        self.depth = 1
         self.pos = self.location.get_tile(0)
         self.old_pos = self.pos
         self.delay = 0
         self.collision_type = Tile.COLLIDE_OBJECT
-        self.standables = Tile.CHECK_FOUNDATION.copy()
         self.removed = 0
         self.falling = 0
         self.in_sight = False
@@ -54,6 +54,7 @@ class Object(Image):
     def remove(self):
         self.removed = 1
         self.form.show(False)
+        self.remove_batch()
         Turn.remove(self.turn)
         self.location.record.remove(self)
         self.pos.things.remove(self)
@@ -61,10 +62,21 @@ class Object(Image):
 
     def set_form(self, arg):
         self.form_name = arg
-        self.form = Data.get_form(arg, group=Global.draw_group.objects)
+        self.form = Data.get_form(arg)
 
-    def add_batch(self, add):
-        self.form.add_batch(add)
+    def add_batch(self):
+        self.form.set_batch(self.depth)
+
+    def remove_batch(self):
+        self.form.set_batch(None)
+
+    def set_group(self, group):
+        self.form.set_group(group)
+
+    def reset_group(self):
+        if Global.draw_group.group:
+            self.set_group(None)
+            self.set_group(Global.draw_group.group[self.pos.y])
 
     def update(self):
         diff = self.pos.get_center() - self.vec
@@ -87,8 +99,10 @@ class Object(Image):
     def get_offset_tile(self, x, y):
         return self.location.get_tile(self.pos + (x, y))
 
-    def get_front_tile(self, direction):
-        return self.location.get_tile(self.pos + Direction.coord[direction])
+    def get_front_tile(self, direction, mag=1):
+        coord = Direction.coord[direction]
+        coord = [coord[0] * mag, coord[1] * mag]
+        return self.location.get_tile(self.pos + coord)
 
     def relocate(self, x, y, force=0):
         if force or x != self.pos.x or y != self.pos.y:
@@ -106,8 +120,9 @@ class Object(Image):
     def move_toward(self, direction, mag=1, distance=8, flag=Tile.CHECK_LARGE):
         coord = Direction.coord[direction]
         new_pos = self.location.collide_land(self.pos, coord[0] * mag, coord[1] * mag, flag=flag, distance=distance)
+        moved = self.pos != new_pos
         self.relocate(new_pos.x, new_pos.y)
-        return new_pos
+        return moved
 
     def move(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
         new_pos = self.location.collide_land(self.pos, x, y, distance=distance, flag=flag)

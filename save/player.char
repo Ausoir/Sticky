@@ -1,4 +1,5 @@
 instance
 0,2,town
-#0,[-1,-5],Player,Character,unit/man,[mat:Flesh,intel:1],236,[],1,manual,[0,9,9,3,21,0,0],[charge,tackle,peek,slam],[dodge,peek],[#16,[-1,-5],Dagger,Weapon,image/dagger,[mat:Metal],8,[],[1,1],8,1,4,1,1,1],0,[#6,[-3,-5],Jumpsuit,Armor,image/unit/scalemail,[],234,[],[3,2],333,0,0,[211,111],[],[-1]],[#5,[-3,-2],Safety Helmet,SafetyHat,image/unit/safety_hat,[],1,[],[2,1],1,1,9],[protein:0,calories:0,talent:None,money:14,sign:Accident,home:town,debt:0]
+#0,[0,-7],Player,Character,unit/man,[mat:Flesh,intel:1],[],1,manual,[0,9,9,3,21,0,0],[],[dodge],[#5,[-2,-5],Platemail,Armor,image/unit/platemail,[loot:Scrap],[],10,10,6,[-1]],[#6,[0,-7],Safety Helmet,SafetyHat,image/unit/safety_hat,[],[],10,1],0,[protein:0,calories:0,talent:None,money:14,sign:Accident,home:town,debt:0]
+
 

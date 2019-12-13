@@ -5,6 +5,9 @@ class Attribute:
     def __init__(self):
         self.gene = 0
 
+        self.hp = 1
+        self.max_hp = 1
+
         self.strength = 1
         self.agility = 1
         self.intelligence = 1

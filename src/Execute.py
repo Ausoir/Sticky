@@ -6,9 +6,10 @@ from src.game import Global
 from src.entity.Space import Space
 from src.game.Camera import Camera
 from src.game.MapView import MapView
-from src.game.Player import Player
+from src.player.Player import Player
 from src.game.DrawGroup import DrawGroup
 from src.game.Turn import Turn
+from src.interface.Textbox import Textbox
 from src.tools.Random import Random
 
 
@@ -21,12 +22,13 @@ class Execute:
             resizable=True
         )
         self.window.set_minimum_size(320, 200)
-        self.window.set_location(120, 80)
+        self.window.set_location(320, 40)
         pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
-        pyglet.gl.glClearColor(0, 0, 0, 1)
         pyglet.resource.path = ['../data']
         pyglet.resource.reindex()
+        self.monologue = Textbox(40, 40)
         self.init_other()
+        pyglet.gl.glClearColor(Global.mask_color[0], Global.mask_color[1], Global.mask_color[2], Global.mask_color[3])
         self.init_window()
 
     def init_other(self):
@@ -51,10 +53,6 @@ class Execute:
         def on_key_press(symbol, modifiers):
             if symbol == pyglet.window.key.ESCAPE:
                 Global.player.control.quit()
-            elif symbol == pyglet.window.key.F:
-                Global.draw_group.scene.scale += .3
-            elif symbol == pyglet.window.key.G:
-                Global.draw_group.scene.scale -= .3
             Global.player.control.input(symbol)
 
         def on_key_release(symbol, modifiers):
@@ -71,10 +69,22 @@ class Execute:
         def on_mouse_motion(x, y, dx, dy):
             Global.player.control.cursor = [x, Global.DISPLAY[1] - y]
 
+        def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+            Global.player.control.cursor = [x, Global.DISPLAY[1] - y]
+            Global.player.control.input(0)
+
         def on_resize(width, height):
             Global.DISPLAY = (width, height)
             Global.CENTER = (Global.DISPLAY[0] / 2, Global.DISPLAY[1] / 2)
             Global.SCREEN_TILES = (int(Global.DISPLAY[0] / Global.BLOCK), int(Global.DISPLAY[1] / Global.BLOCK))
+            self.monologue.x = Global.CENTER[0]
+            Global.player.on_resize()
+
+        def on_text(text):
+            Global.player.control.on_text(text)
+
+        def on_activate():
+            Global.player.control.clear_press()
 
         def loop(dt):
             Camera.update()
@@ -85,17 +95,22 @@ class Execute:
             self.window.clear()
             Global.draw_group.draw()
             Global.menu.draw()
+            Global.player.draw()
+            self.monologue.draw()
             fps_display.draw()
 
+        self.window.on_activate = on_activate
         self.window.push_handlers(on_key_press)
         self.window.push_handlers(on_key_release)
+        self.window.push_handlers(on_text)
         self.window.push_handlers(on_mouse_press)
         self.window.push_handlers(on_mouse_release)
         self.window.push_handlers(on_mouse_motion)
+        self.window.push_handlers(on_mouse_drag)
         self.window.push_handlers(on_resize)
         self.window.on_draw = on_draw
         fps_display = pyglet.window.FPSDisplay(window=self.window)
-        pyglet.clock.schedule_interval(loop, 1/40.0)
+        pyglet.clock.schedule_interval(loop, 1/44.0)
         pyglet.app.run()
         on_resize(self.window.width, self.window.height)
 

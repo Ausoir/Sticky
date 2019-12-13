@@ -493,14 +493,13 @@ class Invisible(Buff):
             self.orig()
 
     def on_start(self):
-        self.orig = self.host.render
-        self.host.render = self.render
+        self.host.form.show(False)
 
     def on_load(self):
         self.on_start()
 
     def on_finish(self):
-        self.host.draw = self.orig
+        self.host.form.show(True)
 
 
 class Immune(Buff):
@@ -518,3 +517,16 @@ class Foresee(Buff):
 
     def on_finish(self):
         self.trigger(None)
+
+
+class Charging(Buff):
+    def describe(self):
+        return 'You are gathering power.'
+
+    def on_update(self):
+        if self.effect(2):
+            Particle.make('wind', self.host.pos.get_center(), offset=128)
+
+    def on_stack(self, duration, var):
+        self.duration = max(self.duration, duration)
+        self.var = self.var + var

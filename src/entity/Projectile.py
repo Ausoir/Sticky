@@ -20,7 +20,6 @@ class Projectile(Prop):
         self.friction = .96
         self.vel = Space()
         self.start = Space()
-        self.standables.append(Tile.COLLIDE_UNIT)
 
     def add(self):
         self.removed = 0
@@ -45,8 +44,6 @@ class Projectile(Prop):
     def draw(self, surface):
         if not self.removed:
             self.vel *= self.friction
-            if self.is_fall():
-                self.vel.y += .5
             self.form.draw(surface, self.vec.x, self.vec.y)
 
     def turn(self):
@@ -63,7 +60,7 @@ class Projectile(Prop):
                     self.pos = self.location.get_tile_from_vec(self.vec.x, self.vec.y)
 
     def is_collide(self):
-        return self.pos.is_land(self.standables)
+        return self.pos.is_land(Tile.CHECK_LARGE)
 
     def on_collide(self):
         self.remove()

@@ -84,8 +84,8 @@ class Location:
 
     def turn(self):
         if not self.delay:
-            self.delay = 40
-            # self.save()
+            self.delay = 400
+            self.save()
 
     def save(self):
         Data.write('../save/' + self.name + '.map', self.__str__())
@@ -154,11 +154,9 @@ class Location:
         return self.tiles[key]
 
     def get_tile_from_vec(self, x, y):
-        return self.get_tile([Location.get_pos_from_vec(x), Location.get_pos_from_vec(y)])
-
-    @staticmethod
-    def get_pos_from_vec(i):
-        return math.floor(i / Global.BLOCK)
+        x = math.floor(x / Global.BLOCK)
+        y = math.floor(y / Global.BLOCK)
+        return self.get_tile([x, y])
 
     def collide_line(self, vec_from, x, y, function, distance=10):
         space = Space(x, y)

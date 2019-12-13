@@ -5,11 +5,6 @@ Script,Script,g_6x0,[ind:1,fly:1,col:0],-1,[[Invisible,-1,0],[Immune,-1,0]],0,[]
 Remove,Script,g_6x0,[ind:1,fly:1,col:0],-1,[],0,[[make],[chance,2,1]],[[remove,0,1]]
 Estate,Script,g_4x0,[ind:1,fly:1,col:0],-1,[],0,[[make]],[[rand,load,1,#building],[rand,load,2,0,1],[load,0,1]]
 Spawn,Script,g_4x0,[ind:1,fly:1,col:0],-1,[],0,[[make],[chance,5,1]],[[spawn,Slime,20]]
-Bridge,Bridge,g_12x3,[col:35,mat:Wood],2,[],[1,1]
-Wall,Block,g_1x1,[mat:Wood,loot:Plank],8,[]
-Tile,Block,g_2x1,[dep:1,col:15,mat:Wood,loot:Plank],8,[]
-Window,Block,g_3x4,[fly:1,dep:1,col:15,mat:Wood,loot:Plank],2,[]
-Glass,Block,g_17x1,[dep:1,col:15],1,[]
 Cash,Credit,g_6x6,[ind:1],1,[],[1,1],money,5
 Corpse,Corpse,g_9x3,[mat:Flesh],6,[]
 Break,Break,g_1x3,[col:0,fly:1,mat:Metal],4,[]
@@ -24,8 +19,8 @@ Memory Amulet,MemoryAmulet,image/unit/necklace,[],1,[],[1,1],1,1,home,[0,0]
 Life Amulet,LifeAmulet,image/unit/necklace,[],1,[],[1,1],1,2
 Ruby Amulet,RubyAmulet,image/unit/necklace,[],0,[],[1,1],1,2
 Spell,Spell,g_11x7,[ig,pf],1,[],[1,1],Scroll,Echo
-Staff,Spell,image/Staff,[ig,pf],9,[],[1,2],Staff,Echo
-Wand,Spell,image/Wand,[ig,pf],3,[],[1,2],Wand,Echo
+Staff,Spell,image/staff,[ig,pf],9,[],[1,2],Staff,Echo
+Wand,Spell,image/wand,[ig,pf],3,[],[1,2],Wand,Echo
 Bread,Food,half_0x1,[],1,[],[1,1],[-5,3,0] //expire, calories, protein
 Jerky,Food,half_8x1,[],1,[],[1,1],[-10,0,1]
 Fish,Food,half_4x1,[],1,[],[1,1],[-1,1,1,3]

@@ -5,7 +5,6 @@ from src.game import Global
 from src.game.Camera import Camera
 from src.game.Tags import Tags
 from src.map.Tile import Tile
-from src.tools import Direction
 
 
 class Unit(Prop):
@@ -22,8 +21,6 @@ class Unit(Prop):
         self.pilot = None
         self.pilot_name = None
         self.delay = 0
-        self.standables = Tile.CHECK_LANDABLE
-        self.frame = 0
 
     def __str__(self):
         att = '[' + self.attributes.__str__() + '],[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
@@ -57,6 +54,9 @@ class Unit(Prop):
         self.form_name = arg
         self.form = Body(arg)
 
+    def add_batch(self):
+        self.form.set_batch(2)
+
     def draw_synchronize(self):
         if self.draw_frame != Global.map_view.draw_frame:
             self.update_vec()
@@ -74,14 +74,6 @@ class Unit(Prop):
     def turn(self):
         self.pilot.update()
         super().turn()
-        self.frame += 1
-        if not self.frame % 8:
-            self.attributes.leg = max(0, self.attributes.leg - 1)
-            if self.action.current_action not in ['idle', 'walk', 'jump', 'duck']:
-                self.frame = 0
-            if self.frame > 160:
-                self.attributes.body = 0
-                self.frame = 0
         if self.delay > 0:
             self.delay -= 1
         elif self.delay == 0:
@@ -97,13 +89,21 @@ class Unit(Prop):
     def use(self):
         self.action.attack()
 
-    def get_target_tile(self):
-        return self.location.get_tile(self.pos + Direction.coord[self.direction])
-
     def face(self, direction):
         if not self.states.get('Influence'):
             self.direction = direction
             self.form.face(direction)
+
+    def face_toward(self, pos):
+        diff = pos - self.pos
+        if diff.x < 0:
+            self.face(1)
+        elif diff.x > 0:
+            self.face(3)
+        if diff.y < 0:
+            self.face(2)
+        elif diff.y > 0:
+            self.face(4)
 
     def fell(self, distance, me=False):
         if self.get_proficiency('nimble'):

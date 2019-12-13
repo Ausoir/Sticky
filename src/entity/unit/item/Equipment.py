@@ -2,26 +2,8 @@ from src.entity.unit.item.Item import Item
 
 
 class Equipment(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.max_durability = 0
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.max_durability) + ',' + str(self.weight)
-
-    def load(self, p):
-        index = super().load(p)
-        self.max_durability = p[index]
-        index += 1
-        self.weight = p[index]
-        return index + 1
-
     def get_enhance_chance(self):
         return int(100 * (1 / max(1, self.get_level() + 1)))
-
-    def repair(self):
-        if self.durability < self.max_durability:
-            self.durability = self.max_durability
 
     def enhance(self, rng):
         if rng <= self.get_enhance_chance():
@@ -52,21 +34,24 @@ class Equipment(Item):
         self.name = self.get_display_name()
         r = super().describe()
         self.name = orig
-        if self.durability != -1:
-            if self.max_durability == -1:
-                r += '\nMaximum Durability: Unbreakable'
-            else:
-                r += '\nMaximum Durability: ' + str(self.max_durability)
         r += '\nMarket Value: ' + str(self.get_value())
         r += '\nEncumbrance: ' + str(self.weight)
+        if 'armor' in self.tags:
+            r += 'This armor halves damage.'
+        if 'mat' in self.tags and self.tags['mat'] == 'Metal':
+            r += 'This armor shaves off 1 damage.'
         return r
 
     def get_reduction(self, damage):
-        if self.durability == -1:
-            return 0, damage
-        total = 0
-        final_damage = max(0, min(damage, self.durability))
-        self.durability = self.durability - final_damage
-        damage -= final_damage
-        total = max(0, total + self.durability)
-        return total, damage
+        if 'armor' in self.tags:
+            damage = int(damage * .5)
+        if 'mat' in self.tags:
+            if self.tags['mat'] == 'Metal':
+                damage = max(0, damage - 1)
+        return damage
+
+    def on_wear(self):
+        pass
+
+    def on_unwear(self):
+        pass

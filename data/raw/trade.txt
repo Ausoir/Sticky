@@ -1,7 +1,7 @@
 guild,[Jelly,Fiber,Tooth,Mushroom,Paper,Plank,Medicine,Bandage]
 treasure,[Cash]
 bag,[Alcohol]
-crate,[Ladder,Plank,Bottle]
+crate,[Plank,Bottle]
 rack,[Dagger,Shortsword,Rapier,Saw,Hammer,Pickaxe,Scimitar,Katana,Axe,Falchion,Longsword,Mace,Spear,Glaive]
 general,[Alcohol,Water Bottle,Medicine,Bandage,Torch,Repair Kit,Bow,Salt]
 restaurant,[Alcohol,Water Bottle,Bread,Burger,Cheese,Drumstick,Fish,Fruit,Sandwich,Vegetable,Jerky,Salt]

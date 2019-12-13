@@ -31,7 +31,7 @@ class Body:
         for x in self.model:
             parent.append([x[0], x[1]])
             if x[2]:
-                organ = Appendage(Data.get_form(x[2], form='Humanoid', group=Global.draw_group.units), meta=x[3])
+                organ = Appendage(Data.get_form(x[2], form='Humanoid'), meta=x[3])
             else:
                 organ = Limb()
             self.organs.append(organ)
@@ -51,9 +51,13 @@ class Body:
         for i in self.organs:
             i.form.show(visible)
 
-    def add_batch(self, add):
+    def set_batch(self, batch):
         for i in self.organs:
-            i.form.add_batch(add)
+            i.form.set_batch(batch)
+
+    def set_group(self, group):
+        for i in self.organs:
+            i.form.set_group(group)
 
     def delete(self):
         for i in self.organs:
@@ -62,14 +66,15 @@ class Body:
     def place(self, x, y):
         if self.timer.update():
             self.update_clip()
-        else:
-            for k, organ in enumerate(self.organs):
-                diff = organ.upper_joint - organ.lower_joint
-                dx = ((self.current_animation[k][0] * self.side) + diff.x) / (self.timer.time + 1)
-                dy = (self.current_animation[k][1] + diff.y) / (self.timer.time + 1)
-                organ.lower_joint += (dx, dy)
-                organ.place(x, y)
-            self.root.upper_joint.load(self.current_animation[len(self.current_animation) - 2])
+        timer = self.timer.time + 1
+        for k, organ in enumerate(self.organs):
+            diff = organ.upper_joint - organ.lower_joint
+            dx = ((self.current_animation[k][0] * self.side) + diff.x) / timer
+            dy = (self.current_animation[k][1] + diff.y) / timer
+            organ.lower_joint += (dx, dy)
+            organ.place(x, y)
+        root = self.current_animation[len(self.current_animation) - 2]
+        self.root.upper_joint.load(root[0] * self.side, root[1])
 
     def set_state(self, state):
         if state in self.motion:
@@ -91,6 +96,13 @@ class Body:
         frame = self.current_animation[self.current_animation.__len__() - 1]
         self.timer.set(frame)
         self.current_clip += 1
+
+    def get_total_motion_time(self):
+        total = 0
+        for i in self.motion[self.get_directional_motion()]:
+            current = self.animation[i]
+            total += current[len(current) - 1]
+        return total
 
     def get_directional_motion(self):
         if self.direction == 2 and self.state_name + 'U' in self.motion:

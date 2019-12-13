@@ -25,8 +25,8 @@ class Menu:
 
     def draw(self):
         if self.visible == 1:
-            self.window.draw()
             self.sub_window.draw()
+            self.window.draw()
 
     def turn(self):
         if self.visible == 1:
@@ -90,8 +90,8 @@ class Menu:
     def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, resize=False, hover=True):
         if not color:
             color = Window.fore_color_transparent
-        button = Window(0, 0, width=width, height=40, name=name, color=color)
-        button.set_text(text, resize=resize)
+        button = Window(0, 0, width=width, height=40, name=name, color=color, multi_line=resize)
+        button.set_text(text)
         button.on_click = callback
         button.on_r_click = r_callback
         if not hover:

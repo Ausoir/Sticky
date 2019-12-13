@@ -12,16 +12,20 @@ class Shape:
         self.color = color
         self.border = border
 
-    def draw(self):
-        right = self.x + self.width
-        up = Global.DISPLAY[1] - self.y
-        down = up - self.height
-        vertices = [self.x, up,
+    @staticmethod
+    def draw_rect(x, y, width, height, color):
+        right = x + width
+        up = Global.DISPLAY[1] - y
+        down = up - height
+        vertices = [x, up,
                     right, up,
                     right, down,
-                    self.x, down]
-        color = self.color + self.color + self.color + self.color
+                    x, down]
+        color = color + color + color + color
         pyglet.graphics.draw(4, pyglet.gl.GL_QUADS, ('v2i', vertices), ('c4B', color))
+
+    def draw(self):
+        Shape.draw_rect(self.x, self.y, self.width, self.height, self.color)
 
     def collide(self, point_x, point_y):
         if self.x <= point_x <= self.x + self.width:

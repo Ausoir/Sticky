@@ -8,7 +8,6 @@ class Prop(Object):
     def __init__(self, loc):
         super().__init__(loc)
         from src.entity.unit.Buffs import Buffs
-        self.durability = -1
         self.hittable = 1
         self.collision_type = Tile.COLLIDE_PROP
         self.faction = 0  # 0: Neutral, 1: Player, 2: Enemy, 3: Beast, 4: Undead
@@ -16,8 +15,7 @@ class Prop(Object):
         self.tags = {}
 
     def __str__(self):
-        tags = Dialog.dict(self.tags)
-        return ','.join([super().__str__(), tags, str(self.durability), '[' + self.states.__str__() + ']'])
+        return ','.join([super().__str__(), Dialog.dict(self.tags), '[' + self.states.__str__() + ']'])
 
     def load(self, arg):
         index = super().load(arg)
@@ -29,20 +27,14 @@ class Prop(Object):
                 else:
                     self.tags[strings[0]] = strings[1]
         index += 1
-        if arg[index] >= -1:
-            self.durability = arg[index]
-        else:
-            from src.game import Global
-            variance = int(-arg[index] / 2)
-            self.durability = Global.r.rand_int(-arg[index] - variance, -arg[index] + variance)
-        index += 1
         self.states.load(arg[index])
-        index += 1
+        if 'dep' in self.tags:
+            self.depth = self.tags['dep']
         if 'ind' in self.tags:
             self.hittable = 0
         if 'col' in self.tags:
             self.collision_type = self.tags['col']
-        return index
+        return index + 1
 
     def turn(self):
         super().turn()
@@ -70,7 +62,7 @@ class Prop(Object):
             if loot.startswith('#'):
                 from src.entity.Stock import Stock
                 from src.tools.Data import Data
-                loot_table = Global.r.rand_list(Data.get_line('data/raw/trade.txt', loot[1:])[1])
+                loot_table = Global.r.rand_list(Data.get_line('raw/trade.txt', loot[1:])[1])
                 Stock.make(loot_table, self.pos)
             else:
                 if 'loot%' not in self.tags or Global.r.rand_int(1, 100) <= self.tags['loot%']:
@@ -88,15 +80,14 @@ class Prop(Object):
         if damage > 0:
             if hitter:
                 if isinstance(hitter, Prop):
-                    direction = 1 if hitter.pos.x < self.pos.x else -1
                     from src.entity.Particle import Particle
                     if Tags.sharp in hitter.tags:
                         if Tags.flesh in self.tags:
-                            Particle.make('splat', self.vec, direction=direction)
+                            Particle.make('splat', self.vec)
                         else:
-                            Particle.make('slash', self.vec, direction=direction)
+                            Particle.make('slash', self.vec)
                     else:
-                        Particle.make('batter', self.vec, direction=direction)
+                        Particle.make('batter', self.vec)
         if self.durability != -1:
             self.durability = max(0, self.durability - damage)
             if self.durability == 0:

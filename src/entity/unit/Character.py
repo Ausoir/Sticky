@@ -1,6 +1,5 @@
 from src.entity.unit.Humanoid import Humanoid
 from src.game.Interaction import Interaction
-from src.interface.Textbox import Textbox
 from src.tools.Dialog import Dialog
 
 
@@ -16,7 +15,6 @@ class Character(Humanoid):
 
     def __init__(self, loc):
         super().__init__(loc)
-        self.monologue = Textbox(self, [0, 0])
         self.var = {}
 
     def __str__(self):
@@ -32,21 +30,6 @@ class Character(Humanoid):
                 else:
                     self.var[strings[0]] = strings[1]
         return index + 1
-
-    def draw(self):
-        super().draw()
-        from src.game.Camera import Camera
-        # self.monologue.pos = [self.vec.x + Camera.pos[0], self.vec.y + Camera.pos[1] - 60]
-        # self.monologue.draw(surface)
-
-    def say(self, text):
-        self.monologue.text(text)
-
-    def use(self):
-        if 'use' in self.weapon.tags:
-            Interaction.interact(self.weapon.tags['use'], self.weapon)
-        else:
-            super().use()
 
     def fell(self, distance, me=False):
         if not Character.check_var(self, 'talent', 'Assassin') or not me:

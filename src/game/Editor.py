@@ -26,7 +26,6 @@ class Editor:
         self.prev_action = None
         self.prev_command = None
         self.selection = None
-        self.text_color = (150, 40, 40)
         center = Stock.make('Force', Global.player.character.pos)
         center.center_camera()
         self.location.record.remove(center)
@@ -45,9 +44,9 @@ class Editor:
         Turn.update = self.backup
 
     def input(self, action):
-        m = Camera.target.pos + self.control.cursor_tile
+        m = self.control.cursor_tile
         self.prev_mouse = m
-        self.display_subtext = 'X:' + str(m.x) + ' Y:' + str(m.y)
+        self.display_subtext = 'X:' + str(m[0]) + ' Y:' + str(m[1])
         if action == 'idle':
             self.tool.input(0, self.location.get_tile(m))
             self.tool.last = None
@@ -101,7 +100,7 @@ class Editor:
                 self.tool.cancel()
                 self.tool.selection = objs[0]
         elif action == 'player':
-            Global.player.character.relocate(m.x, m.y)
+            Global.player.character.relocate(m[0], m[1])
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain(self.location)
@@ -139,7 +138,7 @@ class Editor:
             self.tool = ToolObject(self.location, action)
             self.display_text = 'Miscellaneous Tool'
         elif action == 'repeat':
-            Global.main.textbox.display_text = self.prev_command
+            self.display_text = self.prev_command
             self.command()
         elif action == 'command':
             self.command()
@@ -151,15 +150,16 @@ class Editor:
             self.tool.cancel()
             sys.exit()
         self.prev_action = action
+        if self.display_text != '':
+            Global.main.monologue.set(self.display_text + ' @ ' + self.display_subtext)
+            self.display_text = ''
         return 0
 
     def command(self):
-        self.prev_command = Global.main.textbox.display_text
-        params = Global.main.textbox.display_text.split(' ')
+        self.prev_command = Global.main.monologue.label.text
+        params = Global.main.monologue.label.text.split(' ')
         arg1 = ' '.join(params[1:])
-        if params[0] == 'color':
-            self.text_color = [int(x) for x in params[1].split(',')]
-        elif params[0] == 'set':
+        if params[0] == 'set':
             if isinstance(self.tool, ToolObject):
                 if self.tool.selection.name == 'Script':
                     script = Data.process_raw(params[1])
@@ -278,18 +278,6 @@ class Editor:
         elif params[0] == 'time':
             Global.player.days = int(params[1])
             Global.player.sleep(0)
-        Global.main.textbox.display_text = ''
-
-    def draw(self):
-        if self.display_text:
-            display_y = 10
-            for i in range(int(len(self.display_text) / 120) + 1):
-                start = i * 120
-                end = start + 120
-                display = self.display_text[start:end]
-                # surface.blit(Global.font.render(display, 1, self.text_color), (16, display_y))
-                display_y += 30
-            # surface.blit(Global.font.render(self.display_subtext, 1, self.text_color), (16, display_y))
 
 
 class ToolTerrain:
@@ -385,6 +373,7 @@ class ToolObject:
         self.current = 0
         self.last_data = None
         self.last = None
+        self.select(self.object_list[self.current][0])
 
     def cancel(self):
         self.selection.remove()
@@ -404,6 +393,7 @@ class ToolObject:
         self.selection.remove()
         self.selection = Stock.get(self.text, data=data)
         if self.selection:
+            self.selection.relocate(Global.player.control.cursor_tile[0], Global.player.control.cursor_tile[1])
             self.selection.add()
 
     def input(self, button, tile):

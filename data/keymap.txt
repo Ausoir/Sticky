@@ -7,8 +7,9 @@ S,down
 A,left
 D,right
 SPACE,use
-E,interact
-R,trinket
+E,grab
+R,pocket
+Q,lunge
 _1,pocket_1
 _2,pocket_2
 _3,pocket_3

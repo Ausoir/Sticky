@@ -5,6 +5,7 @@ from pyglet.image import Texture, Animation
 
 from src.form.Model import Model
 from src.form.Picture import Picture
+from src.game import Global
 
 
 class Data:
@@ -13,6 +14,7 @@ class Data:
 
     @staticmethod
     def init():
+        Data.set_cache('none', Texture.create(1, 1))
         Data.set_cache('tiles', Data.process_raw(Data.read('raw/tiles.txt')))
         for i in Data.registry_list:
             Data.set_cache(i, Data.process_raw(Data.read('raw/' + i + '.txt')))
@@ -25,9 +27,11 @@ class Data:
             sequence = []
             for sprite in i[1]:
                 sequence.append(Data.get_cache(sprite))
-            ani = pyglet.image.Animation.from_image_sequence(sequence, period=float(i[2]), loop=bool(i[3]))
+            loop = bool(i[3])
+            if not loop:
+                sequence.append(Data.get_cache('none'))
+            ani = pyglet.image.Animation.from_image_sequence(sequence, period=float(i[2]), loop=loop)
             Data.set_cache(i[0], ani)
-        Data.set_cache('none', Texture.create(1, 1))
 
     @staticmethod
     def direct(fdir, path='../data/'):
@@ -93,7 +97,6 @@ class Data:
         rows = int(image.height / height)
         region = []
         if cols == 0 or rows == 0:
-            from src.game import Global
             return Global.blank_form
         for y in range(0, rows):
             for x in range(0, cols):
@@ -111,6 +114,8 @@ class Data:
                 left = subset_size[0] * x
                 bottom = texture.height - subset_size[1] * (y + 1)
                 region = texture.get_region(left, bottom, subset_size[0], subset_size[1])
+                region.anchor_x = Global.HALF_BLOCK
+                region.anchor_y = Global.HALF_BLOCK
                 Data.cache[name+'_'+str(x)+'x'+str(y)] = region
 
     @staticmethod
@@ -165,11 +170,12 @@ class Data:
 
     @staticmethod
     def get_image(fdir, cache):
+        img = pyglet.resource.image(Data.direct(fdir + '.png', path=''))
+        img.anchor_x = img.width / 2
+        img.anchor_y = img.height / 2
         if cache:
-            Data.cache[fdir] = pyglet.resource.image(Data.direct(fdir + '.png', path=''))
-            return Data.cache[fdir]
-        else:
-            return pyglet.resource.image(Data.direct(fdir + '.png', path=''))
+            Data.cache[fdir] = img
+        return img
 
     @staticmethod
     def get_cache_clip(fdir):

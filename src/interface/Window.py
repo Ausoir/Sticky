@@ -16,7 +16,7 @@ class Window(Shape):
     font_color2 = (120, 180, 140, 200)
     font_color3 = (60, 80, 80, 220)
 
-    def __init__(self, x, y, width, height, name=0, color=fore_color1):
+    def __init__(self, x, y, width, height, name=0, color=fore_color1, multi_line=False):
         super().__init__(x, y, width=width, height=height, color=color)
         self.name = name
         self.children = []
@@ -28,9 +28,9 @@ class Window(Shape):
         self.hover_color = Window.fore_color3
         self.text_spacing = 40
         self.next_y = self.y + self.margin.y
-        doc = FormattedDocument(' ')
-        doc.set_style(0, 1, dict(font_name='Default Font', font_size=16, color=Window.font_color1))
-        self.text = TextLayout(doc, width, height, multiline=True)
+        self.document = FormattedDocument(' ')
+        self.document.set_style(0, 1, dict(font_name='Default Font', font_size=16, color=Window.font_color1))
+        self.text = TextLayout(self.document, width, height, multiline=multi_line)
 
     def display(self, visible):
         self.visible = visible
@@ -73,7 +73,7 @@ class Window(Shape):
     def draw(self):
         if self.visible == 1:
             super().draw()
-            if self.text.document.text != '':
+            if self.document.text != '':
                 position = [self.x + self.margin.x, self.y + self.margin.y]
                 self.text.x = position[0]
                 self.text.y = Global.DISPLAY[1] - position[1] - self.text_spacing
@@ -81,8 +81,8 @@ class Window(Shape):
             for i in self.children:
                 i.draw()
 
-    def set_text(self, text, resize=True):
-        self.text.document.text = text
+    def set_text(self, text):
+        self.document.text = text
 
     @staticmethod
     def resize_text(text, size):

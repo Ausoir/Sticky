@@ -290,22 +290,14 @@ class Script(Prop):
                     i.delay = arg[2]
 
 
-class Bridge(Prop):
-    def load(self, arg):
-        super().load(arg)
-        self.gravity = 0
-
+class Door(Prop):
     def turn(self):
         super().turn()
-        support = 0
-        adj = [self.get_offset_tile(-1, 0), self.get_offset_tile(1, 0)]
-        for i in adj:
-            if i.is_land(Tile.CHECK_FIRM):
-                support += 2
-            elif i.is_land([Tile.COLLIDE_DOODAD]):
-                support += 1
-        if support < 2:
-            self.die()
+        from src.game.Camera import Camera
+        if Camera.target.pos == self.pos:
+            self.form.show(False)
+        else:
+            self.form.show(True)
 
 
 class Credit(Item):
@@ -446,21 +438,13 @@ class Sonic(Prop):
                         self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
 
 
-class Block(Prop):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.standables = Tile.CHECK_FOUNDATION.copy()
-        self.standables.append(Tile.COLLIDE_BACK)
-
-
 class Corpse(Prop):
     def __init__(self, loc):
         super().__init__(loc)
         self.direction = 1
         self.collision_type = 0
-        self.standables = Tile.CHECK_LANDABLE
-        self.form = Data.get_form('g_9x3', group=Global.draw_group.objects)
-        self.is_ragdoll = False
+        self.form = Data.get_form('g_9x3')
+        self.has_host = False
 
     def invalid(self, state):
         pass
@@ -469,7 +453,7 @@ class Corpse(Prop):
         self.form_name = arg
 
     def set(self, form):
-        self.is_ragdoll = True
+        self.has_host = True
         self.add()
         self.form = form
         self.durability = 8
@@ -477,12 +461,13 @@ class Corpse(Prop):
         self.form.randomize_clip(dead, 8)
         self.form.set_state(dead)
         self.form.set_state = self.invalid
-        self.form.enable(True)
+        self.form.show(True)
+        self.add_batch()
         return self
 
     def update(self):
         super().update()
-        if self.is_ragdoll:
+        if self.has_host:
             self.form.place(self.vec.x, self.vec.y)
 
     def is_hit(self, chance, faction=0):
@@ -497,8 +482,8 @@ class Corpse(Prop):
                 from src.entity.Stock import Stock
                 Stock.make('Raw Meat', self.pos)
         else:
-            if self.is_ragdoll:
-                self.form.randomize_once(18)
+            if self.has_host:
+                self.form.randomize_once(6)
         return r
 
     def die(self):

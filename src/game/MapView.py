@@ -17,20 +17,21 @@ class MapView:
         self.sight_block = [Tile.COLLIDE_FOG, Tile.COLLIDE_PROP, Tile.COLLIDE_TERRAIN]
         self.update_frame = 0
         self.draw_frame = 0
-        self.draw_tiles = []
+        self.draw_tiles = [[]]
         self.draw_tiles_min_x = None
         self.draw_tiles_max_x = None
         self.draw_tiles_min_y = None
         self.draw_tiles_max_y = None
         self.tiles = {}
         self.objects = []
-        self.sight_range = 1
-        self.view_range = 1
+        self.sight_range = 0
+        self.view_range = 0
         self.new_start = None
 
     def on_sight_change(self):
-        for i in self.draw_tiles:
-            i[2].delete()
+        for rows in self.draw_tiles:
+            for cell in rows:
+                cell[2].delete()
         self.draw_tiles.clear()
         pos_x = Camera.target.pos.x
         pos_y = Camera.target.pos.y
@@ -39,12 +40,17 @@ class MapView:
         self.draw_tiles_max_x = pos_x + self.sight_range
         self.draw_tiles_min_y = pos_y - sight_range_y
         self.draw_tiles_max_y = pos_y + sight_range_y
-        for x in range(-self.sight_range, self.sight_range + 1):
-            for y in range(-sight_range_y, sight_range_y + 1):
-                pic = Picture(Data.get_cache('g_0x1'), group=Global.draw_group.tiles)
+        Global.draw_group.group = []
+        for y in range(-sight_range_y, sight_range_y + 1):
+            Global.draw_group.add_group(y)
+            row = []
+            for x in range(-self.sight_range, self.sight_range + 1):
+                pic = Picture(Data.get_cache('g_0x1'))
+                pic.set_batch(0)
+                pic.set_group(Global.draw_group.tile_group)
                 pic.show(True)
-                pic.add_batch(True)
-                self.draw_tiles.append([x + pos_x, y + pos_y, pic])
+                row.append([x + pos_x, y + pos_y, pic])
+            self.draw_tiles.append(row)
 
     def turn(self):
         self.update_frame += 1
@@ -52,51 +58,56 @@ class MapView:
 
     def update(self):
         self.draw_frame += 1
-        for i in self.objects:
-            if not i.removed:
-                i.add_batch(False)
-        self.objects = []
-        tiles = self.tiles.values()
-        for v in tiles:
+        for rows in self.draw_tiles:
+            for cell in rows:
+                vec_x = cell[0] * Global.BLOCK + Camera.pos[0] + Global.HALF_BLOCK
+                vec_y = Global.DISPLAY[1] - (cell[1] * Global.BLOCK + Camera.pos[1] + Global.HALF_BLOCK)
+                cell[2].update(x=vec_x, y=vec_y)
+        for v in self.tiles.values():
             for thing in v.things:
-                self.objects.append(thing)
-        for i in self.draw_tiles:
-            vec_x = i[0] * Global.BLOCK + Camera.pos[0] + Global.HALF_BLOCK
-            vec_y = Global.DISPLAY[1] - (i[1] * Global.BLOCK + Camera.pos[1] + Global.HALF_BLOCK)
-            i[2].update(x=vec_x, y=vec_y)
-        for i in self.objects:
-            if not i.removed:
-                i.update()
-                i.add_batch(True)
+                thing.update()
 
     def update_region(self):
+        for i in self.objects:
+            if not i.removed:
+                i.remove_batch()
+        self.objects = []
         x = Camera.target.pos.x
         y = Camera.target.pos.y
         extend_x = 0
         extend_y = 0
         sight_range_y = int(self.sight_range * MapView.display_ratio)
-        for i in self.draw_tiles:
-            if i[0] - x > self.sight_range:
-                i[0] = self.draw_tiles_min_x - 1
-                extend_x = -1
-            elif i[0] - x < -self.sight_range:
-                i[0] = self.draw_tiles_max_x + 1
-                extend_x = 1
-            if i[1] - y > sight_range_y:
-                i[1] = self.draw_tiles_min_y - 1
-                extend_y = -1
-            elif i[1] - y < -sight_range_y:
-                i[1] = self.draw_tiles_max_y + 1
-                extend_y = 1
-            key = str(i[0]) + ',' + str(i[1])
-            if key in self.tiles:
-                tile = self.tiles[key]
-                if tile.terrain:
-                    i[2].set(tile.terrain.image)
-                    i[2].reset()
-                    i[2].face(tile.terrain.flip_x, tile.terrain.flip_y)
-            else:
-                i[2].set(Data.get_cache('g_0x1'))
+        row = 0
+        for rows in self.draw_tiles:
+            for cell in rows:
+                if cell[0] - x > self.sight_range:
+                    cell[0] = self.draw_tiles_min_x - 1
+                    extend_x = -1
+                elif cell[0] - x < -self.sight_range:
+                    cell[0] = self.draw_tiles_max_x + 1
+                    extend_x = 1
+                if cell[1] - y > sight_range_y:
+                    cell[1] = self.draw_tiles_min_y - 1
+                    extend_y = -1
+                elif cell[1] - y < -sight_range_y:
+                    cell[1] = self.draw_tiles_max_y + 1
+                    extend_y = 1
+                key = str(cell[0]) + ',' + str(cell[1])
+                if key in self.tiles:
+                    tile = self.tiles[key]
+                    tile.update_light(self)
+                    for thing in tile.things:
+                        if not thing.removed:
+                            thing.add_batch()
+                            thing.set_group(Global.draw_group.group[row])
+                            self.objects.append(thing)
+                    if tile.terrain:
+                        cell[2].set(tile.terrain.image)
+                        cell[2].show(True)
+                        cell[2].face(tile.terrain.flip_x, tile.terrain.flip_y)
+                else:
+                    cell[2].show(False)
+            row += 1
         self.draw_tiles_min_x += extend_x
         self.draw_tiles_max_x += extend_x
         self.draw_tiles_min_y += extend_y
@@ -104,7 +115,6 @@ class MapView:
 
     def update_fog(self):
         center = Global.player.location.get_tile(Camera.target.pos)
-        center.update_light(self)
         self.tiles = {str(Camera.target.pos.x) + ',' + str(Camera.target.pos.y): center}
         max_range = [self.view_range, int(self.view_range * MapView.display_ratio)]
         for i in range(8):

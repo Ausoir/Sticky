@@ -1,9 +1,9 @@
 from src.game.Editor import Editor
 from src.game import Global
-from src.game.Interaction import Interaction
 from src.game.Turn import Turn
 from src.map.Location import Location
 from src.map.Tile import Tile
+from src.player.Inventory import Inventory
 from src.tools.Data import Data
 
 
@@ -26,8 +26,16 @@ class Player:
         self.temporary = None
         self.character = self.load_player(self.location, data[2])
         self.set_ability(self.character.var['talent'])
+        self.inventory = Inventory(self.character)
+        self.inventory.load(data[4])
         self.turn()
         self.sleep(0)
+
+    def draw(self):
+        pass
+
+    def on_resize(self):
+        pass
 
     def load_player(self, loc, data):
         from src.interface.MenuAll import MenuAll
@@ -128,14 +136,6 @@ class Player:
             self.character.center_camera()
             Global.map_view.sight_block = self.temporary
             self.location.save()
-
-    def click(self, command, mouse):
-        if command == 'use':
-            if self.character == self.control.player:
-                self.character.next_target = mouse
-                tile = self.character.get_target_tile()
-                if (tile - self.character.pos).distance() <= 1:
-                    return Interaction.trigger(tile)
 
     def turn(self):
         if self.character.removed:

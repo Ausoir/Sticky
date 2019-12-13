@@ -18,6 +18,7 @@ _6,spells
 _7,miscellaneous
 M,command
 ESCAPE,quit
+DRAG,use
 LMB,use
 LS+LMB,special
 RMB,delete

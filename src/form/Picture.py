@@ -8,16 +8,18 @@ from src.tools import Direction
 class Picture(Sprite):
     def __init__(self, texture, **kwargs):
         super().__init__(texture, **kwargs)
-        self.set_anchor(self.width / 2, self.height / 2)
         self.side = 1
         self.side_y = 1
         self.visible = False
 
-    def add_batch(self, add):
-        if add:
-            self.batch = Global.draw_group.batch
-        else:
+    def set_batch(self, batch):
+        if batch is None:
             self.batch = None
+        else:
+            self.batch = Global.draw_group.batch[batch]
+
+    def set_group(self, group):
+        self.group = group
 
     def set(self, arg):
         super()._set_texture(arg)

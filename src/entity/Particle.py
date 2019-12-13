@@ -21,18 +21,21 @@ class Particle(Prop):
 
     def __init__(self, loc):
         super().__init__(loc)
+        self.depth = 3
         self.lifetime = 4
         self.collision_type = 0
         self.offset = None
 
     def add(self):
         self.removed = 0
+        self.form.show(True)
         Turn.add(self.turn)
         self.relocate(self.pos.x, self.pos.y, force=1)
         return self
 
     def remove(self):
         self.removed = 1
+        self.form.show(False)
         Turn.remove(self.turn)
         self.pos.things.remove(self)
 

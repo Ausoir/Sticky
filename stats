@@ -197,3 +197,9 @@
 12/03 Appendage scale/rotation glitch fix - length was set to 1 which doesnt trigger resize (2)
 12/03 Cardinal attack motion with correct depth (3)
 ---- PUSH
+12/04 Y depth OrderedGroup (1)
+12/05 Keyboard double input after being out of focus fix (1)
+12/06 faces and armor (1), Body.place removed else quote causing slow animation (1), Man.2d polished (1)
+12/07 removed Humanoid.head (1), simple combat system (1)
+12/09 MapView correct Y grouping (1), Textbox and text input (1)
+---- PUSH

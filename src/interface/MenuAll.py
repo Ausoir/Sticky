@@ -11,21 +11,21 @@ from src.tools.Dialog import Dialog
 # noinspection PyUnresolvedReferences
 class MenuAll(MenuPlayer):
     def topic(self, name):
-        if Data.get_line('data/raw/choices.txt', name):
+        if Data.get_line('raw/choices.txt', name):
             self.var = [self.var[0], name]
             self.direct(self.menu_conversation)
         else:
             if name.startswith('#'):
                 self.direct(getattr(self, 'menu_' + name[1:].lower()))
             else:
-                dialog = Data.get_line('data/raw/conversation.txt', name)
+                dialog = Data.get_line('raw/conversation.txt', name)
                 if dialog:
                     self.show_dialog([','.join(dialog[1])])
 
     def menu_conversation(self):
         if self.var[0]:
             self.window.add(Menu.make('[' + self.var[0].name + ']', None, None, color=None, hover=False))
-        options = Data.get_line('data/raw/choices.txt', self.var[1])
+        options = Data.get_line('raw/choices.txt', self.var[1])
         self.window.add(Menu.make(options[1][0], None, None, color=None, hover=False, resize=True))
         for option in options[1][1:]:
             self.sub_window.add(Menu.make(option.replace('#', ''), self.topic, None, width=160, name=option))
@@ -38,9 +38,16 @@ class MenuAll(MenuPlayer):
             talk_type = 'none'
         self.history.pop()
         self.history_var.pop()
-        dialogs = Data.get_line('data/raw/conversation.txt', talk_type)[1:]
+        dialogs = Data.get_line('raw/conversation.txt', talk_type)[1:]
         output = Menu.get_conversation(dialogs)
         self.show_dialog([output[self.var[0].attributes.gene % len(output)]])
+
+    def menu_move(self):
+        from src.tools import Direction
+        pos = Global.player.character.pos
+        Global.player.character.relocate(self.var[0].pos.x, self.var[0].pos.y)
+        self.var[0].relocate(pos.x, pos.y)
+        self.display(-1)
 
     def menu_hire(self):
         cost = self.var[0].attributes.get_total() + self.var[0].armor.get_value() + self.var[0].headgear.get_value()
@@ -159,7 +166,7 @@ class MenuAll(MenuPlayer):
             from src.tools.Data import Data
             rng = Random(self.var[0].attributes.gene + Global.player.days)
             due_date = Global.player.days + (self.var[0].attributes.gene % 14) + 6
-            data = Data.get_line('data/raw/trade.txt', self.var[0].var['trade'])
+            data = Data.get_line('raw/trade.txt', self.var[0].var['trade'])
             merchandise = []
             for i in range(rng.rand_int(3, 6)):
                 merchandise.append(rng.rand_list(data[1]))
@@ -241,7 +248,7 @@ class MenuAll(MenuPlayer):
             from src.tools.Data import Data
             from src.tools.Random import Random
             from src.entity.Stock import Stock
-            data = Data.get_line('data/raw/trade.txt', self.var[0].var['type'])
+            data = Data.get_line('raw/trade.txt', self.var[0].var['type'])
             rng = Random(self.var[0].attributes.gene + Global.player.days)
             due_date = Global.player.days + rng.rand_int(2, 5)
             item = rng.rand_list(data[1])

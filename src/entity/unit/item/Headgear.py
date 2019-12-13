@@ -1,5 +1,4 @@
 from src.entity.unit.item.Equipment import Equipment
-from src.game import Global
 from src.tools import Direction
 
 
@@ -22,14 +21,15 @@ class Headgear(Equipment):
             self.host.drop()
         self.remove()
         host.update_durability(0)
+        self.form.set_batch(2)
         self.form.show(True)
-        self.form.group = Global.draw_group.units
         self.host = host
+        self.host.face(self.host.direction)
 
     def set_form(self, arg):
         from src.tools.Data import Data
         self.form_name = arg
-        self.form = Data.get_form(arg, form='Head', group=Global.draw_group.objects)
+        self.form = Data.get_form(arg, form='Head')
 
     def activate(self):
         self.host.action.set('wait')

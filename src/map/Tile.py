@@ -1,7 +1,6 @@
 from src.entity.Space import Space
 from src.form.Shape import Shape
 from src.game import Global
-from src.game.Camera import Camera
 from src.map.Terrain import Terrain
 from src.tools.List import List
 
@@ -9,16 +8,14 @@ from src.tools.List import List
 class Tile(Space):
     CHECK_NONE = []
     CHECK_ANY = [10, 20, 30, 40]
-    CHECK_FIRM = [10, 30]
-    CHECK_FOUNDATION = [10, 30, 35]
-    CHECK_LARGE = [10, 30, 40]
-    CHECK_LANDABLE = [10, 30, 35]
-    COLLIDE_FOG = 8
+    CHECK_FIRM = [10, 30, 35]
+    CHECK_LARGE = [10, 30, 35, 40]
+    COLLIDE_FOG = 5
     COLLIDE_BACK = 15
     COLLIDE_TERRAIN = 10
     COLLIDE_OBJECT = 20
     COLLIDE_PROP = 30
-    COLLIDE_DOODAD = 35
+    COLLIDE_WINDOW = 35
     COLLIDE_UNIT = 40
     COLLIDE_ITEM = 50
     fog = None
@@ -55,19 +52,13 @@ class Tile(Space):
     def update(self):
         self.terrain.update()
 
-    def draw_overlay(self):
-        if self.light <= 0 and Global.draw_group.fade != 0:
-            pos = (self.x * Global.BLOCK + Camera.pos[0], self.y * Global.BLOCK + Camera.pos[1])
-            Tile.fog.draw()
-            # surface.blit(Global.main.overlay, (pos[0], pos[1], Global.BLOCK, Global.BLOCK))
-        else:
-            self.light -= 1
-
     def update_light(self, loc):
-        self.frame += 1
-        if self.frame != loc.update_frame:
-            self.light = 0
-            self.frame = loc.update_frame
+        # self.frame += 1
+        # if self.frame != loc.update_frame:
+        #     self.light = 0
+        #     self.frame = loc.update_frame
+        if self.light > 0:
+            self.light -= 1
 
     def get_vec(self):
         return self * Global.BLOCK
@@ -90,7 +81,7 @@ class Tile(Space):
                 return 1
             elif self.terrain.type == 3 and Tile.COLLIDE_FOG in check:
                 return 1
-            elif self.terrain.type == 4 and Tile.COLLIDE_DOODAD in check:
+            elif self.terrain.type == 4 and Tile.COLLIDE_WINDOW in check:
                 return 1
         for i in self.things:
             if i.collision_type in check:

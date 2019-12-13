@@ -182,7 +182,7 @@ class Interaction:
             if Global.player.is_safe() and Global.player.character.is_bright():
                 Global.player.menu(Global.menu.menu_anvil)
         elif 'service' in target.var and target.faction == Global.player.character.faction:
-            target.face(1 if Global.player.character.pos.x > target.pos.x else -1)
+            target.face_toward(Global.player.character.pos)
             from src.entity.Stock import Stock
             from src.entity.unit.Character import Character
             if isinstance(target, Character):

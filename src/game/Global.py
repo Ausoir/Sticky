@@ -11,3 +11,4 @@ SCREEN_TILES = (int(DISPLAY[0] / BLOCK), int(DISPLAY[1] / BLOCK))
 menu = None
 r = None
 blank_form = None
+mask_color = (0, 0, 0, 0)

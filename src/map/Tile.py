@@ -69,12 +69,6 @@ class Tile(Space):
     def get_bottom(self):
         return self.get_vec() + (Global.HALF_BLOCK, Global.BLOCK)
 
-    def is_climbable(self):
-        for i in self.things:
-            if 'climb' in i.tags:
-                return 1
-        return 0
-
     def is_land(self, check):
         if self.terrain:
             if self.terrain.type == 1 and Tile.COLLIDE_TERRAIN in check:

@@ -87,10 +87,11 @@ class Menu:
         self.display(1)
 
     @staticmethod
-    def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, resize=False, hover=True):
+    def make(text, callback, r_callback, name=0, color=Window.fore_color2, width=160, height=40,
+             resize=False, hover=True):
         if not color:
             color = Window.fore_color_transparent
-        button = Window(0, 0, width=width, height=40, name=name, color=color, multi_line=resize)
+        button = Window(0, 0, width=width, height=height, name=name, color=color, multi_line=resize)
         button.set_text(text)
         button.on_click = callback
         button.on_r_click = r_callback

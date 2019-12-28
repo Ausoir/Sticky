@@ -25,6 +25,7 @@ class MapView:
         self.tiles = {}
         self.objects = []
         self.sight_range = 0
+        self.sight_range_y = 0
         self.view_range = 0
         self.new_start = None
 
@@ -35,20 +36,17 @@ class MapView:
         self.draw_tiles.clear()
         pos_x = Camera.target.pos.x
         pos_y = Camera.target.pos.y
-        sight_range_y = int(self.sight_range * MapView.display_ratio)
+        self.sight_range_y = int(self.sight_range * MapView.display_ratio)
         self.draw_tiles_min_x = pos_x - self.sight_range
         self.draw_tiles_max_x = pos_x + self.sight_range
-        self.draw_tiles_min_y = pos_y - sight_range_y
-        self.draw_tiles_max_y = pos_y + sight_range_y
-        Global.draw_group.group = []
-        for y in range(-sight_range_y, sight_range_y + 1):
-            Global.draw_group.add_group(y)
+        self.draw_tiles_min_y = pos_y - self.sight_range_y
+        self.draw_tiles_max_y = pos_y + self.sight_range_y
+        for y in range(-self.sight_range_y, self.sight_range_y + 1):
             row = []
             for x in range(-self.sight_range, self.sight_range + 1):
-                pic = Picture(Data.get_cache('g_0x1'))
-                pic.set_batch(0)
-                pic.set_group(Global.draw_group.tile_group)
+                pic = Picture(Data.get_cache('g_0x1'), z=-1)
                 pic.show(True)
+                pic.bound(True)
                 row.append([x + pos_x, y + pos_y, pic])
             self.draw_tiles.append(row)
 
@@ -70,14 +68,12 @@ class MapView:
     def update_region(self):
         for i in self.objects:
             if not i.removed:
-                i.remove_batch()
+                i.bound(False)
         self.objects = []
         x = Camera.target.pos.x
         y = Camera.target.pos.y
         extend_x = 0
         extend_y = 0
-        sight_range_y = int(self.sight_range * MapView.display_ratio)
-        row = 0
         for rows in self.draw_tiles:
             for cell in rows:
                 if cell[0] - x > self.sight_range:
@@ -86,28 +82,26 @@ class MapView:
                 elif cell[0] - x < -self.sight_range:
                     cell[0] = self.draw_tiles_max_x + 1
                     extend_x = 1
-                if cell[1] - y > sight_range_y:
+                if cell[1] - y > self.sight_range_y:
                     cell[1] = self.draw_tiles_min_y - 1
                     extend_y = -1
-                elif cell[1] - y < -sight_range_y:
+                elif cell[1] - y < -self.sight_range_y:
                     cell[1] = self.draw_tiles_max_y + 1
                     extend_y = 1
                 key = str(cell[0]) + ',' + str(cell[1])
                 if key in self.tiles:
                     tile = self.tiles[key]
                     tile.update_light(self)
-                    for thing in tile.things:
-                        if not thing.removed:
-                            thing.add_batch()
-                            thing.set_group(Global.draw_group.group[row])
-                            self.objects.append(thing)
                     if tile.terrain:
                         cell[2].set(tile.terrain.image)
                         cell[2].show(True)
                         cell[2].face(tile.terrain.flip_x, tile.terrain.flip_y)
+                        for thing in tile.things:
+                            if not thing.removed:
+                                thing.bound(True)
+                                self.objects.append(thing)
                 else:
                     cell[2].show(False)
-            row += 1
         self.draw_tiles_min_x += extend_x
         self.draw_tiles_max_x += extend_x
         self.draw_tiles_min_y += extend_y
@@ -141,9 +135,8 @@ class MapView:
                     tile = Global.player.location.get_tile([map_x, map_y])
                     if abs(dx) < self.sight_range and abs(dy) < self.sight_range:
                         in_view_range = abs(tile_x) <= max_range[0] and abs(tile_y) <= max_range[1]
-                        sight_range_y = int(self.sight_range * MapView.display_ratio)
                         if in_view_range or (tile.light and abs(tile_x) <= self.sight_range
-                                             and abs(tile_y) <= sight_range_y):
+                                             and abs(tile_y) <= self.sight_range_y):
                             self.tiles[str(map_x) + ',' + str(map_y)] = tile
                     if blocked:
                         if tile.is_land(self.sight_block):
@@ -159,19 +152,6 @@ class MapView:
                             self.new_start = end_slope
             if blocked:
                 break
-
-    def collide_sight(self, vec_from, slope):
-        distance = slope[0]
-        current = vec_from
-        tile_from = []
-        while distance > 0:
-            distance -= 1
-            current = [current[0] + slope[1], current[1] + slope[2]]
-            tile = Global.player.location.get_tile_from_vec(current[0], current[1])
-            tile_from.append(tile)
-            if tile.is_land(self.sight_block) and distance > 0:
-                break
-        return tile_from
 
     def set_light(self, light):
         for i in self.tiles.values():

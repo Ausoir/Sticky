@@ -1,5 +1,4 @@
 instance
 0,2,town
-#0,[0,-7],Player,Character,unit/man,[mat:Flesh,intel:1],[],1,manual,[0,9,9,3,21,0,0],[],[dodge],[#5,[-2,-5],Platemail,Armor,image/unit/platemail,[loot:Scrap],[],10,10,6,[-1]],[#6,[0,-7],Safety Helmet,SafetyHat,image/unit/safety_hat,[],[],10,1],0,[protein:0,calories:0,talent:None,money:14,sign:Accident,home:town,debt:0]
-
+#0,[-3,-11],Player,Character,human,[mat:Flesh,protein:0,calories:0,talent:None,money:14,sign:Accident,home:town],1,[],1,manual,[0,9,1,1,1,0,0],[],[dodge],[#4,[-2,-5],Platemail,Armor,image/unit/platemail,[loot:Scrap],10,[],10,10,36,16,[-1]],[#5,[-3,-11],Safety Helmet,SafetyHat,image/unit/safety_hat,[],1,[],1,1,10],[#3,[-3,-11],Club,Weapon,image/club,[mat:Wood],4,[],8,8],[[#3,[-5,-5],Sunglasses,Headgear,image/unit/sunglasses,[],1,[],1,1],[#3,[-5,-4],Sunglasses,Headgear,image/unit/sunglasses,[],1,[],1,1]]
 

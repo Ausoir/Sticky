@@ -1,0 +1,3 @@
+human,unit/man,none
+worm,unit/worm,image/unit/worm
+slime,unit/slime,image/unit/slime

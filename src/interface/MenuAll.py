@@ -20,7 +20,7 @@ class MenuAll(MenuPlayer):
             else:
                 dialog = Data.get_line('raw/conversation.txt', name)
                 if dialog:
-                    self.show_dialog([','.join(dialog[1])])
+                    self.show_dialog(','.join(dialog[1]))
 
     def menu_conversation(self):
         if self.var[0]:
@@ -40,7 +40,7 @@ class MenuAll(MenuPlayer):
         self.history_var.pop()
         dialogs = Data.get_line('raw/conversation.txt', talk_type)[1:]
         output = Menu.get_conversation(dialogs)
-        self.show_dialog([output[self.var[0].attributes.gene % len(output)]])
+        self.show_dialog(output[self.var[0].attributes.gene % len(output)])
 
     def menu_move(self):
         from src.tools import Direction
@@ -173,14 +173,14 @@ class MenuAll(MenuPlayer):
             self.var[0].var['item'] = '&'.join(merchandise)
             self.var[0].var['due'] = due_date
         if not self.var[0].var['item']:
-            self.show_dialog([Dialog.get('soldout')])
+            self.show_dialog(Dialog.get('soldout'))
         else:
             from src.entity.Stock import Stock
             for i in self.var[0].var['item'].split('&'):
                 item = Stock.get(i)
                 if item:
                     money = '$' + str(item.get_value() + int(self.var[0].attributes.gene % 2))
-                    rmb = self.get_message(item.describe().split('\n'))
+                    rmb = self.get_message(item.describe())
                     self.window.add(Menu.make(item.name, buy, rmb, name=i))
                     self.sub_window.add(Menu.make(money, None, None, color=None, hover=False))
             self.sub_window.display(1)
@@ -210,7 +210,7 @@ class MenuAll(MenuPlayer):
             items.append(['i', self.var[0].armor.items[0]])
         for i in items:
             money = '$' + str(i[1].get_value() + 2)
-            rmb = self.get_message(i[1].describe().split('\n'))
+            rmb = self.get_message(i[1].describe())
             self.window.add(Menu.make(i[1].name, buy, rmb, name=i))
             self.sub_window.add(Menu.make(money, None, rmb, color=Window.fore_color_transparent, hover=False))
         self.sub_window.display(1)
@@ -235,11 +235,11 @@ class MenuAll(MenuPlayer):
         self.window.add(panel)
         self.window.next_y = self.window.size.y + self.window.vec.y
         cost = Global.player.character.attributes.get_total()
-        rmb = self.get_message([Dialog.get('trainint', [cost])])
+        rmb = self.get_message(Dialog.get('trainint', [cost]))
         self.window.add(Menu.make(Dialog.get('Intelligence'), click, rmb, width=320, name=[cost, 'exp3']), reverse=True, index=0)
-        rmb = self.get_message([Dialog.get('trainagi', [cost])])
+        rmb = self.get_message(Dialog.get('trainagi', [cost]))
         self.window.add(Menu.make(Dialog.get('Agility'), click, rmb, width=320, name=[cost, 'exp2']), reverse=True, index=0)
-        rmb = self.get_message([Dialog.get('trainstr', [cost])])
+        rmb = self.get_message(Dialog.get('trainstr', [cost]))
         self.window.add(Menu.make(Dialog.get('Strength'), click, rmb, width=320, name=[cost, 'exp1']), reverse=True, index=0)
         self.sub_window.display(1)
 
@@ -271,7 +271,7 @@ class MenuAll(MenuPlayer):
     def menu_guild(self):
         if self.var[0].var['amount'] <= 0:
             dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
-            self.show_dialog([Dialog.get('dealeroff', [dur])])
+            self.show_dialog(Dialog.get('dealeroff', [dur]))
             return
         else:
             dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
@@ -353,7 +353,7 @@ class MenuAll(MenuPlayer):
             self.sub_window.display(1)
             return
         else:
-            self.show_dialog([Dialog.get('insurefull')])
+            self.show_dialog(Dialog.get('insurefull'))
 
     def menu_craft(self):
         def add_button(window, item, ingreds, callback):
@@ -365,10 +365,10 @@ class MenuAll(MenuPlayer):
                 self.host.action.set('wait')
                 self.toggle()
             if Crafting.is_craftable(self.host, ingreds):
-                rmb = self.get_message(Crafting.describe(item, ingreds).split('\n'))
+                rmb = self.get_message(Crafting.describe(item, ingreds))
                 button = Menu.make(item, craft, rmb, name=item)
             else:
-                rmb = self.get_message((Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet')).split('\n'))
+                rmb = self.get_message(Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet'))
                 button = Menu.make(item, rmb, rmb, name=item, color=Window.fore_color_disabled)
             window.add(button)
         self.history = [self.menu_craft]
@@ -381,7 +381,7 @@ class MenuAll(MenuPlayer):
             self.window.display(1)
             self.sub_window.display(1)
         else:
-            self.show_dialog([Dialog.get('nocraftables')])
+            self.show_dialog(Dialog.get('nocraftables'))
 
     def menu_anvil(self):
         self.history = [self.menu_anvil]

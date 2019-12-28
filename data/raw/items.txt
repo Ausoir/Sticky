@@ -1,42 +1,42 @@
-Plank,Item,g_0x6,[mat:Wood],1,[],[1,1] //Name,image,tags,dur,loot,state,size
-Fiber,Item,g_1x6,[ig],1,[],[1,1]
-Scrap,Item,g_3x6,[ig,mat:Metal],2,[],[1,1]
-Mushroom,Mushroom,g_10x3,[pf],1,[],[1,1]
-Scaffold,Item,g_0x4,[mat:Wood,climb:1,col:35,loot:Plank],4,[],[1,1]
-Paper,Item,g_5x6,[ig],1,[],[1,1]
-Cloth,Item,g_7x6,[ig],1,[],[1,1]
-Torch,Item,g_5x5,[dep:1,col:15,mat:Wood,loot:Plank],1,[[Glow,-1,2],[Fire,-1,0]],[1,1]
-Campfire,Item,g_15x3,[col:0,iw,@],10,[],[[Glow,-1,4],[Fire,-1,0]],[3,3]
-Plating,Item,g_2x6,[mat:Metal,loot:Scrap],5,[],[2,1]
-Chair,Item,g_0x5,[mat:Wood,loot:Plank],4,[],[3,3]
-Statue,Item,g_1x5,[mat:Metal],5,[],[2,3]
-Cactus,Item,g_2x5,[col:0,pf,loot:Fiber],1,[],[1,2]
-Flower,Item,g_3x5,[col:0,pf,loot:Fiber],1,[],[1,2]
-Bonsai,Item,g_4x5,[col:0,pf,loot:Fiber],1,[],[1,2]
-Tooth,Item,g_14x6,[ig],1,[],[1,1]
-Jelly,Item,g_15x6,[ig],1,[],[1,1]
-Pouch,Item,g_12x6,[ig,pf],1,[],[1,1]
-Pocket,Item,g_12x6,[ig,pf],1,[],[1,1]
-Food,Item,g_0x7,[ig,mat:Flesh],1,[],[1,1]
-Water Bottle,Item,g_1x7,[pd,loot:Bottle],2,[],[1,1]
-Salt,Item,g_9x6,[],1,[],[],[1,1]
-Medicine,Item,g_3x7,[ig,loot:Bottle],4,[],[1,1]
-Sampler,Item,g_4x7,[ig],1,[],[1,1]
-Bandage,Item,g_5x7,[ig,pf],4,[],[1,1]
-Alcohol,Explosive,g_6x7,[pf,pd,loot:Bottle],4,[],[1,1]
-Box,Item,g_6x5,[mat:Wood,col:35,loot:Plank],1,[],[2,2]
-Amnesia Potion,Item,g_7x7,[ix,loot:Bottle],1,[],[1,1]
-Venom,Item,g_8x7,[ix],3,[],[[Venom,-1,40]],[1,1]
-Artifact Pouch,Item,g_12x7,[pf],1,[],[1,2]
-Dimension Coin,Item,g_8x6,[],1,[],[],[1,1],1,1
-Whetstone,Item,g_4x6,[mat:Metal,is],1,[],[1,1]
-Ruby,Item,g_4x6,[mat:Metal,is],1,[],[1,1]
-Pen,Item,half_0x2,[],20,[],[],[1,1]
-Quill Pen,Item,half_1x2,[],20,[],[],[1,1]
-Oil Pen,Item,half_2x2,[],20,[],[],[1,1]
-Ink Pen,Item,half_3x2,[],20,[],[],[1,1]
-Ruby,Item,half_4x2,[mat:Metal],1,[],[1,1]
-Amber,Item,half_5x2,[mat:Metal,pf],1,[],[1,1]
-Cobalt,Item,half_6x2,[mat:Metal,pf],1,[],[1,1]
-Silver,Item,half_7x2,[mat:Metal,is],1,[],[1,1]
-Token,Item,half_8x2,[mat:Metal,is],1,[],[1,1]
+Plank,Item,g_0x6,[mat:Wood],1,[],1 //Name,image,tags,dur,loot,state,size
+Fiber,Item,g_1x6,[ig],1,[],1
+Scrap,Item,g_3x6,[ig,mat:Metal],2,[],1
+Mushroom,Mushroom,g_10x3,[pf],1,[],1
+Scaffold,Item,g_0x4,[mat:Wood,climb:1,col:35,loot:Plank],4,[],1
+Paper,Item,g_5x6,[ig],1,[],1
+Cloth,Item,g_7x6,[ig],1,[],1
+Torch,Item,g_5x5,[dep:1,col:15,mat:Wood,loot:Plank],1,[[Glow,-1,2],[Fire,-1,0]],1
+Campfire,Item,g_15x3,[col:0,iw,@],10,[],[[Glow,-1,4],[Fire,-1,0]],1
+Plating,Item,g_2x6,[mat:Metal,loot:Scrap],5,[],1
+Chair,Item,g_0x5,[mat:Wood,loot:Plank],4,[],1
+Statue,Item,g_1x5,[mat:Metal],5,[],1
+Cactus,Item,g_2x5,[col:0,pf,loot:Fiber],1,[],1
+Flower,Item,g_3x5,[col:0,pf,loot:Fiber],1,[],1
+Bonsai,Item,g_4x5,[col:0,pf,loot:Fiber],1,[],1
+Tooth,Item,g_14x6,[ig],1,[],1
+Jelly,Item,g_15x6,[ig],1,[],1
+Pouch,Item,g_12x6,[ig,pf],1,[],1
+Pocket,Item,g_12x6,[ig,pf],1,[],1
+Food,Item,g_0x7,[ig,mat:Flesh],1,[],1
+Water Bottle,Item,g_1x7,[pd,loot:Bottle],2,[],1
+Salt,Item,g_9x6,[],1,[],[],1
+Medicine,Item,g_3x7,[ig,loot:Bottle],4,[],1
+Sampler,Item,g_4x7,[ig],1,[],1
+Bandage,Item,g_5x7,[ig,pf],4,[],1
+Alcohol,Explosive,g_6x7,[pf,pd,loot:Bottle],4,[],1
+Box,Item,g_6x5,[mat:Wood,col:35,loot:Plank],1,[],1
+Amnesia Potion,Item,g_7x7,[ix,loot:Bottle],1,[],1
+Venom,Item,g_8x7,[ix],3,[],[[Venom,-1,40]],1
+Artifact Pouch,Item,g_12x7,[pf],1,[],1
+Dimension Coin,Item,g_8x6,[],1,[],[],1,1,1
+Whetstone,Item,g_4x6,[mat:Metal,is],1,[],1
+Ruby,Item,g_4x6,[mat:Metal,is],1,[],1
+Pen,Item,half_0x2,[],20,[],[],1
+Quill Pen,Item,half_1x2,[],20,[],[],1
+Oil Pen,Item,half_2x2,[],20,[],[],1
+Ink Pen,Item,half_3x2,[],20,[],[],1
+Ruby,Item,half_4x2,[mat:Metal],1,[],1
+Amber,Item,half_5x2,[mat:Metal,pf],1,[],1
+Cobalt,Item,half_6x2,[mat:Metal,pf],1,[],1
+Silver,Item,half_7x2,[mat:Metal,is],1,[],1
+Token,Item,half_8x2,[mat:Metal,is],1,[],1

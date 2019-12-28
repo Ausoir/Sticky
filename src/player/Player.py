@@ -25,9 +25,8 @@ class Player:
         self.knowledge = data[3]
         self.temporary = None
         self.character = self.load_player(self.location, data[2])
-        self.set_ability(self.character.var['talent'])
+        self.set_ability(self.character.tags['talent'])
         self.inventory = Inventory(self.character)
-        self.inventory.load(data[4])
         self.turn()
         self.sleep(0)
 
@@ -82,9 +81,9 @@ class Player:
         self.days += time
         if Global.player and time >= 1:
             self.character.attributes.rest()
-            self.character.var['protein'] = max(0, self.character.var['protein'] - self.character.attributes.strength)
+            self.character.tags['protein'] = max(0, self.character.tags['protein'] - self.character.attributes.strength)
             cal_upkeep = self.character.attributes.agility + self.character.attributes.intelligence - 1
-            self.character.var['calories'] = max(0, self.character.var['calories'] - cal_upkeep)
+            self.character.tags['calories'] = max(0, self.character.tags['calories'] - cal_upkeep)
             for i in self.character.get_possessions():
                 i.on_sleep(time)
             for i in self.character.states.buffs:
@@ -113,7 +112,7 @@ class Player:
         self.character.form.set_state('interact')
         self.character.relocate(to_pos.x, to_pos.y, force=1)
         if to_map == 'home':
-            to_map = Global.player.character.var['home']
+            to_map = Global.player.character.tags['home']
         Global.player.location.name = to_map
         Global.player.turn()
         Global.player = Player()
@@ -146,10 +145,10 @@ class Player:
                     self.character.add()
                     revive.trigger(['death'])
             if self.dead == 10:
-                self.character.var['money'] = 0
-                self.character.var['protein'] = 0
-                self.character.var['calories'] = 0
-                death = self.character.var['sign']
+                self.character.tags['money'] = 0
+                self.character.tags['protein'] = 0
+                self.character.tags['calories'] = 0
+                death = self.character.tags['sign']
                 insurance = self.character.states.get('Revive')
                 if insurance:
                     self.character.states.get('Revive').end()
@@ -163,14 +162,14 @@ class Player:
                     Global.menu.var = [1, coma]
                     from src.tools.Dialog import Dialog
                     text = Dialog.get('insurerevive', [Dialog.date(coma)])
-                    Global.menu.show_dialog([text, Dialog.get('sign', [death])])
+                    Global.menu.show_dialog(text + '\n' + Dialog.get('sign', [death]))
                 else:
                     from src.tools.Dialog import Dialog
-                    Global.menu.show_dialog([Dialog.get('youdie'), Dialog.get('sign', [death])])
+                    Global.menu.show_dialog(Dialog.get('youdie') + '\n' + Dialog.get('sign', [death]))
             else:
                 self.dead += 1
         else:
-            if self.character.var['talent'] == 'Rogue':
+            if self.character.tags['talent'] == 'Rogue':
                 for x in range(-5, 6):
                     for y in range(-5, 6):
                         tile = self.character.get_offset_tile(x, y)

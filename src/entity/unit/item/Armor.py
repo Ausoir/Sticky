@@ -5,9 +5,9 @@ from src.tools.Data import Data
 class Armor(Equipment):
     def __init__(self, loc):
         super().__init__(loc)
+        self.armor = 0
         self.capacity = 0
         self.pockets = [0]
-        self.armor = 0
 
     def __str__(self):
         r = super().__str__()
@@ -18,6 +18,7 @@ class Armor(Equipment):
     def load(self, p):
         index = super().load(p)
         self.armor = p[index]
+        index += 1
         self.capacity = p[index]
         index += 1
         self.pockets = p[index]
@@ -43,17 +44,24 @@ class Armor(Equipment):
         return r
 
     def use(self):
-        self.host.action.set('wait')
+        super().use()
+        self.on_wear()
+
+    def wear(self):
         if self.host.is_armored():
             self.host.unarmor()
+        super().wear()
+        self.host.form.set_model(self.form_name)
         self.host.armor = self
         host = self.host
         if self.host.weapon == self:
             self.host.drop()
         self.remove()
-        host.update_durability(0)
         self.host = host
         self.host.face(self.host.direction)
 
     def on_wear(self):
         self.host.attributes.max_hp += self.durability
+
+    def on_unwear(self):
+        self.host.attributes.max_hp -= self.durability

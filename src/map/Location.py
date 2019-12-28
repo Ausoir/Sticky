@@ -9,7 +9,6 @@ from src.map.Terrain import Terrain
 from src.map.Tile import Tile
 from src.tools.Data import Data
 from src.tools.List import List
-from src.tools.Math import Math
 
 
 class Location:
@@ -158,15 +157,14 @@ class Location:
         y = math.floor(y / Global.BLOCK)
         return self.get_tile([x, y])
 
-    def collide_line(self, vec_from, x, y, function, distance=10):
-        space = Space(x, y)
-        target_pos = vec_from + space
-        degree = space.get_atan()
-        current = ((vec_from * Global.BLOCK) + (Global.BLOCK / 2, Global.BLOCK / 2)).to_list()
-        prev_tile = vec_from
-        while distance > 0 and (prev_tile.x != target_pos.x or prev_tile.y != target_pos.y):
+    def collide_line(self, x1, y1, x2, y2, function, distance=10):
+        degree = math.atan2(y2 - y1, x2 - x1)
+        current = [x1 * Global.BLOCK + Global.HALF_BLOCK, y1 * Global.BLOCK + Global.HALF_BLOCK]
+        prev_tile = self.get_tile([x1, y1])
+        while distance > 0 and (prev_tile.x != x2 or prev_tile.y != y2):
             distance -= 1
-            current = [current[0] + Math.cos(degree) * Global.BLOCK, current[1] + Math.sin(degree) * Global.BLOCK]
+            current[0] = current[0] + math.cos(degree) * Global.BLOCK
+            current[1] = current[1] + math.sin(degree) * Global.BLOCK
             tile = self.get_tile_from_vec(current[0], current[1])
             r = function(prev_tile, tile)
             if r:
@@ -174,11 +172,11 @@ class Location:
             prev_tile = tile
         return prev_tile
 
-    def collide_land(self, vec_from, x, y, flag, distance=10):
+    def collide_land(self, pos1, pos2, flag, distance=10):
         def fn(prev, tile):
             if tile.is_land(flag):
                 return prev
-        return self.collide_line(vec_from, x, y, fn, distance)
+        return self.collide_line(pos1.x, pos1.y, pos2.x, pos2.y, fn, distance)
 
     def get_area(self, center_tile, range_x, range_y):
         tiles = []

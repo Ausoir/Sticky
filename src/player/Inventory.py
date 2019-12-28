@@ -1,7 +1,7 @@
 class Inventory:
     def __init__(self, host):
         self.host = host
-        self.items = None
+        self.items = []
 
     def __str__(self):
         items = []
@@ -19,12 +19,19 @@ class Inventory:
 
     def get_weight(self):
         total = 0
-        for i in self.host.armor.items:
+        for i in self.items:
             total += i.weight
         return total
 
     def get_capacity(self):
         return self.host.armor.capacity
+
+    def attempt_add(self, item):
+        if self.is_vacant(item):
+            self.add_item(item)
+        else:
+            from src.game import Global
+            Global.main.monologue.set('Does not fit in inventory')
 
     def is_vacant(self, item):
         return self.get_capacity() >= self.get_weight() + item.weight
@@ -38,9 +45,9 @@ class Inventory:
 
     def get_item(self, item_index):
         if 0 <= item_index < len(self.items):
-            for k, v in enumerate(self.pockets):
+            for k, v in enumerate(self.host.armor.pockets):
                 if v == item_index:
-                    self.pockets[k] = -1
+                    self.host.armor.pockets[k] = -1
             item = self.items[item_index]
             self.items.remove(item)
             return item

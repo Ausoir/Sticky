@@ -10,11 +10,13 @@ class Body:
     def __init__(self, model_name):
         super().__init__()
         data = Data.get_cache_clip(model_name).copy()
+        self.model_name = model_name
+        self.texture_count = 0
         self.seed = 1
         self.side = 1
         self.direction = 3
-        self.model_name = model_name
-        self.model = data[0]
+        self.model = data[0][0]
+        self.order = data[0][1]
         self.animation = data[1]
         self.motion = {}
         self.organs = []
@@ -30,10 +32,11 @@ class Body:
         parent = []
         for x in self.model:
             parent.append([x[0], x[1]])
-            if x[2]:
-                organ = Appendage(Data.get_form(x[2], form='Humanoid'), meta=x[3])
-            else:
+            if len(x) == 2:
                 organ = Limb()
+            else:
+                self.texture_count = max(self.texture_count, x[2] + 1)
+                organ = Appendage(x[2], x[3], x[4], x[5])
             self.organs.append(organ)
         for k, x in enumerate(self.organs):
             if parent[k][0] == 'r':
@@ -51,13 +54,14 @@ class Body:
         for i in self.organs:
             i.form.show(visible)
 
-    def set_batch(self, batch):
+    def bound(self, visible):
         for i in self.organs:
-            i.form.set_batch(batch)
+            i.form.bound(visible)
 
-    def set_group(self, group):
+    def set_model(self, image):
         for i in self.organs:
-            i.form.set_group(group)
+            if i.texture_num >= 0:
+                i.set(Data.get_form(image, form='Unit' + str(self.texture_count)))
 
     def delete(self):
         for i in self.organs:
@@ -113,15 +117,33 @@ class Body:
 
     def face(self, direction):
         self.direction = direction
-        if direction <= 2:
+        if self.direction <= 2:
             self.face_side(-1)
         else:
             self.face_side(1)
+        self.update_perspective()
 
     def face_side(self, side):
         self.side = side
-        for x in self.organs:
-            x.form.face(x=side)
+        for i in range(len(self.organs)):
+            self.organs[i].lower_joint.x = self.current_animation[i][0] * self.side
+
+    def update_perspective(self):
+        from src.tools import Direction
+        numeral = Direction.numeral[self.direction] * self.texture_count
+        t = 1
+        for i in self.order[self.direction - 1]:
+            if i >= 0:
+                t += 1
+                organ = self.organs[i]
+                if organ.texture_num == -1:
+                    organ.form.switch(Direction.numeral[self.direction])
+                else:
+                    organ.form.switch(organ.texture_num + numeral)
+                organ.form.reset()
+                organ.set(organ.form)
+                organ.form.face(x=self.side)
+                organ.form.z = t
 
     def randomize(self, seed):
         self.seed = seed

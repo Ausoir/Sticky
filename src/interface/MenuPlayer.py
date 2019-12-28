@@ -126,7 +126,7 @@ class MenuPlayer(Menu):
         if len(self.host.armor.pockets) > 0:
             rmb = self.get_message('Designate items for quick access.')
             button = Menu.make('<' + Dialog.get('Pockets') + '>', lambda l: self.direct(self.menu_pocket), rmb)
-            self.window.add(Menu.make(Dialog.get('pockets'), None, None, color=None, hover=False))
+            self.window.add(Menu.make('', None, None, color=None, hover=False))
             self.sub_window.add(button)
         rmb = self.get_message(self.host.weapon.describe())
         if not self.host.is_armed():
@@ -135,37 +135,61 @@ class MenuPlayer(Menu):
             display = self.host.weapon.get_display_name()
         self.window.add(Menu.make(Dialog.get('weapon'), None, None, color=None, hover=False))
         self.sub_window.add(Menu.make(display, lambda l: self.host.drop(), rmb))
-        money = Menu.make('$' + str(Global.player.character.var['money']), None, None, color=None)
+        money = Menu.make('$' + str(Global.player.character.tags['money']), None, None, color=None)
         self.sub_window.add(money)
         self.sub_window.display(1)
 
     def menu_inventory(self):
         def click(index):
-            item = self.host.armor.items[index]
+            item = self.host.inventory.items[index]
             if item:
                 def change():
+                    self.host.drop()
+                    self.host.inventory.items.remove(item)
                     item.on_equip(self.host)
                 self.host.action.set('wait')
                 self.host.action.set_animation('pocket')
                 self.host.action.on_finish = change
                 self.host.delay = 4
+
+        def sheathe(arg):
+            weapon = self.host.drop()
+            self.host.inventory.attempt_add(weapon)
         temp = self.window.margin.y
         self.window.margin.y = 2
+        temp2 = self.sub_window.margin.y
+        self.sub_window.margin.y = 2
+        if self.host.is_armed():
+            sheathe = Menu.make('Sheathe', sheathe, None, height=20)
+            sheathe.margin.load(8, 0)
+            sheathe.document.set_style(0, 99, dict(font_size=12, bold='True'))
+            self.window.add(sheathe)
+        else:
+            self.window.add(Menu.make('', None, None, height=20, color=None, hover=False))
+        text = 'Capacity: ' + str(self.host.inventory.get_weight()) + ' / ' + str(self.host.inventory.get_capacity())
+        capacity = Menu.make(text, None, None, height=20, color=None)
+        capacity.margin.load(0, 0)
+        capacity.document.set_style(0, 99, dict(font_size=12, bold='True'))
+        self.sub_window.add(capacity)
         count = 0
-        for i in self.host.armor.items:
-            button = Window(0, 0, width=0, height=0, multi_line=False, name=count)
+        for i in self.host.inventory.items:
+            size = int(160 * (i.weight / self.host.inventory.get_capacity()))
+            button = Window(0, 0, width=0, height=size + 8, multi_line=False, name=count)
             button.on_click = click
-            size = 12 + i.weight
             button.document.set_style(0, 1, dict(font_size=min(24, size)))
-            button.text_spacing = 0
-            button.height = size + 10
             button.set_text(i.get_display_name())
-            button.margin.y = 2
             button.width = button.text.content_width + 16
+            button.margin.load(8, 0)
+            label = Window(0, 0, width=0, height=size + 8, multi_line=False, name=count)
+            label.document.set_style(0, 1, dict(font_size=min(24, size)))
+            label.set_text(Dialog.weight(i.weight))
+            label.margin.load(100, 0)
             self.window.add(button)
+            self.sub_window.add(label)
             count += 1
         self.sub_window.display(1)
         self.window.margin.y = temp
+        self.sub_window.margin.y = temp2
 
     def menu_status(self):
         rmb = self.get_message(Dialog.get('dsc_location'))

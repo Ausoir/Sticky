@@ -1,16 +1,16 @@
-Head,Headgear,half_0x0,[],-1,[],[1,1],-1,0 //Name, image, tags, hp, states, size, max hp, weight
-Hat,Headgear,image/unit/hat,[],1,[],[2,1],1,0
-Headband,Headgear,image/unit/headband,[],1,[],[2,1],1,0
-Bandana,Headgear,image/unit/bandana,[],1,[],[2,1],1,0
-Beanie,Headgear,image/unit/beanie,[],1,[],[2,1],1,0
-Lace Helm,Headgear,image/unit/lace_helm,[],4,[],[2,1],4,1
-Full Helm,Headgear,image/unit/full_helm,[],8,[],[2,1],8,1
-Safety Helmet,SafetyHat,image/unit/safety_hat,[],1,[],[2,1],1,1,9
-Glasses,Glasses,image/unit/glasses,[],-1,[],[2,1],-1,1,6
-Strong Glasses,Glasses,image/unit/glasses,[],-1,[],[2,1],-1,1,15
-Sunglasses,Headgear,image/unit/sunglasses,[],1,[],[2,1],1,1
-Top Hat,Headgear,image/unit/top_hat,[],1,[],[2,1],1,1
-Straw Hat,Headgear,image/unit/straw_hat,[],1,[],[2,1],1,1
-Fur Hat,Headgear,image/unit/fur_hat,[],1,[],[2,1],1,1
-Cap,Headgear,image/unit/cap,[],1,[],[2,1],1,1
-Holy Hat,Headgear,image/unit/turban,[],1,[],[2,1],1,1
+Head,Headgear,half_0x0,[],-1,[],0,0 //Name, image, tags, states, weight, durability
+Hat,Headgear,image/unit/hat,[],1,[],1,1,0
+Headband,Headgear,image/unit/headband,[],1,[],1,1,0
+Bandana,Headgear,image/unit/bandana,[],1,[],1,1,0
+Beanie,Headgear,image/unit/beanie,[],1,[],1,1,0
+Lace Helm,Headgear,image/unit/lace_helm,[],1,[],1,4,1
+Full Helm,Headgear,image/unit/full_helm,[],1,[],1,8,1
+Safety Helmet,SafetyHat,image/unit/safety_hat,[],1,[],1,1,1,9
+Glasses,Glasses,image/unit/glasses,[],1,[],1,-1,1,6
+Strong Glasses,Glasses,image/unit/glasses,[],1,[],1,-1,1,15
+Sunglasses,Headgear,image/unit/sunglasses,[],1,[],1,1,1
+Top Hat,Headgear,image/unit/top_hat,[],1,[],1,1,1
+Straw Hat,Headgear,image/unit/straw_hat,[],1,[],1,1,1
+Fur Hat,Headgear,image/unit/fur_hat,[],1,[],1,1,1
+Cap,Headgear,image/unit/cap,[],1,[],1,1,1
+Holy Hat,Headgear,image/unit/turban,[],1,[],1,1,1

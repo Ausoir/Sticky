@@ -8,6 +8,7 @@ class Prop(Object):
     def __init__(self, loc):
         super().__init__(loc)
         from src.entity.unit.Buffs import Buffs
+        self.durability = 1
         self.hittable = 1
         self.collision_type = Tile.COLLIDE_PROP
         self.faction = 0  # 0: Neutral, 1: Player, 2: Enemy, 3: Beast, 4: Undead
@@ -15,7 +16,8 @@ class Prop(Object):
         self.tags = {}
 
     def __str__(self):
-        return ','.join([super().__str__(), Dialog.dict(self.tags), '[' + self.states.__str__() + ']'])
+        return ','.join([super().__str__(), Dialog.dict(self.tags), str(self.durability),
+                         '[' + self.states.__str__() + ']'])
 
     def load(self, arg):
         index = super().load(arg)
@@ -27,9 +29,11 @@ class Prop(Object):
                 else:
                     self.tags[strings[0]] = strings[1]
         index += 1
+        self.durability = arg[index]
+        index += 1
         self.states.load(arg[index])
         if 'dep' in self.tags:
-            self.depth = self.tags['dep']
+            self.dynamic_depth = True
         if 'ind' in self.tags:
             self.hittable = 0
         if 'col' in self.tags:
@@ -39,6 +43,10 @@ class Prop(Object):
     def turn(self):
         super().turn()
         self.states.update()
+
+    def get_tag(self, key):
+        if key in self.tags:
+            return self.tags[key]
 
     def glow(self, radius):
         if not radius:
@@ -95,26 +103,6 @@ class Prop(Object):
                 self.die()
                 return 2
         return 1
-
-    def fell(self, distance, me=False):
-        if distance > 1:
-            from src.entity.Particle import Particle
-            Particle.make('batter', self.pos.get_bottom(), offset=0)
-            self.hit(distance - 1)
-
-    def on_fall(self):
-        if Tags.lightweight in self.tags:
-            return
-        copy = self.get_offset_tile(0, 1).things.copy()
-        for thing in self.pos.things:
-            if thing.name in ['Water', 'Surface']:
-                return
-            copy.append(thing)
-        for thing in copy:
-            if thing == self:
-                thing.fell(self.falling, me=True)
-            else:
-                thing.fell(self.falling)
 
     def is_var(self, key, arg):
         if key in self.tags:

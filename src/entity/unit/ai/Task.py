@@ -119,33 +119,20 @@ class Move(Task):
 
     def update(self):
         super().update()
-        dist = self.target - self.host.pos
+        dist = (self.target - self.host.pos).difference()
         if self.distance >= 0:
-            if dist.x <= self.distance and dist.y <= self.distance:
+            if dist <= self.distance:
                 return True
         else:
-            if dist.x >= -self.distance and dist.y >= -self.distance:
+            if dist >= -self.distance:
                 return True
 
     def perform(self):
         super().perform()
-        if self.distance >= 0:
-            dist = self.target - self.host.pos
-        else:
-            dist = self.host.pos - self.target
-        direction = 1 if dist.x >= 0 else -1
-        if dist.y > 1 and dist.x == 0:
-            self.host.input('duck', dist)
-        else:
-            front = self.host.get_offset_tile(direction, 0)
-            top = self.host.get_offset_tile(direction, -1)
-            if not front.is_land(Tile.CHECK_LARGE):
-                if self.host.get_offset_tile(direction, 1).is_land(self.host.standables):
-                    self.host.input('walk', dist)
-                elif self.host.get_offset_tile(direction, 2).is_land(self.host.standables):
-                    self.host.input('walk', dist)
-            elif not top.is_land(Tile.CHECK_LARGE):
-                self.host.input('jump', dist)
+        self.host.face_toward(self.target)
+        front = self.host.get_front_tile(self.host.direction)
+        if not front.is_land(Tile.CHECK_LARGE):
+            self.host.input('walk')
 
 
 class Path(Task):  # path finding A*
@@ -180,8 +167,8 @@ class Path(Task):  # path finding A*
                 node = v
         self.open.pop(index)
         self.closed.append(node)
-        achieved = (node.node - self.target).distance()
-        if achieved < 2:
+        achieved = (node.node - self.target).difference()
+        if achieved <= 1:
             return node
         options = self.pilot.var['path'].get(node.node)
         for i in options:
@@ -212,7 +199,7 @@ class Path(Task):  # path finding A*
 
     def perform(self):
         if self.result:
-            dist = self.result[0] - self.host.pos
+            dist = (self.result[0] - self.host.pos).difference()
             new_dist = (self.result[len(self.result)-1] - self.target).difference()
             cur_dist = (self.host.pos - self.target).difference()
             if cur_dist <= 1:
@@ -220,29 +207,25 @@ class Path(Task):  # path finding A*
             elif cur_dist <= new_dist:
                 self.result = []
                 self.reset()
-            elif dist.difference() == 0:
+            elif dist == 0:
                 self.result.pop(0)
                 self.perform()
-            elif dist.difference() > 8:
+            elif dist > 8:
                 self.result = []
                 self.reset()
-            elif dist.y < 0:
-                self.host.input('jump', dist)
             else:
-                if dist.x == 0:
-                    self.host.input('duck', dist)
-                else:
-                    self.host.input('walk', dist)
+                self.host.face_toward(self.result[0])
+                self.host.input('walk')
 
     def update(self):
         super().update()
         if (self.host.pos - self.target).difference() > 1:
+            from src.entity.Particle import Particle
+            for i in self.open:
+                Particle.make('blood', i.node.get_center() + Global.r.rand_int(-15, 15))
             for times in range(3):
                 self.counter += 1
                 if self.open:
-                    # from src.entity.Particle import Particle
-                    # for i in self.open:
-                    #     Particle.make('blood', i.node.get_center())
                     done = self.iterate(self.open[0])
                     if done:
                         result = [done.node]
@@ -283,8 +266,9 @@ class Attack(TargetTask):
     def perform(self):
         if self.target:
             dist = self.target.pos - self.host.pos
-            if -1 <= dist.y <= 1 and -1 <= dist.x <= 1:
-                self.host.input(Global.r.rand_list(self.host.action.skills + ['use']), dist)
+            if dist.difference() == 1:
+                self.host.face_toward(self.target.pos)
+                self.host.input(Global.r.rand_list(self.host.action.skills + ['use']))
                 return True
             self.pilot.var['move'].target = self.target.pos
             self.pilot.var['move'].perform()

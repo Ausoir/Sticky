@@ -9,6 +9,7 @@ dsc_craftWorkbench,Craft this spell at a Workbench.
 any,Any #
 ingredients,Ingredients
 anytime,Anytime
+weigh,kg
 half day,half a day
 one day,one day
 and half days,# and a half days

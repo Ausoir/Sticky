@@ -7,7 +7,7 @@ from src.tools import Direction
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'up', 'down', 'fall' 'walk', 'hit', 'grab', 'use', 'attack'
+    default = ['idle', 'left', 'right', 'up', 'down', 'fall', 'walk', 'hit', 'grab', 'use', 'attack',
                'pocket_1', 'pocket_2', 'pocket_3', 'pocket_4',
                'power_1', 'power_2', 'power_3', 'power_4', 'trinket']
     priority = ['fall', 'hit']
@@ -143,8 +143,7 @@ class Actions:
 
     def ability(self, arg):
         from src.entity.unit.AdvAction import AdvAction
-        from src.entity.unit.Character import Character
-        name = Character.get_var(self.host, arg)
+        name = self.host.get_tag(self.host, arg)
         if name:
             ability = AdvAction.get(self.host, name.title())
             if ability and ability.is_valid():
@@ -205,10 +204,6 @@ class Actions:
                 from src.game.Interaction import Interaction
                 if Interaction.trigger(front):
                     self.make('interact', turn=max(0, 3 - self.host.attributes.speed))
-                else:
-                    for thing in front.things:
-                        if isinstance(thing, Unit) and Direction.opposite[thing.direction] != self.host.direction:
-                            self.set('slash')
 
     def hit(self):
         self.make('hit', turn=2)
@@ -237,31 +232,25 @@ class Actions:
         self.host.use()
 
     def grab(self):
+        from src.entity.unit.item.Item import Item
+        target = None
+        for thing in reversed(self.host.pos.things):
+            if isinstance(thing, Item):
+                target = thing
+                break
         self.make('grab', turn=3)
-        if not self.host.is_armed():
-            from src.entity.unit.item.Item import Item
-            for thing in reversed(self.host.pos.things):
-                if isinstance(thing, Item):
-                    thing.on_equip(self.host)
-                    return
+        if target:
+            if self.host.is_armed():
+                self.host.inventory.attempt_add(target)
+            else:
+                target.on_equip(self.host)
         else:
             self.host.drop()
-
-    def pocket(self):
-        if self.host.is_armed():
-            weapon = self.host.weapon
-            if self.host.armor.is_vacant(weapon):
-                self.host.drop()
-                self.host.armor.add_item(weapon)
-            else:
-                self.host.say('Does not fit in inventory.')
-        self.make('pocket', turn=4)
 
     def attack(self):
         def callback(target):
             self.host.states.trigger(['attack', target])
-        self.host.attributes.body += 1
-        front = self.host.get_offset_tile(self.host.direction, 0)
+        front = self.host.get_front_tile(self.host.direction)
         chance = self.host.get_proficiency('attack') + 1
         damage = self.host.get_proficiency('damage') + 1
         self.host.location.attack.register(damage, front, hitter=self.host, delay=0, chance=chance, callback=callback)
@@ -272,17 +261,17 @@ class Actions:
             self.set('slash')
         self.host.states.add('Charging', 1, var=1)
         self.make('swing', turn=0)
-        self.host.form.timer.set(self.host.weapon.speed * Turn.rounds)
+        self.host.form.timer.set(self.host.weapon.weight * Turn.rounds)
         self.on_finish = fin
 
     def slash(self):
         charge = self.host.states.get('Charging')
         if charge:
-            power = min(self.host.weapon.speed, charge.var)
+            power = min(self.host.weapon.weight, charge.var)
         else:
             power = 1
-        print(str(power))
-        self.host.weapon.attack(self.host.get_proficiency('attack'), delay=0)
+        # print(str(power))
+        self.host.weapon.attack(damage=self.host.attributes.strength + power, delay=0)
         self.make('swing', turn=2)
         self.host.form.timer.set(1)
 

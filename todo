@@ -13,3 +13,4 @@ crypt - revive, summoner, healer
 pyglet
 - garbage collect Pictures after object removal
 - texture region from texture with (height > 256) causes incorrect grouping?
+- re adding batch every fog update crashes frequently

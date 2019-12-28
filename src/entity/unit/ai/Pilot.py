@@ -1,6 +1,7 @@
 from src.entity.unit.Unit import Unit
 from src.entity.unit.ai import Routes
 from src.entity.unit.ai.Task import *
+from src.tools import Direction
 from src.tools.Dialog import Dialog
 
 
@@ -14,7 +15,7 @@ class Manual:
             if strings[0] in ['now', 'def', 'move', 'atk']:
                 self.var[strings[0]] = getattr(AllTask, strings[1])(self)
             elif strings[0] == 'path':
-                self.var[strings[0]] = getattr(Routes, strings[1])(self.host.location, self.host.standables)
+                self.var[strings[0]] = getattr(Routes, strings[1])(self.host.location)
             else:
                 self.var[strings[0]] = strings[1]
         if 'now' not in self.var:
@@ -71,7 +72,8 @@ class Pilot(Guard):
     def act(self):
         if self.priority > 2:
             sight = self.get_sight()
-            targets = self.perceive(sight, offset=(sight * self.host.direction, 0))
+            coord = Direction.coord[self.host.direction]
+            targets = self.perceive(sight, offset=coord)
             if targets:
                 self.spot_enemy(targets)
         self.var['now'].perform()
@@ -111,13 +113,12 @@ class Pilot(Guard):
                     if thing != self.host:
                         perceived.append(thing)
         targets = []
-        host_pos = self.host.pos.get_center().to_list()
         for thing in perceived:
             seen = thing.pos == self.host.pos
             if not seen:
-                to = (thing.pos - self.host.pos).to_list()
-                seen = Global.map_view.collide_sight(host_pos, to)
-            if seen:
+                seen = self.host.location.collide_line(self.host.pos.x, self.host.pos.y,
+                                                       thing.pos.x, thing.pos.y, lambda x1, x2: None)
+            if seen == thing.pos:
                 if isinstance(thing, Unit):
                     if self.host.faction != thing.faction and not thing.states.get('Invisible'):
                         targets.append(thing)

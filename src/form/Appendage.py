@@ -5,6 +5,7 @@ from src.game import Global
 class Limb:
     def __init__(self):
         self.form = Global.blank_form
+        self.texture_num = -1
         self.upper_joint = Space()
         self.lower_joint = Space()
 
@@ -26,15 +27,18 @@ class Limb:
 
 
 class Appendage(Limb):
-    def __init__(self, sprite, meta):
+    def __init__(self, texture_num, resize, flip_x, flip_y):
         super().__init__()
-        self.meta = meta  # resize, flip x, flip y
-        self.set(sprite)
+        self.texture_num = texture_num
+        self.resize = resize
+        self.flip_x = flip_x
+        self.flip_y = flip_y
 
     def set(self, sprite):
         self.form = sprite
-        self.form.flip(self.meta[1], self.meta[2])
-        if self.meta[2]:
+        self.form.flip(self.flip_x, self.flip_y)
+        self.form.image.anchor_x = self.form.width / 2
+        if self.flip_y:
             self.form.image.anchor_y = 2
         else:
             self.form.image.anchor_y = self.form.height
@@ -42,7 +46,7 @@ class Appendage(Limb):
     def place(self, x, y):
         diff = self.lower_joint - self.upper_joint
         self.form.rotation = diff.get_atan() - 90
-        if self.meta[0]:
+        if self.resize:
             length = int(diff.distance() * 1.2)
             if abs(length) > 2:
                 self.form.resize(y=length)

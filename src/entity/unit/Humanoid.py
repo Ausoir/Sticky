@@ -4,9 +4,6 @@ from src.tools import Direction
 
 class Humanoid(Unit):
     faces = []
-    order = {1: [2, -1, 4, 5, 0, 1, -2, 3], 2: [-1, 2, 3, 4, 5, 0, 1, -2],
-             3: [2, -1, 4, 5, 0, 1, -2, 3], 4: [4, 5, 0, 1, -2, 2, -1, 3]}
-    forms = [None, 0, 1, 1, 2, 2]
 
     def __init__(self, loc):
         super().__init__(loc)
@@ -38,7 +35,7 @@ class Humanoid(Unit):
             else:
                 armor = Stock.get(p[index][2], p[index])
             armor.host = self
-            armor.use()
+            armor.wear()
         else:
             self.make_armor()
         index += 1
@@ -49,7 +46,6 @@ class Humanoid(Unit):
                 headgear = Stock.get(p[index][2], p[index])
             headgear.host = self
             headgear.use()
-        self.update_durability(0)
         index += 1
         if p[index]:
             if isinstance(p[index], str):
@@ -61,36 +57,24 @@ class Humanoid(Unit):
             i.id = Stock.location.get_id()
         return index + 1
 
-    def set_group(self, group):
-        for i in Humanoid.order[self.direction]:
-            if i == -1:
-                self.weapon.set_group(group)
-            elif i == -2:
-                if self.headgear:
-                    self.headgear.set_group(group)
-            else:
-                self.form.organs[i].form.set_group(group)
-
-    def add_batch(self):
-        for i in Humanoid.order[self.direction]:
-            if i == -1:
-                self.weapon.form.set_batch(2)
-            elif i == -2:
-                if self.headgear:
-                    self.headgear.form.set_batch(2)
-            else:
-                self.form.organs[i].form.set_batch(2)
-
-    def remove_batch(self):
-        self.form.set_batch(None)
-        self.weapon.form.set_batch(None)
-        if self.headgear:
-            self.headgear.form.set_batch(None)
+    def set_form(self, arg):
+        self.form_name = arg
+        from src.tools.Data import Data
+        from src.form.BodyHumanoid import BodyHumanoid
+        line = Data.get_line('raw/model.txt', arg)
+        self.form = BodyHumanoid(line[1], self)
 
     def show(self, visible):
         super().show(visible)
         self.weapon.show(visible)
-        self.headgear.show(visible)
+        if self.headgear:
+            self.headgear.show(visible)
+
+    def bound(self, visible):
+        super().bound(visible)
+        self.weapon.bound(visible)
+        if self.headgear:
+            self.headgear.bound(visible)
 
     def turn(self):
         super().turn()
@@ -119,10 +103,10 @@ class Humanoid(Unit):
     def update(self):
         super().update()
         if self.direction == 2:
-            x = self.vec.x + self.form.organs[2].lower_joint.x
-            y = self.vec.y + self.form.organs[2].lower_joint.y + 2
-            arm = (self.form.organs[2].lower_joint - self.form.organs[2].upper_joint).get_atan()
-            self.weapon.form.rotation = arm + 50
+            x = self.vec.x + self.form.organs[3].lower_joint.x
+            y = self.vec.y + self.form.organs[3].lower_joint.y + 2
+            arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
+            self.weapon.form.rotation = arm + 60
         elif self.direction == 4:
             x = self.vec.x + self.form.organs[3].lower_joint.x
             y = self.vec.y + self.form.organs[3].lower_joint.y + 2
@@ -132,7 +116,7 @@ class Humanoid(Unit):
             x = self.vec.x + self.form.organs[2].lower_joint.x
             y = self.vec.y + self.form.organs[2].lower_joint.y + 2
             arm = (self.form.organs[2].lower_joint - self.form.organs[2].upper_joint).get_atan()
-            self.weapon.form.rotation = arm - 90 + (self.direction * 90) + (Direction.side[self.direction] * 20)
+            self.weapon.form.rotation = arm + 90 + (Direction.side[self.direction] * 90)
         self.weapon.form.place(x, y)
         if self.headgear:
             x = self.vec.x + self.form.organs[0].lower_joint.x
@@ -142,34 +126,11 @@ class Humanoid(Unit):
             self.headgear.form.place(x, y)
 
     def face(self, direction):
-        self.update_perspective(direction)
         self.armor.face(direction)
         if self.headgear:
             self.headgear.face(direction)
         self.weapon.face(direction)
         super().face(direction)
-
-    def update_perspective(self, direction):
-        numeral = Direction.numeral[direction] * 3
-        self.remove_batch()
-        self.weapon.remove_batch()
-        for i in Humanoid.order[self.direction]:
-            if i == -1:
-                self.weapon.form.set_batch(2)
-            elif i == -2:
-                if self.headgear:
-                    self.headgear.form.set_batch(2)
-            else:
-                organ = self.form.organs[i]
-                if Humanoid.forms[i] is None:
-                    organ.form.switch(Direction.numeral[direction])
-                else:
-                    self.armor.form.switch(Humanoid.forms[i] + numeral)
-                    organ.form.set(self.armor.form.image)
-                organ.form.reset()
-                organ.set(organ.form)
-                organ.form.set_batch(2)
-        self.weapon.form.side = 1
 
     def get_dodge(self):
         if self.action.current_action == 'fall':
@@ -185,6 +146,12 @@ class Humanoid(Unit):
     def get_hitter(self):
         return self.weapon
 
+    def get_possessions(self):
+        r = [self.weapon, self.armor]
+        if self.headgear:
+            r.append(self.headgear)
+        return r
+
     def make_fist(self):
         self.fist.on_equip(self)
         self.fist.form.show(False)
@@ -192,7 +159,7 @@ class Humanoid(Unit):
     def make_armor(self):
         self.armor = self.body
         self.armor.host = self
-        self.armor.use()
+        self.armor.wear()
         self.face(self.direction)
 
     def drop(self):
@@ -206,7 +173,6 @@ class Humanoid(Unit):
         if self.is_armored():
             self.armor.on_unequip()
             self.make_armor()
-            self.update_durability(0)
             return 1
         return 0
 
@@ -214,7 +180,6 @@ class Humanoid(Unit):
         if self.headgear:
             self.headgear.on_unequip()
             self.headgear = None
-            self.update_durability(0)
             return 1
         return 0
 
@@ -223,26 +188,6 @@ class Humanoid(Unit):
 
     def is_armored(self):
         return self.armor.name != 'Body'
-
-    def get_possessions(self):
-        r = [self.weapon]
-        r += self.armor.items
-        r.append(self.armor)
-        if self.headgear:
-            r.append(self.headgear)
-        return r
-
-    def get_accessibles(self):
-        r = []
-        from src.entity.unit.item.Item import Item
-        for thing in self.pos.things:
-            if isinstance(thing, Item):
-                r.append(thing)
-        r += self.get_possessions()
-        return r
-
-    def get_encumbrance(self):
-        return self.armor.weight + self.headgear.weight
 
     def make_face(self):
         from src.form.Model import Model

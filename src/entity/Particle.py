@@ -21,7 +21,7 @@ class Particle(Prop):
 
     def __init__(self, loc):
         super().__init__(loc)
-        self.depth = 3
+        self.depth = 2
         self.lifetime = 4
         self.collision_type = 0
         self.offset = None

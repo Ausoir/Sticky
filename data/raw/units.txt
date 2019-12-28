@@ -1,36 +1,36 @@
-Dummy,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],0,manual,[-1,1,1,1],[],[],0,0,0 //Name,image,tags,hp=1,var,state,faction,pilot,stats,skills,gold,armor,weapon,headgear
-Silkworm,Unit,unit/silkworm,[mat:Other],-4,[[Speed,-1,-5]],3,walker,[-1,1,1,1],[],[]
-Undead,Unnatural,unit/undead,[hum,hear:1],1,[],4,walker,[-1,3,1,1],[],[]
-Rat,Unit,unit/rat,[mat:Flesh,hear:1],1,[],3,walker,[-1,1,1,5],[],[dodge]
-Bat,Unnatural,unit/slime,[fly:1,mat:Other,loot:Jelly],-4,[[Speed,-1,-2]],3,walker,[-1,1,1,1],[],[]
-Slime,Unnatural,unit/slime,[mat:Other,loot:Jelly],-4,[[Speed,-1,-4]],3,walker,[-1,1,1,1],[],[]
-Ooze,Unnatural,unit/slime2,[mat:Other,col:35,loot:Jelly],-4,[[Speed,-1,-4],[Venom,-1,100]],3,walker,[-1,1,1,1],[],[dodge]
-Dog,Unit,unit/dog,[mat:Flesh,hear:1,loot:Tooth],-3,[[Speed,-1,1]],3,walker,[-1,2,1,1],[],[attack]
-Spider,Unit,unit/spider,[mat:Flesh,hear:1,loot:Venom],-3,[[Speed,-1,1],[Venom,-1,100]],3,walker,[-1,2,1,1],[],[attack,dodge]
-Man,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,1,1],[],[],0,Casual Wear,0
-Looter,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,1,1],[lunge],[],Stick,Casual Wear,0
-Swordsman,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],2,fighter,[-1,5,7,1],[lunge,block],[attack],Broadsword,Chainmail,0
-Knight,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],2,fighter,[-1,9,9,1],[sprint,lunge,block],[attack],Mace,Platemail,0
-Spearman,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],2,fighter,[-1,5,6,1],[lunge,block],[attack],Spear,Chainmail,0
-Archer,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],2,archer,[-1,1,5,1],[lunge],[attack],Bow,Teal Robe,0
-Monk,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],2,fighter,[-1,4,6,1],[tackle,flurry,sprint],[fist],0,0,Red Robe,Headband
-Phantom,Phantom,unit/phantom,[],1,[],1,phantom,[-1,1,1,1],[],[],0
-Mercenary,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],1,fighter,[-1,6,4,1],[lunge,block],[swing],Glaive,Chainmail,0
-Traveller,Humanoid,unit/man,[mat:Flesh,hear:1],1,[],1,fighter,[-1,1,4,1],[tackle,block],[swing],Bow,Leather Armor,0
-Resident,Character,unit/man,[mat:Flesh,!:resident],1,[],1,resident,[-1,1,1,1],[block],[swing,dodge],0,Casual Wear,0,[talk:resident,service:Resident]
-Merchant,Character,unit/man,[mat:Flesh,!:general],1,[],1,merchant,[-1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:general]
-Server,Character,unit/man,[mat:Flesh,!:restaurant],1,[],1,merchant,[-1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:restaurant]
-Scholar,Character,unit/man,[mat:Flesh,!:library],1,[],1,merchant,[-1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:library]
-Tailor,Character,unit/man,[mat:Flesh,!:clothing],1,[],1,merchant,[-1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:clothing]
-Blacksmith,Character,unit/man,[mat:Flesh,!:armory],1,[],1,merchant,[-1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:armory]
-Antique,Character,unit/man,[mat:Flesh,!:antique],1,[],1,merchant,[-1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:antique]
-Contractor,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,4,1],[flurry,block],[block,dodge],0,Tuxedo,0,[talk:dealer,service:Contractor,time:4,type:guild,due:-1]
-Trainer,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,10,10,10],[],[],0,Black Robe,Straw Hat,[talk:trainer,service:Trainer,value:2]
-Scrapper,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,7,4],[],[],0,Traveller Gear,Fur Hat,[talk:dealer,service:Buyer,due:-1,time:0,need:1,value:1,item:Scrap]
-Insurer,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,8,1],[],[],0,Silver Robe,Holy Hat,[talk:insurer,service:Agent,record:0,inc:1]
-Doctor,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,9,6],[],[],0,Silver Robe,Glasses,[talk:doctor,service:Doctor,value:1]
-Innkeep,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,1],[],[],0,Green Robe,0,[talk:innkeep,service:Innkeep,stay:1,rent:15,own:0,due:-1]
-Pawnbroker,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,3,1],[],[],0,Jumpsuit,Safety Helmet,[talk:dealer,service:Pawnbroker]
-Sergent,Character,unit/man,[mat:Flesh,hear:1,@],1,[],1,merchant,[-1,9,9,1],[charge,lunge,block],[attack],Longsword,Platemail,Full Helm,[service:Sergent]
-Dealer,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,5,1],[flurry,block],[block,dodge],0,Tuxedo,Sunglasses,[talk:dealer,service:Trader,due:-1,trade:casino]
-Banker,Character,unit/man,[mat:Flesh,@],1,[],1,merchant,[-1,1,5,1],[],[],0,Tuxedo,Top Hat,[talk:banker,service:Banker,loan:-1]
+Dummy,Humanoid,human,[mat:Flesh,hear:1],1,[],0,manual,[-1,1,1,1,1],[],[],0,0,0 //Name,image,tags,hp=1,var,state,faction,pilot,stats,skills,gold,armor,weapon,headgear
+Silkworm,Unit,worm,[mat:Other],1,[[Speed,-1,-5]],3,walker,[-1,1,1,1,1],[],[]
+Slime,Unnatural,slime,[mat:Other,loot:Jelly],4,[[Speed,-1,-4]],3,walker,[-1,4,1,1,1],[],[]
+Undead,Unnatural,unit/undead,[hum,hear:1],1,[],4,walker,[-1,1,3,1,1],[],[]
+Rat,Unit,unit/rat,[mat:Flesh,hear:1],1,[],3,walker,[-1,1,1,1,5],[],[dodge]
+Bat,Unnatural,unit/slime,[fly:1,mat:Other,loot:Jelly],1,[[Speed,-1,-2]],3,walker,[-1,1,1,1,1],[],[]
+Ooze,Unnatural,unit/slime2,[mat:Other,col:35,loot:Jelly],7,[[Speed,-1,-4],[Venom,-1,100]],3,walker,[-1,7,1,1,1],[],[dodge]
+Dog,Unit,unit/dog,[mat:Flesh,hear:1,loot:Tooth],3,[[Speed,-1,1]],3,walker,[-1,3,2,1,1],[],[attack]
+Spider,Unit,unit/spider,[mat:Flesh,hear:1,loot:Venom],1,[[Speed,-1,1],[Venom,-1,100]],3,walker,[-1,1,2,1,1],[],[attack,dodge]
+Man,Humanoid,human,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,1,1,1],[],[],0,Casual Wear,0
+Looter,Humanoid,human,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,1,1,1],[lunge],[],Stick,Casual Wear,0
+Swordsman,Humanoid,human,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,5,7,1],[lunge,block],[attack],Broadsword,Chainmail,0
+Knight,Humanoid,human,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,9,9,1],[sprint,lunge,block],[attack],Mace,Platemail,0
+Spearman,Humanoid,human,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,5,6,1],[lunge,block],[attack],Spear,Chainmail,0
+Archer,Humanoid,human,[mat:Flesh,hear:1],1,[],2,archer,[-1,1,1,5,1],[lunge],[attack],Bow,Teal Robe,0
+Monk,Humanoid,human,[mat:Flesh,hear:1],1,[],2,fighter,[-1,1,4,6,1],[tackle,flurry,sprint],[fist],0,0,Red Robe,Headband
+Phantom,Phantom,unit/phantom,[],1,[],1,phantom,[-1,1,1,1,1],[],[],0
+Mercenary,Humanoid,human,[mat:Flesh,hear:1],1,[],1,fighter,[-1,1,6,4,1],[lunge,block],[swing],Glaive,Chainmail,0
+Traveller,Humanoid,human,[mat:Flesh,hear:1],1,[],1,fighter,[-1,1,1,4,1],[tackle,block],[swing],Bow,Leather Armor,0
+Resident,Humanoid,human,[mat:Flesh,!:resident],1,[],1,resident,[-1,1,1,1,1],[block],[swing,dodge],0,Casual Wear,0,[talk:resident,service:Resident]
+Merchant,Humanoid,human,[mat:Flesh,!:general],1,[],1,merchant,[-1,1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:general]
+Server,Humanoid,human,[mat:Flesh,!:restaurant],1,[],1,merchant,[-1,1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:restaurant]
+Scholar,Humanoid,human,[mat:Flesh,!:library],1,[],1,merchant,[-1,1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:library]
+Tailor,Humanoid,human,[mat:Flesh,!:clothing],1,[],1,merchant,[-1,1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:clothing]
+Blacksmith,Humanoid,human,[mat:Flesh,!:armory],1,[],1,merchant,[-1,1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:armory]
+Antique,Humanoid,human,[mat:Flesh,!:antique],1,[],1,merchant,[-1,1,4,8,4],[],[swing,dodge],0,Gold Robe,Top Hat,[talk:merchant,service:Trader,due:-1,trade:antique]
+Contractor,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,4,1],[flurry,block],[block,dodge],0,Tuxedo,0,[talk:dealer,service:Contractor,time:4,type:guild,due:-1]
+Trainer,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,10,10,10],[],[],0,Black Robe,Straw Hat,[talk:trainer,service:Trainer,value:2]
+Scrapper,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,7,4],[],[],0,Traveller Gear,Fur Hat,[talk:dealer,service:Buyer,due:-1,time:0,need:1,value:1,item:Scrap]
+Insurer,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,8,1],[],[],0,Silver Robe,Holy Hat,[talk:insurer,service:Agent,record:0,inc:1]
+Doctor,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,9,6],[],[],0,Silver Robe,Glasses,[talk:doctor,service:Doctor,value:1]
+Innkeep,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,1,1],[],[],0,Green Robe,0,[talk:innkeep,service:Innkeep,stay:1,rent:15,own:0,due:-1]
+Pawnbroker,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,3,1],[],[],0,Jumpsuit,Safety Helmet,[talk:dealer,service:Pawnbroker]
+Sergent,Humanoid,human,[mat:Flesh,hear:1,@],1,[],1,merchant,[-1,1,9,9,1],[charge,lunge,block],[attack],Longsword,Platemail,Full Helm,[service:Sergent]
+Dealer,Humanoid,human,[mat:Flesh,@],1,[],1,merchant,[-1,1,1,5,1],[flurry,block],[block,dodge],0,Tuxedo,Sunglasses,[talk:dealer,service:Trader,due:-1,trade:casino]
+Banker,Humanoid,human,[mat:Flesh,talk:banker,service:Banker,loan:-1],1,[],1,merchant,[-1,1,1,5,1],[],[],0,Tuxedo,Top Hat

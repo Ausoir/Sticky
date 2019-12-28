@@ -5,54 +5,41 @@ class Attribute:
     def __init__(self):
         self.gene = 0
 
-        self.hp = 1
         self.max_hp = 1
 
-        self.strength = 1
-        self.agility = 1
-        self.intelligence = 1
+        self.strength = 0
+        self.agility = 0
+        self.intelligence = 0
 
         self.speed = 0
 
-        self.breath = 0
-        self.body = 0
-        self.leg = 0
-
     def __str__(self):
-        return str(self.gene) + ',' + str(self.strength) + ',' + str(self.agility) + ',' + str(self.intelligence) \
-               + ',' + str(self.breath) + ',' + str(self.body) + ',' + str(self.leg)
+        att = [self.gene, self.max_hp, self.strength, self.agility, self.intelligence]
+        return ','.join(str(x) for x in att)
 
     def load(self, arg):
         if arg[0] != -1:
             self.gene = arg[0]
         else:
             self.gene = Global.r.rand_int(1, 9999)
-        self.strength = arg[1]
-        self.agility = arg[2]
-        self.intelligence = arg[3]
-        if len(arg) > 4:
-            self.breath = arg[4]
-            self.body = arg[5]
-            self.leg = arg[6]
+        self.max_hp = arg[1]
+        self.strength = arg[2]
+        self.agility = arg[3]
+        self.intelligence = arg[4]
+        return 5
 
-    def get_total(self):
-        return self.strength + self.agility + self.intelligence
 
-    def exert(self, muscle, mag):
-        if muscle == 0:
-            new = self.body + mag
-            if new >= self.strength:
-                return 1
-            self.body = new
-        elif muscle == 1:
-            new = self.leg + mag
-            if new >= self.strength * 3:
-                return 1
-            self.leg = new
-        return 0
+class AdvAttribute(Attribute):
+    def __init__(self):
+        super().__init__()
+        self.exhaustion = 0
+        self.qi = 0
 
-    def is_exhausted(self):
-        return self.body >= self.strength or self.leg >= self.strength * 3
+    def __str__(self):
+        return super().__str__() + ',' + str(self.exhaustion) + ',' + str(self.qi)
 
-    def rest(self):
-        self.breath = self.strength + self.agility + self.intelligence
+    def load(self, arg):
+        index = super().load(arg)
+        self.exhaustion = arg[index]
+        self.qi = arg[index + 1]
+        return index + 2

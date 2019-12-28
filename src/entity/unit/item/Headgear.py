@@ -14,16 +14,10 @@ class Headgear(Equipment):
         super().face(direction)
 
     def use(self):
-        self.host.action.set('wait')
+        super().use()
         self.host.headgear = self
-        host = self.host
-        if self.host.weapon == self:
-            self.host.drop()
         self.remove()
-        host.update_durability(0)
-        self.form.set_batch(2)
         self.form.show(True)
-        self.host = host
         self.host.face(self.host.direction)
 
     def set_form(self, arg):

@@ -1,7 +1,7 @@
-from src.entity.unit.item.Equipment import Equipment
+from src.entity.unit.item.Item import Item
 
 
-class Weapon(Equipment):
+class Weapon(Item):
     def __str__(self):
         return super().__str__() + ',' + str(self.form.image.height - self.form.image.anchor_y)
 

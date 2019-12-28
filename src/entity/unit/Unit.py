@@ -21,6 +21,7 @@ class Unit(Prop):
         self.pilot = None
         self.pilot_name = None
         self.delay = 0
+        self.dynamic_depth = True
 
     def __str__(self):
         att = '[' + self.attributes.__str__() + '],[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
@@ -36,7 +37,7 @@ class Unit(Prop):
         self.pilot_name = p[index]
         self.pilot = getattr(Pilot, template[1])(self, template[2])
         index += 1
-        self.attributes.load(p[index])
+        self.load_attributes(p[index])
         index += 1
         self.action.load(p[index])
         index += 1
@@ -45,6 +46,9 @@ class Unit(Prop):
         index += 1
         return index
 
+    def load_attributes(self, arg):
+        self.attributes.load(arg)
+
     def add(self):
         r = super().add()
         self.face(self.attributes.gene % 4 + 1)
@@ -52,10 +56,10 @@ class Unit(Prop):
 
     def set_form(self, arg):
         self.form_name = arg
-        self.form = Body(arg)
-
-    def add_batch(self):
-        self.form.set_batch(2)
+        from src.tools.Data import Data
+        line = Data.get_line('raw/model.txt', arg)
+        self.form = Body(line[1])
+        self.form.set_model(line[2])
 
     def draw_synchronize(self):
         if self.draw_frame != Global.map_view.draw_frame:
@@ -105,25 +109,6 @@ class Unit(Prop):
         elif diff.y > 0:
             self.face(4)
 
-    def fell(self, distance, me=False):
-        if self.get_proficiency('nimble'):
-            distance = min(distance, 2)
-        super().fell(distance, me)
-        if not me:
-            self.action.set('fall')
-            self.delay = 5
-
-    def on_fall(self):
-        super().on_fall()
-        if self.falling > 1:
-            self.attributes.exert(1, self.falling * 3)
-            self.action.set('fall')
-            self.states.add('Cripple', self.falling * 4, var=1)
-            return True
-        else:
-            if self.action.current_action != 'fall':
-                self.form.set_state('drop')
-
     def get_dodge(self):
         if self.action.current_action == 'fall':
             return 0
@@ -164,7 +149,7 @@ class Unit(Prop):
         if Tags.insubstantial not in self.tags:
             from src.entity.Stock import Stock
             r = Stock.get('Corpse')
-            r.durability = int(self.attributes.get_total() / 3)
+            r.durability = self.attributes.max_hp
             r.relocate(pos.x, pos.y, force=1)
             r.set(self.form)
 

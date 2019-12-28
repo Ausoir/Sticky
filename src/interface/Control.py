@@ -42,12 +42,6 @@ class Control:
         new_data.append(str(key) + ',' + action)
         Data.write(self.directory, '\n'.join(new_data))
 
-    def get_key_name_from_action(self, action):
-        for k, v in self.keymap.items():
-            if v == action:
-                return self.get_key_name(k)
-        return 0
-
     @staticmethod
     def get_key_code(name):
         if name == 'DRAG':
@@ -82,7 +76,10 @@ class Control:
             return 'Wheel-'
         elif key > 100000:
             return 'LS+' + Control.get_key_name(key - 100000)
-        return pyglet.window.key.symbol_string(key)
+        r = pyglet.window.key.symbol_string(key)
+        if r.startswith('_'):
+            return r[1:]
+        return r
 
     def on_text(self, key):
         if self.text_mode:

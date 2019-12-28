@@ -1,40 +1,29 @@
 from src.entity.unit.Humanoid import Humanoid
-from src.game.Interaction import Interaction
-from src.tools.Dialog import Dialog
+from src.player.Inventory import Inventory
 
 
 class Character(Humanoid):
-    @staticmethod
-    def get_var(host, key):
-        if isinstance(host, Character) and key in host.var:
-            return host.var[key]
-
-    @staticmethod
-    def check_var(host, key, value):
-        return Character.get_var(host, key) == value
-
     def __init__(self, loc):
         super().__init__(loc)
-        self.var = {}
+        self.inventory = Inventory(self)
 
     def __str__(self):
-        return super().__str__() + ',' + Dialog.dict(self.var)
+        return super().__str__() + ',' + self.inventory.__str__()
 
     def load(self, p):
         index = super().load(p)
-        for i in p[index]:
-            strings = i.split(':')
-            if len(strings) > 1:
-                if strings[1][0].isdigit() or strings[1][0] == '-':
-                    self.var[strings[0]] = int(strings[1])
-                else:
-                    self.var[strings[0]] = strings[1]
+        self.inventory.load(p[index])
         return index + 1
 
+    def load_attributes(self, arg):
+        from src.entity.unit.Attribute import AdvAttribute
+        self.attributes = AdvAttribute()
+        self.attributes.load(arg)
+
     def fell(self, distance, me=False):
-        if not Character.check_var(self, 'talent', 'Assassin') or not me:
+        if self.get_tag('talent') != 'Assassin' or not me:
             if distance > 1:
-                self.var['sign'] = 'Accident'
+                self.tags['sign'] = 'Accident'
             super().fell(distance, me)
 
     def hit(self, damage, accuracy=None, hitter=None):
@@ -44,17 +33,17 @@ class Character(Humanoid):
             from src.entity.unit.Buff import Buff
             from src.entity.unit.item.Item import Item
             if hitter == self.weapon:
-                self.var['sign'] = 'Suicide'
+                self.tags['sign'] = 'Suicide'
             elif isinstance(hitter, Humanoid) or (isinstance(hitter, Item) and hitter.host):
-                self.var['sign'] = 'Homicide'
+                self.tags['sign'] = 'Homicide'
             elif isinstance(hitter, Unit):
-                self.var['sign'] = 'Wildlife'
+                self.tags['sign'] = 'Wildlife'
             elif isinstance(hitter, Buff):
-                self.var['sign'] = 'Illness'
+                self.tags['sign'] = 'Illness'
         return r
 
     def out_of_bounds(self):
-        self.var['sign'] = 'Accident'
+        self.tags['sign'] = 'Accident'
         super().out_of_bounds()
 
     def is_bright(self):
@@ -63,20 +52,29 @@ class Character(Humanoid):
             return True
         self.say('Too dark!')
 
-    def stamina(self, mag):
-        if self.attributes.breath >= mag:
-            self.attributes.breath -= mag
-            return True
-        else:
-            self.say('Not enough stamina!')
-            return False
-
     def require_var(self, var, mag, cost=True):
-        if var in self.var:
-            if self.var[var] >= mag:
+        if var in self.tags:
+            if self.tags[var] >= mag:
                 if cost:
-                    self.var[var] -= mag
+                    self.tags[var] -= mag
                 return True
             else:
                 self.say('Not enough ' + var + '!')
                 return False
+
+    def get_possessions(self):
+        r = [self.weapon]
+        r += self.inventory.items
+        r.append(self.armor)
+        if self.headgear:
+            r.append(self.headgear)
+        return r
+
+    def get_accessibles(self):
+        r = []
+        from src.entity.unit.item.Item import Item
+        for thing in self.pos.things:
+            if isinstance(thing, Item):
+                r.append(thing)
+        r += self.get_possessions()
+        return r

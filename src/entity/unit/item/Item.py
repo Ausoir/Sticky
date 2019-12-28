@@ -38,17 +38,17 @@ class Item(Prop):
         self.form.face_cardinal(direction)
 
     def on_equip(self, host):
+        self.dynamic_depth = True
+        self.show(True)
         self.host = host
         host.weapon = self
         self.vec = host.vec
-        self.remove()
-        self.host.remove_batch()
-        self.form.show(True)
-        self.host.add_batch()
-        self.host.reset_group()
+        self.location.record.remove(self)
+        self.pos.things.remove(self)
+        self.host.form.update_perspective()
 
     def on_unequip(self):
-        self.form.set_batch(1)
+        self.dynamic_depth = False
         self.vec = self.vec + 0
         self.relocate(self.host.pos.x, self.host.pos.y, force=1)
         self.host = None

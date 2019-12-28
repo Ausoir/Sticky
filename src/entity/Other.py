@@ -191,7 +191,7 @@ class Script(Prop):
         elif arg[0] == 'effect':
             Particle.make(arg[1], self.where.get_center(), offset=8, glow=arg[2])
         elif arg[0] == 'message':
-            Global.menu.show_dialog([arg[1]])
+            Global.menu.show_dialog(arg[1])
         elif arg[0] == 'dialog':
             Global.menu.var = [None, arg[1]]
             Global.menu.topic(arg[1])
@@ -204,13 +204,13 @@ class Script(Prop):
             from src.entity.unit.Character import Character
             for i in self.who:
                 if isinstance(i, Character):
-                    i.var[arg[1]] = arg[2]
+                    i.tags[arg[1]] = arg[2]
                     return
         elif arg[0] == 'addvar':
             from src.entity.unit.Character import Character
             for i in self.who:
                 if isinstance(i, Character):
-                    i.var[arg[1]] += arg[2]
+                    i.tags[arg[1]] += arg[2]
                     return
         elif arg[0] == 'remove':
             count = arg[2]
@@ -462,7 +462,6 @@ class Corpse(Prop):
         self.form.set_state(dead)
         self.form.set_state = self.invalid
         self.form.show(True)
-        self.add_batch()
         return self
 
     def update(self):
@@ -773,19 +772,14 @@ class Tazer(Weapon):
 
 
 class Pickaxe(Weapon):
-    def attack(self, chance=0, delay=1, callback=None):
-        super().attack(chance, delay, callback)
+    def attack(self, damage=1, chance=1, delay=1, callback=None):
+        super().attack(damage, chance, delay, callback)
         breakables = Data.get_line('raw/raw.txt', 'breakable')[1]
-        for i in range(self.reach):
-            tile = self.host.location.collide_line(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                                   lambda arg1, arg2: None, distance=i + 1)
-            if tile.terrain and tile.terrain.name.split(' ')[0] in breakables:
-                if not tile.things:
-                    down = self.location.get_tile(tile + (0, 1))
-                    below = self.host.location.collide_land(down, 0, 7, flag=[Tile.COLLIDE_TERRAIN], distance=7)
-                    if below != self.location.get_tile(tile + (0, 8)):
-                        from src.entity.Stock import Stock
-                        Stock.make('Break', tile)
+        tile = self.host.get_front_tile(self.host.direction, mag=1)
+        if tile.terrain and tile.terrain.name.split(' ')[0] in breakables:
+            if not tile.things:
+                from src.entity.Stock import Stock
+                Stock.make('Break', tile)
 
 
 class Ballistic(Equipment):

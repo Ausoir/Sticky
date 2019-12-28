@@ -2,6 +2,18 @@ from src.entity.unit.item.Item import Item
 
 
 class Equipment(Item):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.durability = 0
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.durability)
+
+    def load(self, p):
+        index = super().load(p)
+        self.durability = p[index]
+        return index + 1
+
     def get_enhance_chance(self):
         return int(100 * (1 / max(1, self.get_level() + 1)))
 
@@ -49,6 +61,19 @@ class Equipment(Item):
             if self.tags['mat'] == 'Metal':
                 damage = max(0, damage - 1)
         return damage
+
+    def use(self):
+        self.wear()
+
+    def on_unequip(self):
+        self.on_unwear()
+        super().on_unequip()
+
+    def wear(self):
+        self.dynamic_depth = True
+        self.host.action.set('wait')
+        if self.host.weapon == self:
+            self.host.drop()
 
     def on_wear(self):
         pass

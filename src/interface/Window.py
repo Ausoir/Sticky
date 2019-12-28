@@ -26,7 +26,6 @@ class Window(Shape):
         self.margin = Space(8, 8)
         self.normal_color = self.color
         self.hover_color = Window.fore_color3
-        self.text_spacing = 40
         self.next_y = self.y + self.margin.y
         self.document = FormattedDocument(' ')
         self.document.set_style(0, 1, dict(font_name='Default Font', font_size=16, color=Window.font_color1))
@@ -76,7 +75,10 @@ class Window(Shape):
             if self.document.text != '':
                 position = [self.x + self.margin.x, self.y + self.margin.y]
                 self.text.x = position[0]
-                self.text.y = Global.DISPLAY[1] - position[1] - self.text_spacing
+                self.text.y = Global.DISPLAY[1] - position[1] - self.document.get_style('font_size')
+                font = self.document.get_font(0)
+                self.text.y += (font.ascent - font.descent) - self.height
+                self.text.y += int((-font.descent - self.height)/2)
                 self.text.draw()
             for i in self.children:
                 i.draw()

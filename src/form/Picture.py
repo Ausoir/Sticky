@@ -7,19 +7,11 @@ from src.tools import Direction
 
 class Picture(Sprite):
     def __init__(self, texture, **kwargs):
-        super().__init__(texture, **kwargs)
+        super().__init__(texture, **kwargs, batch=Global.draw_group.batch)
         self.side = 1
         self.side_y = 1
-        self.visible = False
-
-    def set_batch(self, batch):
-        if batch is None:
-            self.batch = None
-        else:
-            self.batch = Global.draw_group.batch[batch]
-
-    def set_group(self, group):
-        self.group = group
+        self.inbound = False
+        self.display = False
 
     def set(self, arg):
         super()._set_texture(arg)
@@ -42,7 +34,12 @@ class Picture(Sprite):
             self.image.anchor_y = y
 
     def show(self, visible):
-        self.visible = visible
+        self.display = visible
+        self.visible = self.inbound and self.display
+
+    def bound(self, visible):
+        self.inbound = visible
+        self.visible = self.inbound and self.display
 
     def clone(self):
         r = Picture(self.image)
@@ -76,3 +73,6 @@ class Picture(Sprite):
             self.scale_x *= -1
         if y:
             self.scale_y *= -1
+
+    def switch(self, index):
+        pass

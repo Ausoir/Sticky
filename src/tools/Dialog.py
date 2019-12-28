@@ -104,3 +104,7 @@ class Dialog:
             return Dialog.get('nine')
         else:
             return str(number)
+
+    @staticmethod
+    def weight(measure):
+        return str(measure) + Dialog.get('weigh')

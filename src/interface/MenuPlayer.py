@@ -22,16 +22,16 @@ class MenuPlayer(Menu):
         rmb = self.get_message(Dialog.get('dsc_HP'))
         text = str(self.host.durability) + ' ' + Dialog.get('HP')
         self.window.add(Menu.make(text, rmb, rmb, color=color))
-        rmb = self.get_message(Dialog.get('dsc_STR', [self.host.var['protein']]))
+        rmb = self.get_message(Dialog.get('dsc_STR', [self.host.tags['protein']]))
         text = str(self.host.attributes.strength) + ' ' + Dialog.get('Strength')
         self.window.add(Menu.make(text, rmb, rmb, color=color))
-        rmb = self.get_message(Dialog.get('dsc_AGI', [self.host.var['calories']]))
+        rmb = self.get_message(Dialog.get('dsc_AGI', [self.host.tags['calories']]))
         text = str(self.host.attributes.agility) + ' ' + Dialog.get('Agility')
         self.window.add(Menu.make(text, rmb, rmb, color=color))
-        rmb = self.get_message(Dialog.get('dsc_INT', [self.host.var['calories']]))
+        rmb = self.get_message(Dialog.get('dsc_INT', [self.host.tags['calories']]))
         text = str(self.host.attributes.intelligence) + ' ' + Dialog.get('Intelligence')
         self.window.add(Menu.make(text, rmb, rmb, color=color))
-        if 'power_1' in self.host.var:
+        if 'power_1' in self.host.tags:
             rmb = self.get_message(Dialog.get('dsc_ENG'))
             text = str(self.host.attributes.breath) + ' ' + Dialog.get('Energy')
             self.window.add(Menu.make(text, rmb, rmb, color=color))
@@ -141,7 +141,7 @@ class MenuPlayer(Menu):
 
     def menu_inventory(self):
         def click(index):
-            item = self.host.inventory.items[index]
+            item = self.host.inventory.get_item(index)
             if item:
                 def change():
                     self.host.drop()
@@ -160,33 +160,35 @@ class MenuPlayer(Menu):
         temp2 = self.sub_window.margin.y
         self.sub_window.margin.y = 2
         if self.host.is_armed():
-            sheathe = Menu.make('Sheathe', sheathe, None, height=20)
+            sheathe = Menu.make('Store', sheathe, None, height=20)
             sheathe.margin.load(8, 0)
             sheathe.document.set_style(0, 99, dict(font_size=12, bold='True'))
             self.window.add(sheathe)
         else:
             self.window.add(Menu.make('', None, None, height=20, color=None, hover=False))
         text = 'Capacity: ' + str(self.host.inventory.get_weight()) + ' / ' + str(self.host.inventory.get_capacity())
-        capacity = Menu.make(text, None, None, height=20, color=None)
-        capacity.margin.load(0, 0)
-        capacity.document.set_style(0, 99, dict(font_size=12, bold='True'))
-        self.sub_window.add(capacity)
-        count = 0
-        for i in self.host.inventory.items:
-            size = int(160 * (i.weight / self.host.inventory.get_capacity()))
-            button = Window(0, 0, width=0, height=size + 8, multi_line=False, name=count)
-            button.on_click = click
-            button.document.set_style(0, 1, dict(font_size=min(24, size)))
-            button.set_text(i.get_display_name())
-            button.width = button.text.content_width + 16
-            button.margin.load(8, 0)
-            label = Window(0, 0, width=0, height=size + 8, multi_line=False, name=count)
-            label.document.set_style(0, 1, dict(font_size=min(24, size)))
-            label.set_text(Dialog.weight(i.weight))
-            label.margin.load(100, 0)
-            self.window.add(button)
-            self.sub_window.add(label)
-            count += 1
+        capacity_label = Menu.make(text, None, None, height=20, color=None)
+        capacity_label.margin.load(0, 0)
+        capacity_label.document.set_style(0, 99, dict(font_size=12, bold='True'))
+        self.sub_window.add(capacity_label)
+        capacity = self.host.inventory.get_capacity()
+        if capacity > 0:
+            count = 0
+            for i in self.host.inventory.items:
+                size = int(160 * (i.weight / capacity))
+                button = Window(0, 0, width=0, height=size + 8, multi_line=False, name=count)
+                button.on_click = click
+                button.document.set_style(0, 1, dict(font_size=min(24, size)))
+                button.set_text(i.get_display_name())
+                button.width = button.text.content_width + 16
+                button.margin.load(8, 0)
+                label = Window(0, 0, width=0, height=size + 8, multi_line=False, name=count)
+                label.document.set_style(0, 1, dict(font_size=min(24, size)))
+                label.set_text(Dialog.weight(i.weight))
+                label.margin.load(100, 0)
+                self.window.add(button)
+                self.sub_window.add(label)
+                count += 1
         self.sub_window.display(1)
         self.window.margin.y = temp
         self.sub_window.margin.y = temp2
@@ -202,14 +204,14 @@ class MenuPlayer(Menu):
         if self.host.states.get('Hunger'):
             self.window.add(Menu.make(Dialog.get('hungry'), rmb, rmb, color=None))
             self.sub_window.add(Menu.make('', None, None, color=None, hover=False))
-        if self.host.var['calories'] > 0:
+        if self.host.tags['calories'] > 0:
             rmb = self.get_message(Dialog.get('dsc_calories'))
             self.window.add(Menu.make(Dialog.get('calories'), rmb, rmb, color=None))
-            self.sub_window.add(Menu.make(str(self.host.var['calories']), None, None, color=None))
-        if self.host.var['protein'] > 0:
+            self.sub_window.add(Menu.make(str(self.host.tags['calories']), None, None, color=None))
+        if self.host.tags['protein'] > 0:
             rmb = self.get_message(Dialog.get('dsc_protein'))
             self.window.add(Menu.make(Dialog.get('protein'), rmb, rmb, color=None))
-            self.sub_window.add(Menu.make(str(self.host.var['protein']), None, None, color=None))
+            self.sub_window.add(Menu.make(str(self.host.tags['protein']), None, None, color=None))
         self.sub_window.display(1)
 
     def menu_martial(self):

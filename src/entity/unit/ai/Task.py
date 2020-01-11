@@ -220,9 +220,9 @@ class Path(Task):  # path finding A*
     def update(self):
         super().update()
         if (self.host.pos - self.target).difference() > 1:
-            from src.entity.Particle import Particle
-            for i in self.open:
-                Particle.make('blood', i.node.get_center() + Global.r.rand_int(-15, 15))
+            # from src.entity.Particle import Particle
+            # for i in self.open:
+            #     Particle.make('blood', i.node.get_center() + Global.r.rand_int(-15, 15))
             for times in range(3):
                 self.counter += 1
                 if self.open:
@@ -272,153 +272,6 @@ class Attack(TargetTask):
                 return True
             self.pilot.var['move'].target = self.target.pos
             self.pilot.var['move'].perform()
-
-
-class Martial(Attack):
-    def on_set(self):
-        self.pilot.priority = 1
-
-    def in_range(self, x):
-        return x <= self.host.weapon.reach
-
-    def perform_gapcloser(self, dist):
-        if Global.r.rand_bool() and dist.y == 0:
-            dist_x = abs(dist.x)
-            if dist_x == 1 + self.host.weapon.reach and 'lunge' in self.host.action.skills:
-                self.host.input('lunge', dist)
-                return 1
-            elif dist_x == 2 and 'tackle' in self.host.action.skills:
-                self.host.input('tackle', dist)
-                return 1
-            if dist_x > 2 and 'sprint' in self.host.action.skills:
-                self.host.input('sprint', dist)
-                return 1
-
-    def perform_attack(self, diff):
-        if 'flurry' in self.host.action.skills and Global.r.rand_bool():
-            self.host.input('flurry', diff)
-        else:
-            self.host.input('use', diff)
-
-    def perform(self):
-        if self.target:
-            diff = self.target.pos - self.host.pos
-            if self.perform_gapcloser(diff):
-                return True
-            dist = round(diff.distance())
-            if self.in_range(dist):
-                if -1 <= diff.y <= 1:
-                    self.perform_attack(diff)
-                    return True
-            elif dist <= 1:
-                self.host.next_target.x *= -1
-                self.host.input('walk', self.host.next_target)
-                return True
-            self.pilot.var['move'].target = self.target.pos
-            self.pilot.var['move'].perform()
-
-
-class Range(Attack):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.move = Move(self.pilot)
-        self.move.distance = -3
-
-    def on_set(self):
-        self.pilot.priority = 1
-
-    def perform(self):
-        if self.target:
-            if not self.host.weapon.is_reloaded():
-                self.host.input('interact', self.host.next_target)
-            else:
-                diff = self.target.pos - self.host.pos
-                reach = self.host.location.collide_land(self.host.pos, diff.x, diff.y,
-                                                        distance=9, flag=Tile.CHECK_FIRM)
-                if reach == self.target.pos:
-                    dist = diff.distance()
-                    if dist > 4:
-                        self.host.input('use', diff)
-                    else:
-                        self.move.target = self.target.pos
-                        self.move.perform()
-                        if self.host.next_action == 'idle':
-                            self.host.input('use', diff)
-                    return True
-                else:
-                    self.move.target = self.target.pos
-                    self.pilot.var['move'].perform()
-
-
-class Magic(Attack):
-    def on_set(self):
-        self.pilot.priority = 1
-
-    def perform_gapcloser(self, dist):
-        if Global.r.rand_bool() and dist.y == 0:
-            dist_x = abs(dist.x)
-            if dist_x == 1 + self.host.weapon.reach and 'lunge' in self.host.action.skills:
-                self.host.input('lunge', dist)
-                return 1
-            elif dist_x == 2 and 'tackle' in self.host.action.skills:
-                self.host.input('tackle', dist)
-                return 1
-            if dist_x > 2 and 'sprint' in self.host.action.skills:
-                self.host.input('sprint', dist)
-                return 1
-
-    def perform_attack(self, diff):
-        if 'flurry' in self.host.action.skills and Global.r.rand_bool():
-            self.host.input('flurry', diff)
-        else:
-            self.host.input('use', diff)
-
-    def perform(self):
-        if self.target:
-            diff = self.target.pos - self.host.pos
-            if self.perform_gapcloser(diff):
-                return True
-            dist = round(diff.distance())
-            if dist < 6:
-                if -1 <= diff.y <= 1:
-                    self.perform_attack(diff)
-                    return True
-            elif dist <= 1:
-                self.host.next_target.x *= -1
-                self.host.input('walk', self.host.next_target)
-                return True
-            self.pilot.var['move'].target = self.target.pos
-            self.pilot.var['move'].perform()
-
-
-class Melee(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.attack = None
-        self.strategize()
-
-    def on_set(self):
-        self.pilot.priority = 1
-
-    def update(self):
-        self.attack.update()
-
-    def perform(self):
-        self.strategize()
-        self.attack.perform()
-
-    def strategize(self):
-        from src.entity.unit.item.Spell import Spell
-        from src.entity.Other import Ballistic
-        if isinstance(self.host.weapon, Ballistic):
-            if self.attack.__class__ != Range:
-                self.attack = Range(self.pilot)
-        elif isinstance(self.host.weapon, Spell):
-            if self.attack.__class__ != Magic:
-                self.attack = Magic(self.pilot)
-        else:
-            if self.attack.__class__ != Martial:
-                self.attack = Martial(self.pilot)
 
 
 class Follow(Task):

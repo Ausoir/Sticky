@@ -51,3 +51,7 @@ class Inventory:
             item = self.items[item_index]
             self.items.remove(item)
             return item
+
+    def update_capacity(self):
+        while self.get_capacity() < self.get_weight():
+            self.get_item(0)

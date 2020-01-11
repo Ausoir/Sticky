@@ -38,7 +38,6 @@ class Item(Prop):
         self.form.face_cardinal(direction)
 
     def on_equip(self, host):
-        self.dynamic_depth = True
         self.show(True)
         self.host = host
         host.weapon = self
@@ -48,7 +47,6 @@ class Item(Prop):
         self.host.form.update_perspective()
 
     def on_unequip(self):
-        self.dynamic_depth = False
         self.vec = self.vec + 0
         self.relocate(self.host.pos.x, self.host.pos.y, force=1)
         self.host = None

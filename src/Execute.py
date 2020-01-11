@@ -1,6 +1,7 @@
 import pyglet
 from pyglet.gl import *
 
+from time import time
 from src.game import Global
 from src.entity.Space import Space
 from src.game.Camera import Camera
@@ -16,14 +17,17 @@ from src.tools.Random import Random
 class Execute(pyglet.window.Window):
     def __init__(self, width, height, title=''):
         super(Execute, self).__init__(width, height, title, fullscreen=False, vsync=False, resizable=True)
+        self.fps = 1 / 40.0
+        self.frame_rate = 0, time()
         self.set_minimum_size(320, 200)
         self.set_location(320, 40)
         pyglet.resource.path = ['../data']
         pyglet.resource.reindex()
         self.monologue = Textbox(40, 40)
         self.init_other()
+        glEnable(pyglet.gl.GL_BLEND)
+        glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         glClearColor(Global.mask_color[0], Global.mask_color[1], Global.mask_color[2], Global.mask_color[3])
-        self.fps_display = pyglet.window.FPSDisplay(window=self)
 
     def init_other(self):
         Global.r = Random()  # todo: set to constant on production
@@ -67,21 +71,18 @@ class Execute(pyglet.window.Window):
         Global.player.control.input(0)
 
     def on_resize(self, width, height):
-        Global.DISPLAY = (width, height)
-        Global.CENTER = (Global.DISPLAY[0] / 2, Global.DISPLAY[1] / 2)
+        Global.DISPLAY = (int(width / 2) * 2, int(height / 2) * 2)
+        Global.CENTER = (int(Global.DISPLAY[0] / 2), int(Global.DISPLAY[1] / 2))
         Global.SCREEN_TILES = (int(Global.DISPLAY[0] / Global.BLOCK), int(Global.DISPLAY[1] / Global.BLOCK))
         self.monologue.x = Global.CENTER[0]
         Global.player.on_resize()
 
-        glViewport(0, 0, width, height)
+        glViewport(0, 0, Global.DISPLAY[0], Global.DISPLAY[1])
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        dev = 100
-        horizontal = width / 2
-        vertical = height / 2
-        glOrtho(-horizontal, horizontal, -vertical, vertical, -dev, dev)
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
+        horizontal = int(Global.DISPLAY[0] / 2)
+        vertical = int(Global.DISPLAY[1] / 2)
+        glOrtho(-horizontal, horizontal, -vertical, vertical, -1000, 4)
         glTranslatef(-Global.CENTER[0], -Global.CENTER[1], 0)
 
     def on_text(self, text):
@@ -91,9 +92,13 @@ class Execute(pyglet.window.Window):
         Global.player.control.clear_press()
 
     def loop(self, dt):
-        Camera.update()
-        Turn.update()
-        Global.map_view.update()
+        if time() - self.frame_rate[1] > self.fps:
+            self.frame_rate = 0, time()
+            Camera.update()
+            Turn.update()
+            Global.map_view.update()
+        else:
+            self.frame_rate = self.frame_rate[0] + 1, self.frame_rate[1]
 
     def on_draw(self):
         self.clear()
@@ -101,11 +106,10 @@ class Execute(pyglet.window.Window):
         Global.menu.draw()
         Global.player.draw()
         self.monologue.draw()
-        self.fps_display.draw()
         self.batch.draw()
 
 
 if __name__ == '__main__':
     main = Execute(800, 600, 'Stuff')
-    pyglet.clock.schedule_interval(main.loop, 1 / 40.0)
+    pyglet.clock.schedule_interval(main.loop, 1 / 100.0)
     pyglet.app.run()

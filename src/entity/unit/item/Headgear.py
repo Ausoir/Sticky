@@ -13,9 +13,15 @@ class Headgear(Equipment):
         self.form.reset()
         super().face(direction)
 
-    def use(self):
-        super().use()
+    def on_equip(self, host):
+        super().on_equip(host)
+        self.face(1)
+
+    def wear(self):
+        if self.host.headgear:
+            self.host.unheadgear()
         self.host.headgear = self
+        super().wear()
         self.remove()
         self.form.show(True)
         self.host.face(self.host.direction)

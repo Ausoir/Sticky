@@ -64,16 +64,18 @@ class Equipment(Item):
 
     def use(self):
         self.wear()
+        self.on_wear()
 
     def on_unequip(self):
         self.on_unwear()
         super().on_unequip()
 
     def wear(self):
-        self.dynamic_depth = True
         self.host.action.set('wait')
         if self.host.weapon == self:
+            host = self.host
             self.host.drop()
+            self.host = host
 
     def on_wear(self):
         pass

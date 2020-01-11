@@ -17,14 +17,12 @@ class Unit(Prop):
         self.next_action = 'idle'
         self.direction = 3
         self.collision_type = Tile.COLLIDE_UNIT
-        self.attributes = Attribute()
         self.pilot = None
         self.pilot_name = None
         self.delay = 0
-        self.dynamic_depth = True
 
     def __str__(self):
-        att = '[' + self.attributes.__str__() + '],[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
+        att = '[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
         return super().__str__() + ',' + str(self.faction) + ',' + self.pilot_name + ',' + att
 
     def load(self, p):
@@ -37,17 +35,12 @@ class Unit(Prop):
         self.pilot_name = p[index]
         self.pilot = getattr(Pilot, template[1])(self, template[2])
         index += 1
-        self.load_attributes(p[index])
-        index += 1
         self.action.load(p[index])
         index += 1
         self.proficiency = p[index]
         self.form.randomize(self.attributes.gene)
         index += 1
         return index
-
-    def load_attributes(self, arg):
-        self.attributes.load(arg)
 
     def add(self):
         r = super().add()
@@ -60,6 +53,11 @@ class Unit(Prop):
         line = Data.get_line('raw/model.txt', arg)
         self.form = Body(line[1])
         self.form.set_model(line[2])
+
+    def load_attributes(self, arg):
+        from src.entity.unit.Attribute import AdvAttribute
+        self.attributes = AdvAttribute()
+        self.attributes.load(arg)
 
     def draw_synchronize(self):
         if self.draw_frame != Global.map_view.draw_frame:
@@ -84,6 +82,9 @@ class Unit(Prop):
             self.action.attempt(self.next_action)
             self.next_action = 'idle'
 
+    def set_row(self, row):
+        self.form.set_row(row)
+
     def center_camera(self):
         super().center_camera()
 
@@ -94,20 +95,22 @@ class Unit(Prop):
         self.action.attack()
 
     def face(self, direction):
-        if not self.states.get('Influence'):
-            self.direction = direction
-            self.form.face(direction)
+        if direction != self.direction:
+            if not self.states.get('Influence'):
+                self.direction = direction
+                self.form.face(direction)
+            return True
 
     def face_toward(self, pos):
         diff = pos - self.pos
         if diff.x < 0:
-            self.face(1)
+            return self.face(1)
         elif diff.x > 0:
-            self.face(3)
+            return self.face(3)
         if diff.y < 0:
-            self.face(2)
+            return self.face(2)
         elif diff.y > 0:
-            self.face(4)
+            return self.face(4)
 
     def get_dodge(self):
         if self.action.current_action == 'fall':
@@ -118,27 +121,17 @@ class Unit(Prop):
         return r
 
     def hit(self, damage, accuracy=None, hitter=None):
-        if accuracy:
-            sick = self.states.get('Weak')
-            if sick:
-                chance = 1
-            else:
-                chance = accuracy / max(1, accuracy + self.get_dodge())
+        chance = not accuracy or self.states.get('Weak') or \
+                 Global.r.rand_float() < accuracy / max(1, accuracy + self.get_dodge())
+        if chance:
             self.location.attack.unregister(self.get_hitter())
             self.pilot.hit(hitter)
-            if Global.r.rand_float() < chance:
-                if self.states.get('Distraction'):
-                    self.die()
-                    return 2
-                self.action.set('hit')
-                return super().hit(damage, accuracy, hitter)
-            else:
-                self.form.set_state('hit')
-                self.form.randomize_once(8)
-        else:
-            self.action.set('hit')
+            if self.states.get('Distraction'):
+                self.die()
+                return 2
+            self.form.timer.set(4)
+            self.form.randomize_once(4)
             return super().hit(damage, accuracy, hitter)
-        return 0
 
     def get_hitter(self):
         return self
@@ -149,7 +142,7 @@ class Unit(Prop):
         if Tags.insubstantial not in self.tags:
             from src.entity.Stock import Stock
             r = Stock.get('Corpse')
-            r.durability = self.attributes.max_hp
+            r.attributes.hp = self.attributes.max_hp
             r.relocate(pos.x, pos.y, force=1)
             r.set(self.form)
 

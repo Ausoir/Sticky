@@ -1,26 +1,26 @@
-Fist,Weapon,none,[],-1,[],0,0,0 //Name, Image, Tags, Durability, State, Size, Max HP, Weight, Pivot, Range, Damage, Speed
-Club,Weapon,image/club,[mat:Wood],4,[],8,8
-Bottle,Weapon,g_10x6,[],4,[],2,20
-Parasol,Weapon,image/parasol,[],4,[],3,4
-Stick,Weapon,image/stick,[mat:Wood],4,[],4,8
-Dagger,Weapon,image/dagger,[ps,mat:Metal],4,[],1,4
-Cleaver,Weapon,image/cleaver,[ps,mat:Metal],4,[],2,6
-Saw,Weapon,image/saw,[ps,mat:Metal,loot:Scrap],4,[],3,4
-Hammer,Weapon,image/hammer,[mat:Metal],4,[],4,14
-Pickaxe,Pickaxe,image/pickaxe,[mat:Metal],4,[],6,14
-Shortsword,Weapon,image/shortsword,[ps,mat:Metal],4,[],4,4
-Rapier,Weapon,image/rapier,[ps,mat:Metal],4,[],4,4
-Katana,Weapon,image/katana,[ps,is],4,[],2,4
-Scimitar,Weapon,image/scimitar,[ps,mat:Metal],4,[],4,4
-Axe,Weapon,image/axe,[ps,mat:Metal],4,[],4,18
-Falchion,Weapon,image/falchion,[ps,mat:Metal],4,[],4,4
-Broadsword,Weapon,image/broadsword,[ps,mat:Metal],4,[],4,6
-Longsword,Weapon,image/longsword,[ps,mat:Metal],4,[],8,6
-Mace,Weapon,image/mace,[mat:Metal],4,[],5,12
-Spear,Weapon,image/spear,[ps,mat:Metal],4,[],5,24
-Glaive,Weapon,image/glaive,[ps,mat:Metal],4,[],12,24
-Greatsword,Weapon,image/greatsword,[ps,mat:Metal],4,[],16,6
-Lance,Weapon,image/lance,[ps,mat:Metal],4,[],5,6
-Bow,Ballistic,image/bow,[],4,[],1,1,1,arch,16
-Revolver,Ballistic,image/revolver,[mat:Metal],4,[],1,2,1,shoot,6
-Blue Baton,Tazer,image/bluestick,[mat:Metal],4,[],4,6,0
+Fist,Weapon,none,[],[-1,-1],[],0,0,0 //Name, Class, Image, Tags, HP, State, Weight, Pivot
+Club,Weapon,image/club,[mat:Wood],[4,4],[],8,8
+Bottle,Weapon,g_10x5,[],[4,4],[],2,20
+Parasol,Weapon,image/parasol,[],[4,4],[],3,4
+Stick,Weapon,image/stick,[mat:Wood],[4,4],[],4,8
+Dagger,Weapon,image/dagger,[ps,mat:Metal],[4,4],[],1,4
+Cleaver,Weapon,image/cleaver,[ps,mat:Metal],[4,4],[],2,6
+Saw,Weapon,image/saw,[ps,mat:Metal,loot:Scrap],[4,4],[],3,4
+Hammer,Weapon,image/hammer,[mat:Metal],[4,4],[],4,14
+Pickaxe,Pickaxe,image/pickaxe,[mat:Metal],[4,4],[],6,14
+Shortsword,Weapon,image/shortsword,[ps,mat:Metal],[4,4],[],4,4
+Rapier,Weapon,image/rapier,[ps,mat:Metal],[4,4],[],4,4
+Katana,Weapon,image/katana,[ps,is],[4,4],[],2,4
+Scimitar,Weapon,image/scimitar,[ps,mat:Metal],[4,4],[],4,4
+Axe,Weapon,image/axe,[ps,mat:Metal],[4,4],[],4,18
+Falchion,Weapon,image/falchion,[ps,mat:Metal],[4,4],[],4,4
+Broadsword,Weapon,image/broadsword,[ps,mat:Metal],[4,4],[],4,6
+Longsword,Weapon,image/longsword,[ps,mat:Metal],[4,4],[],8,6
+Mace,Weapon,image/mace,[mat:Metal],[4,4],[],5,12
+Spear,Weapon,image/spear,[ps,mat:Metal],[4,4],[],5,24
+Glaive,Weapon,image/glaive,[ps,mat:Metal],[4,4],[],12,24
+Greatsword,Weapon,image/greatsword,[ps,mat:Metal],[4,4],[],16,6
+Lance,Weapon,image/lance,[ps,mat:Metal],[4,4],[],5,6
+Bow,Ballistic,image/bow,[],[4,4],[],1,1,1,arch,16
+Revolver,Ballistic,image/revolver,[mat:Metal],[4,4],[],1,2,1,shoot,6
+Blue Baton,Tazer,image/bluestick,[mat:Metal],[4,4],[],4,6,0

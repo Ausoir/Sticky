@@ -206,3 +206,6 @@
 12/16 Inventory overhaul (1)
 12/18 Unit model (1)
 12/28 OpenGL Orthographic projection with depth buffer to replace sprite group (5)
+12/31 Fixed transparency and ordering issues (1)
+1/11 Props attribute (1), Attack system change (1)
+---- PUSH

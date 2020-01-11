@@ -73,7 +73,7 @@ class Window(Shape):
         if self.visible == 1:
             super().draw()
             if self.document.text != '':
-                position = [self.x + self.margin.x, self.y + self.margin.y]
+                position = [self.x + self.margin.x, self.y]
                 self.text.x = position[0]
                 self.text.y = Global.DISPLAY[1] - position[1] - self.document.get_style('font_size')
                 font = self.document.get_font(0)
@@ -85,28 +85,6 @@ class Window(Shape):
 
     def set_text(self, text):
         self.document.text = text
-
-    @staticmethod
-    def resize_text(text, size):
-        r = []
-        for line in text:
-            length = 0
-            newline = ''
-            words = line.split(' ')
-            for word in words:
-                wordlength = 0
-                newword = ''
-                for char in word:
-                    newword += char
-                    wordlength += Global.font.size(char)[0]
-                if length + wordlength > size:
-                    r.append(newline)
-                    newline = ''
-                    length = 0
-                length += wordlength
-                newline += newword + ' '
-            r.append(newline)
-        return r
 
     def add(self, child, index=-1, reverse=False):
         if reverse:

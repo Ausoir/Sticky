@@ -74,7 +74,9 @@ class MapView:
         y = Camera.target.pos.y
         extend_x = 0
         extend_y = 0
+        row = 0
         for rows in self.draw_tiles:
+            row += 1
             for cell in rows:
                 if cell[0] - x > self.sight_range:
                     cell[0] = self.draw_tiles_min_x - 1
@@ -99,8 +101,11 @@ class MapView:
                         for thing in tile.things:
                             if not thing.removed:
                                 thing.bound(True)
+                                thing.set_row(row)
                                 self.objects.append(thing)
-                else:
+                    else:  # tile does not have terrain
+                        cell[2].show(False)
+                else:  # tile is out of bounds
                     cell[2].show(False)
         self.draw_tiles_min_x += extend_x
         self.draw_tiles_max_x += extend_x

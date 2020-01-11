@@ -12,6 +12,7 @@ class Humanoid(Unit):
         from src.entity.Stock import Stock
         self.fist = Stock.get('Fist')
         self.body = Stock.get('Body')
+        self.body.show(False)
         self.weapon = self.fist
         self.fist.host = self
         self.body.host = self
@@ -26,7 +27,6 @@ class Humanoid(Unit):
     def load(self, p):
         index = super().load(p)
         from src.entity.Stock import Stock
-        self.form.randomize_clip('hit', 4)
         self.form.organs[0].set(self.make_face())
         self.armor = self.body
         if p[index]:
@@ -81,7 +81,10 @@ class Humanoid(Unit):
         self.weapon.states.update()
 
     def use(self):
-        self.weapon.use()
+        if self.is_armed():
+            self.weapon.use()
+        else:
+            self.action.set('grab')
 
     def relocate(self, x, y, force=0):
         super().relocate(x, y, force)

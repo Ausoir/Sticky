@@ -456,7 +456,6 @@ class Corpse(Prop):
         self.has_host = True
         self.add()
         self.form = form
-        self.durability = 8
         dead = 'dead' + str(Global.r.rand_int(1, 2))
         self.form.randomize_clip(dead, 8)
         self.form.set_state(dead)

@@ -43,10 +43,6 @@ class Armor(Equipment):
         r += '\nPockets: ' + str(len(self.pockets))
         return r
 
-    def use(self):
-        super().use()
-        self.on_wear()
-
     def wear(self):
         if self.host.is_armored():
             self.host.unarmor()
@@ -65,3 +61,6 @@ class Armor(Equipment):
 
     def on_unwear(self):
         self.host.attributes.max_hp -= self.durability
+        from src.entity.unit.Character import Character
+        if isinstance(self.host, Character):
+            self.host.inventory.update_capacity()

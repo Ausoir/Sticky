@@ -6,10 +6,23 @@ class BodyHumanoid(Body):
         super().__init__(model_name)
         self.host = host
 
+    def set_row(self, row):
+        self.row = row
+        t = row * 20
+        for i in self.order[self.direction - 1]:
+            t += 1
+            if i >= 0:
+                self.organs[i].form.z = t
+            elif i == -2:
+                self.host.weapon.form.z = t
+            elif i == -3:
+                if self.host.headgear:
+                    self.host.headgear.form.z = t
+
     def update_perspective(self):
         from src.tools import Direction
         numeral = Direction.numeral[self.direction] * self.texture_count
-        t = 1
+        t = self.row * 20
         for i in self.order[self.direction - 1]:
             t += 1
             if i >= 0:

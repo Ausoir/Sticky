@@ -8,15 +8,15 @@ class Prop(Object):
     def __init__(self, loc):
         super().__init__(loc)
         from src.entity.unit.Buffs import Buffs
-        self.durability = 1
         self.hittable = 1
         self.collision_type = Tile.COLLIDE_PROP
         self.faction = 0  # 0: Neutral, 1: Player, 2: Enemy, 3: Beast, 4: Undead
+        self.attributes = None
         self.states = Buffs(self)
         self.tags = {}
 
     def __str__(self):
-        return ','.join([super().__str__(), Dialog.dict(self.tags), str(self.durability),
+        return ','.join([super().__str__(), Dialog.dict(self.tags), '[' + self.attributes.__str__() + ']',
                          '[' + self.states.__str__() + ']'])
 
     def load(self, arg):
@@ -29,16 +29,19 @@ class Prop(Object):
                 else:
                     self.tags[strings[0]] = strings[1]
         index += 1
-        self.durability = arg[index]
+        self.load_attributes(arg[index])
         index += 1
         self.states.load(arg[index])
-        if 'dep' in self.tags:
-            self.dynamic_depth = True
         if 'ind' in self.tags:
             self.hittable = 0
         if 'col' in self.tags:
             self.collision_type = self.tags['col']
         return index + 1
+
+    def load_attributes(self, arg):
+        from src.entity.unit.Attribute import Attribute
+        self.attributes = Attribute()
+        self.attributes.load(arg)
 
     def turn(self):
         super().turn()
@@ -96,10 +99,10 @@ class Prop(Object):
                             Particle.make('slash', self.vec)
                     else:
                         Particle.make('batter', self.vec)
-        if self.durability != -1:
-            self.durability = max(0, self.durability - damage)
-            if self.durability == 0:
-                self.durability = -1
+        if self.attributes.hp != -1:
+            self.attributes.hp = max(0, self.attributes.hp - damage)
+            if self.attributes.hp == 0:
+                self.attributes.hp = -1
                 self.die()
                 return 2
         return 1

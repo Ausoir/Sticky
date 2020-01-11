@@ -3,14 +3,13 @@ from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
 from src.game.Turn import Turn
 from src.map.Tile import Tile
-from src.tools import Direction
 
 
 class Actions:
-    default = ['idle', 'left', 'right', 'up', 'down', 'fall', 'walk', 'hit', 'grab', 'use', 'attack',
+    default = ['idle', 'left', 'right', 'up', 'down', 'fall', 'walk', 'grab', 'use', 'attack',
                'pocket_1', 'pocket_2', 'pocket_3', 'pocket_4',
                'power_1', 'power_2', 'power_3', 'power_4', 'trinket']
-    priority = ['fall', 'hit']
+    priority = ['fall']
 
     def __init__(self, host):
         self.host = host
@@ -205,9 +204,6 @@ class Actions:
                 if Interaction.trigger(front):
                     self.make('interact', turn=max(0, 3 - self.host.attributes.speed))
 
-    def hit(self):
-        self.make('hit', turn=2)
-
     def fall(self):
         self.make('fall', turn=11)
 
@@ -238,14 +234,15 @@ class Actions:
             if isinstance(thing, Item):
                 target = thing
                 break
-        self.make('grab', turn=3)
         if target:
+            self.make('grab', turn=3)
             if self.host.is_armed():
                 self.host.inventory.attempt_add(target)
             else:
                 target.on_equip(self.host)
         else:
             self.host.drop()
+            self.make('grab', turn=1)
 
     def attack(self):
         def callback(target):
@@ -257,91 +254,10 @@ class Actions:
         self.make('attack', turn=4)
 
     def swing(self):
-        def fin():
-            self.set('slash')
-        self.host.states.add('Charging', 1, var=1)
-        self.make('swing', turn=0)
-        self.host.form.timer.set(self.host.weapon.weight * Turn.rounds)
-        self.on_finish = fin
-
-    def slash(self):
-        charge = self.host.states.get('Charging')
-        if charge:
-            power = min(self.host.weapon.weight, charge.var)
-        else:
-            power = 1
-        # print(str(power))
-        self.host.weapon.attack(damage=self.host.attributes.strength + power, delay=0)
-        self.make('swing', turn=2)
-        self.host.form.timer.set(1)
-
-    def lunge(self):
-        def hit(victim):
-            victim.move(self.host.direction, 0)
-            self.knockdown(victim)
-        self.host.move_toward(self.host.direction)
-        prof = self.host.get_proficiency('lunge') * 2
-        self.host.weapon.attack(delay=2, chance=prof, callback=hit)
-        self.make('lunge', turn=2 + self.host.weapon.speed - prof)
-
-    def tackle(self):
-        def hit(victim):
-            if isinstance(victim, Unit):
-                victim.move(self.host.direction, 0)
-                self.knockdown(victim)
-                victim.states.add('Cripple', 40, var=1)
-        if not self.host.attributes.exert(1, 6):
-            self.host.location.sound.register(self.host.pos, 5)
-            self.host.move(self.host.direction, 0)
-            prof = self.host.get_proficiency('tackle') + 1
-            self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
-                                               chance=prof, hitter=self.host, callback=hit)
-            self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM)
-            self.make('kick', turn=3)
-            return True
-
-    def slam(self):
-        if not self.host.attributes.exert(1, 9):
-            self.host.location.sound.register(self.host.pos, 9)
-            self.host.attributes.body += self.host.weapon.weight + 2
-            self.host.weapon.rotation = 10
-            self.host.weapon.attack(chance=2, delay=5)
-            self.host.weapon.attack(chance=2, delay=5)
-            if self.host.get_proficiency('slam'):
-                self.host.weapon.attack(chance=2, delay=5)
-            self.make('slam', turn=7)
-            return True
-        else:
-            self.make('rest', turn=2)
-
-    def charge(self):
-        def hit(victim):
-            from src.game.Tags import Tags
-            if Tags.back not in victim.tags:
-                victim.move(self.host.direction * 2, 0)
-            if isinstance(victim, Unit):
-                self.knockdown(victim)
-                victim.states.add('Cripple', 40, var=1)
-        frenzy = self.host.states.get('Influence')
-        if not frenzy:
-            if not self.host.attributes.exert(1, 3):
-                self.host.states.add('Influence', 12, var='charge')
-                self.host.states.add('Effect', 12, var='spin')
-            else:
-                self.make('rest', turn=2)
-        else:
-            prof = 1 - self.host.get_proficiency('charge')
-            self.host.attributes.exert(1, 1 + prof)
-            self.host.location.sound.register(self.host.pos, 7)
-            self.host.location.attack.register(0, self.host.get_offset_tile(self.host.direction, 0), delay=0,
-                                               hitter=self.host, callback=hit)
-            if self.host.pos == self.host.move(self.host.direction, 0, flag=Tile.CHECK_FIRM):
-                self.host.location.attack.register(1, self.host.pos, delay=0,
-                                                   hitter=self.host, callback=hit)
-                frenzy.end()
-                self.host.action.set('fall')
-            else:
-                self.make('charge', turn=0)
+        slow = max(0, 2 - self.host.attributes.speed)
+        self.make('swing', turn=4 + slow)
+        self.host.form.timer.set(slow * 4 + 4)
+        self.host.weapon.attack(damage=self.host.attributes.strength, delay=slow)
 
     def arch(self):
         def fin():

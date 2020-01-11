@@ -13,7 +13,6 @@ class Projectile(Prop):
         self.lifetime = 100
         self.gravity = 1
         self.hittable = 0
-        self.durability = -1
         self.speed = 24
         self.speed_var = 4
         self.chance = 6
@@ -34,12 +33,11 @@ class Projectile(Prop):
         if self.turn in Turn.fast_queue:
             Turn.fast_queue.remove(self.turn)
 
-    def set(self, gravity=1, lifetime=100, speed=24, speed_var=4, durability=-1):
+    def set(self, gravity=1, lifetime=100, speed=24, speed_var=4):
         self.gravity = gravity
         self.lifetime = lifetime
         self.speed = speed
         self.speed_var = speed_var
-        self.durability = durability
 
     def draw(self, surface):
         if not self.removed:

@@ -54,8 +54,7 @@ class Picture(Sprite):
             self.flip(y=1)
 
     def face_cardinal(self, direction):
-        coord = Direction.coord[direction]
-        self.face(x=coord[0])
+        self.face(x=Direction.side[direction])
 
     def resize(self, x=1, y=1):
         if x != 1 and self.width:

@@ -12,7 +12,7 @@ class Particle(Prop):
         r.set_form(arg)
         r.lifetime = lifetime
         r.pos = Stock.location.get_tile_from_vec(pos.x, pos.y)
-        r.vec = pos
+        r.vec = pos + 0
         r.offset = [random.randint(-offset, offset), random.randint(-offset, offset)]
         r.form.face(direction)
         if glow >= 0:
@@ -21,7 +21,6 @@ class Particle(Prop):
 
     def __init__(self, loc):
         super().__init__(loc)
-        self.depth = 2
         self.lifetime = 4
         self.collision_type = 0
         self.offset = None
@@ -43,6 +42,13 @@ class Particle(Prop):
         if self.lifetime == 0:
             self.remove()
         self.lifetime -= 1
+
+    def set_form(self, arg):
+        super().set_form(arg)
+        self.form.z = 900
+
+    def set_row(self, row):
+        pass
 
     def hit(self, damage, accuracy=None, hitter=None):
         pass

@@ -1,3 +1,7 @@
 human,unit/man,none
 worm,unit/worm,image/unit/worm
 slime,unit/slime,image/unit/slime
+rat,unit/rat,image/unit/rat
+bat,unit/rat,image/unit/rat
+dog,unit/rat,image/unit/rat
+spider,unit/rat,image/unit/rat

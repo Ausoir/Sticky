@@ -1,4 +1,4 @@
 instance
 0,2,town
-#0,[-3,-11],Player,Character,human,[mat:Flesh,protein:0,calories:0,talent:None,money:14,sign:Accident,home:town],1,[],1,manual,[0,9,1,1,1,0,0],[],[dodge],[#4,[-2,-5],Platemail,Armor,image/unit/platemail,[loot:Scrap],10,[],10,10,36,16,[-1]],[#5,[-3,-11],Safety Helmet,SafetyHat,image/unit/safety_hat,[],1,[],1,1,10],[#3,[-3,-11],Club,Weapon,image/club,[mat:Wood],4,[],8,8],[[#3,[-5,-5],Sunglasses,Headgear,image/unit/sunglasses,[],1,[],1,1],[#3,[-5,-4],Sunglasses,Headgear,image/unit/sunglasses,[],1,[],1,1]]
+#0,[-3,-8],Player,Character,human,[mat:Flesh,protein:0,calories:0,talent:None,money:14,sign:Accident,home:town],[115,224,0,1,1,1],[],1,manual,[],[dodge],[#4,[-3,-11],Jumpsuit,Armor,image/unit/jumpsuit,[],[4,4],[],1,1,0,0,[-1]],[#5,[-3,-8],Safety Helmet,SafetyHat,image/unit/safety_hat,[],[4,4],[],1,1,10],[#3,[-3,-8],Stick,Weapon,image/stick,[mat:Wood],[4,4],[],4,8],[]
 

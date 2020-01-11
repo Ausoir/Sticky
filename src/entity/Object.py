@@ -18,7 +18,6 @@ class Object(Image):
         self.class_name = None
         self.pos = self.location.get_tile(0)
         self.old_pos = self.pos
-        self.depth = 0
         self.delay = 0
         self.collision_type = Tile.COLLIDE_OBJECT
         self.removed = 0
@@ -62,6 +61,9 @@ class Object(Image):
     def set_form(self, arg):
         self.form_name = arg
         self.form = Data.get_form(arg)
+
+    def set_row(self, row):
+        self.form.z = 40 - row
 
     def update(self):
         diff = self.pos.get_center() - self.vec

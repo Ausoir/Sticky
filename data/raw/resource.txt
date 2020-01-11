@@ -1,6 +1,6 @@
 icon,Icon,[10,2] //Name, Directory, Subset, instanced
 gfx,image/_effect,[12,12]
-g,image/_single,[24,6]
+g,image/_single,[24,10]
 g2,image/_oversize,[24,3]
 half,image/_half,[16,5]
 body,image/unit/body,[3,3]

@@ -115,13 +115,13 @@ class Control:
                     if 65505 in self.keypress:
                         if (100000 - code) in self.keypress:
                             self.keypress.remove(100000 - code)
+                        if -code == 65505:
+                            self.keypress.remove(-code)
+                            for k, v in enumerate(self.keypress):
+                                if v > 100000:
+                                    self.keypress[k] = v - 100000
                     else:
                         self.keyrelease.append(-code)
-                    if -code == 65505:
-                        self.keypress.remove(-code)
-                        for k, v in enumerate(self.keypress):
-                            if v > 100000:
-                                self.keypress[k] = v - 100000
         return 0
 
     def clear_press(self, code=None):

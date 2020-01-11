@@ -15,6 +15,7 @@ class Body:
         self.seed = 1
         self.side = 1
         self.direction = 3
+        self.row = 0
         self.model = data[0][0]
         self.order = data[0][1]
         self.animation = data[1]
@@ -61,7 +62,17 @@ class Body:
     def set_model(self, image):
         for i in self.organs:
             if i.texture_num >= 0:
-                i.set(Data.get_form(image, form='Unit' + str(self.texture_count)))
+                img = Data.get_form(image, form='Unit' + str(self.texture_count))
+                img.show(True)
+                i.set(img)
+
+    def set_row(self, row):
+        self.row = row
+        t = row * 20
+        for i in self.order[self.direction - 1]:
+            if i >= 0:
+                self.organs[i].form.z = t
+                t += 1
 
     def delete(self):
         for i in self.organs:
@@ -131,7 +142,7 @@ class Body:
     def update_perspective(self):
         from src.tools import Direction
         numeral = Direction.numeral[self.direction] * self.texture_count
-        t = 1
+        t = self.row * 20
         for i in self.order[self.direction - 1]:
             if i >= 0:
                 t += 1

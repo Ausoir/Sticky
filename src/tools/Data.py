@@ -81,53 +81,37 @@ class Data:
                     return cache
         else:
             if form.startswith('Unit'):
-                div = int(form[4:])
-                width = int(cache.width / div)
-                height = int(cache.height / 3)
-                return Data.get_model(cache, width, height, **kwargs)
+                return Data.get_model(cache, int(form[4:]), 3, **kwargs)
             elif form == 'Head':
-                height = int(cache.height / 3)
-                return Data.get_model(cache, cache.width, height, **kwargs)
+                return Data.get_model(cache, 1, 3, **kwargs)
             elif form == 'Humanoid':
-                return Data.get_model(cache, 16, 32, **kwargs)
+                return Data.get_model(cache, 3, 3, **kwargs)
 
     @staticmethod
-    def get_model(image, width, height, **kwargs):
-        if width == 0 or height == 0:
-            return Global.blank_form
-        cols = int(image.width / width)
-        rows = int(image.height / height)
-        if cols == 0 or rows == 0:
-            return Global.blank_form
-        region = []
+    def get_model(image, cols, rows, **kwargs):  # ImageGrid would reverse rows
+        seq = []
+        width = int(image.width / cols)
+        height = int(image.height / rows)
         for y in range(0, rows):
             for x in range(0, cols):
                 left = width * x
                 bottom = image.height - height * (y + 1)
-                region.append(image.get_region(left, bottom, width, height))
-        return Model(region, **kwargs)
+                seq.append(image.get_region(left, bottom, width, height))
+        return Model(seq, **kwargs)
 
     @staticmethod
     def initialize_image(name, texture, subset_size):
-        # explosion = pyglet.image.load(Data.direct(texture + '.png', path='../data/'))
-        # explosion_seq = pyglet.image.ImageGrid(explosion, subset_size[1], subset_size[0])
-        # seq = pyglet.image.Texture3D.create_for_image_grid(explosion_seq)
-        # i = 0
-        # for y in range(subset_size[1]):
-        #     for x in range(subset_size[0]):
-        #         Data.cache[name + '_' + str(x) + 'x' + str(subset_size[1] - y - 1)] = seq[i]
-        #         i += 1
-        texture = Data.get_image(texture, False)
-        width = int(texture.width / subset_size[0])
-        height = int(texture.height / subset_size[1])
-        for x in range(subset_size[0]):
-            for y in range(subset_size[1]):
-                left = width * x
-                bottom = texture.height - height * (y + 1)
-                region = texture.get_region(left, bottom, width, height)
-                region.anchor_x = Global.HALF_BLOCK
-                region.anchor_y = Global.HALF_BLOCK
-                Data.cache[name+'_'+str(x)+'x'+str(y)] = region
+        image = pyglet.image.load(Data.direct(texture + '.png', path='../data/'))
+        image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
+        seq = pyglet.image.TextureGrid(image_grid)
+        # seq = pyglet.image.Texture3D.create_for_image_grid(image_grid)
+        i = 0
+        for y in range(subset_size[1]):
+            for x in range(subset_size[0]):
+                seq[i].anchor_x = Global.HALF_BLOCK
+                seq[i].anchor_y = Global.HALF_BLOCK
+                Data.cache[name + '_' + str(x) + 'x' + str(subset_size[1] - y - 1)] = seq[i]
+                i += 1
 
     @staticmethod
     def process_raw(data):

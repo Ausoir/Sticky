@@ -205,7 +205,18 @@
 ---- PUSH
 12/16 Inventory overhaul (1)
 12/18 Unit model (1)
-12/28 OpenGL Orthographic projection with depth buffer to replace sprite group (5)
+12/28 OpenGL Orthographic projection with depth buffer to replace sprite group (5), pyglet.sprite depth testing (1)
 12/31 Fixed transparency and ordering issues (1)
 1/11 Props attribute (1), Attack system change (1)
+---- PUSH
+1/14 Shape and fonts batched (1)
+1/15 Pathing fix (3)
+1/19 Recursive dynamic lighting blocked by sight (3), Overlay (1)
+1/20 No performance impact dynamic lighting (1)
+1/23 Interaction split to Service (1)
+1/24 Scripted GUI (3), Streamlined dialogs (1), Removed Service (1)
+1/25 Shop (1), AI rework (3), Tags to Attribute (3)
+1/26 Sound (1)
+1/27 gfx cleanup (1)
+1/31 Solid tile shades (1)
 ---- PUSH

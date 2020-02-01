@@ -1,13 +1,11 @@
-from src.entity.Space import Space
 from src.game import Global
-from src.map.Tile import Tile
 
 
 class Task:
     def __init__(self, pilot):
         self.pilot = pilot
         self.host = self.pilot.host
-        self.lifetime = 80
+        self.lifetime = 0
 
     def __str__(self):
         return self.__class__.__name__
@@ -19,9 +17,7 @@ class Task:
         pass
 
     def update(self):
-        self.lifetime -= 1
-        if self.lifetime == 0:
-            self.pilot.set_task(self.pilot.var['def'])
+        self.lifetime += 1
 
 
 class TargetTask(Task):
@@ -30,6 +26,7 @@ class TargetTask(Task):
         self.target = None
 
     def update(self):
+        super().update()
         if not self.target:
             if self.pilot.var['var'] == Global.player.character.id:
                 self.target = Global.player.character
@@ -43,96 +40,6 @@ class TargetTask(Task):
 class Idle(Task):
     def on_set(self):
         self.pilot.priority = 5
-
-    def perform(self):
-        super().perform()
-        self.pilot.var['now'] = self.pilot.var['def']
-
-
-class Post(Task):
-    def on_set(self):
-        self.pilot.priority = 4
-
-    def perform(self):
-        super().perform()
-        if not self.lifetime % 20:
-            self.host.face(self.host.direction * -1)
-
-
-class Wander(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.direction = 1
-        self.direction_y = 0
-        self.walk_time = 0
-        self.stop = False
-
-    def on_set(self):
-        self.pilot.priority = 4
-        self.direction = 1 if self.host.attributes.gene % 2 == 0 else -1
-
-    def update(self):
-        self.walk_time -= 1
-        if self.walk_time < 1:
-            self.stop = not self.stop
-            self.walk_time = Global.r.rand_int(4, self.host.attributes.gene % 200 + 20)
-
-    def perform(self):
-        super().perform()
-        if not self.stop and Global.player.is_daytime():
-            routes = self.pilot.var['path'].get(self.host.pos)
-            choice = [0]
-            if (0, -1) in routes and self.direction_y != 1:
-                choice.append(-1)
-            elif (0, 1) in routes and self.direction_y != -1:
-                choice.append(1)
-            if (self.direction, 0) in routes or (self.direction, 1) in routes:
-                choice.append(2)
-            elif (self.direction, -1) in routes:
-                choice.append(3)
-            chosen = Global.r.rand_list(choice)
-            if chosen == -1:
-                self.direction_y = -1
-                self.host.input('jump', Space(0, -1))
-            elif chosen == 1:
-                self.direction_y = 1
-                self.host.input('duck', Space(0, 1))
-            elif chosen == 2:
-                if self.host.get_offset_tile(self.direction, 0).is_land([Tile.COLLIDE_UNIT]):
-                    self.direction = -self.direction
-                else:
-                    self.direction_y = 0
-                    self.host.input('walk', Space(self.direction, 0))
-            elif chosen == 3:
-                self.direction_y = 0
-                self.host.input('jump', Space(self.direction, -1))
-            else:
-                self.direction = -self.direction
-        return 0
-
-
-class Move(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.target = self.host.pos
-        self.distance = 1
-
-    def update(self):
-        super().update()
-        dist = (self.target - self.host.pos).difference()
-        if self.distance >= 0:
-            if dist <= self.distance:
-                return True
-        else:
-            if dist >= -self.distance:
-                return True
-
-    def perform(self):
-        super().perform()
-        self.host.face_toward(self.target)
-        front = self.host.get_front_tile(self.host.direction)
-        if not front.is_land(Tile.CHECK_LARGE):
-            self.host.input('walk')
 
 
 class Path(Task):  # path finding A*
@@ -153,10 +60,11 @@ class Path(Task):  # path finding A*
     def __init__(self, pilot):
         super().__init__(pilot)
         self.target = self.host.pos
-        self.open = [Path.Node(None, self.host.pos)]
+        self.open = None
         self.closed = []
+        self.closest = None
         self.result = []
-        self.counter = 0
+        self.next_reset = 0
         self.heuristic_threshold = 0
 
     def iterate(self, node):
@@ -170,22 +78,23 @@ class Path(Task):  # path finding A*
         achieved = (node.node - self.target).difference()
         if achieved <= 1:
             return node
-        options = self.pilot.var['path'].get(node.node)
+        if achieved < (self.closest.node - self.target).difference():
+            self.closest = node
+        options = self.pilot.path.get(node.node)
         for i in options:
             pos = self.host.location.get_tile(node.node + i)
             if self.check_loop(self.closed, pos):
                 continue
             conflict = self.check_loop(self.open, pos)
-            mod = 1 if i[1] == -1 else 0
             if conflict:
-                if node.g + 1 + mod <= conflict.g:
+                if node.g + 1 <= conflict.g:
                     conflict.parent = node
-                    conflict.g = node.g + 1 + mod
+                    conflict.g = node.g + 1
                     conflict.set_h(self.target)
                     conflict.f = conflict.h + conflict.g
                 continue
             new = Path.Node(node, pos)
-            new.g = node.g + 1 + mod
+            new.g = node.g + 1
             new.set_h(self.target)
             new.f = new.h + new.g
             if new.h < self.heuristic_threshold:
@@ -199,56 +108,52 @@ class Path(Task):  # path finding A*
 
     def perform(self):
         if self.result:
-            dist = (self.result[0] - self.host.pos).difference()
-            new_dist = (self.result[len(self.result)-1] - self.target).difference()
             cur_dist = (self.host.pos - self.target).difference()
             if cur_dist <= 1:
                 pass
-            elif cur_dist <= new_dist:
-                self.result = []
-                self.reset()
-            elif dist == 0:
-                self.result.pop(0)
-                self.perform()
-            elif dist > 8:
-                self.result = []
-                self.reset()
             else:
                 self.host.face_toward(self.result[0])
                 self.host.input('walk')
+            self.result = []
 
     def update(self):
         super().update()
-        if (self.host.pos - self.target).difference() > 1:
-            # from src.entity.Particle import Particle
-            # for i in self.open:
-            #     Particle.make('blood', i.node.get_center() + Global.r.rand_int(-15, 15))
-            for times in range(3):
-                self.counter += 1
+        if not self.result and (self.host.pos - self.target).difference() > 1:
+            done = None
+            if self.next_reset == 0:
+                self.reset()
+                self.next_reset = 1
+            else:
+                self.next_reset += 1
+            for times in range(12):
                 if self.open:
                     done = self.iterate(self.open[0])
                     if done:
-                        result = [done.node]
-                        while done.parent:
-                            done = done.parent
-                            result.insert(0, done.node)
-                            if done.node == self.host.pos:
-                                break
-                        self.result = result
-                        self.result.pop(0)
-                        self.reset()
-                    elif self.counter > 40:
-                        self.reset()
+                        break
                 else:
-                    self.reset()
-        else:
-            self.reset()
+                    break
+            # self.debug_trace()
+            if not done and self.next_reset > 9:
+                done = self.closest
+            if done:
+                self.next_reset = 0
+                self.result = [done.node]
+                while done.parent:
+                    done = done.parent
+                    if done.node == self.host.pos:
+                        break
+                    self.result.insert(0, done.node)
 
     def reset(self):
-        self.heuristic_threshold = (self.host.pos - self.target).distance()*3
-        self.counter = 0
+        self.heuristic_threshold = (self.host.pos - self.target).distance() * 2 + 4
         self.open = [Path.Node(None, self.host.pos)]
         self.closed = []
+        self.closest = self.open[0]
+
+    def debug_trace(self):
+        for draw in self.open:
+            from src.entity.Particle import Particle
+            Particle.make('blood', draw.node.get_center() + Global.r.rand_int(-15, 15))
 
 
 class Attack(TargetTask):
@@ -258,8 +163,8 @@ class Attack(TargetTask):
     def update(self):
         super().update()
         if self.target and not self.target.removed:
-            self.pilot.var['move'].target = self.target.pos
-            self.pilot.var['move'].update()
+            self.pilot.move.target = self.target.pos
+            self.pilot.move.update()
         else:
             self.pilot.set_task()
 
@@ -270,8 +175,8 @@ class Attack(TargetTask):
                 self.host.face_toward(self.target.pos)
                 self.host.input(Global.r.rand_list(self.host.action.skills + ['use']))
                 return True
-            self.pilot.var['move'].target = self.target.pos
-            self.pilot.var['move'].perform()
+            self.pilot.move.target = self.target.pos
+            self.pilot.move.perform()
 
 
 class Follow(Task):
@@ -283,6 +188,7 @@ class Follow(Task):
         self.pilot.priority = 3
 
     def update(self):
+        super().update()
         if not self.target:
             if self.pilot.var['ally'] == Global.player.character.id:
                 self.target = Global.player.character
@@ -292,42 +198,10 @@ class Follow(Task):
                         self.target = i
                         break
         else:
-            self.pilot.var['move'].target = self.target.pos
-            self.pilot.var['move'].update()
+            self.pilot.move.target = self.target.pos
+            self.pilot.move.update()
 
     def perform(self):
         if self.target:
-            self.pilot.var['move'].target = self.target.pos
-            self.pilot.var['move'].perform()
-
-
-class Search(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.lifetime = 4
-
-    def on_set(self):
-        self.pilot.priority = 3
-
-    def perform(self):
-        super().perform()
-        sight = self.pilot.get_sight()
-        self.host.face(self.host.direction * -1)
-        self.pilot.perceive(sight, offset=(self.host.direction * (3 - self.lifetime) * sight, 0))
-
-
-class Pickup(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.lifetime = 4
-
-    def on_set(self):
-        self.pilot.priority = 3
-
-    def perform(self):
-        super().perform()
-        if not self.host.is_armed():
-            self.host.input('interact', self.host.next_target)
-        else:
-            self.pilot.strategize()
-            self.lifetime = 0
+            self.pilot.move.target = self.target.pos
+            self.pilot.move.perform()

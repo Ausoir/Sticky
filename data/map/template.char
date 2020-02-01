@@ -1,4 +1,4 @@
 instance
 0,0,instance
-#0,[5,0],Player,Character,unit/man,[mat:Flesh,intel:1],1,[[Hunger,-1,0]],1,manual,[1829,9,9,3,21,0,15],[sprint,charge,tackle,peek,slam],[dodge,peek],0,0,[#6,[4,0],Jumpsuit,Armor,data/image/unit/jumpsuit,[],-1,[],[3,2],-1,0,0,[211,111],[],[-1]],[#5,[20,-4],Safety Helmet,SafetyHat,data/image/unit/safety_hat,[],-1,[],[2,1],-1,1,9],[protein:0,calories:0,special:Prophet,money:14,sign:Accident,home:town,debt:0]
+#0,[5,0],Player,Character,unit/man,[mat:flesh,intel:1],1,[[Hunger,-1,0]],1,manual,[1829,9,9,3,21,0,15],[sprint,charge,tackle,peek,slam],[dodge,peek],0,0,[#6,[4,0],Jumpsuit,Armor,data/image/unit/jumpsuit,[],-1,[],[3,2],-1,0,0,[211,111],[],[-1]],[#5,[20,-4],Safety Helmet,SafetyHat,data/image/unit/safety_hat,[],-1,[],[2,1],-1,1,9],[protein:0,calories:0,special:Prophet,money:14,sign:Accident,home:town,debt:0]
 

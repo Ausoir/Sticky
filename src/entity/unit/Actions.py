@@ -1,14 +1,12 @@
 from src.entity.Particle import Particle
 from src.entity.Stock import Stock
 from src.entity.unit.Unit import Unit
-from src.game.Turn import Turn
 from src.map.Tile import Tile
 
 
 class Actions:
     default = ['idle', 'left', 'right', 'up', 'down', 'fall', 'walk', 'grab', 'use', 'attack',
-               'pocket_1', 'pocket_2', 'pocket_3', 'pocket_4',
-               'power_1', 'power_2', 'power_3', 'power_4', 'trinket']
+               'click', 'power_1', 'power_2', 'power_3', 'power_4', 'trinket']
     priority = ['fall']
 
     def __init__(self, host):
@@ -35,6 +33,8 @@ class Actions:
 
     def set(self, action):
         if self.current_action != action:
+            if self.host.delay > 0:
+                self.host.location.attack.unregister(self.host.get_hitter())
             frenzy = self.host.states.get('Frenzy')
             if frenzy and action not in Actions.priority:
                 action = frenzy.var
@@ -75,66 +75,10 @@ class Actions:
             self.make('idle', turn=0)
 
     def wait(self):
-        self.host.weapon.form.rotation = 20 * self.host.direction
-        self.make('block', turn=2)
-
-    def offhand(self):
-        self.host.swap()
-        self.make('block', turn=2)
-
-    def rest(self):
-        self.host.attributes.body = 0
-        if self.host.states.get('Exhaustion'):
-            self.make('rest', turn=16)
-        else:
-            self.make('rest', turn=5)
-
-    def wield(self, pocket):
-        if len(self.host.armor.pockets) > pocket:
-            if self.host.is_armed():
-                item = None
-                pos = None
-                if self.host.armor.pockets[pocket] != -1:
-                    pos = self.host.armor.items[self.host.armor.pockets[pocket]].pos.to_list()
-                    item = self.host.armor.get_item(self.host.armor.pockets[pocket])
-                    weapon = self.host.weapon
-                    item.on_equip(self.host)
-                else:
-                    weapon = self.host.weapon
-                fit = False
-                rows = [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]]
-                for i in rows:
-                    if self.host.armor.is_vacant(weapon, i[0], i[1]):
-                        fit = True
-                        self.host.drop()
-                        self.host.armor.pockets[pocket] = self.host.armor.add_inventory(weapon, i[0], i[1])
-                        break
-                if item:
-                    if fit:
-                        item.on_equip(self.host)
-                    else:
-                        self.host.armor.pockets[pocket] = self.host.armor.add_inventory(item, pos[0], pos[1])
-                        weapon.on_equip(self.host)
-            else:
-                item = self.host.armor.get_item(self.host.armor.pockets[pocket])
-                if item:
-                    item.on_equip(self.host)
-        self.make('block', turn=2)
-
-    def pocket_1(self):
-        self.wield(0)
-
-    def pocket_2(self):
-        self.wield(1)
-
-    def pocket_3(self):
-        self.wield(2)
-
-    def pocket_4(self):
-        self.wield(3)
+        self.make('idle', turn=2)
 
     def trinket(self):
-        if self.host.is_headgeared():
+        if self.host.headgear:
             def fin():
                 self.host.headgear.activate()
             self.on_finish = fin
@@ -194,15 +138,25 @@ class Actions:
     def walk(self):
         front = self.host.get_front_tile(self.host.direction)
         if front.is_land(Tile.CHECK_FIRM):
+            from src.game.Script import Script
+            from src.game import Global
+            if self.host == Global.player.character:
+                for thing in front.things:
+                    code = thing.tags.get('#')
+                    if code:
+                        Script.execute_code(code, host=thing)
+                        self.make('interact', turn=3)
+                        return
             self.set('idle')
         else:
-            if self.host.move_toward(self.host.direction):
-                self.make('walk', turn=max(0, 2 - self.host.attributes.speed))
-            else:
-                front = self.host.get_front_tile(self.host.direction)
-                from src.game.Interaction import Interaction
-                if Interaction.trigger(front):
-                    self.make('interact', turn=max(0, 3 - self.host.attributes.speed))
+            speed = self.host.states.get('Speed')
+            if not speed or speed.var != 0:
+                if self.host.move_toward(self.host.direction):
+                    self.host.location.sound.register(self.host.pos, 2, file='step')
+                    if speed:
+                        self.make('walk', turn=max(0, 2 - speed.var))
+                    else:
+                        self.make('walk', turn=max(0, 2))
 
     def fall(self):
         self.make('fall', turn=11)
@@ -217,12 +171,31 @@ class Actions:
         self.on_finish = fin
         prof = self.host.get_proficiency('peek') * 7 + 1
         new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                                  distance=prof, flag=Tile.CHECK_LARGE)
+                                                  distance=prof, flag=Tile.CHECK_FIRM)
         from src.game.TempObject import TempObject
         viewer = TempObject(new_pos)
         from src.game.Camera import Camera
         Camera.target = viewer
         self.make('idle', turn=1)
+
+    def click(self):
+        from src.game import Global
+        x_diff = Global.player.control.cursor_tile[0] - self.host.pos.x
+        y_diff = Global.player.control.cursor_tile[1] - self.host.pos.y
+        if x_diff == y_diff == 0:
+            Global.menu.toggle()
+        elif self.host.get_front_tile(self.host.direction).to_list() == Global.player.control.cursor_tile:
+            self.host.use()
+        elif abs(x_diff) > abs(y_diff):
+            if x_diff < 0:
+                self.set('left')
+            else:
+                self.set('right')
+        else:
+            if y_diff < 0:
+                self.set('up')
+            else:
+                self.set('down')
 
     def use(self):
         self.host.use()
@@ -248,16 +221,19 @@ class Actions:
         def callback(target):
             self.host.states.trigger(['attack', target])
         front = self.host.get_front_tile(self.host.direction)
-        chance = self.host.get_proficiency('attack') + 1
         damage = self.host.get_proficiency('damage') + 1
-        self.host.location.attack.register(damage, front, hitter=self.host, delay=0, chance=chance, callback=callback)
+        self.host.location.attack.register(damage, front, hitter=self.host, delay=0, callback=callback)
         self.make('attack', turn=4)
 
     def swing(self):
-        slow = max(0, 2 - self.host.attributes.speed)
-        self.make('swing', turn=4 + slow)
+        speed = self.host.states.get('Speed')
+        if speed:
+            slow = max(0, 2 - speed.var)
+        else:
+            slow = 2
+        self.make('swing', turn=8 + slow)
         self.host.form.timer.set(slow * 4 + 4)
-        self.host.weapon.attack(damage=self.host.attributes.strength, delay=slow)
+        self.host.weapon.attack(damage=self.host.tags.get('strength', 0), delay=slow)
 
     def arch(self):
         def fin():
@@ -271,7 +247,7 @@ class Actions:
 
             def collision():
                 r.remove()
-                r.location.attack.register(rating, r.pos, delay=0, chance=rating, hitter=self.host, faction=r.faction)
+                r.location.attack.register(rating, r.pos, delay=0, hitter=self.host, faction=r.faction)
             r = Stock.make('Arrow', self.host.get_front_tile())
             r.faction = self.host.faction
             r.shoot(dest.x, dest.y)
@@ -298,7 +274,7 @@ class Actions:
 
             def collision():
                 r.remove()
-                r.location.attack.register(3, r.pos, delay=0, chance=20, hitter=self.host, faction=r.faction)
+                r.location.attack.register(3, r.pos, delay=0, hitter=self.host, faction=r.faction)
                 Particle.make('slash', r.vec)
             r = Stock.make('Bullet', self.host.get_front_tile())
             r.gravity = False

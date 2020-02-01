@@ -45,24 +45,30 @@ class Dialog:
         return '[' + ','.join(var) + ']'
 
     @staticmethod
+    def to_dict(arg, delimiter=','):
+        r = {}
+        if delimiter == ',':
+            for i in arg:
+                r[i[0]] = i[1]
+        else:
+            for i in arg:
+                args = i.split(delimiter)
+                r[args[0]] = args[1]
+        return r
+
+    @staticmethod
     def space(arg):
         return '[' + str(arg.x) + ',' + str(arg.y) + ']'
 
     @staticmethod
     def date(time):
-        day = int(time / 2)
-        year = str(int(day / 360) + 1)
-        month = int(day % 360 / 30) + 1
-        if month < 10:
-            month = '0' + str(month)
-        else:
-            month = str(month)
-        date = int(day % 30) + 1
-        if date < 10:
-            date = '0' + str(date)
-        else:
-            date = str(date)
-        return '203' + year + '/' + month + '/' + date
+        hour = time % 24
+        day = str(int(hour))
+        hour_m = time % 12 + 1
+        meridian = 'am'
+        if hour + 1 >= 12:
+            meridian = 'pm'
+        return Dialog.get('time', [day, hour_m, meridian])
 
     @staticmethod
     def day(date):

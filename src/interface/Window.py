@@ -17,7 +17,7 @@ class Window(Shape):
     font_color3 = (60, 80, 80, 220)
 
     def __init__(self, x, y, width, height, name=0, color=fore_color1, multi_line=False):
-        super().__init__(x, y, width=width, height=height, color=color)
+        super().__init__(x, y, 900, group=Global.draw_group.group_gui, width=width, height=height, color=color)
         self.name = name
         self.children = []
         self.visible = -1
@@ -29,9 +29,18 @@ class Window(Shape):
         self.next_y = self.y + self.margin.y
         self.document = FormattedDocument(' ')
         self.document.set_style(0, 1, dict(font_name='Default Font', font_size=16, color=Window.font_color1))
-        self.text = TextLayout(self.document, width, height, multiline=multi_line)
+        self.text = TextLayout(self.document, width, height, multiline=multi_line, group=Global.draw_group.group_gui)
 
     def display(self, visible):
+        if self.visible != visible:
+            if visible == 1:
+                self.add_batch()
+                self.text.batch = Global.draw_group.batch
+                self.update_text()
+            elif visible == -1:
+                self.remove_batch()
+                self.text.batch = None
+                self.update_text()
         self.visible = visible
         for i in self.children:
             i.display(visible)
@@ -69,26 +78,26 @@ class Window(Shape):
         else:
             self.color = self.normal_color
 
-    def draw(self):
-        if self.visible == 1:
-            super().draw()
-            if self.document.text != '':
-                position = [self.x + self.margin.x, self.y]
-                self.text.x = position[0]
-                self.text.y = Global.DISPLAY[1] - position[1] - self.document.get_style('font_size')
-                font = self.document.get_font(0)
-                self.text.y += (font.ascent - font.descent) - self.height
-                self.text.y += int((-font.descent - self.height)/2)
-                self.text.draw()
-            for i in self.children:
-                i.draw()
+    def update_text(self):
+        self.text.width = self.width
+        self.text.height = self.height
+        position = [self.x + self.margin.x, self.y]
+        self.text.x = position[0]
+        font = self.document.get_font(0)
+        self.text.y = Global.DISPLAY[1] - position[1] - self.document.get_style('font_size')
+        self.text.y += (font.ascent - font.descent) - self.height
+        if self.text.multiline:
+            self.text.y += -font.ascent
+        else:
+            self.text.y += int((-font.descent - self.height)/2)
+        self.text.z = self.z + 1
 
     def set_text(self, text):
         self.document.text = text
 
     def add(self, child, index=-1, reverse=False):
         if reverse:
-            self.next_y -= child.size.y + self.margin.y
+            self.next_y -= child.height + self.margin.y
         if index == -1:
             self.children.append(child)
         else:

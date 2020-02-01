@@ -5,22 +5,25 @@ from time import time
 from src.game import Global
 from src.entity.Space import Space
 from src.game.Camera import Camera
-from src.game.MapView import MapView
+from src.map.MapView import MapView
 from src.player.Player import Player
 from src.game.DrawGroup import DrawGroup
 from src.game.Turn import Turn
 from src.interface.Textbox import Textbox
+from src.tools.Data import Data
+from src.tools.Dialog import Dialog
 from src.tools.Random import Random
 
 
 # noinspection PyAbstractClass
 class Execute(pyglet.window.Window):
-    def __init__(self, width, height, title=''):
-        super(Execute, self).__init__(width, height, title, fullscreen=False, vsync=False, resizable=True)
-        self.fps = 1 / 40.0
+    def __init__(self):
+        self.setting = Dialog.to_dict(Data.process_raw(Data.read('setting.txt')))
+        super(Execute, self).__init__(self.setting['width'], self.setting['height'], 'Game Title',
+                                      fullscreen=self.setting['fullscreen'] == 1, vsync=False, resizable=True)
+        self.fps = 1 / 44.0
         self.frame_rate = 0, time()
-        self.set_minimum_size(320, 200)
-        self.set_location(320, 40)
+        self.set_location(self.setting['x'], self.setting['y'])
         pyglet.resource.path = ['../data']
         pyglet.resource.reindex()
         self.monologue = Textbox(40, 40)
@@ -32,24 +35,27 @@ class Execute(pyglet.window.Window):
     def init_other(self):
         Global.r = Random()  # todo: set to constant on production
         Space.reusable = Space()
-        from src.tools.Data import Data
         from src.entity.Stock import Stock
-        from src.map.Tile import Tile
+        from src.map.Overlay import Overlay
         Data.init()
         Stock.init()
-        Tile.init()
+        Global.draw_group = DrawGroup()
         Turn.init()
+        Global.overlay = Overlay()
         pyglet.font.add_file(Data.direct('Ubuntu-Regular.ttf'))
         Global.font = pyglet.font.load('Default Font', 18)
         Global.main = self
-        Global.draw_group = DrawGroup()
         Global.blank_form = Data.get_form('none')
         Global.map_view = MapView()
         Global.player = Player()
 
+    def set_fullscreen(self, fullscreen=True, screen=None, mode=None,
+                       width=None, height=None):
+        super().set_fullscreen(fullscreen, width=Global.main.setting['res_x'], height=Global.main.setting['res_y'])
+        self.set_location(0, 0)
+        self.clear()
+
     def on_key_press(self, symbol, modifiers):
-        if symbol == pyglet.window.key.ESCAPE:
-            Global.player.control.quit()
         Global.player.control.input(symbol)
 
     def on_key_release(self, symbol, modifiers):
@@ -70,12 +76,19 @@ class Execute(pyglet.window.Window):
         Global.player.control.cursor = [x, Global.DISPLAY[1] - y]
         Global.player.control.input(0)
 
+    def on_move(self, x, y):
+        self.setting['x'] = x
+        self.setting['y'] = y
+
     def on_resize(self, width, height):
+        self.setting['width'] = width
+        self.setting['height'] = height
         Global.DISPLAY = (int(width / 2) * 2, int(height / 2) * 2)
         Global.CENTER = (int(Global.DISPLAY[0] / 2), int(Global.DISPLAY[1] / 2))
         Global.SCREEN_TILES = (int(Global.DISPLAY[0] / Global.BLOCK), int(Global.DISPLAY[1] / Global.BLOCK))
         self.monologue.x = Global.CENTER[0]
         Global.player.on_resize()
+        Global.overlay.on_resize()
 
         glViewport(0, 0, Global.DISPLAY[0], Global.DISPLAY[1])
         glMatrixMode(GL_PROJECTION)
@@ -91,6 +104,13 @@ class Execute(pyglet.window.Window):
     def on_activate(self):
         Global.player.control.clear_press()
 
+    def on_close(self):
+        self.setting['fullscreen'] = 1 if self.fullscreen else 0
+        result = Dialog.dict(self.setting)
+        Data.write('setting.txt', result.replace(',', '\n').replace(':', ',')[1:][:-1])
+        import sys
+        sys.exit()
+
     def loop(self, dt):
         if time() - self.frame_rate[1] > self.fps:
             self.frame_rate = 0, time()
@@ -105,11 +125,11 @@ class Execute(pyglet.window.Window):
         Global.draw_group.draw()
         Global.menu.draw()
         Global.player.draw()
-        self.monologue.draw()
         self.batch.draw()
+        self.monologue.draw()
 
 
 if __name__ == '__main__':
-    main = Execute(800, 600, 'Stuff')
-    pyglet.clock.schedule_interval(main.loop, 1 / 100.0)
+    main = Execute()
+    pyglet.clock.schedule_interval(main.loop, 1 / 160.0)
     pyglet.app.run()

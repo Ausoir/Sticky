@@ -8,7 +8,7 @@ class BodyHumanoid(Body):
 
     def set_row(self, row):
         self.row = row
-        t = row * 20
+        t = row
         for i in self.order[self.direction - 1]:
             t += 1
             if i >= 0:
@@ -22,7 +22,7 @@ class BodyHumanoid(Body):
     def update_perspective(self):
         from src.tools import Direction
         numeral = Direction.numeral[self.direction] * self.texture_count
-        t = self.row * 20
+        t = self.row
         for i in self.order[self.direction - 1]:
             t += 1
             if i >= 0:

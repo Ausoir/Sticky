@@ -25,7 +25,7 @@ class Player:
         self.knowledge = data[3]
         self.temporary = None
         self.character = self.load_player(self.location, data[2])
-        self.set_ability(self.character.tags['talent'])
+        self.set_ability(self.character.tags.get('talent'))
         self.inventory = Inventory(self.character)
         self.turn()
         self.sleep(0)
@@ -51,7 +51,7 @@ class Player:
         return player
 
     def is_daytime(self):
-        return self.days % 2 == 0
+        return 5 < self.days % 24 < 18
 
     def get_spell_list(self):
         spells = []
@@ -80,31 +80,27 @@ class Player:
     def sleep(self, time):
         self.days += time
         if Global.player and time >= 1:
-            self.character.attributes.rest()
-            self.character.tags['protein'] = max(0, self.character.tags['protein'] - self.character.attributes.strength)
-            cal_upkeep = self.character.attributes.agility + self.character.attributes.intelligence - 1
-            self.character.tags['calories'] = max(0, self.character.tags['calories'] - cal_upkeep)
+            self.character.tags.add('full', -1)
             for i in self.character.get_possessions():
                 i.on_sleep(time)
             for i in self.character.states.buffs:
                 i.trigger(['time', time])
-        Global.map_view.set_light(-120)
-        Global.draw_group.colorize(0, [0, 0, 0, 255], fade=3)
+        Global.overlay.blackout()
         self.set_darkness()
 
     def set_darkness(self):
         if self.is_daytime():
-            Global.draw_group.colorize(1, [0, 0, 0, 0])
+            Global.overlay.colorize(None)
             Global.map_view.sight_range = 13
             Global.map_view.view_range = 13
         else:
-            Global.draw_group.colorize(1, [10, 0, 30, 160])
-            Global.map_view.sight_range = 8
-            Global.map_view.view_range = 4
+            Global.overlay.colorize([10, 0, 30, 160])
+            Global.map_view.sight_range = 10
+            Global.map_view.view_range = 3
         Global.map_view.on_sight_change()
 
     def travel(self, to_map, to_pos):
-        Global.draw_group.colorize(0, [0, 0, 0, 255], fade=3)
+        Global.overlay.blackout()
         self.depart = self.character.location.name
         if self.character.location.name != to_map:
             self.character.location.save()
@@ -112,7 +108,7 @@ class Player:
         self.character.form.set_state('interact')
         self.character.relocate(to_pos.x, to_pos.y, force=1)
         if to_map == 'home':
-            to_map = Global.player.character.tags['home']
+            to_map = Global.player.character.tags.get('home')
         Global.player.location.name = to_map
         Global.player.turn()
         Global.player = Player()
@@ -145,10 +141,10 @@ class Player:
                     self.character.add()
                     revive.trigger(['death'])
             if self.dead == 10:
-                self.character.tags['money'] = 0
-                self.character.tags['protein'] = 0
-                self.character.tags['calories'] = 0
-                death = self.character.tags['sign']
+                self.character.tags.set('money', 0)
+                self.character.tags.set('protein', 0)
+                self.character.tags.set('calories', 0)
+                death = self.character.tags.get('sign')
                 insurance = self.character.states.get('Revive')
                 if insurance:
                     self.character.states.get('Revive').end()
@@ -156,27 +152,27 @@ class Player:
                     self.sleep(coma)
                     self.dead = 0
                     self.character.removed = 0
-                    Global.draw_group.colorize(0, [0, 0, 0, 255], fade=1)
+                    Global.overlay.blackout()
                     from src.entity.Space import Space
                     self.travel('home', Space())
                     Global.menu.var = [1, coma]
                     from src.tools.Dialog import Dialog
                     text = Dialog.get('insurerevive', [Dialog.date(coma)])
-                    Global.menu.show_dialog(text + '\n' + Dialog.get('sign', [death]))
+                    Global.menu.get_message(text + '\n' + Dialog.get('sign', [death]))(None)
                 else:
                     from src.tools.Dialog import Dialog
-                    Global.menu.show_dialog(Dialog.get('youdie') + '\n' + Dialog.get('sign', [death]))
+                    Global.menu.get_message(Dialog.get('youdie') + '\n' + Dialog.get('sign', [death]))(None)
             else:
                 self.dead += 1
         else:
-            if self.character.tags['talent'] == 'Rogue':
+            if self.character.tags.get('talent') == 'Rogue':
                 for x in range(-5, 6):
                     for y in range(-5, 6):
-                        tile = self.character.get_offset_tile(x, y)
+                        tile = self.character.pos.get_neighbor(x, y)
                         if tile.is_land([Tile.COLLIDE_UNIT]):
                             pos = str(self.character.pos.x + x) + ',' + str(self.character.pos.y + y)
                             if pos not in Global.map_view.draw_tiles:
-                                Global.map_view.draw_tiles[pos] = self.character.get_offset_tile(x, y)
+                                Global.map_view.draw_tiles[pos] = self.character.pos.get_neighbor(x, y)
             r = self.location.name + '\n'
             r += str(self.days) + ',' + str(Turn.frame) + ',' + str(self.depart) + '\n'
             r += self.character.__str__() + '\n'
@@ -191,11 +187,6 @@ class Player:
                     self.character.say('Not safe!')
                     return False
         return True
-
-    def menu(self, menu):
-        self.control.clear_press()
-        Global.menu.state = menu
-        Global.menu.display(1)
 
     def eat(self):
         items = self.character.get_accessibles()
@@ -212,7 +203,7 @@ class Player:
         return True
 
     def memorize(self):
-        if self.character.attributes.intelligence > len(self.knowledge):
+        if self.character.tags.get('intelligence') > len(self.knowledge):
             return True
         else:
             self.character.say('Knowledge count exceeds Intelligence!')

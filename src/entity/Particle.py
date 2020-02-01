@@ -13,10 +13,10 @@ class Particle(Prop):
         r.lifetime = lifetime
         r.pos = Stock.location.get_tile_from_vec(pos.x, pos.y)
         r.vec = pos + 0
-        r.offset = [random.randint(-offset, offset), random.randint(-offset, offset)]
+        r.offset = [offset, offset]
         r.form.face(direction)
         if glow >= 0:
-            r.glow(glow)
+            r.pos.glow(glow)
         return r.add()
 
     def __init__(self, loc):
@@ -26,6 +26,8 @@ class Particle(Prop):
         self.offset = None
 
     def add(self):
+        self.offset[0] = random.randint(-self.offset[0], self.offset[0])
+        self.offset[1] = random.randint(-self.offset[1], self.offset[1])
         self.removed = 0
         self.form.show(True)
         Turn.add(self.turn)
@@ -45,7 +47,7 @@ class Particle(Prop):
 
     def set_form(self, arg):
         super().set_form(arg)
-        self.form.z = 900
+        self.form.z = 800
 
     def set_row(self, row):
         pass
@@ -53,8 +55,7 @@ class Particle(Prop):
     def hit(self, damage, accuracy=None, hitter=None):
         pass
 
-    def draw(self, surface):
-        self.form.draw(surface, self.vec.x + self.offset[0], self.vec.y + self.offset[1])
-
-    def update_vec(self):
-        pass
+    def update(self):
+        diff = self.pos.get_center() - self.vec
+        self.vec += diff * .07
+        self.form.place(self.vec.x + self.offset[0], self.vec.y + self.offset[1])

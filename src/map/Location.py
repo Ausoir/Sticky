@@ -16,9 +16,9 @@ class Location:
     def make(target, alias, overwrite=True):
         if overwrite or not Data.is_file('data/save/' + target + '.map'):
             r = Location(alias, list(Data.process_raw(Data.read('data/map/' + target + '.map'))))
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             for obj in r.record.copy():
-                if isinstance(obj, Script):
+                if isinstance(obj, Scripter):
                     obj.trigger_make()
             r.save()
 
@@ -111,14 +111,21 @@ class Location:
                     highest = i[1][0]
             middle = int((highest - lowest) / 2)
         for i in arg[1]:
-            data = tile_data[i[1]]
+            data = tile_data[i[2]]
             if flip:
-                tile = self.get_tile(((middle - i[0][0] - middle) + offset[0], i[0][1] + offset[1]))
+                tile = self.get_tile(((middle - i[0] - middle) + offset[0], i[1] + offset[1]))
             else:
-                tile = self.get_tile((i[0][0] + offset[0], i[0][1] + offset[1]))
-            tile.terrain = Terrain(i[1], data[0], data[1], data[2], data[3], data[4], data[5])
+                tile = self.get_tile((i[0] + offset[0], i[1] + offset[1]))
+            tile.terrain = Terrain(i[2], data[0], data[1], data[2], data[3])
             if tile.y > self.edge:
                 self.edge = tile.y
+        directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
+        for i in self.tiles.values():
+            if i.terrain and i.terrain.type == 1:
+                for k, neighbors in enumerate(directions):
+                    tile = self.get_tile((i.x + neighbors[0], i.y + neighbors[1]), create=False)
+                    if tile and tile.terrain and tile.terrain.type == 2:
+                        i.terrain.joint_neighbors[k] = 1
         objects = []
         for i in arg[2]:
             obj = Stock.get(i[2], i, loc=self)
@@ -142,14 +149,14 @@ class Location:
                 return i
         return None
 
-    def get_tile(self, arg, create=1):
+    def get_tile(self, arg, create=True):
         Space.reusable.load(arg)
         pos = Space.reusable.to_int()
         key = str(pos.x) + ',' + str(pos.y)
         if key not in self.tiles:
             if not create:
                 return None
-            self.tiles[key] = Tile(pos.x, pos.y)
+            self.tiles[key] = Tile(self, pos.x, pos.y)
         return self.tiles[key]
 
     def get_tile_from_vec(self, x, y):

@@ -1,5 +1,4 @@
 import os
-
 import pyglet
 from pyglet.image import Texture, Animation
 
@@ -15,6 +14,7 @@ class Data:
     @staticmethod
     def init():
         Data.set_cache('none', Texture.create(1, 1))
+        Data.set_cache('setting', Data.process_raw(Data.read('setting.txt')))
         Data.set_cache('tiles', Data.process_raw(Data.read('raw/tiles.txt')))
         for i in Data.registry_list:
             Data.set_cache(i, Data.process_raw(Data.read('raw/' + i + '.txt')))
@@ -69,6 +69,15 @@ class Data:
             Data.cache[fdir] = arg
 
     @staticmethod
+    def get_track(fdir):
+        directory = 'sound/' + fdir
+        cache = Data.get_cache(directory)
+        if not cache:
+            cache = pyglet.media.StaticSource(pyglet.resource.media(directory + '.wav'))
+            Data.set_cache(directory, cache)
+        return cache
+
+    @staticmethod
     def get_form(fdir, form=None, **kwargs):
         cache = Data.get_cache(fdir)
         if not cache:
@@ -86,6 +95,12 @@ class Data:
                 return Data.get_model(cache, 1, 3, **kwargs)
             elif form == 'Humanoid':
                 return Data.get_model(cache, 3, 3, **kwargs)
+            elif form == 'Armor':
+                width = int(cache.width / 3)
+                height = int(cache.height / 3)
+                r = Picture(cache.get_region(0, cache.height - height, width, height), **kwargs)
+                r.reset()
+                return r
 
     @staticmethod
     def get_model(image, cols, rows, **kwargs):  # ImageGrid would reverse rows
@@ -158,7 +173,11 @@ class Data:
 
     @staticmethod
     def get_line(fdir, name):
-        data = Data.process_raw(Data.read(fdir))
+        cache = Data.get_cache(fdir)
+        if cache:
+            data = cache
+        else:
+            data = Data.process_raw(Data.read(fdir))
         for i in data:
             if i[0] == name:
                 return i

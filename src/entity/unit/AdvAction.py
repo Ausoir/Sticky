@@ -85,7 +85,6 @@ class Necromancer(AdvAction):
             for thing in tile.things:
                 if thing.name == 'Corpse':
                     corpses.append(thing)
-                    thing.gravity = 0
                     thing.states.add('Banish', 40)
                     thing.move(target.x - thing.pos.x, target.y - thing.pos.y)
 
@@ -175,7 +174,6 @@ class Psychic(AdvAction):
                 Particle.make('spin', self.host.vec, glow=-1)
             pointer = self.host.get_target_tile()
             for target in targets:
-                target.states.add('Levitate', 4)
                 target.move(pointer.x - target.pos.x, pointer.y - target.pos.y)
         targets = []
         for thing in self.host.get_target_tile().things:
@@ -221,7 +219,7 @@ class Terramancer(AdvAction):
 
     def on_cast(self):
         if self.host.var['casting'] == '?':
-            if self.aim.terrain and self.aim.terrain.name != 'edge':
+            if self.aim.terrain and self.aim.terrain.name != 'void':
                 self.host.var['casting'] = self.aim.terrain.name
                 self.aim.terrain = None
         else:
@@ -246,7 +244,6 @@ class Aeromancer(AdvAction):
                 channel.end()
         Particle.make('wind', self.host.pos.get_center())
         channel = self.host.states.add('Channel', -1)
-        self.host.states.add('Levitate', -1)
         channel.on_update = on_update
 
 
@@ -257,10 +254,10 @@ class Enchanter(AdvAction):
         self.delay = 20
         self.aim = None
         self.selection = []
-        self.buff = [['Glow', 240, 4], ['Fire', 30, 0], ['Levitate', 60, 0], ['Barkskin', 30, 0], ['Slowfall', 60, 0],
+        self.buff = [['Glow', 240, 4], ['Fire', 30, 0], ['Barkskin', 30, 0], ['Slowfall', 60, 0],
                      ['Speed', 30, 1]]
-        self.hex = [['Glow', 240, 3], ['Levitate', 60, 0], ['Speed', 30, -1], ['Bleed', 300, 0], ['Cripple', 120, 0],
-                    ['Weak', 60, 0], ['Exhaustion', 120, 0], ['Shock', 60, 0], ['Burn', 10, 0], ['Stun', 30, 0]]
+        self.hex = [['Glow', 240, 3], ['Speed', 30, -1], ['Bleed', 300, 0], ['Cripple', 120, 0],
+                    ['Weak', 60, 0], ['Burn', 10, 0], ['Stun', 30, 0]]
 
     def is_valid(self):
         return self.host.get_target_tile().things

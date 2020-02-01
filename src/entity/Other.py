@@ -10,294 +10,59 @@ from src.game import Global
 from src.map.Tile import Tile
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
-from src.tools.Random import Random
 
 
-class Script(Prop):
+class Scripter(Prop):
     def __init__(self, loc):
         super().__init__(loc)
-        self.condition = None
-        self.mechanism = None
-        self.seed = None
-        self.rand = None
-        self.where = None
-        self.who = None
+        from src.game.Script import Script
+        self.script = Script(self)
 
     def __str__(self):
-        string = Dialog.deepnonstrlist
-        cnm = string(self.condition, 2) + ',' + string(self.mechanism, 2)
-        return super().__str__() + ',' + str(self.seed) + ',' + cnm
+        return super().__str__() + ',[' + self.script.__str__() + ']'
 
     def load(self, arg):
         index = super().load(arg)
-        self.seed = arg[index]
-        self.rand = Random(self.seed)
-        index += 1
-        self.condition = arg[index]
-        index += 1
-        self.mechanism = arg[index]
+        self.script.load(arg[index])
         return index + 1
 
     def add(self):
         super().add()
-        if '!' in self.tags:
-            from src.game.Turn import Turn
-            Turn.remove(self.turn)
-
-    def turn(self):
-        self.where = self.pos
-        self.who = self.pos.things
-        for i in self.condition:
-            if not self.is_triggered(i):
-                return
-        self.run()
-
-    def trigger(self):
-        self.turn()
-
-    def trigger_make(self):
-        if self.condition and self.condition[0][0] == 'make':
-            self.where = self.pos
-            self.who = self.pos.things
-            success = True
-            for i in self.condition[1:]:
-                if not self.is_triggered(i):
-                    success = False
-                    break
-            if success:
-                self.run()
-            self.remove()
-
-    def is_triggered(self, condition):
-        if condition[0] == 'where':
-            self.where = self.location.get_tile([condition[1], condition[2]])
-            self.who = self.where.things
-            return True
-        elif condition[0] == 'wherer':
-            self.where = self.location.get_tile([self.pos.x + condition[1], self.pos.y + condition[2]])
-            self.who = self.where.things
-            return True
-        elif condition[0] == 'who':
-            if len(condition) == 1:
-                self.who = self.where.things
-            else:
-                self.who = []
-                for i in self.location.record:
-                    if i.name == condition[1]:
-                        self.who.append(i)
-            return True
-        elif condition[0] == 'turn':
-            condition[2] += 1
-            if condition[2] >= condition[1]:
-                condition[2] = 0
-                return True
-        elif condition[0] == 'bring':
-            count = 0
-            for i in self.who:
-                if i != self:
-                    if not condition[1] or condition[1] == i.name:
-                        count += 1
-            if count == condition[2]:
-                return True
-        elif condition[0] == 'rand':
-            for i in self.condition[self.condition.index(condition) + 1:]:
-                if i[0] == condition[1]:
-                    if isinstance(condition[3], str) and condition[3].startswith('#'):
-                        data = Data.get_line('data/raw/raw.txt', condition[3][1:])[1]
-                        i[condition[2]] = self.rand.rand_list(data)
-                    else:
-                        i[condition[2]] = self.rand.rand_list(condition[3:])
-                    return True
-        elif condition[0] == 'randr':
-            for i in self.condition[self.condition.index(condition) + 1:]:
-                if i[0] == condition[1]:
-                    i[condition[2]] = self.rand.rand_int(condition[3], condition[4])
-                    return True
-        elif condition[0] == 'reqvar':
-            ok = False
-            for i in self.who:
-                from src.entity.unit.Character import Character
-                if isinstance(i, Character):
-                    if not i.require_var(condition[1], condition[2], cost=False):
-                        return False
-                    else:
-                        ok = True
-            return ok
-        elif condition[0] == 'chance':
-            if self.rand.rand_int(1, condition[1]) <= condition[2]:
-                return True
-        elif condition[0] == 'date':
-            if Global.player.days > condition[1]:
-                condition[1] = Global.player.days + condition[2]
-                return True
-        elif condition[0] == 'limit':
-            condition[1] -= 1
-            if condition[1] == 0:
-                return True
-        elif condition[0] == 'load':
-            from src.game.Turn import Turn
-            Turn.remove(self.turn)
-            return True
-        elif condition[0] == 'once':
-            self.remove()
-            return True
-        elif condition[0] == 'safe':
-            return Global.player.is_safe()
-        elif condition[0] == 'bright':
-            return Global.player.character.is_bright()
-        elif condition[0] == 'ask':
-            def on_yes(name):
-                Global.menu.toggle()
-                self.run()
-            Global.menu.var = [condition[1], [condition[2]], [on_yes]]
-            Global.menu.direct(Global.menu.menu_choice)
-
-    def run(self):
-        self.where = self.pos
-        for i in self.mechanism:
-            self.trigger_mechanism(i)
-
-    def trigger_mechanism(self, arg):
-        if arg[0] == 'where':
-            self.where = self.location.get_tile([arg[1], arg[2]])
-            self.who = self.where.things
-        elif arg[0] == 'wherer':
-            self.where = self.location.get_tile([self.pos.x + arg[1], self.pos.y + arg[2]])
-            self.who = self.where.things
-        elif arg[0] == 'who':
-            if len(arg) == 1:
-                self.who = self.where.things
-            else:
-                self.who = []
-                for i in self.location.record:
-                    if i.name == arg[1]:
-                        self.who.append(i)
-        elif arg[0] == 'trigger':
-            for i in self.who:
-                if isinstance(i, Script):
-                    i.trigger()
-        elif arg[0] == 'seed':
-            for i in self.who:
-                if isinstance(i, Script):
-                    i.seed = arg[1]
-        elif arg[0] == 'spawn':
-            count = 0
-            from src.entity.Stock import Stock
-            for i in self.location.record:
-                if i.name == arg[1]:
-                    count += 1
-            if count < arg[2]:
-                Stock.make(arg[1], self.where)
-        elif arg[0] == 'effect':
-            Particle.make(arg[1], self.where.get_center(), offset=8, glow=arg[2])
-        elif arg[0] == 'message':
-            Global.menu.show_dialog(arg[1])
-        elif arg[0] == 'dialog':
-            Global.menu.var = [None, arg[1]]
-            Global.menu.topic(arg[1])
-        elif arg[0] == 'say':
-            from src.entity.unit.Character import Character
-            for i in self.who:
-                if isinstance(i, Character):
-                    i.say(arg[1])
-        elif arg[0] == 'setvar':
-            from src.entity.unit.Character import Character
-            for i in self.who:
-                if isinstance(i, Character):
-                    i.tags[arg[1]] = arg[2]
-                    return
-        elif arg[0] == 'addvar':
-            from src.entity.unit.Character import Character
-            for i in self.who:
-                if isinstance(i, Character):
-                    i.tags[arg[1]] += arg[2]
-                    return
-        elif arg[0] == 'remove':
-            count = arg[2]
-            for thing in reversed(self.who):
-                if thing != self and count > 0 and not arg[1] or thing.name == arg[1]:
-                    count -= 1
-                    thing.remove()
-        elif arg[0] == 'hit':
-            for thing in self.who:
-                if thing != self and not arg[1] or thing.name == arg[1]:
-                    thing.hit(arg[2])
-        elif arg[0] == 'buff':
-            for thing in self.who:
-                if thing != self:
-                    thing.states.add(arg[1], arg[2], var=arg[3])
-        elif arg[0] == 'relocate':
-            for thing in self.who:
-                if thing != self:
-                    if not arg[1] or arg[1] == thing.name:
-                        thing.relocate(arg[2], arg[3])
-        elif arg[0] == 'move':
-            for thing in self.who:
-                if thing != self:
-                    if not arg[1] or arg[1] == thing.name:
-                        thing.move(arg[2], arg[3])
-        elif arg[0] == 'thief':
-            for i in self.location.record:
-                if isinstance(i, Item):
-                    if i.get_value() >= arg[1]:
-                        i.remove()
-        elif arg[0] == 'color':
-            Global.draw_group.colorize(1, [arg[1], arg[2], arg[3], arg[4]])
-        elif arg[0] == 'darkness':
-            self.location.view_range = arg[1]
-            self.location.sight_range = arg[2]
-            self.location.resize()
-        elif arg[0] == 'rand':
-            for i in self.mechanism[self.mechanism.index(arg) + 1:]:
-                if i[0] == arg[1]:
-                    if isinstance(arg[3], str) and arg[3].startswith('#'):
-                        i[arg[2]] = self.rand.rand_list(Data.get_line('data/raw/raw.txt', arg[3][1:])[1])
-                    else:
-                        i[arg[2]] = self.rand.rand_list(arg[3:])
-                    break
-        elif arg[0] == 'randr':
-            for i in self.mechanism[self.mechanism.index(arg) + 1:]:
-                if i[0] == arg[1]:
-                    i[arg[2]] = self.rand.rand_int(arg[3], arg[4])
-                    break
-        elif arg[0] == 'enter':
-            Global.player.travel(arg[1], Space(int(arg[2]), int(arg[3])))
-        elif arg[0] == 'travel':
-            Global.menu.var = arg[1:]
-            Global.menu.state = Global.menu.menu_travel
-            Global.menu.display(1)
-        elif arg[0] == 'load':
-            building = Data.process_raw(Data.read('data/map/' + arg[1] + '.map'))
-            flip = False
-            if len(arg) > 2 and arg[2]:
-                flip = True
-            objs = self.location.load_map(building, new=True, offset=self.where.to_list(), flip=flip)
-            for obj in objs:
-                if isinstance(obj, Script):
-                    obj.trigger_make()
-        elif arg[0] == 'make':
-            from src.map.Location import Location
-            Location.make(arg[1], arg[2])
-        elif arg[0] == 'makeif':
-            from src.map.Location import Location
-            Location.make(arg[1], arg[2], overwrite=False)
-        elif arg[0] == 'act':
-            from src.entity.unit.Unit import Unit
-            for i in self.who:
-                if isinstance(i, Unit):
-                    i.action.set('wait')
-                    i.form.set(arg[1])
-                    i.delay = arg[2]
+        self.script.run()
 
 
 class Door(Prop):
+    def __init__(self, loc):
+        super().__init__(loc)
+        self.form1 = None
+        self.form2 = None
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.form1 = self.form
+        self.form2 = Data.get_form(self.tags.get('morph'))
+        self.form2.show(True)
+        return index
+
+    def set_row(self, row):
+        self.form.z = row * 20 + 100
+
     def turn(self):
         super().turn()
-        from src.game.Camera import Camera
-        if Camera.target.pos == self.pos:
-            self.form.show(False)
+        if len(self.pos.things) > 1:
+            if self.collision_type != Tile.COLLIDE_ITEM:
+                self.form2.show(True)
+                self.form2.bound(self.form.inbound)
+                self.form = self.form2
+                self.form1.show(False)
+                self.collision_type = Tile.COLLIDE_ITEM
         else:
-            self.form.show(True)
+            if self.collision_type != Tile.COLLIDE_FOG:
+                self.form1.show(True)
+                self.form1.bound(self.form.inbound)
+                self.form = self.form1
+                self.form2.show(False)
+                self.collision_type = Tile.COLLIDE_FOG
 
 
 class Credit(Item):
@@ -325,49 +90,10 @@ class Credit(Item):
         self.die()
 
 
-class RepairKit(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.charge = 0
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.charge)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.charge = arg[index]
-        return index + 1
-
-    def describe(self):
-        return super().describe() + '\nCharges: ' + str(self.charge)
-
-    def on_sleep(self, time):
-        if self.host:
-            diff = max(0, self.host.headgear.max_durability - self.host.headgear.durability)
-            if diff > 0:
-                diff = max(self.charge, diff)
-                self.host.headgear.durability += diff
-                self.charge = max(0, self.charge - diff)
-            diff = max(0, self.host.armor.max_durability - self.host.armor.durability)
-            if diff > 0:
-                diff = max(self.charge, diff)
-                self.host.armor.durability += diff
-                self.charge = max(0, self.charge - diff)
-            if self.charge == 0:
-                self.die()
-
-    def use(self):
-        for i in self.host.get_possessions():
-            if i == 'Fiber':
-                i.die()
-                self.charge = min(20, self.charge + 8)
-                Particle.make('heal', self.host.vec)
-
-
 class Food(Item):
     def __init__(self, loc):
         super().__init__(loc)
-        self.nutrition = [-1, 0, 0, 0]
+        self.nutrition = [-1, 0]
 
     def __str__(self):
         return super().__str__() + ',' + Dialog.nonstrlist(self.nutrition)
@@ -381,12 +107,12 @@ class Food(Item):
 
     def get_value(self):
         expire = self.get_expiration()
-        if expire > 2:
-            return super().get_value() + self.nutrition[1] + self.nutrition[2]
-        elif expire > 0:
-            return super().get_value() + self.nutrition[1] + self.nutrition[2] - 1
-        else:
-            return 0
+        points = expire + self.nutrition[1]
+        if points > 8:
+            return 3
+        elif points > 3:
+            return 2
+        return 1
 
     def describe(self):
         r = super().describe()
@@ -396,7 +122,7 @@ class Food(Item):
         if expire:
             r += '\nExpires in ' + Dialog.day(expire)
         else:
-            r += '\nThis food has expired.'
+            r += '\nThis food is expired.'
         return r
 
     def get_expiration(self):
@@ -405,37 +131,16 @@ class Food(Item):
 
     def use(self):
         if self.get_expiration():
-            if self.host.states.get('Nausea'):
-                self.host.say('I have nausea...')
+            hunger = self.host.tags.get('full')
+            if hunger < 0:
+                self.host.tags.add('full', self.nutrition[1])
+                self.decay(1)
+                self.host.action.set('wait')
             else:
-                hunger = self.host.states.get('Hunger')
-                if hunger:
-                    hunger.end()
-                    self.host.action.set('wait')
-                    self.eat()
-                else:
-                    self.host.say('I am not hungry.')
+                Global.main.monologue.set('Not hungry.')
         else:
-            self.host.say('This food has expired...')
-
-    def eat(self):
-        self.host.var['calories'] += self.nutrition[1]
-        self.host.var['protein'] += self.nutrition[2]
-        self.hit(1)
-
-
-class Sonic(Prop):
-    def turn(self):
-        if self.durability == 0:
-            self.remove()
-        else:
-            self.durability -= 1
-            Particle.make('sonic', self.get_offset_tile(Global.r.rand_int(-3, 3), Global.r.rand_int(-3, 3)).get_center())
-            for x in range(-9, 10):
-                for y in range(-9, 10):
-                    if Global.r.rand_bool():
-                        pos = str(self.pos.x + x) + ',' + str(self.pos.y + y)
-                        self.location.draw_tiles[pos] = self.get_offset_tile(x, y)
+            Global.main.monologue.set('That food had expired.')
+            self.die()
 
 
 class Corpse(Prop):
@@ -468,18 +173,9 @@ class Corpse(Prop):
         if self.has_host:
             self.form.place(self.vec.x, self.vec.y)
 
-    def is_hit(self, chance, faction=0):
-        if self.hittable:
-            return 1
-
-    def hit(self, damage, accuracy=None, hitter=None):
-        r = super().hit(damage, accuracy, hitter)
-        if r == 2:
-            from src.game.Tags import Tags
-            if hitter and Tags.sharp in hitter.tags:
-                from src.entity.Stock import Stock
-                Stock.make('Raw Meat', self.pos)
-        else:
+    def hit(self, damage, hitter=None):
+        r = super().hit(damage, hitter)
+        if r != 2:
             if self.has_host:
                 self.form.randomize_once(6)
         return r
@@ -548,9 +244,9 @@ class Manual(Item):
 
     def get_req(self):
         req = 2
-        for i in self.host.action.skills:
-            if i.title() in Manual.skills:
-                req += 1
+        # for i in self.host.action.skills:
+        #     if i.title() in Manual.skills:
+        #         req += 1
         return req
 
     def use(self):
@@ -706,7 +402,7 @@ class Glasses(Headgear):
             channel = self.host.states.add('Channel', 12)
             channel.on_finish = done
             new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                                      distance=self.sight, flag=Tile.CHECK_LARGE)
+                                                      distance=self.sight, flag=Tile.CHECK_FIRM)
             from src.game.TempObject import TempObject
             viewer = TempObject(new_pos)
             from src.game.Camera import Camera
@@ -716,7 +412,7 @@ class Glasses(Headgear):
 class SafetyHat(Headgear):
     def __init__(self, loc):
         super().__init__(loc)
-        self.light = 4
+        self.light = 6
 
     def __str__(self):
         return super().__str__() + ',' + str(self.light)
@@ -771,8 +467,8 @@ class Tazer(Weapon):
 
 
 class Pickaxe(Weapon):
-    def attack(self, damage=1, chance=1, delay=1, callback=None):
-        super().attack(damage, chance, delay, callback)
+    def attack(self, damage=1, delay=1, callback=None):
+        super().attack(damage, delay, callback)
         breakables = Data.get_line('raw/raw.txt', 'breakable')[1]
         tile = self.host.get_front_tile(self.host.direction, mag=1)
         if tile.terrain and tile.terrain.name.split(' ')[0] in breakables:
@@ -809,13 +505,10 @@ class Ballistic(Equipment):
 
 
 class Unnatural(Unit):
-    def hit(self, damage, accuracy=None, hitter=None):
-        from src.game.Tags import Tags
-        if hitter and Tags.silver in hitter.tags:
-            if accuracy:
-                accuracy *= 2
+    def hit(self, damage, hitter=None):
+        if hitter and hitter.tags.get('silver'):
             damage *= 2
-        return super().hit(damage, accuracy, hitter)
+        return super().hit(damage, hitter)
 
 
 class Phantom(Unit):

@@ -1,5 +1,3 @@
-import sys
-
 import pyglet
 
 from src.game import Global
@@ -138,7 +136,7 @@ class Control:
         self.player.input('quit')
         self.player.location.delay = 0
         self.player.location.turn()
-        sys.exit()
+        Global.main.on_close()
 
     def turn(self):
         self.cursor_tile = Camera.get_relative_tile_pos(self.cursor[0], self.cursor[1])
@@ -149,25 +147,22 @@ class Control:
             code = self.keypress[length - 1]
             if code in self.keymap:
                 command = self.keymap[code]
-                if command == 'quit':
-                    self.quit()
-                elif command == 'menu':
+                if command.startswith('#'):
                     self.clear_press(code)
-                    Global.menu.toggle()
-                elif command == 'text':
+                    from src.game.Script import Script
+                    Script.execute_code(command[1:])
+                elif command == 'fullscreen':
+                    if Global.main.fullscreen:
+                        Global.main.set_fullscreen(False)
+                    else:
+                        Global.main.set_fullscreen(True)
+                elif command == 'previous':
                     self.clear_press(code)
-                    Global.main.monologue.set('')
-                    self.text_mode = True
+                    if Global.menu.visible == 1:
+                        Global.menu.previous()
                 elif command == 'switch':
                     self.clear_press(code)
                     Global.player.switch()
-                elif command == 'help':
-                    self.clear_press(code)
-                    if Global.menu.visible == 1:
-                        Global.menu.toggle()
-                    else:
-                        Global.menu.var = [None, 'Ask']
-                        Global.menu.topic('Ask')
                 elif Global.menu.visible != 1:
                     self.player.input(command)
         else:

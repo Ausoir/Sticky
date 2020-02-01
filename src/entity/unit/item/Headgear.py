@@ -17,11 +17,11 @@ class Headgear(Equipment):
         super().on_equip(host)
         self.face(1)
 
-    def wear(self):
+    def wear(self, start=False):
         if self.host.headgear:
             self.host.unheadgear()
         self.host.headgear = self
-        super().wear()
+        super().wear(start)
         self.remove()
         self.form.show(True)
         self.host.face(self.host.direction)

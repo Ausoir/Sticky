@@ -1,4 +1,4 @@
-from src.game.Tags import Tags
+from src.entity.Attribute import Attribute
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
 
@@ -21,7 +21,7 @@ class Crafting:
         if resource:
             for i in resource:
                 if i.startswith('#'):
-                    i = Dialog.get('any', [Tags.name(i[1:]).title()])
+                    i = Dialog.get('any', [i[1:].title()])
                 r += ' [' + i + ']'
         else:
             r += ' ' + Dialog.get('none')
@@ -50,11 +50,11 @@ class Crafting:
         subjects = host.get_accessibles()
         for i in subjects:
             if i.name in resource:
-                i.hit(1)
+                i.decay(1)
                 resource.remove(i.name)
             for tag in i.tags:
                 if '#' + tag in resource:
-                    i.hit(1)
+                    i.decay(1)
                     resource.remove('#' + tag)
                     break
         from src.entity.Stock import Stock

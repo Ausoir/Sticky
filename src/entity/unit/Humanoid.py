@@ -35,7 +35,7 @@ class Humanoid(Unit):
             else:
                 armor = Stock.get(p[index][2], p[index])
             armor.host = self
-            armor.wear()
+            armor.wear(start=True)
         else:
             self.make_armor()
         index += 1
@@ -45,7 +45,7 @@ class Humanoid(Unit):
             else:
                 headgear = Stock.get(p[index][2], p[index])
             headgear.host = self
-            headgear.use()
+            headgear.wear(start=True)
         index += 1
         if p[index]:
             if isinstance(p[index], str):
@@ -82,7 +82,9 @@ class Humanoid(Unit):
 
     def use(self):
         if self.is_armed():
-            self.weapon.use()
+            from src.game.Script import Script
+            if not Script.execute_code(self.weapon.tags.get('#')):
+                self.weapon.use()
         else:
             self.action.set('grab')
 
@@ -92,12 +94,11 @@ class Humanoid(Unit):
         if self.headgear:
             self.headgear.pos = self.pos
 
-    def hit(self, damage, accuracy=None, hitter=None):
-        damage = self.armor.get_reduction(damage)
-        r = super().hit(damage, accuracy, hitter)
-        if r == 1:
-            self.form.randomize_once(8)
-        return r
+    def remove(self):
+        super().remove()
+        self.weapon.remove()
+        if self.headgear:
+            self.headgear.remove()
 
     def die(self):
         self.drop()
@@ -135,16 +136,11 @@ class Humanoid(Unit):
         self.weapon.face(direction)
         super().face(direction)
 
-    def get_dodge(self):
+    def get_defense(self):
+        min_d, max_d = self.armor.get_defense()
         if self.action.current_action == 'fall':
-            return 0
-        if self.action.current_action == 'block':
-            r = self.weapon.weight * 4 + 4
-            if self.get_proficiency('block'):
-                return r * 4
-            return r
-        else:
-            return self.get_proficiency('dodge') + self.armor.armor
+            return min_d, min_d
+        return min_d, max_d + self.get_proficiency('dodge')
 
     def get_hitter(self):
         return self.weapon
@@ -162,7 +158,7 @@ class Humanoid(Unit):
     def make_armor(self):
         self.armor = self.body
         self.armor.host = self
-        self.armor.wear()
+        self.armor.wear(start=True)
         self.face(self.direction)
 
     def drop(self):
@@ -174,14 +170,14 @@ class Humanoid(Unit):
 
     def unarmor(self):
         if self.is_armored():
-            self.armor.on_unequip()
+            self.armor.unwear()
             self.make_armor()
             return 1
         return 0
 
     def unheadgear(self):
         if self.headgear:
-            self.headgear.on_unequip()
+            self.headgear.unwear()
             self.headgear = None
             return 1
         return 0
@@ -194,6 +190,6 @@ class Humanoid(Unit):
 
     def make_face(self):
         from src.form.Model import Model
-        face = Humanoid.faces[self.attributes.gene % len(Humanoid.faces)]
+        face = Humanoid.faces[self.tags.get('seed', 0) % len(Humanoid.faces)]
         model = Model(face)
         return model

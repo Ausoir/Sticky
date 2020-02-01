@@ -2,6 +2,7 @@ main = None
 draw_group = None
 map_view = None
 player = None
+overlay = None
 font = None
 DISPLAY = (1200, 600)
 BLOCK = 40

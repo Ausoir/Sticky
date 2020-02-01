@@ -20,9 +20,9 @@ class Field:
                 self.registry.pop(count)
                 count -= 1
 
-    def register(self, damage, pos, chance=4, delay=1, faction=0, hitter=None, callback=None):
-        data = [hitter, delay, pos, damage, chance, faction, callback]
-        if delay == 0:
+    def register(self, damage, pos, delay=1, hitter=None, sound=None, callback=None):
+        data = [hitter, delay, pos, damage, sound, callback]
+        if delay <= 0:
             Field.perform(data)
         else:
             self.registry.append(data)
@@ -34,8 +34,10 @@ class Field:
 
     @staticmethod
     def perform(data):
+        if data[4]:
+            data[0].location.sound.register(data[0].pos, data[4][1], file=data[4][0])
         for thing in data[2].things.copy():
-            if thing.is_hit(data[4], faction=data[5]):
-                if thing.hit(data[3], accuracy=data[4], hitter=data[0]) == 1:
-                    if data[6]:
-                        data[6](thing)
+            if thing.hittable:
+                if thing.hit(data[3], hitter=data[0]) == 1:
+                    if data[5]:
+                        data[5](thing)

@@ -4,7 +4,7 @@ from src.map.Tile import Tile
 class Immobile:
     def __init__(self, loc):
         self.location = loc
-        self.wall = Tile.CHECK_LARGE
+        self.wall = Tile.CHECK_FIRM
 
     def get(self, pos):
         return []

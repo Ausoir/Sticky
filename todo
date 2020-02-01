@@ -1,7 +1,5 @@
 town-gate-bridge-field-bridge-town
-field = crossroads/desert/field/mountain tower/city
-town-park-arena
-crossroads - tower
+tower/dungeon map
 abyss map
 arena (*2 reward per win, $$$ entrance)
 uniques - spends 40$ for respawn, minion allies, power
@@ -9,6 +7,9 @@ sewer - debuffer, regener, darkness
 nest - poisoner, fast
 slums - ranger, specialer
 crypt - revive, summoner, healer
+
+LS+WSAD - WW sprint, DWW charge
+Spells - 4 way shooter, fire trap, auto target shock
 
 pyglet
 - garbage collect Pictures after object removal

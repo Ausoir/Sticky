@@ -1,7 +1,8 @@
-icon,Icon,[10,2] //Name, Directory, Subset, instanced
+icon,Icon,[10,2] //Name, Directory, Subset
 gfx,image/_effect,[12,12]
-g,image/_single,[24,10]
-g2,image/_oversize,[24,3]
+t,image/_tile,[24,6]
+g,image/_single,[24,8]
+g2,image/_oversize,[16,2]
 half,image/_half,[16,5]
 body,image/unit/body,[3,3]
 dog,image/unit/dog,[4,1]

@@ -45,11 +45,7 @@ class Body:
             else:
                 int_parent = int(parent[k][1])
                 x.set_parent(self.organs[int_parent], parent[k][0])
-        self.current_animation = self.animation[self.motion['idle'][0]]
-        for k, organ in enumerate(self.organs):
-            x = self.current_animation[k][0] + self.current_animation[len(self.current_animation) - 2][0]
-            y = self.current_animation[k][1] + self.current_animation[len(self.current_animation) - 2][1]
-            organ.lower_joint.load(organ.upper_joint.x + x, organ.upper_joint.y + y)
+        self.force_set_animation('idle')
 
     def show(self, visible):
         for i in self.organs:
@@ -65,10 +61,11 @@ class Body:
                 img = Data.get_form(image, form='Unit' + str(self.texture_count))
                 img.show(True)
                 i.set(img)
+        self.update_perspective()
 
     def set_row(self, row):
         self.row = row
-        t = row * 20
+        t = row
         for i in self.order[self.direction - 1]:
             if i >= 0:
                 self.organs[i].form.z = t
@@ -91,6 +88,16 @@ class Body:
         root = self.current_animation[len(self.current_animation) - 2]
         self.root.upper_joint.load(root[0] * self.side, root[1])
 
+    def force_set_animation(self, motion):
+        self.current_animation = self.animation[self.motion[motion][0]]
+        for k in self.order[self.direction - 1]:
+            if k >= 0:
+                organ = self.organs[k]
+                x = self.current_animation[k][0]
+                x *= self.side
+                y = self.current_animation[k][1]
+                organ.lower_joint.load(organ.upper_joint.x + x, organ.upper_joint.y + y)
+
     def set_state(self, state):
         if state in self.motion:
             self.state_name = state
@@ -101,7 +108,7 @@ class Body:
 
     def update_clip(self):
         self.animation_ended = 0
-        current_motion = self.motion[self.get_directional_motion()]
+        current_motion = self.motion[self.get_directional_state()]
         if self.current_clip >= current_motion.__len__():
             self.current_clip = 0
         if current_motion[self.current_clip] == -1:
@@ -114,17 +121,19 @@ class Body:
 
     def get_total_motion_time(self):
         total = 0
-        for i in self.motion[self.get_directional_motion()]:
+        for i in self.motion[self.get_directional_state()]:
             current = self.animation[i]
             total += current[len(current) - 1]
         return total
 
-    def get_directional_motion(self):
-        if self.direction == 2 and self.state_name + 'U' in self.motion:
-            return self.state_name + 'U'
-        elif self.direction == 4 and self.state_name + 'D' in self.motion:
-            return self.state_name + 'D'
-        return self.state_name
+    def get_directional_state(self, state=None):
+        if not state:
+            state = self.state_name
+        if self.direction == 2 and state + 'U' in self.motion:
+            return state + 'U'
+        elif self.direction == 4 and state + 'D' in self.motion:
+            return state + 'D'
+        return state
 
     def face(self, direction):
         self.direction = direction
@@ -133,16 +142,15 @@ class Body:
         else:
             self.face_side(1)
         self.update_perspective()
+        # self.force_set_animation(self.get_directional_state('idle'))
 
     def face_side(self, side):
         self.side = side
-        for i in range(len(self.organs)):
-            self.organs[i].lower_joint.x = self.current_animation[i][0] * self.side
 
     def update_perspective(self):
         from src.tools import Direction
         numeral = Direction.numeral[self.direction] * self.texture_count
-        t = self.row * 20
+        t = self.row
         for i in self.order[self.direction - 1]:
             if i >= 0:
                 t += 1

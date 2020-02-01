@@ -23,6 +23,8 @@ class Object(Image):
         self.removed = 0
         self.falling = 0
         self.in_sight = False
+        from src.map import Depth
+        self.depth = Depth.object_depth
 
     def __str__(self):
         r = Dialog.space(self.pos)
@@ -63,7 +65,7 @@ class Object(Image):
         self.form = Data.get_form(arg)
 
     def set_row(self, row):
-        self.form.z = 40 - row
+        self.form.z = self.depth(row)
 
     def update(self):
         diff = self.pos.get_center() - self.vec
@@ -86,13 +88,9 @@ class Object(Image):
     def trigger(self):
         pass
 
-    def get_offset_tile(self, x, y):
-        return self.location.get_tile(self.pos + (x, y))
-
     def get_front_tile(self, direction, mag=1):
         coord = Direction.coord[direction]
-        coord = [coord[0] * mag, coord[1] * mag]
-        return self.location.get_tile(self.pos + coord)
+        return self.pos.get_neighbor(coord[0] * mag, coord[1] * mag)
 
     def relocate(self, x, y, force=0):
         if force or x != self.pos.x or y != self.pos.y:
@@ -107,7 +105,7 @@ class Object(Image):
             return abs(diff[0]), abs(diff[1])
         return 0
 
-    def move_toward(self, direction, mag=1, distance=1, flag=Tile.CHECK_LARGE):
+    def move_toward(self, direction, mag=1, distance=1, flag=Tile.CHECK_FIRM):
         coord = Direction.coord[direction]
         coord = [coord[0] * mag, coord[1] * mag]
         target = self.pos + coord
@@ -116,7 +114,7 @@ class Object(Image):
         self.relocate(new_pos.x, new_pos.y)
         return moved
 
-    def move(self, x, y, distance=8, flag=Tile.CHECK_LARGE):
+    def move(self, x, y, distance=8, flag=Tile.CHECK_FIRM):
         target = self.pos + (x, y)
         new_pos = self.location.collide_land(self.pos, target, distance=distance, flag=flag)
         self.relocate(new_pos.x, new_pos.y)

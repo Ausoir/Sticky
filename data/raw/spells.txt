@@ -1,13 +1,7 @@
-Echo,Quill Pen,Cobalt
-Dispell,Quill Pen,Silver
-Scorch,Oil Pen,Ruby
-Scry,Quill Pen,Cobalt
-Levitate,Quill Pen,Cobalt
-Tornado,Quill Pen,Cobalt
-Crystallize,Ink Pen,Amber
-Fireball,Oil Pen,Ruby
-Immolation,Oil Pen,Ruby
-Darkness,Ink Pen,Amber
-Haste,Quill Pen,Silver
-Ensnare,Ink Pen,Amber
-Evacuate,Quill Pen,Silver
+Scorch,Spell,g_1x5,[p>:11,p:11],[],1,Scroll,Scorch
+Scry,Spell,g_1x5,[p>:11,p:11],[],1,Scroll,Scry
+Tornado,Spell,g_1x5,[p>:11,p:11],[],1,Scroll,Tornado
+Haste,Spell,g_1x5,[p>:11,p:11],[],1,Scroll,Haste
+Charm,Spell,g_1x5,[p>:11,p:11],[],1,Scroll,Charm
+Evacuate,Spell,g_1x5,[p>:11,p:11],[],1,Scroll,Evacuate
+Darkness,Spell,g_1x5,[p>:11,p:11],[],1,Scroll,Darkness

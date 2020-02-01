@@ -1,57 +1,28 @@
 none,None
-dsc_HP,Hit Point represents how many attacks you can endure. Hit Point is usually equal to your armor durability + 1.
-dsc_STR,Strength represents your maximum stamina. Stamina allows you to perform actions continuously. Increase this stat by finding a target dummy or find a trainer. Proteins are required to level up this attribute. Your Proteins: #
-dsc_AGI,Agility represents your maximum encumbrance. More encumbrance allows you to wear more advanced equipment. Increase this stat by finding a target dummy or find a trainer. Calories are required to level up this attribute. Your Calories: #
-dsc_INT,Intelligence represents your maximum memory. More memory allows you to craft more spells and items from memory. Increase this stat by casting Clairvoyance or find a trainer. Calories are required to level up this attribute. Your Calories: #
-dsc_ENG,Energy is required to perform some unique skills. Energy can be restored by resting at a bed or sofa. Maximum Energy is equal to the sum of Strength\, Agility\, and Intelligence.
-dsc_craftDesk,Craft this spell at a Desk.
-dsc_craftWorkbench,Craft this spell at a Workbench.
+proceed,Proceed
+dsc_health,You die when your health reaches 0. Current health: # out of #
+time,Day # / ##
 any,Any #
-ingredients,Ingredients
-anytime,Anytime
 weigh,kg
-half day,half a day
-one day,one day
 and half days,# and a half days
 days,# days
-assign item,Click to Assign Item
-cant fit,# cannot fit in there!
-cant store,Nothing to store in that inventory slot!
-dsc_inventoryslot,This is an inventory slot. Click on this slot while holding an item small enough. Number keys can quick access items if you have pockets in your armor.
-noaccessory,No Hat
+noaccessory,No Headgear
 noarmor,No Armor
 noweapon,No Weapon
-dsc_inventory,Each white square below represents an empty inventory slot.
-inventoryslots,Inventory Slots
-dsc_noinventory,Your armor does not provide any inventory space.
-noinventory,No Inventory
 dsc_location,Your current location.
-dsc_date,Date in YYYY/MM/DD format.
-dsc_hunger,You cannot perform time consuming actions like resting or travelling while hungry. Eat something to get rid of hunger.
-dsc_calories,Calories are essential for training Agility and Intelligence.
-dsc_protein,Protein are essential for training Strength.
-persistent,Persistent
+dsc_date,Current time and date.
+dsc_hunger,You do not heal when hungry.
 youdie,You die...
 sign,Sign: #
-thanks,Thank you, have a good day.
 dsc_insurance,Should you meet a tragic end\, our medical guild can bring you back to life. You will need to come and pay us $# after every revive.
 insureyes,Sign contract for #$
 insurefull,You already have a revival effect. Come back when you have none.
 insurerevive,You have been revived. # has passed since the tragedy.
 insurebought,Insurance contract signed!
 dsc_revive,You will be revived if you die.
-dsc_business,Bring up special dialogue options for this NPC
-dsc_exchange,Exchange for an equipment
-dsc_talk,Make a conversation
-dsc_ask,Ask for hints and tips
-dsc_hire,Ask this unit to accompany you
 travelto?,Travel to <#>?
 travelto,Travel to <#>
 soldout,I am all out of merchandise. Thank you for your patronage!
-tuition cost,I can help you level up an attribute. Tuition is $# per lesson.
-trainstr,Train Strength. Requires # protein.
-trainagi,Train Agility. Requires # calories.
-trainint,Train Intelligence. Requires # calories.
 dealeroff,We do not need anything for now. Come back in #.
 dealerdeal,We are in need of # #. Deliver full amount in # to receive $#.
 dealcomplete,Completed delivery!
@@ -60,9 +31,8 @@ provideitem,Provide #
 reqnotmet,Requirements not met.
 nocraftables,You do not know of anything that can be crafted here.
 modifyitem,Modify <#>
-dsc_modifyweapon,Modify and upgrade the properties of your weapon
-dsc_modifyarmor,Modify and upgrade the properties of your armor
-modchance,Modification Success Chance - #%
+attachitem,Attach to <#>
+modchance,Success Chance - #%
 nomaterial,No Materials...
 reinforcewith,Reinforce with #
 dsc_reinforcewith,Reinforce to double maximum durability. Requires #.
@@ -79,18 +49,10 @@ padwith,Pad with #
 dsc_padwith,Improve defense by 1. Requires Plating.
 refitwith,Fortify Body with #
 dsc_refitwith,Decrease encumbrance by 1. Requires Tooth.
-disassemble_spell?,This artifact contains the spell <#>. Disassemble?
-disassemble?,Disassemble #?
 spellknown,You already know #.
 treated,All debuffs removed.
 treatment,I can cure you of all illness for $#.
-diagnose,Would you like to view all your abnormal status effects for free?
-sergentquest1,There is a band of hostiles we need to get rid of. We are willing to pay $# for the job. Speak to me when you are ready.
-sergentquest2,We need someone to take care of a certain individual. Reward will be $#. Speak to me when you are ready.
-sergentquest3,We need help defending a strategic position. Pay will be $#. Speak to me when you are ready.
-?rent,Would you like to get a private room for $# per week?
-?rententer,Would you to enter your private room? You have # left until your next rent.
-?inn,Spend a day for $#?
-?rest,Rest and heal at this #?
 ?sell,Would you like to sell your # for $#?
-exchanged,Here you go.
+?modify,Select an equipment to modify.
+?pawn,Sell your # for $1?
+xpawn,You are not holding anything that you can sell. We only buy #.

@@ -1,5 +1,6 @@
-from pyglet.sprite import Sprite, pyglet
+from pyglet.image import Animation
 
+from src.form.Sprite import Sprite
 from src.game import Global
 from src.game.Camera import Camera
 from src.tools import Direction
@@ -7,7 +8,7 @@ from src.tools import Direction
 
 class Picture(Sprite):
     def __init__(self, texture, **kwargs):
-        super().__init__(texture, **kwargs, batch=Global.draw_group.batch)
+        super().__init__(texture, **kwargs, group=Global.draw_group.group_object, batch=Global.draw_group.batch)
         self.side = 1
         self.side_y = 1
         self.inbound = False
@@ -25,7 +26,7 @@ class Picture(Sprite):
         self.scale_y = 1
 
     def set_anchor(self, x, y):
-        if isinstance(self.image, pyglet.image.Animation):
+        if isinstance(self.image, Animation):
             for f in self.image.frames:
                 f.image.anchor_x = x
                 f.image.anchor_y = y
@@ -53,6 +54,9 @@ class Picture(Sprite):
             self.side_y = y
             self.flip(y=1)
 
+    def face_direction(self, direction):
+        self.rotation = 90 * direction
+
     def face_cardinal(self, direction):
         self.face(x=Direction.side[direction])
 
@@ -63,8 +67,7 @@ class Picture(Sprite):
             self.scale_y = y / (self.height / self.scale_y)
 
     def place(self, x, y):
-        bound_x = x + Camera.pos[0]
-        bound_y = Global.DISPLAY[1] - (y + Camera.pos[1])
+        bound_x, bound_y = Camera.get_relative_pos(x, y)
         self.update(x=bound_x, y=bound_y)
 
     def flip(self, x=0, y=0):

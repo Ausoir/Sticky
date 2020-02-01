@@ -30,6 +30,8 @@ class Editor:
         center.center_camera()
         self.location.record.remove(center)
         Camera.target.location.remove(Camera.target)
+        Global.overlay.fade.set_solid_color((0, 0, 0, 0))
+        Global.overlay.fade.update()
 
     def update(self):
         self.control.turn()
@@ -64,10 +66,10 @@ class Editor:
                 self.display_text = self.tool.cycle(1)
         elif action == 's_prev':
             if action != self.prev_action:
-                self.display_text = self.tool.cycle(-1, specific=True)
+                self.display_text = self.tool.cycle(-10)
         elif action == 's_next':
             if action != self.prev_action:
-                self.display_text = self.tool.cycle(1, specific=True)
+                self.display_text = self.tool.cycle(10)
         elif action == 'up':
             self.moving = [0, -1]
         elif action == 'down':
@@ -161,7 +163,7 @@ class Editor:
         arg1 = ' '.join(params[1:])
         if params[0] == 'set':
             if isinstance(self.tool, ToolObject):
-                if self.tool.selection.name == 'Script':
+                if self.tool.selection.name == 'Scripter':
                     script = Data.process_raw(params[1])
                     self.tool.selection.condition = script[0]
                     self.tool.selection.mechanism = script[1]
@@ -169,48 +171,48 @@ class Editor:
                     self.tool.last_data = Data.process_raw(self.display_text)
                 self.display_text = '[' + params[1] + '] Applied'
         elif params[0] == 'setc':
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Script):
+                if isinstance(self.tool.selection, Scripter):
                     self.tool.selection.condition = Data.process_raw(arg1)
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
             self.display_text = 'Applied condition'
         elif params[0] == 'setm':
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Script):
+                if isinstance(self.tool.selection, Scripter):
                     self.tool.selection.mechanism = Data.process_raw(arg1)
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
             self.display_text = 'Applied mechanics'
         elif params[0] == 'setc@':
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Script):
+                if isinstance(self.tool.selection, Scripter):
                     self.tool.selection.condition[int(params[1])] = Data.process_raw(' '.join(params[2:]))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
             self.display_text = '[' + params[2] + '] Applied'
         elif params[0] == 'setm@':
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Script):
+                if isinstance(self.tool.selection, Scripter):
                     self.tool.selection.mechanism[int(params[1])] = Data.process_raw(' '.join(params[2:]))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
             self.display_text = '[' + params[2] + '] Applied'
         elif params[0] == 'addc':
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Script):
+                if isinstance(self.tool.selection, Scripter):
                     self.tool.selection.condition.append(Data.process_raw(arg1))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
         elif params[0] == 'addm':
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Script):
+                if isinstance(self.tool.selection, Scripter):
                     self.tool.selection.mechanism.append(Data.process_raw(arg1))
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
@@ -222,11 +224,8 @@ class Editor:
                 self.tool.selection.set_form(arg1)
         elif params[0] == 'make':
             from src.map.Location import Location
-            from src.entity.Other import Script
+            from src.entity.Other import Scripter
             r = Location(params[2], list(Data.process_raw(Data.read('data/map/' + params[1] + '.map'))))
-            for obj in r.record.copy():
-                if isinstance(obj, Script):
-                    obj.trigger_make()
             r.save()
             Global.player.switch()
             Global.player.travel(params[2], Space())
@@ -293,14 +292,12 @@ class ToolTerrain:
     def cancel(self):
         self.tile.terrain = self.prev_tile
 
-    def cycle(self, inc, specific=False):
+    def cycle(self, inc):
         self.current += inc
         if self.current >= self.tile_list.__len__():
             self.current = 0
         elif self.current < 0:
             self.current = self.tile_list.__len__() - 1
-        elif not specific and self.tile_list[self.current][0].find(' ') >= 0:
-            return self.cycle(inc)
         self.select(self.tile_list[self.current][0])
         return self.text
 
@@ -337,27 +334,44 @@ class ToolTerrain:
             name_type = tile.terrain.name.split(' ')[0]
             data = Data.get_line('raw/raw.txt', 'tileset')[1]
             if name_type in data:
-                grid = [self.is_terrain(x, y - 1, name_type), self.is_terrain(x - 1, y, name_type),
+                grid = [self.is_terrain(x - 1, y, name_type), self.is_terrain(x, y - 1, name_type),
                         self.is_terrain(x + 1, y, name_type), self.is_terrain(x, y + 1, name_type)]
-                if grid in [[0, 1, 1, 1], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' top'):
+                count = 0
+                for i in grid:
+                    if i:
+                        count += 1
+                if count == 4:
+                    tile.set_terrain(name_type)
                     return
-                elif grid in [[1, 1, 1, 0], [0, 1, 1, 0]] and tile.set_terrain(name_type + ' bottom'):
+                elif count == 0 and tile.set_terrain(name_type + ' single'):
                     return
-                elif grid in [[0, 1, 0, 1]] and tile.set_terrain(name_type + ' left'):
+                elif grid == [0, 1, 1, 1] and tile.set_terrain(name_type + ' side1'):
                     return
-                elif grid in [[0, 0, 1, 1]] and tile.set_terrain(name_type + ' right'):
+                elif grid == [1, 0, 1, 1] and tile.set_terrain(name_type + ' side2'):
                     return
-                elif grid in [[1, 1, 0, 1], [1, 1, 0, 0]] and tile.set_terrain(name_type + ' side left'):
+                elif grid == [1, 1, 0, 1] and tile.set_terrain(name_type + ' side3'):
                     return
-                elif grid in [[1, 0, 1, 1], [1, 0, 1, 0]] and tile.set_terrain(name_type + ' side right'):
+                elif grid == [1, 1, 1, 0] and tile.set_terrain(name_type + ' side4'):
                     return
-                elif grid in [[0, 1, 0, 0]] and tile.set_terrain(name_type + ' edge left'):
+                elif grid == [1, 0, 1, 0] and tile.set_terrain(name_type + ' pipe1'):
                     return
-                elif grid in [[0, 0, 1, 0]] and tile.set_terrain(name_type + ' edge right'):
+                elif grid == [0, 1, 0, 1] and tile.set_terrain(name_type + ' pipe2'):
                     return
-                elif grid in [[1, 1, 0, 0]] and tile.set_terrain(name_type + ' corner left'):
+                elif grid == [1, 0, 0, 1] and tile.set_terrain(name_type + ' turn1'):
                     return
-                elif grid in [[1, 0, 1, 0]] and tile.set_terrain(name_type + ' corner right'):
+                elif grid == [1, 1, 0, 0] and tile.set_terrain(name_type + ' turn2'):
+                    return
+                elif grid == [0, 1, 1, 0] and tile.set_terrain(name_type + ' turn3'):
+                    return
+                elif grid == [0, 0, 1, 1] and tile.set_terrain(name_type + ' turn4'):
+                    return
+                elif grid == [1, 0, 0, 0] and tile.set_terrain(name_type + ' end1'):
+                    return
+                elif grid == [0, 1, 0, 0] and tile.set_terrain(name_type + ' end2'):
+                    return
+                elif grid == [0, 0, 1, 0] and tile.set_terrain(name_type + ' end3'):
+                    return
+                elif grid == [0, 0, 0, 1] and tile.set_terrain(name_type + ' end4'):
                     return
                 else:
                     tile.set_terrain(name_type)
@@ -378,7 +392,7 @@ class ToolObject:
     def cancel(self):
         self.selection.remove()
 
-    def cycle(self, inc, specific=False):
+    def cycle(self, inc):
         self.current += inc
         if self.current >= self.object_list.__len__():
             self.current = 0

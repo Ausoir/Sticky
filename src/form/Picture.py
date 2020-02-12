@@ -7,8 +7,8 @@ from src.tools import Direction
 
 
 class Picture(Sprite):
-    def __init__(self, texture, **kwargs):
-        super().__init__(texture, **kwargs, group=Global.draw_group.group_object, batch=Global.draw_group.batch)
+    def __init__(self, texture, z=0, group=None):
+        super().__init__(texture, z=z, group=group or Global.draw_group.group_object, batch=Global.draw_group.batch)
         self.side = 1
         self.side_y = 1
         self.inbound = False

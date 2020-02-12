@@ -22,8 +22,6 @@ class Headgear(Equipment):
             self.host.unheadgear()
         self.host.headgear = self
         super().wear(start)
-        self.remove()
-        self.form.show(True)
         self.host.face(self.host.direction)
 
     def set_form(self, arg):
@@ -32,4 +30,4 @@ class Headgear(Equipment):
         self.form = Data.get_form(arg, form='Head')
 
     def activate(self):
-        self.host.action.set('wait')
+        self.host.action.act('grab', 8)

@@ -8,7 +8,7 @@ from src.tools.List import List
 class Tile(Space):
     CHECK_NONE = []
     CHECK_ANY = [1, 2, 3, 4, 5, 6, 7]
-    CHECK_FIRM = [1, 2, 3, 5, 7]
+    CHECK_FIRM = [1, 2, 3, 5]
     CHECK_SIGHT = [1, 2, 6]
     COLLIDE_TERRAIN = 1
     COLLIDE_OBJECT = 2
@@ -18,9 +18,8 @@ class Tile(Space):
     COLLIDE_FOG = 6
     COLLIDE_MAGIC = 7
 
-    def __init__(self, loc, x, y):
+    def __init__(self, x, y):
         super().__init__(x, y)
-        self.location = loc
         self.frame = 0
         self.terrain = None
         self.things = List()
@@ -35,8 +34,11 @@ class Tile(Space):
         return '[' + str(self.x) + ',' + str(self.y) + ',' + terrain + ']'
 
     def set_terrain(self, terrain):
-        self.terrain = Terrain.load_from_name(terrain)
-        return self.terrain
+        if terrain:
+            self.terrain = Terrain.load_from_name(terrain)
+            return self.terrain
+        self.terrain = None
+        return None
 
     def get_depth(self):
         if self.terrain:
@@ -69,7 +71,7 @@ class Tile(Space):
             self.update_light()
 
     def get_neighbor(self, x, y):
-        return self.location.get_tile((self.x + x, self.y + y))
+        return Global.location.get_tile((self.x + x, self.y + y))
 
     def get_vec(self):
         return self * Global.BLOCK
@@ -82,12 +84,16 @@ class Tile(Space):
 
     def is_land(self, check):
         if self.terrain:
-            if self.terrain.type == 1 and Tile.COLLIDE_TERRAIN in check:
+            if self.terrain.type == 0:
+                return 1
+            elif self.terrain.type == 1 and Tile.COLLIDE_TERRAIN in check:
                 return 1
             elif self.terrain.type == 3 and Tile.COLLIDE_FOG in check:
                 return 1
+        else:
+            return 1
         for i in self.things:
-            if i.collision_type in check:
+            if i.obstruct_type in check:
                 return 1
         return 0
 

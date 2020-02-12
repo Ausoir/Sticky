@@ -1,4 +1,3 @@
-from src.entity.Attribute import Attribute
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
 
@@ -25,9 +24,9 @@ class Crafting:
                 r += ' [' + i + ']'
         else:
             r += ' ' + Dialog.get('none')
-        from src.entity.unit.item.Item import Item
-        if item in Item.description:
-            return r + '\n' + Item.description[item]
+        data = Data.get_line('raw/descriptions.txt', item)
+        if data:
+            return r + '\n' + data[1]
         return r
 
     @staticmethod
@@ -36,7 +35,7 @@ class Crafting:
         materials = []
         for i in subjects:
             materials.append(i.name)
-            materials.extend(i.tags)
+            materials.extend(i.tags.attributes.keys())
         for mat in resource:
             if mat.startswith('#'):
                 mat = mat[1:]
@@ -52,7 +51,7 @@ class Crafting:
             if i.name in resource:
                 i.decay(1)
                 resource.remove(i.name)
-            for tag in i.tags:
+            for tag in i.tags.attributes.keys():
                 if '#' + tag in resource:
                     i.decay(1)
                     resource.remove('#' + tag)

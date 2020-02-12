@@ -1,6 +1,5 @@
 from src.form.Shape import Shape
 from src.game import Global
-from src.game.Turn import Turn
 
 
 class Overlay:
@@ -8,7 +7,6 @@ class Overlay:
         self.fade = Shape(0, 0, 700, Global.draw_group.group_overlay,
                           width=Global.DISPLAY[0], height=Global.DISPLAY[1])
         self.weather = [0, 0, 0, 0]
-        Turn.add(self.turn)
 
     def colorize(self, color):
         if not color:

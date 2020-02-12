@@ -12,8 +12,6 @@ class Terrain:
 
     @classmethod
     def load_from_name(cls, name):
-        args = Data.get_cache('tiles')
-        for k, i in enumerate(args):
-            if i[0] == name:
-                return cls(k, i[0], i[1], i[2], i[3])
-        return None
+        index, v = Data.get_line('raw/tiles.txt', name, row=True)
+        if v:
+            return cls(index, v[0], v[1], v[2], v[3])

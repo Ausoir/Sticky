@@ -1,4 +1,4 @@
-menu,5,[[Character,character],[Equipment,equipment],[Inventory,inventory],[Skill,skill],[Test,test]]  // Name, Type[1:message, 2:prompt, 3:dialog, 4:menu, 5:selection], Content
+menu,5,[[Character,character],[Equipment,equipment],[Inventory,inventory],[Skill,skill],[Test,test]] // Name, Type[1:message, 2:prompt, 3:dialog, 4:menu, 5:selection], Content
 modify,4,[[Modify Item,moditem],[Modify Armor,modarmor],[Attach Armor,modarmorslot]]
 resident,3,[Yes?,[Talk,character],[Ask,!ask],[Hire,!hire],[Move,move]]
 innkeep,3,[Welcome.,#Rest,#Rent,#Talk,About Rent,Ask,#Move]

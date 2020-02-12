@@ -15,5 +15,4 @@ class Timer:
         if self.time == 0:
             if self.repeat:
                 self.time = self.max
-            return 1
-        return 0
+            return True

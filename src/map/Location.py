@@ -1,14 +1,15 @@
 import math
 
-from src.entity.Sound import Sound
 from src.entity.Space import Space
 from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Turn import Turn
+from src.map.Field import Field
+from src.map.Population import Population
+from src.map.Sound import Sound
 from src.map.Terrain import Terrain
 from src.map.Tile import Tile
 from src.tools.Data import Data
-from src.tools.List import List
 
 
 class Location:
@@ -17,27 +18,28 @@ class Location:
         if overwrite or not Data.is_file('data/save/' + target + '.map'):
             r = Location(alias, list(Data.process_raw(Data.read('data/map/' + target + '.map'))))
             from src.entity.Other import Scripter
-            for obj in r.record.copy():
+            for obj in r.population.other.copy():
                 if isinstance(obj, Scripter):
                     obj.trigger_make()
             r.save()
 
     def __init__(self, name, data):
-        Stock.location = self
-        Turn.add(self.turn)
-        from src.entity.Field import Field
+        Global.location = self
         self.seed = 0
         self.identity = 0
         self.name = name
         self.update_frame = 0
-        self.attack = Field()
-        self.sound = Sound(self)
+        self.field = Field()
+        self.sound = Sound()
+        self.population = Population()
         self.delay = 8
         self.tiles = {}
         self.edge = 0
-        self.record = List()
         self.header = None
         self.load(data)
+        Turn.add(self.turn)
+        Turn.add(self.field.turn)
+        Turn.fast_queue.append(self.sound.turn)
 
     def __str__(self):
         high_x = -9999
@@ -64,10 +66,7 @@ class Location:
             if tile.terrain:
                 rt.append(tile.__str__())
         tiles = ','.join(rt)
-        r = []
-        for i in self.record:
-            r.append('['+i.__str__()+']')
-        objects = ','.join(r)
+        objects = self.population.__str__()
         return meta + '\n' + tiles + '\n' + objects + '\n'
 
     def load(self, arg):
@@ -76,10 +75,6 @@ class Location:
         self.header = arg[0]
         self.seed = arg[0][0]
         self.load_map(arg)
-
-    def remove(self, arg):
-        if arg in self.record:
-            self.record.remove(arg)
 
     def turn(self):
         if not self.delay:
@@ -90,7 +85,7 @@ class Location:
         Data.write('../save/' + self.name + '.map', self.__str__())
 
     def load_map(self, arg, new=False, offset=(0, 0), flip=False):
-        tile_data = Data.get_cache('tiles')
+        tile_data = Data.process_raw(Data.read('raw/tiles.txt'))
         middle = 0
         if flip:
             if arg[1]:
@@ -128,7 +123,7 @@ class Location:
                         i.terrain.joint_neighbors[k] = 1
         objects = []
         for i in arg[2]:
-            obj = Stock.get(i[2], i, loc=self)
+            obj = Stock.get(i[2], i)
             if new:
                 obj.id = self.get_id()
             if flip:
@@ -143,12 +138,6 @@ class Location:
         self.identity += 1
         return '#' + str(format(self.identity, 'x'))
 
-    def get_object(self, oid):
-        for i in self.record:
-            if i.id == oid:
-                return i
-        return None
-
     def get_tile(self, arg, create=True):
         Space.reusable.load(arg)
         pos = Space.reusable.to_int()
@@ -156,7 +145,7 @@ class Location:
         if key not in self.tiles:
             if not create:
                 return None
-            self.tiles[key] = Tile(self, pos.x, pos.y)
+            self.tiles[key] = Tile(pos.x, pos.y)
         return self.tiles[key]
 
     def get_tile_from_vec(self, x, y):
@@ -170,8 +159,10 @@ class Location:
         prev_tile = self.get_tile([x1, y1])
         while distance > 0 and (prev_tile.x != x2 or prev_tile.y != y2):
             distance -= 1
-            current[0] = current[0] + math.cos(degree) * Global.BLOCK
-            current[1] = current[1] + math.sin(degree) * Global.BLOCK
+            dx = math.cos(degree) * Global.BLOCK
+            dy = math.sin(degree) * Global.BLOCK
+            current[0] = current[0] + dx
+            current[1] = current[1] + dy
             tile = self.get_tile_from_vec(current[0], current[1])
             r = function(prev_tile, tile)
             if r:
@@ -179,17 +170,20 @@ class Location:
             prev_tile = tile
         return prev_tile
 
-    def collide_land(self, pos1, pos2, flag, distance=10):
+    def collide_land(self, pos1, pos2, flag, distance=10, return_prev=True):
         def fn(prev, tile):
             if tile.is_land(flag):
-                return prev
+                if return_prev:
+                    return prev
+                else:
+                    return tile
         return self.collide_line(pos1.x, pos1.y, pos2.x, pos2.y, fn, distance)
 
     def get_area(self, center_tile, range_x, range_y):
         tiles = []
         for x in range(-range_x, range_x+1):
             for y in range(-range_y, range_y+1):
-                tile = self.get_tile(center_tile + (x, y), create=0)
+                tile = self.get_tile(center_tile + (x, y), create=False)
                 if tile:
                     tiles.append(tile)
         return tiles

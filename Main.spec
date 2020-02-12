@@ -8,7 +8,7 @@ added_files = [
     ('save', 'save')
 ]
 
-a = Analysis(['src\\Main.py'],
+a = Analysis(['src\\Execute.py'],
              pathex=['src'],
              binaries=[('x64','x64')],
              datas=added_files,

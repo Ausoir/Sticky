@@ -9,16 +9,15 @@ from src.tools.Data import Data
 
 
 class Editor:
-    def __init__(self, loc, control):
+    def __init__(self, control):
         self.backup = Turn.update
         Turn.update = self.update
         Global.draw_group.other.append(self)
         control.set_keymap('editor_keymap.txt')
         self.control = control
-        self.location = loc
         self.visible = 1
-        self.tool = ToolTerrain(self.location)
-        self.display_text = self.location.name
+        self.tool = ToolTerrain()
+        self.display_text = Global.location.name
         self.display_subtext = ''
         self.enter = 0
         self.moving = [0, 0]
@@ -28,10 +27,9 @@ class Editor:
         self.selection = None
         center = Stock.make('Force', Global.player.character.pos)
         center.center_camera()
-        self.location.record.remove(center)
-        Camera.target.location.remove(Camera.target)
-        Global.overlay.fade.set_solid_color((0, 0, 0, 0))
-        Global.overlay.fade.update()
+        Global.location.population.remove(center)
+        Global.location.population.remove(Camera.target)
+        Global.overlay.fade.remove_batch()
 
     def update(self):
         self.control.turn()
@@ -50,14 +48,14 @@ class Editor:
         self.prev_mouse = m
         self.display_subtext = 'X:' + str(m[0]) + ' Y:' + str(m[1])
         if action == 'idle':
-            self.tool.input(0, self.location.get_tile(m))
+            self.tool.input(0, Global.location.get_tile(m))
             self.tool.last = None
         elif action == 'use':
-            self.tool.input(1, self.location.get_tile(m))
+            self.tool.input(1, Global.location.get_tile(m))
         elif action == 'special':
-            self.tool.input(4, self.location.get_tile(m))
+            self.tool.input(4, Global.location.get_tile(m))
         elif action == 'delete':
-            self.tool.input(2, self.location.get_tile(m))
+            self.tool.input(2, Global.location.get_tile(m))
         elif action == 'prev':
             if action != self.prev_action:
                 self.display_text = self.tool.cycle(-1)
@@ -81,63 +79,63 @@ class Editor:
         elif action == 'sample':
             if action != self.prev_action:
                 self.tool.cancel()
-                objs = self.location.get_tile(m).things.copy()
+                objs = Global.location.get_tile(m).things.copy()
                 if objs:
-                    self.tool = ToolObject(self.location, 'props')
+                    self.tool = ToolObject('props')
                     obj = objs.pop()
-                    while objs and obj not in self.location.record:
+                    while objs and obj not in Global.location.record:
                         obj = objs.pop()
                     self.display_text = obj.__str__()
                     self.tool.select(obj.name, data=Data.process_raw(self.display_text))
                 else:
-                    self.tool = ToolTerrain(self.location)
-                    terrain = self.location.get_tile(m).terrain
+                    self.tool = ToolTerrain()
+                    terrain = Global.location.get_tile(m).terrain
                     if terrain:
                         self.tool.select(terrain.name)
         elif action == 'select':
-            objs = self.location.get_tile(m).things
+            objs = Global.location.get_tile(m).things
             if objs:
                 self.display_text = 'Selected ID ' + str(objs[0].id)
-                self.tool = ToolObject(self.location, 'props')
+                self.tool = ToolObject('props')
                 self.tool.cancel()
                 self.tool.selection = objs[0]
         elif action == 'player':
             Global.player.character.relocate(m[0], m[1])
         elif action == 'tiles':
             self.tool.cancel()
-            self.tool = ToolTerrain(self.location)
+            self.tool = ToolTerrain()
             self.display_text = 'Terrain Tool'
         elif action == 'props':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Props Tool'
         elif action == 'items':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Items Tool'
         elif action == 'units':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Units Tool'
         elif action == 'weapons':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Weapons Tool'
         elif action == 'armors':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Armors Tool'
         elif action == 'headgears':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Headgears Tool'
         elif action == 'spells':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Spells Tool'
         elif action == 'miscellaneous':
             self.tool.cancel()
-            self.tool = ToolObject(self.location, action)
+            self.tool = ToolObject(action)
             self.display_text = 'Miscellaneous Tool'
         elif action == 'repeat':
             self.display_text = self.prev_command
@@ -146,8 +144,8 @@ class Editor:
             self.command()
         elif action == 'save':
             self.tool.cancel()
-            self.location.save()
-            self.display_text = 'saved to ' + self.location.name
+            Global.location.save()
+            self.display_text = 'saved to ' + Global.location.name
         elif action == 'quit':
             self.tool.cancel()
             sys.exit()
@@ -234,22 +232,22 @@ class Editor:
             self.input('props')
             self.tool.select('Force', data=Data.parse('#-1,[0,0],' + arg1))
         elif params[0] == 'background':
-            self.location.header[2] = arg1
+            Global.location.header[2] = arg1
         elif params[0] == 'camera':
             pos = params[1].split(',')
             Camera.target.relocate(int(pos[0]), int(pos[1]), force=1)
         elif params[0] == 'merchant':
-            r = Stock.make('Merchant', self.location.get_tile(self.prev_mouse))
+            r = Stock.make('Merchant', Global.location.get_tile(self.prev_mouse))
             r.var = params[1].split(',')
         elif params[0] == 'moveall':
             pos = params[1].split(',')
-            self.location.tiles = {}
-            self.location.record.clear()
-            map_data = list(Data.process_raw(Data.read('save/' + self.location.name + '.map')))
-            self.location.load_map(map_data, offset=(int(pos[0]), int(pos[1])))
+            Global.location.tiles = {}
+            Global.location.record.clear()
+            map_data = list(Data.process_raw(Data.read('save/' + Global.location.name + '.map')))
+            Global.location.load_map(map_data, offset=(int(pos[0]), int(pos[1])))
         elif params[0] == 'moveobj':
             pos = params[1].split(',')
-            for i in self.location.record:
+            for i in Global.location.record:
                 i.move(int(pos[0]), int(pos[1]), distance=9999, flag=[])
         elif params[0] == 'new':
             from src.map.Location import Location
@@ -271,8 +269,8 @@ class Editor:
                 Global.player.switch()
         elif params[0] == 'save':
             self.tool.cancel()
-            self.location.name = arg1
-            self.location.save()
+            Global.location.name = arg1
+            Global.location.save()
             self.display_text = 'saved to ' + arg1
         elif params[0] == 'time':
             Global.player.days = int(params[1])
@@ -280,12 +278,11 @@ class Editor:
 
 
 class ToolTerrain:
-    def __init__(self, loc):
-        self.tile_list = Data.get_cache('tiles')
+    def __init__(self):
+        self.tile_list = Data.process_raw(Data.read('raw/tiles.txt'))
         self.text = 'dirt'
-        self.location = loc
-        self.tile = loc.get_tile(0)
-        self.prev_tile = loc.get_tile(0).terrain
+        self.tile = Global.location.get_tile(0)
+        self.prev_tile = Global.location.get_tile(0).terrain
         self.current = 0
         self.last = None  # unused
 
@@ -311,7 +308,7 @@ class ToolTerrain:
         if not button:
             self.cancel()
         elif button == 2:
-            self.tile.set_terrain('')
+            self.tile.set_terrain(None)
         self.tile = tile
         self.prev_tile = tile.terrain
         self.tile.set_terrain(self.text)
@@ -323,13 +320,13 @@ class ToolTerrain:
             self.update(self.tile.x, self.tile.y)
 
     def is_terrain(self, x, y, terrain):
-        r = self.location.get_tile([x, y]).terrain
+        r = Global.location.get_tile([x, y]).terrain
         if r:
             return 1 if r.name.split(' ')[0] == terrain else 0
         return 0
 
     def update(self, x, y):
-        tile = self.location.get_tile([x, y])
+        tile = Global.location.get_tile([x, y])
         if tile.terrain:
             name_type = tile.terrain.name.split(' ')[0]
             data = Data.get_line('raw/raw.txt', 'tileset')[1]
@@ -378,12 +375,11 @@ class ToolTerrain:
 
 
 class ToolObject:
-    def __init__(self, loc, object_type):
-        self.location = loc
+    def __init__(self, object_type):
         self.text = 'Crate'
         self.selection = Stock.get('Crate').add()
-        self.tile = loc.get_tile(0)
-        self.object_list = list(Data.get_cache(object_type))
+        self.tile = Global.location.get_tile(0)
+        self.object_list = list(Data.process_raw(Data.read('raw/' + object_type + '.txt')))
         self.current = 0
         self.last_data = None
         self.last = None

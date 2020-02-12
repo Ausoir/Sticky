@@ -1,10 +1,11 @@
 from src.entity.Attribute import Attribute
 from src.entity.Object import Object
+from src.game import Global
 
 
 class Prop(Object):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         from src.entity.unit.Buffs import Buffs
         self.hittable = 1
         self.states = Buffs(self)
@@ -21,6 +22,14 @@ class Prop(Object):
         index += 1
         self.states.load(arg[index])
         return index + 1
+
+    def add(self):
+        r = super().add()
+        self.update_tags()
+        return r
+
+    def update_tags(self):
+        self.tags.update()
 
     def turn(self):
         super().turn()
@@ -58,9 +67,9 @@ class Prop(Object):
         return 1
 
     def hit(self, damage, hitter=None):
-        if self.tags.get('mat') == 'Metal':
-            damage = max(0, damage - 4)
-        elif self.tags.get('mat') == 'Wood':
+        if self.tags.get('mat') == 'metal':
+            damage = max(0, damage - 5)
+        elif self.tags.get('mat') == 'wood':
             damage = max(0, damage - 2)
         if damage > 0:
             if hitter:
@@ -68,12 +77,13 @@ class Prop(Object):
                     from src.entity.Particle import Particle
                     if hitter.tags.get('sharp'):
                         if self.tags.get('mat') == 'flesh':
-                            self.location.sound.register(self.pos, damage, file='hit_bloody')
+                            Global.location.sound.register(self.pos, 3, file='hit_bloody')
                             Particle.make('splat', self.vec)
                         else:
-                            self.location.sound.register(self.pos, damage, file='hit_cut')
+                            Global.location.sound.register(self.pos, 3, file='hit_cut')
                             Particle.make('slash', self.vec)
                     else:
-                        self.location.sound.register(self.pos, damage, file='hit_bash')
+                        Global.location.sound.register(self.pos, 3, file='hit_bash')
                         Particle.make('batter', self.vec)
-        return self.decay(damage)
+            return self.decay(damage)
+        return 0

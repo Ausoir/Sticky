@@ -1,4 +1,4 @@
-from src.entity.unit.Buff import Buff
+from src.entity.unit.Buff import Buff, BuffTags
 
 
 class Buffs:
@@ -26,7 +26,7 @@ class Buffs:
 
     def get(self, name):
         for i in self.buffs:
-            if i.name == name:
+            if i.name == name and i.duration != 0:
                 return i
         return None
 
@@ -60,3 +60,6 @@ class Buffs:
     def trigger(self, arg):
         for i in self.buffs:
             i.trigger(arg)
+
+    def dispel(self):
+        self.clear(lambda x: BuffTags.magic in x.get_tags())

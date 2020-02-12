@@ -1,0 +1,39 @@
+class Field:
+    def __init__(self):
+        self.registry = []
+
+    def turn(self):
+        count = len(self.registry)
+        while count > 0:
+            count -= 1
+            if self.registry[count][1] == 0:
+                self.perform(self.registry[count])
+                self.registry.pop(count)
+                count -= 1
+            elif self.registry[count][1] > 0:
+                self.registry[count][1] -= 1
+            else:
+                self.registry.pop(count)
+                count -= 1
+
+    def register(self, damage, pos, delay=1, hitter=None, sound=None, callback=None):
+        data = [hitter, delay, pos, damage, sound, callback]
+        if delay <= 0:
+            Field.perform(data)
+        else:
+            self.registry.append(data)
+
+    def unregister(self, victim):
+        for i in self.registry:
+            if i[0] == victim:
+                i[1] = -1
+
+    @staticmethod
+    def perform(data):
+        if data[4]:
+            data[0].location.sound.register(data[0].pos, data[4][1], file=data[4][0])
+        for thing in data[2].things.copy():
+            if thing.hittable:
+                if thing.hit(data[3], hitter=data[0]) >= 1:
+                    if data[5]:
+                        data[5](thing)

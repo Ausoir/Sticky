@@ -3,10 +3,8 @@ from src.tools.Data import Data
 
 
 class Armor(Equipment):
-    ADDONS = ['jewel', 'hood', 'pouch', 'belt', 'hands', 'feet']
-
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.armor = 0
         self.capacity = 0
 
@@ -31,16 +29,8 @@ class Armor(Equipment):
             self.host.unarmor()
         super().die()
 
-    def get_addons(self):
-        r = []
-        for i in Armor.ADDONS:
-            addon = self.tags.get(i)
-            if addon:
-                r.append(addon)
-        return r
-
     def get_value(self):
-        return super().get_value() + self.armor + len(self.get_addons()) + self.capacity
+        return super().get_value() + self.armor + self.capacity
 
     def get_defense(self):
         min_d = 0
@@ -54,10 +44,6 @@ class Armor(Equipment):
         r += '\nCan hold items up to ' + str(self.capacity) + 'kg'
         min_d, max_d = self.get_defense()
         r += '\nDefense: ' + str(min_d) + ' ~ ' + str(max_d)
-        addons = []
-        for i in self.get_addons():
-            addons.append(i)
-        r += '\nAdd-ons: ' + (','.join(addons) if addons else 'None')
         return r
 
     def modify(self, arg):
@@ -72,7 +58,7 @@ class Armor(Equipment):
         return True
 
     def wear(self, start=False):
-        if self.host.is_armored():
+        if self.host.armor:
             self.host.unarmor()
         super().wear(start)
         self.host.form.set_model(self.form_name)
@@ -80,9 +66,17 @@ class Armor(Equipment):
         host = self.host
         if self.host.weapon == self:
             self.host.drop()
-        self.remove()
         self.host = host
         self.host.face(self.host.direction)
+
+    def on_wear(self):
+        super().on_wear()
+        from src.entity.unit.Character import Character
+        if isinstance(self.host, Character):
+            t = self.capacity
+            self.capacity = 0
+            self.host.inventory.update_capacity()
+            self.capacity = t
 
     def on_unwear(self):
         super().on_unwear()

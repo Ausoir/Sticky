@@ -56,3 +56,11 @@ treatment,I can cure you of all illness for $#.
 ?modify,Select an equipment to modify.
 ?pawn,Sell your # for $1?
 xpawn,You are not holding anything that you can sell. We only buy #.
+!heavy,Too heavy!
+!bright,Too dark!
+!safe,Not safe!
+!tag,Not enough #!
+!eat,Too hungry and nothing to eat!
+!hungry,Not hungry!
+!expire,Food has expired!
+?learn,Learn #?

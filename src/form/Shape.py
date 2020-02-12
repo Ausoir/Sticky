@@ -17,21 +17,26 @@ class Shape:
         self.removed = False
 
     def add_batch(self):
-        self.removed = False
-        right = self.x + self.width
-        up = Global.DISPLAY[1] - self.y
-        down = up - self.height
-        self.submission = Global.draw_group.batch.add(4, gl.GL_QUADS, self.group,
-                                                      ('v3i', (self.x, up, self.z,
-                                                               right, up, self.z,
-                                                               right, down, self.z,
-                                                               self.x, down, self.z)),
-                                                      ('c4B', self.color)
-                                                      )
+        if self.submission:
+            self.update()
+        else:
+            self.removed = False
+            right = self.x + self.width
+            up = Global.DISPLAY[1] - self.y
+            down = up - self.height
+            self.submission = Global.draw_group.batch.add(4, gl.GL_QUADS, self.group,
+                                                          ('v3i', (self.x, up, self.z,
+                                                                   right, up, self.z,
+                                                                   right, down, self.z,
+                                                                   self.x, down, self.z)),
+                                                          ('c4B', self.color)
+                                                          )
 
     def remove_batch(self):
-        self.removed = True
-        self.submission.delete()
+        if self.submission:
+            self.removed = True
+            self.submission.delete()
+            self.submission = None
 
     def update(self, x=None, y=None):
         if x is not None:

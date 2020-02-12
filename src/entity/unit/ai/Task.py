@@ -5,19 +5,28 @@ class Task:
     def __init__(self, pilot):
         self.pilot = pilot
         self.host = self.pilot.host
-        self.lifetime = 0
+        self.lifetime = -1
 
-    def __str__(self):
-        return self.__class__.__name__
+    def load(self, arg):
+        pass
+
+    def record(self):
+        self.host.tags.remove('tgt')
 
     def perform(self):
         pass
 
     def on_set(self):
-        pass
+        self.lifetime = -1
+
+    def on_finish(self):
+        self.pilot.set_task(self.pilot.default)
 
     def update(self):
-        self.lifetime += 1
+        if self.lifetime > 0:
+            self.lifetime -= 1
+        elif self.lifetime == 0:
+            self.pilot.set_task(self.pilot.default)
 
 
 class TargetTask(Task):
@@ -25,24 +34,141 @@ class TargetTask(Task):
         super().__init__(pilot)
         self.target = None
 
+
+class Return(Task):
+    def __init__(self, pilot, target):
+        super().__init__(pilot)
+        self.target = target
+
     def update(self):
-        super().update()
-        if not self.target:
-            if self.pilot.var['var'] == Global.player.character.id:
-                self.target = Global.player.character
-            else:
-                for i in self.host.location.record:
-                    if i.id == self.pilot.var['var']:
-                        self.target = i
-                        break
+        task = self.host.tags.get('task')
+        if task:
+            # noinspection PyUnresolvedReferences
+            import src.entity.unit.ai.Task as Behavior
+            self.pilot.set_task(getattr(Behavior, task)(self.pilot))
+        self.pilot.task.load(self.target)
 
 
 class Idle(Task):
     def on_set(self):
+        super().on_set()
         self.pilot.priority = 5
 
 
+class Wander(Task):
+    class Node:
+        def __init__(self, parent, node):
+            self.parent = parent
+            self.node = node
+            self.g = 0
+
+    def __init__(self, pilot):
+        super().__init__(pilot)
+        self.target = None
+        self.open = None
+        self.closed = []
+        self.result = []
+        self.closest = None
+        self.next_reset = 0
+        self.state = 0
+
+    def on_set(self):
+        super().on_set()
+        self.lifetime = 120
+        self.pilot.priority = 4
+        self.state = 0
+
+    def iterate(self, node):
+        index = 0
+        for k, v in enumerate(self.open):
+            if v.g < node.g:
+                index = k
+                node = v
+        self.open.pop(index)
+        self.closed.append(node)
+        options = self.pilot.get_routes(node.node)
+        for i in options:
+            pos = node.node.get_neighbor(i[0], i[1])
+            if self.check_loop(self.closed, pos):
+                continue
+            conflict = self.check_loop(self.open, pos)
+            if conflict:
+                if node.g + 1 <= conflict.g:
+                    conflict.parent = node
+                    conflict.g = node.g + 1
+                continue
+            new = Wander.Node(node, pos)
+            new.g = node.g + 1
+            self.open.append(new)
+
+    @staticmethod
+    def check_loop(loop, pos):
+        for i in loop:
+            if i.node == pos:
+                return i
+
+    def random_state(self):
+        if Global.r.rand_int(0, 5) == 0:
+            self.state = 1
+            self.reset()
+            self.target = None
+        else:
+            self.state = 0
+
+    def perform(self):
+        if self.state == 0:
+            if self.lifetime % 20 == 0:
+                self.random_state()
+        elif self.state == 1:
+            if self.result:
+                self.host.face_toward(self.result[0])
+                self.host.input('walk')
+                self.result = []
+
+    def update(self):
+        super().update()
+        if self.state == 1:
+            self.update_wander()
+
+    def update_wander(self):
+        if not self.result:
+            if self.next_reset == 0:
+                self.reset()
+                self.next_reset = 1
+            else:
+                self.next_reset += 1
+            for times in range(4):
+                if self.open:
+                    self.iterate(self.open[0])
+                else:
+                    break
+            # self.debug_trace()
+            if self.next_reset > 9:
+                if not self.target:
+                    self.target = Global.r.rand_list(self.open)
+                self.next_reset = 0
+                self.result = [self.target.node]
+                done = self.target
+                while done.parent:
+                    done = done.parent
+                    if done.node == self.host.pos:
+                        break
+                    self.result.insert(0, done.node)
+
+    def reset(self):
+        self.open = [Path.Node(None, self.host.pos)]
+        self.closed = []
+        self.closest = self.open[0]
+
+    def debug_trace(self):
+        for draw in self.open:
+            from src.entity.Particle import Particle
+            Particle.make('blood', draw.node.get_center() + Global.r.rand_int(-15, 15))
+
+
 class Path(Task):  # path finding A*
+    chase = 4  # 9
+
     class Node:
         def __init__(self, parent, node):
             self.parent = parent
@@ -66,6 +192,18 @@ class Path(Task):  # path finding A*
         self.result = []
         self.next_reset = 0
         self.heuristic_threshold = 0
+        self.out_of_reach = False
+
+    def load(self, arg):
+        ints = arg[1:].split('y')
+        self.target = Global.location.get_tile([int(ints[0]), int(ints[1])])
+
+    def record(self):
+        self.host.tags.set('tgt', 'x' + str(self.target.x) + 'y' + str(self.target.y), add=True)
+
+    def on_set(self):
+        super().on_set()
+        self.out_of_reach = False
 
     def iterate(self, node):
         index = 0
@@ -80,9 +218,9 @@ class Path(Task):  # path finding A*
             return node
         if achieved < (self.closest.node - self.target).difference():
             self.closest = node
-        options = self.pilot.path.get(node.node)
+        options = self.pilot.get_routes(node.node)
         for i in options:
-            pos = self.host.location.get_tile(node.node + i)
+            pos = node.node.get_neighbor(i[0], i[1])
             if self.check_loop(self.closed, pos):
                 continue
             conflict = self.check_loop(self.open, pos)
@@ -108,13 +246,11 @@ class Path(Task):  # path finding A*
 
     def perform(self):
         if self.result:
-            cur_dist = (self.host.pos - self.target).difference()
-            if cur_dist <= 1:
-                pass
-            else:
-                self.host.face_toward(self.result[0])
-                self.host.input('walk')
+            self.host.face_toward(self.result[0])
+            self.host.input('walk')
             self.result = []
+        if (self.host.pos - self.target).difference() <= 1:
+            return True
 
     def update(self):
         super().update()
@@ -125,7 +261,7 @@ class Path(Task):  # path finding A*
                 self.next_reset = 1
             else:
                 self.next_reset += 1
-            for times in range(12):
+            for times in range(7):
                 if self.open:
                     done = self.iterate(self.open[0])
                     if done:
@@ -133,7 +269,8 @@ class Path(Task):  # path finding A*
                 else:
                     break
             # self.debug_trace()
-            if not done and self.next_reset > 9:
+            if not done and self.next_reset > Path.chase:
+                self.out_of_reach = True
                 done = self.closest
             if done:
                 self.next_reset = 0
@@ -157,51 +294,77 @@ class Path(Task):  # path finding A*
 
 
 class Attack(TargetTask):
+    def record(self):
+        self.host.tags.set('tgt', self.target.id, add=True)
+
+    def load(self, arg):
+        if self.host.tags.get('npc'):
+            group = Global.location.population.bad
+        else:
+            group = [Global.player.character] + Global.location.population.good
+        self.target = Global.location.population.get_from_id(group, arg)
+
     def on_set(self):
+        super().on_set()
         self.pilot.priority = 1
 
     def update(self):
         super().update()
-        if self.target and not self.target.removed:
+        if self.target and self.target.tags.get('p', 0) > 0:
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()
         else:
-            self.pilot.set_task()
+            self.pilot.set_task(self.pilot.default)
 
     def perform(self):
         if self.target:
             dist = self.target.pos - self.host.pos
             if dist.difference() == 1:
                 self.host.face_toward(self.target.pos)
-                self.host.input(Global.r.rand_list(self.host.action.skills + ['use']))
+                self.host.input('use')
                 return True
-            self.pilot.move.target = self.target.pos
-            self.pilot.move.perform()
+            if self.pilot.move.out_of_reach:
+                self.pilot.set_task(self.pilot.move)
+                self.pilot.priority = 3
+                self.pilot.move.target = self.target.pos
+            else:
+                self.pilot.move.target = self.target.pos
+                self.pilot.move.perform()
 
 
-class Follow(Task):
-    def __init__(self, pilot):
-        super().__init__(pilot)
-        self.target = None
+class Follow(TargetTask):
+    def record(self):
+        self.host.tags.set('tgt', self.target.id, add=True)
+
+    def load(self, arg):
+        if self.host.tags.get('npc'):
+            group = [Global.player.character] + Global.location.population.good
+        else:
+            group = Global.location.population.bad
+        self.target = Global.location.population.get_from_id(group, arg)
 
     def on_set(self):
+        super().on_set()
         self.pilot.priority = 3
 
     def update(self):
         super().update()
         if not self.target:
-            if self.pilot.var['ally'] == Global.player.character.id:
-                self.target = Global.player.character
-            else:
-                for i in self.host.location.record:
-                    if i.id == self.pilot.var['ally']:
-                        self.target = i
-                        break
-        else:
+            tgt = self.host.tags.get('ally')
+            if tgt:
+                self.load(tgt)
+        if self.target and self.target.tags.get('p', 0) > 0:
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()
+        else:
+            self.pilot.set_task(self.pilot.default)
 
     def perform(self):
         if self.target:
-            self.pilot.move.target = self.target.pos
-            self.pilot.move.perform()
+            if self.pilot.move.out_of_reach:
+                self.pilot.set_task(self.pilot.move)
+                self.pilot.priority = 3
+                self.pilot.move.target = self.target.pos
+            else:
+                self.pilot.move.target = self.target.pos
+                self.pilot.move.perform()

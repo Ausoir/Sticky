@@ -12,14 +12,15 @@ from src.entity.unit.Unit import Unit
 from src.entity.unit.Character import Character
 # noinspection PyUnresolvedReferences
 from src.entity.Projectile import Projectile
+# noinspection PyUnresolvedReferences
 from src.entity.unit.Humanoid import Humanoid
+# noinspection PyUnresolvedReferences
 from src.entity.Other import *
 from src.tools.Data import Data
 
 
 class Stock:
     registry = {}
-    location = None
 
     @staticmethod
     def init():
@@ -27,12 +28,6 @@ class Stock:
             registry_items = Data.process_raw(Data.read('raw/' + i + '.txt'))
             for item in registry_items:
                 Stock.registry[item[0]] = item
-        item_desc = Data.process_raw(Data.read('raw/descriptions.txt'))
-        for i in item_desc:
-            Item.description[i[0]] = i[1]
-        item_price = Data.process_raw(Data.read('raw/prices.txt'))
-        for i in item_price:
-            Item.price[i[0]] = i[1]
         for model in Data.get_line('raw/raw.txt', 'face')[1]:
             face = []
             for image in model:
@@ -40,22 +35,20 @@ class Stock:
             Humanoid.faces.append(face)
 
     @staticmethod
-    def get(name, data=None, loc=None):
-        if not loc:
-            loc = Stock.location
+    def get(name, data=None):
         if not data:
             if name in Stock.registry:
                 record = Stock.registry[name]
-                object_id = Stock.location.get_id()
+                object_id = Global.location.get_id()
                 pos = [0, 0]
                 data = [object_id, pos] + record
-                r = globals()[record[1]](loc)
+                r = globals()[record[1]]()
             else:
                 name = name or 'UNDEFINED'
                 print("Cannot load Stock Object " + name)
                 return None
         else:
-            r = globals()[data[3]](loc)
+            r = globals()[data[3]]()
         r.load(data)
         return r
 

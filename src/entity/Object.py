@@ -12,14 +12,13 @@ from src.tools.Dialog import Dialog
 class Object(Image):
     BLOCK = 40
 
-    def __init__(self, loc):
+    def __init__(self):
         super().__init__(Space())
-        self.location = loc
         self.class_name = None
-        self.pos = self.location.get_tile(0)
+        self.pos = None
         self.old_pos = self.pos
-        self.delay = 0
-        self.collision_type = Tile.COLLIDE_OBJECT
+        self.obstruct_type = Tile.COLLIDE_OBJECT
+        self.collision_type = Tile.CHECK_FIRM
         self.removed = 0
         self.falling = 0
         self.in_sight = False
@@ -34,7 +33,7 @@ class Object(Image):
         index = super().load(p)
         if isinstance(p[index][0], list):
             p[index] = p[index][0]
-        self.pos = self.location.get_tile(p[index])
+        self.pos = Global.location.get_tile(p[index])
         index += 1
         self.name = p[index]
         index += 1
@@ -46,17 +45,17 @@ class Object(Image):
 
     def add(self):
         self.removed = 0
-        self.form.show(True)
+        self.show(True)
         Turn.add(self.turn)
         self.relocate(self.pos.x, self.pos.y, force=1)
-        self.location.record.append(self)
+        Global.location.population.add(self)
         return self
 
     def remove(self):
         self.removed = 1
-        self.form.show(False)
+        self.show(False)
         Turn.remove(self.turn)
-        self.location.record.remove(self)
+        Global.location.population.remove(self)
         self.pos.things.remove(self)
         del self
 
@@ -88,6 +87,20 @@ class Object(Image):
     def trigger(self):
         pass
 
+    def get_direction_toward(self, pos):
+        diff = pos - self.pos
+        horizontal = abs(diff.x) >= abs(diff.y)
+        if horizontal:
+            if diff.x < 0:
+                return 1
+            else:
+                return 3
+        else:
+            if diff.y < 0:
+                return 2
+            else:
+                return 4
+
     def get_front_tile(self, direction, mag=1):
         coord = Direction.coord[direction]
         return self.pos.get_neighbor(coord[0] * mag, coord[1] * mag)
@@ -95,8 +108,8 @@ class Object(Image):
     def relocate(self, x, y, force=0):
         if force or x != self.pos.x or y != self.pos.y:
             diff = [x - self.pos.x, y - self.pos.y]
-            self.location.get_tile(self.pos).things.remove(self)
-            new = self.location.get_tile(self.pos + diff)
+            Global.location.get_tile(self.pos).things.remove(self)
+            new = Global.location.get_tile(self.pos + diff)
             new.things.append(self)
             self.old_pos = self.pos
             self.pos = new
@@ -105,18 +118,19 @@ class Object(Image):
             return abs(diff[0]), abs(diff[1])
         return 0
 
-    def move_toward(self, direction, mag=1, distance=1, flag=Tile.CHECK_FIRM):
+    def move_toward(self, direction, distance=1, flag=None):
         coord = Direction.coord[direction]
-        coord = [coord[0] * mag, coord[1] * mag]
         target = self.pos + coord
-        new_pos = self.location.collide_land(self.pos, target, flag=flag, distance=distance)
+        flag = flag or self.collision_type
+        new_pos = Global.location.collide_land(self.pos, target, flag=flag, distance=distance)
         moved = self.pos != new_pos
         self.relocate(new_pos.x, new_pos.y)
         return moved
 
-    def move(self, x, y, distance=8, flag=Tile.CHECK_FIRM):
+    def move(self, x, y, distance=8, flag=None):
         target = self.pos + (x, y)
-        new_pos = self.location.collide_land(self.pos, target, distance=distance, flag=flag)
+        flag = flag or self.collision_type
+        new_pos = Global.location.collide_land(self.pos, target, distance=distance, flag=flag)
         self.relocate(new_pos.x, new_pos.y)
         return new_pos
 

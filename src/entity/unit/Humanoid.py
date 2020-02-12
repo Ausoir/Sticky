@@ -5,20 +5,17 @@ from src.tools import Direction
 class Humanoid(Unit):
     faces = []
 
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.armor = None
         self.headgear = None
         from src.entity.Stock import Stock
         self.fist = Stock.get('Fist')
-        self.body = Stock.get('Body')
-        self.body.show(False)
         self.weapon = self.fist
         self.fist.host = self
-        self.body.host = self
 
     def __str__(self):
-        armor = '['+self.armor.__str__()+']' if self.is_armored() else '0'
+        armor = '['+self.armor.__str__()+']' if self.armor else '0'
         headgear = '['+self.headgear.__str__()+']' if self.headgear else '0'
         weapon = '['+self.weapon.__str__()+']' if self.is_armed() else '0'
         gear = armor + ',' + headgear + ',' + weapon
@@ -27,13 +24,12 @@ class Humanoid(Unit):
     def load(self, p):
         index = super().load(p)
         from src.entity.Stock import Stock
-        self.form.organs[0].set(self.make_face())
-        self.armor = self.body
         if p[index]:
             if isinstance(p[index], str):
                 armor = Stock.get(p[index])
             else:
                 armor = Stock.get(p[index][2], p[index])
+            armor.update_tags()
             armor.host = self
             armor.wear(start=True)
         else:
@@ -44,6 +40,7 @@ class Humanoid(Unit):
                 headgear = Stock.get(p[index])
             else:
                 headgear = Stock.get(p[index][2], p[index])
+            headgear.update_tags()
             headgear.host = self
             headgear.wear(start=True)
         index += 1
@@ -52,10 +49,17 @@ class Humanoid(Unit):
                 weapon = Stock.get(p[index])
             else:
                 weapon = Stock.get(p[index][2], p[index])
+            weapon.update_tags()
             weapon.on_equip(self)
+        from src.game import Global
         for i in self.get_possessions():
-            i.id = Stock.location.get_id()
+            i.id = Global.location.get_id()
         return index + 1
+
+    def update_tags(self):
+        super().update_tags()
+        self.form.organs[0].set(self.make_face())
+        self.form.organs[0].form.show(True)
 
     def set_form(self, arg):
         self.form_name = arg
@@ -81,12 +85,12 @@ class Humanoid(Unit):
         self.weapon.states.update()
 
     def use(self):
+        from src.game.Script import Script
         if self.is_armed():
-            from src.game.Script import Script
             if not Script.execute_code(self.weapon.tags.get('#')):
                 self.weapon.use()
         else:
-            self.action.set('grab')
+            super().use()
 
     def relocate(self, x, y, force=0):
         super().relocate(x, y, force)
@@ -130,7 +134,8 @@ class Humanoid(Unit):
             self.headgear.form.place(x, y)
 
     def face(self, direction):
-        self.armor.face(direction)
+        if self.armor:
+            self.armor.face(direction)
         if self.headgear:
             self.headgear.face(direction)
         self.weapon.face(direction)
@@ -140,10 +145,19 @@ class Humanoid(Unit):
         min_d, max_d = self.armor.get_defense()
         if self.action.current_action == 'fall':
             return min_d, min_d
-        return min_d, max_d + self.get_proficiency('dodge')
+        return min_d, max_d + self.get_skill('dodge')
 
     def get_hitter(self):
         return self.weapon
+
+    def get_damage(self):
+        min_d, max_d = super().get_damage()
+        min_d2, max_d2 = self.weapon.get_damage()
+        return min_d + min_d2, max_d + max_d2
+
+    def on_attack(self, target):
+        super().on_attack(target)
+        self.weapon.on_attack(target)
 
     def get_possessions(self):
         r = [self.weapon, self.armor]
@@ -156,9 +170,8 @@ class Humanoid(Unit):
         self.fist.form.show(False)
 
     def make_armor(self):
-        self.armor = self.body
-        self.armor.host = self
-        self.armor.wear(start=True)
+        self.armor = None
+        self.form.set_model('image/unit/body')
         self.face(self.direction)
 
     def drop(self):
@@ -169,7 +182,7 @@ class Humanoid(Unit):
             return r
 
     def unarmor(self):
-        if self.is_armored():
+        if self.armor:
             self.armor.unwear()
             self.make_armor()
             return 1
@@ -185,11 +198,20 @@ class Humanoid(Unit):
     def is_armed(self):
         return self.weapon.name != 'Fist'
 
-    def is_armored(self):
-        return self.armor.name != 'Body'
-
     def make_face(self):
         from src.form.Model import Model
         face = Humanoid.faces[self.tags.get('seed', 0) % len(Humanoid.faces)]
         model = Model(face)
         return model
+
+    def get_skill(self, skill, stacks=False):
+        r = super().get_skill(skill, stacks)
+        if self.armor:
+            if stacks or r == 0:
+                if self.armor.tags.get('skill') == skill:
+                    r += 1
+        if self.headgear:
+            if stacks or r == 0:
+                if self.headgear.tags.get('skill') == skill:
+                    r += 1
+        return r

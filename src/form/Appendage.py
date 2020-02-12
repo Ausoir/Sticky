@@ -51,3 +51,9 @@ class Appendage(Limb):
             if abs(length) > 2:
                 self.form.resize(y=length)
         self.form.place(x + self.upper_joint.x, y + self.upper_joint.y)
+
+    def face(self, side, direction):
+        self.form.face(x=side)
+        if direction == 1 or direction == 3:
+            if self.flip_x == 2:
+                self.form.scale_x *= -1

@@ -22,7 +22,6 @@ class Window(Shape):
         self.children = []
         self.visible = -1
         self.on_click = None
-        self.on_r_click = None
         self.margin = Space(8, 8)
         self.normal_color = self.color
         self.hover_color = Window.fore_color3
@@ -66,9 +65,6 @@ class Window(Shape):
             if self.collide(mouse[0], mouse[1]):
                 if event == 1 and self.on_click is not None:
                     self.on_click(self.name)
-                    return 1
-                elif event == 4 and self.on_r_click is not None:
-                    self.on_r_click(self.name)
                     return 1
         return 0
 

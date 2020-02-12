@@ -1,105 +1,109 @@
-from src.entity.unit.Unit import Unit
 from src.entity.unit.ai.Task import *
 from src.map.Tile import Tile
-from src.tools import Direction
 
 
-class Manual:
+class Pilot:
     def __init__(self, host):
         self.host = host
-        self.faction = 0  # 0: Neutral, 1: Player, 2: Enemy, 3: Beast, 4: Undead
         self.default = None
         self.move = None
         self.path = None
         self.attack = None
         self.task = None
-
-    def set_task(self, task=None):
-        if not task:
-            task = self.default
-        task.on_set()
-        self.task = task
-
-    def hit(self, hitter):
-        pass
-
-    def update(self):
-        pass
-
-    def hear(self, pos):
-        pass
-
-
-class Pilot(Manual):
-    def __init__(self, host):
-        super().__init__(host)
         self.priority = 5
 
+    def record(self):
+        if self.host.tags.get('ai'):
+            if self.task != self.default and self.task.__class__ != Return:
+                self.host.tags.set('task', self.task.__class__.__name__, add=True)
+            else:
+                self.host.tags.remove('task')
+            self.task.record()
+
     def load(self, arg):
-        from src.entity.unit.ai.Routes import Ground
-        self.path = Ground(self.host.location)
         if arg == 'neutral':
             self.default = Idle(self)
             self.move = Path(self)
             self.attack = Attack(self)
         elif arg == 'hostile':
-            self.default = Idle(self)
+            self.default = Wander(self)
             self.move = Path(self)
             self.attack = Attack(self)
-        self.task = self.default
+        elif arg == 'ally':
+            self.default = Follow(self)
+            self.move = Path(self)
+            self.attack = Attack(self)
+        else:
+            return
+        tgt = self.host.tags.get('tgt')
+        if tgt:
+            self.set_task(Return(self, tgt))
+        else:
+            self.set_task(self.default)
 
     def update(self):
         self.task.update()
-        if self.host.delay == 0:
+        if self.host.action.delay == 0:
             self.act()
+
+    def set_task(self, task):
+        task.on_set()
+        self.task = task
 
     def act(self):
         if self.priority > 2:
-            sight = self.get_sight()
-            coord = Direction.coord[self.host.direction]
-            targets = self.perceive(sight, offset=[coord[0] * sight, coord[1] * sight])
+            if self.host.tags.get('npc'):
+                enemies = Global.location.population.bad
+            else:
+                enemies = [Global.player.character] + Global.location.population.good
+            targets = self.perceive(enemies)
             if targets:
                 self.spot_enemy(targets)
-        self.task.perform()
-
-    def get_sight(self):
-        return int(Global.map_view.sight_range / 2) + self.priority - 3
+        if self.task.perform():
+            self.task.on_finish()
 
     def hit(self, hitter):
-        if self.priority > 1:
-            self.set_task(self.attack)
+        if self.host.tags.get('ai'):
             from src.entity.unit.item.Item import Item
-            if isinstance(hitter, Unit):
+            from src.entity.Prop import Prop
+            if isinstance(hitter, Prop):
+                if isinstance(hitter, Item) and hitter.host:
+                    hitter = hitter.host
+                self.set_task(self.attack)
                 self.host.tags.set('tgt', hitter.id)
                 self.task.target = hitter
-            elif isinstance(hitter, Item) and hitter.host:
-                self.host.tags.set('tgt', hitter.host.id)
-                self.task.target = hitter.host
-        else:
-            targets = self.perceive(1)
-            if targets:
-                self.spot_enemy(targets)
 
-    def perceive(self, sight, offset=(0, 0)):
+    def perceive(self, enemies):
         perceived = []
-        aoe = self.host.location.get_area(self.host.pos + (offset[0], offset[1]), sight, int(sight * .8))
-        for i in aoe:
-            if i.light or abs(i.x - self.host.pos.x) < Global.map_view.view_range:
-                for thing in i.things:
-                    if thing != self.host and isinstance(thing, Unit):
-                        perceived.append(thing)
-        targets = []
-        for thing in perceived:
-            seen = self.host.location.collide_land(self.host.pos, thing.pos, Tile.CHECK_SIGHT)
-            if seen == thing.pos:
-                if self.host.tags.get('team', 'neutral') != thing.tags.get('team', 'neutral'):
-                    targets.append(thing)
-        return targets
+        for thing in enemies:
+            diff_x = abs(thing.pos.x - self.host.pos.x)
+            diff_y = abs(thing.pos.y - self.host.pos.y)
+            if self.host.is_facing(thing.pos):
+                s = thing.stealth
+                if thing.pos.light:
+                    in_range = diff_x <= Global.map_view.sight_range - s and diff_y <= Global.map_view.sight_range_y - s
+                else:
+                    in_range = diff_x <= Global.map_view.view_range - s and diff_y <= Global.map_view.view_range_y - s
+                if in_range:
+                    perceived.append(thing)
+        return perceived
 
     def hear(self, pos):
-        if self.priority > 3:
-            self.move.target = pos
-            self.set_task(self.move)
+        if self.host.tags.get('ai'):
+            if self.priority > 3:
+                if not self.host.tags.get('deaf'):
+                    self.host.face_toward(pos)
+                    seen = Global.location.collide_land(self.host.pos, pos, Tile.CHECK_SIGHT)
+                    if seen == pos:
+                        units = []
+                        from src.entity.unit.Unit import Unit
+                        for i in pos.things:
+                            if isinstance(i, Unit):
+                                units.append(i)
+                        self.perceive(units)
+                    else:
+                        self.move.target = pos
+                        self.set_task(self.move)
 
     def prioritize(self, targets):
         nearest_dist = 10
@@ -112,11 +116,33 @@ class Pilot(Manual):
         return nearest
 
     def spot_enemy(self, targets):
-        var = self.prioritize(targets)
-        if var:
-            self.host.tags.set('tgt', var.id)
-            self.set_task(self.attack)
-            self.task.target = var
-            from src.entity.Particle import Particle
-            Particle.make('shout', self.host.vec)
-            self.host.location.sound.register(self.host.pos, 9)
+        valids = []
+        for thing in targets:
+            seen = Global.location.collide_land(self.host.pos, thing.pos, Tile.CHECK_SIGHT)
+            if seen == thing.pos:
+                valids.append(thing)
+        if valids:
+            var = self.prioritize(valids)
+            if var:
+                self.set_task(self.attack)
+                self.task.target = var
+                if not self.host.tags.get('deaf'):
+                    from src.entity.Particle import Particle
+                    Particle.make('shout', self.host.vec)
+                    Global.location.sound.register(self.host.pos, 9)
+
+    def get_routes(self, pos):
+        options = []
+        left = pos.get_neighbor(-1, 0)
+        right = pos.get_neighbor(1, 0)
+        down = pos.get_neighbor(0, 1)
+        up = pos.get_neighbor(0, -1)
+        if not up.is_land(self.host.collision_type):
+            options.append((0, -1))
+        if not right.is_land(self.host.collision_type):
+            options.append((1, 0))
+        if not left.is_land(self.host.collision_type):
+            options.append((-1, 0))
+        if not down.is_land(self.host.collision_type):
+            options.append((0, 1))
+        return options

@@ -2,23 +2,27 @@ from src.tools.Data import Data
 
 
 class Dialog:
-    dialog = Data.process_raw(Data.read('raw/dialog.txt'))
+    data = None
+
+    @staticmethod
+    def init():
+        Dialog.data = Dialog.to_dict(Data.process_raw(Data.read('raw/dialog.txt')))
 
     @staticmethod
     def get(topic, var=None):
         index = 0
-        for i in Dialog.dialog:
-            if i[0] == topic:
-                if not var:
-                    return i[1]
-                r = ''
-                for c in i[1]:
-                    if c == '#':
-                        r += str(var[index])
-                        index += 1
-                    else:
-                        r += c
-                return r
+        if topic in Dialog.data:
+            data = Dialog.data[topic]
+            if not var:
+                return data
+            r = ''
+            for c in data:
+                if c == '#':
+                    r += str(var[index])
+                    index += 1
+                else:
+                    r += c
+            return r
         return topic.title()
 
     @staticmethod
@@ -63,12 +67,19 @@ class Dialog:
     @staticmethod
     def date(time):
         hour = time % 24
-        day = str(int(hour))
+        day = str(int(time / 24))
         hour_m = time % 12 + 1
         meridian = 'am'
         if hour + 1 >= 12:
             meridian = 'pm'
         return Dialog.get('time', [day, hour_m, meridian])
+
+    @staticmethod
+    def hours(time):
+        if time == 1:
+            return '1 ' + Dialog.get('hour')
+        else:
+            return str(time) + ' ' + Dialog.get('hours')
 
     @staticmethod
     def day(date):

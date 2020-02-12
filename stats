@@ -220,3 +220,10 @@
 1/27 gfx cleanup (1)
 1/31 Solid tile shades (1)
 ---- PUSH
+2/2 Pyinstaller (1)
+2/3 Memory leak on map travel (1), Melee skills (3)
+2/6 AI overhaul with save and load and Wander and Follow (3)
+2/8 Polymorph (1)
+2/9 30 spells over 3 schools (1)
+2/10 Health bar (1)
+2/12 Arms and legs flip image properly (1), eat on sleep (1)

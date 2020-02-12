@@ -6,7 +6,7 @@ from src.game import Global
 from src.entity.Space import Space
 from src.game.Camera import Camera
 from src.map.MapView import MapView
-from src.player.Player import Player
+from src.game.Game import Game
 from src.game.DrawGroup import DrawGroup
 from src.game.Turn import Turn
 from src.interface.Textbox import Textbox
@@ -24,10 +24,8 @@ class Execute(pyglet.window.Window):
         self.fps = 1 / 44.0
         self.frame_rate = 0, time()
         self.set_location(self.setting['x'], self.setting['y'])
-        pyglet.resource.path = ['../data']
-        pyglet.resource.reindex()
-        self.monologue = Textbox(40, 40)
         self.init_other()
+        self.monologue = Textbox(40, 40)
         glEnable(pyglet.gl.GL_BLEND)
         glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         glClearColor(Global.mask_color[0], Global.mask_color[1], Global.mask_color[2], Global.mask_color[3])
@@ -37,17 +35,20 @@ class Execute(pyglet.window.Window):
         Space.reusable = Space()
         from src.entity.Stock import Stock
         from src.map.Overlay import Overlay
+        from src.interface.MenuAll import MenuAll
         Data.init()
+        Dialog.init()
         Stock.init()
         Global.draw_group = DrawGroup()
-        Turn.init()
         Global.overlay = Overlay()
         pyglet.font.add_file(Data.direct('Ubuntu-Regular.ttf'))
         Global.font = pyglet.font.load('Default Font', 18)
         Global.main = self
         Global.blank_form = Data.get_form('none')
         Global.map_view = MapView()
-        Global.player = Player()
+        Global.menu = MenuAll()
+        Turn.init()
+        Global.player = Game()
 
     def set_fullscreen(self, fullscreen=True, screen=None, mode=None,
                        width=None, height=None):
@@ -86,9 +87,9 @@ class Execute(pyglet.window.Window):
         Global.DISPLAY = (int(width / 2) * 2, int(height / 2) * 2)
         Global.CENTER = (int(Global.DISPLAY[0] / 2), int(Global.DISPLAY[1] / 2))
         Global.SCREEN_TILES = (int(Global.DISPLAY[0] / Global.BLOCK), int(Global.DISPLAY[1] / Global.BLOCK))
-        self.monologue.x = Global.CENTER[0]
-        Global.player.on_resize()
+        Global.map_view.on_resize()
         Global.overlay.on_resize()
+        self.monologue.on_resize()
 
         glViewport(0, 0, Global.DISPLAY[0], Global.DISPLAY[1])
         glMatrixMode(GL_PROJECTION)
@@ -117,6 +118,7 @@ class Execute(pyglet.window.Window):
             Camera.update()
             Turn.update()
             Global.map_view.update()
+            self.monologue.update()
         else:
             self.frame_rate = self.frame_rate[0] + 1, self.frame_rate[1]
 
@@ -126,7 +128,6 @@ class Execute(pyglet.window.Window):
         Global.menu.draw()
         Global.player.draw()
         self.batch.draw()
-        self.monologue.draw()
 
 
 if __name__ == '__main__':

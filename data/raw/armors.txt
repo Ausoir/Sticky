@@ -1,17 +1,15 @@
-Body,Armor,image/unit/body,[],[],0,0,0,[] // Weight, Armor, Capacity, Addons
-Casual Wear,Armor,image/unit/casual,[p>:4,p:4],[],1,0,0,[]
-Green Robe,Armor,image/unit/robe_green,[p>:4,p:4],[],1,1,0,[Belt:0]
-Teal Robe,Armor,image/unit/robe_teal,[p>:4,p:4],[],1,2,0,[Belt:0]
-Blue Robe,Armor,image/unit/robe_blue,[p>:4,p:4],[],1,3,0,[Belt:0]
-Red Robe,Armor,image/unit/robe_red,[p>:4,p:4],[],1,4,0,[Belt:0]
-Silver Robe,Armor,image/unit/robe_silver,[p>:4,p:4],[],1,5,0,[Belt:0]
-Gold Robe,Armor,image/unit/robe_gold,[p>:4,p:4],[],1,6,0,[Belt:0,Pouch:0]
-Black Robe,Armor,image/unit/robe_black,[p>:4,p:4],[],1,7,0,[Belt:0,Pouch:0,Hood:0]
-Jumpsuit,Armor,image/unit/jumpsuit,[p>:4,p:4],[],1,0,0,[Pouch:0]
-Traveller Gear,Armor,image/unit/traveller,[p>:4,p:4],[],1,1,1,[Pouch:0,Hood:0]
-Tuxedo,Armor,image/unit/suit,[p>:4,p:4],[],1,2,0,[Jewel:0]
-Leather Armor,Armor,image/unit/leather,[p>:4,p:4],[],1,3,2,[Hands:0,Feet:0]
-Chainmail,Armor,image/unit/chainmail,[p>:4,p:4],[],1,4,5,[Hands:0]
-Scalemail,Armor,image/unit/scalemail,[p>:4,p:4],[],1,5,7,[Hands:0]
-Platemail,Armor,image/unit/platemail,[p>:4,p:4],[],1,6,9,[Hands:0]
-Robot Hull,Armor,image/unit/robot_hull,[p>:4,p:4],[],1,7,10,[Jewel:0,Hands:0,Feet:0]
+Casual Wear,Armor,image/unit/casual,[p>:4,p:4],[],1,0,8 // Weight, Armor, Capacity
+Green Robe,Armor,image/unit/robe_green,[p>:4,p:4],[],1,1,8
+Teal Robe,Armor,image/unit/robe_teal,[p>:4,p:4],[],1,2,0
+Red Robe,Armor,image/unit/robe_red,[p>:4,p:4],[],1,4,0
+Silver Robe,Armor,image/unit/robe_silver,[p>:4,p:4],[],1,5,0
+Gold Robe,Armor,image/unit/robe_gold,[p>:4,p:4],[],1,6,0
+Black Robe,Armor,image/unit/robe_black,[p>:4,p:4],[],1,7,0
+Jumpsuit,Armor,image/unit/jumpsuit,[p>:4,p:4,skill:escape],[],1,0,0
+Traveller Gear,Armor,image/unit/traveller,[p>:4,p:4,skill:silent moving],[],1,1,1
+Tuxedo,Armor,image/unit/suit,[p>:4,p:4],[],1,2,0
+Leather Armor,Armor,image/unit/leather,[p>:4,p:4],[],1,3,2
+Chainmail,Armor,image/unit/chainmail,[p>:4,p:4,spd:-1,skill:guard],[],1,4,5
+Scalemail,Armor,image/unit/scalemail,[p>:4,p:4,spd:-1,skill:guard],[],1,5,7
+Platemail,Armor,image/unit/platemail,[p>:4,p:4,spd:-1,skill:sunder],[],1,6,9
+Robot Hull,Armor,image/unit/robot_hull,[p>:4,p:4],[],1,7,10

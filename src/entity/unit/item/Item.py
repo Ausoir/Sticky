@@ -3,12 +3,9 @@ from src.map.Tile import Tile
 
 
 class Item(Prop):
-    description = {}
-    price = {}
-
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.collision_type = Tile.COLLIDE_ITEM
+    def __init__(self):
+        super().__init__()
+        self.obstruct_type = Tile.COLLIDE_ITEM
         self.host = None
         self.weight = 1
 
@@ -34,7 +31,8 @@ class Item(Prop):
         self.host = host
         host.weapon = self
         self.vec = host.vec
-        self.location.record.remove(self)
+        from src.game import Global
+        Global.location.population.remove(self)
         self.pos.things.remove(self)
         self.host.form.update_perspective()
 
@@ -46,50 +44,35 @@ class Item(Prop):
         self.add()
 
     def get_value(self):
-        if self.name in Item.price:
-            return Item.price[self.name]
-        return 1
+        return self.tags.get('price', 1)
 
     def get_display_name(self):
         return self.name
 
     def describe(self):
         r = self.get_display_name()
-        if r in Item.description:
-            r += '\n' + Item.description[r]
+        from src.tools.Data import Data
+        data = Data.get_line('raw/descriptions.txt', r)
+        if data:
+            r += '\n' + data[1]
         r += '\nDurability: ' + str(self.tags.get('p', 'Indefinite')) + '/' + str(self.tags.get('p>', 'Indefinite'))
         r += '\nWeight: ' + str(self.weight)
-        from src.entity.Attribute import Attribute
-        if self.tags.attributes.get(Attribute.flesh):
+        material = self.tags.attributes.get('mat')
+        if material == 'flesh':
             r += '\nThis item is an organic material.'
-        if self.tags.attributes.get(Attribute.insubstantial):
-            r += '\nThis item is insubstantial.'
-        if self.tags.attributes.get(Attribute.metal):
+        if material == 'metal':
             r += '\nThis item is metallic.'
-        if self.tags.attributes.get(Attribute.wood):
+        if material == 'wood':
             r += '\nThis item is composed of wood.'
-        if self.tags.attributes.get('silver'):
+        if material == 'silver':
             r += '\nThis item has silver properties.'
-        if self.tags.attributes.get('sharp'):
-            r += '\nThis item is sharp.'
         return r
 
     def use(self):
-        self.host.action.swing()
+        self.host.action.attack()
 
     def get_damage(self):
         return 0, 1
-
-    def attack(self, damage=0, delay=1, callback=None):
-        def on_attack(target):
-            self.on_attack(target)
-            if callback:
-                callback(target)
-        tile = self.host.get_front_tile(self.host.direction, mag=1)
-        from src.game import Global
-        min_d, max_d = self.get_damage()
-        dmg = Global.r.rand_int(min_d + damage, min_d + damage + max_d)
-        self.location.attack.register(dmg, tile, delay=delay, hitter=self, callback=on_attack, sound=['swing', 2])
 
     def on_attack(self, target):
         self.states.trigger(['attack', target])

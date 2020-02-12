@@ -21,4 +21,5 @@ mist,[gfx_7x4,gfx_7x5,gfx_7x6,gfx_7x7],0.1,0
 slash,[gfx_8x4,gfx_8x5,gfx_8x6,gfx_8x7],0.1,0
 splat,[gfx_9x4,gfx_9x5,gfx_9x6,gfx_9x7],0.1,0
 heal,[gfx_10x4,gfx_10x5,gfx_10x6,gfx_10x7],0.1,0
+power,[gfx_11x4,gfx_11x5,gfx_11x6,gfx_11x7],0.1,0
 shout,[g_5x0],0.10,0

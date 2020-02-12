@@ -1,29 +1,3 @@
-Pr.Dodge,Grants 1 Defense.
-Pr.Attack,Increase basic attack Attack by 1.
-Pr.Damage,Increase basic attack Damage by 1.
-Pr.Nimble,Minimize fall damage to 1 regardless of height.
-Pr.Lunge,Increase lunge Attack by 1.
-Pr.Charge,Increase charge Attack by 1.
-Pr.Peek,Increase peek range by 7.
-Pr.Block,Quadruple block defense.
-Pr.Tackle,Increase tackle Attack by 1.
-Pr.Lunge,Increase lunge Attack by 1.
-Pr.Leap,Increase leap range by 2.
-Pr.Flurry,Increase flurry Attack by 1.
-Pr.Charge,Halve stamina loss from charging.
-Pr.Slam,Hit 3 times instead of 2.
-Pr.Bow,Increase archery Attack and Damage by 1.
-Pr.Gun,Halve shooting delay.
-Sk.Peek,<SHIFT> + <RMB> to peek without being spotted
-Sk.Block,<S> to increase defense against incoming attacks
-Sk.Offhand,<Q> to swap weapon into offhand. Used for extra carriage or to improve block defense
-Sk.Sprint,<SHIFT> + <A> or <SHIFT> + <D> to move faster at the cost of stamina
-Sk.Tackle,Sprinting toward an enemy will knock it down and slow its movement
-Sk.Lunge,<S> + <LMB> to perform a knock back attack
-Sk.Leap,<SHIFT> + <W> to jump further toward the place you are pointing
-Sk.Flurry,<SHIFT> + <LMB> to attack in quick succession
-Sk.Charge,<SHIFT> + <E> to charge forward, knocking down and pushing away everything in path
-Sk.Slam,<SHIFT> + <Q> to attack with increased Attack and hit twice.
 Repair Kit,Repair items without resting
 Jelly,A blob of slime goo
 Fiber,A fibrous material that can be used to repair equipment
@@ -41,19 +15,62 @@ Glasses,Activate to look farther. <E> is activate by default
 Strong Glasses,Activate to look farther. <E> is activate by default
 Headband,Can be worn or be used on headgear to make it indestructible
 Safety Helmet,Activate to provide light. <E> is activate by default
-Manual,Learn martial arts
-Perfume,Charm an enemy
-Handcuff,Capture an object
-Echo,Reveal sight of a location within sight range
-Dispell,Purge all magical effects in vicinity of caster
+Manual,Read to learn skills
+Dispel,Purge all magical effects in vicinity of caster
+Gravity,Pull everything within 12 tiles toward the caster.
+Glow,Make everything within 10 by 10 tiles in front of the caster permanently glow. Repeated shots make targets glow brighter.
+Scorch,Create a scorching flame in front of the caster.
+Summon Bread,Summons bread.
+Darkness,Block out the sunlight to create darkness\, reducing sight range to 4.
 Scry,Reveal sight of far away location
-Tornado,Push away everything near the caster
-Crystallize,Create a wall of crystals in the shape you choose
-Immolation,Become immune to fire and imbue weapon with fire
-Entomb,Entomb a target in crystals
-Gravitas,Create and control a black hole
-Darkness,Create darkness to shrink sight and ignore light sources
-Transmute,Known to transmute Jelly/Plank/Water Bottle
-Evacuate,Teleport home
-Blink,Teleport to target
-Recharge,Recharge a staff in possession of caster
+Blink,Teleport a short distance through walls.
+Restoration,Everything within 6 tiles of caster heals 10 health over 10 seconds.
+Haste,Move and attack faster until hit.
+Invisibility,Become invisible until attacking.
+Charm,Turn an enemy in front of the caster into an ally.
+Purge,Purge the soul of a unit in front of the caster.
+Possess,Take control of a unit in front of the caster.
+Blizzard,Anything adjacent to the caster are pushed away and become frozen in place for 8 seconds.
+Spell Mine,Create a magical trap that explodes when stepped on.
+Shockwave,Knock down all land based enemies in sight range for 8 seconds and set them on fire.
+Wall,Create a spell wall to block out enemies.
+Raise Dead,Turn corpses into zombies.
+Summon Weapon,Summon a random weapon.
+Summon Armor,Summon a random piece of armor or clothing.
+Summon Phantom,Summon a phantom to possess any item at the caster's location.
+Evacuate,Teleport to town.
+Banish,Banish anything in front of the caster to the abyss.
+Slime Form,Turn into a slime that is immune to many status effects.
+Ghost Form,Turn into a ghost that can pass through walls but cannot interact with the world.
+Dog Form,Turn into a dog that can consume corpses and move faster than average.
+Barkskin,Turn flesh into wood\, becoming slowed and vulnerable to fire but reducing incoming damage by 2.
+Stone Form,Turn flesh into stone\, becoming immobile but reducing incoming damage by 5.
+sk.dodge,Stacking Passive: Increase maximum defense by 1.
+sk.block,Unique Passive: Reduce damage from front by 1.
+sk.guard,Stacking Passive: Nullify damage from sides 1/2 of the time. On higher levels\, damage is reduced to 1/(2 + additional level).
+sk.endurance,Unique Passive: 1 second of invulnerability upon taking a hit.
+sk.parry,Unique Passive: Standing still for 4 seconds activates concentration\, evading next hit and reflecting damage. Reflected damage is unavoidable.
+sk.vengeance,Unique Passive: After receiving 4 continuous attacks\, push away all adjacent units and knock them down for 4 seconds.
+sk.toughness,Unique Passive: Become immune to knockdown.
+sk.strength,Stacking Passive: Increase maximum damage by 1.
+sk.fury,Unique Passive: Increase speed by 1 for 4 seconds after taking damage.
+sk.flurry,Stacking Passive: Standing still for 4 seconds activates concentration\, attacking an additional time on a successful hit. Additional attacks trigger flurry again up to your level of flurry.
+sk.cleave,Unique Passive: Successful attacks cleave to the sides at -1 damage penalty. Cleave attacks do not trigger skills.
+sk.frenzy,Unique Passive: Successful attacks increase maximum damage by 1 for 1 second. Stacks.
+sk.sunder,Unique Passive: Successful attacks lower targets defense by 4 for 4 seconds. Defense never fall below 0.
+sk.execute,Unique Passive: Successful attacks instantly kill enemies with health lower than current maximum damage.
+sk.stealth,Stacking Passive: Reduce enemy sight range by 1.
+sk.silent moving,Unique Passive: Removes sound from moving.
+sk.hide,Unique Passive: Standing still for 4 seconds activates concentration\, becoming invisible until moving.
+sk.calculated hit,Unique Passive: Standing still for 4 seconds activates concentration\, applying critical hit on your next successful attack. Critical hits add 7 unavoidable damage to your attack.
+sk.assassination,Unique Passive: Attacks from behind silence target and apply critical hit. Critical hits add 7 unavoidable damage to your attack.
+sk.escape,Unique Passive: Gain +1 speed for 4 seconds after a critical hit.
+sk.trip,Unique Passive: Critical hits push victims back and knock them down for 4 seconds.
+sk.cantrip,Create easy yet useful spells.
+sk.aura,Create aura manipulating scrolls.
+sk.enchant,Create scrolls that can inflict status effects.
+sk.summon,Create summoning scrolls.
+sk.ritual,Create rituals to aid other spells.
+sk.memorize,Cast spell from memory.
+sk.blood ink,Create spell ink from blood.
+sk.innovation,Create a manual with 3 random skills to choose from.

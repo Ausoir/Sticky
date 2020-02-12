@@ -49,8 +49,9 @@ class Shade:
             self.overlay.set_solid_color(color)
 
     def shade_overlay(self):
-        self.has_overlay = True
-        self.overlay.add_batch()
+        if not self.has_overlay:
+            self.has_overlay = True
+            self.overlay.add_batch()
 
     def shade_walls(self, joint_neighbors):
         for k, v in enumerate(Shade.wall_shade_meta):

@@ -1,14 +1,11 @@
 from src.game import Global
 from src.game.Script import Script
-from src.game.Turn import Turn
 from src.interface.Window import Window
 from src.tools.Data import Data
 
 
 class Menu:
-    def __init__(self, host):
-        Turn.add(self.turn)
-        self.host = host
+    def __init__(self):
         self.visible = -1
         self.state = self.menu_message
         self.current_state = self.menu_message
@@ -23,13 +20,12 @@ class Menu:
         self.history = []
         self.history_var = []
         self.var = []
+        self.update = None
 
     def turn(self):
         if self.visible == 1:
-            self.state = self.current_state
-            # self.display(1)
-            if not self.window.input(0):
-                self.sub_window.input(0)
+            if self.update:
+                self.update()
 
     def previous(self):
         if self.visible == 1 and len(self.history) > 1:

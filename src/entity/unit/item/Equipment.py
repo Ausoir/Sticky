@@ -7,7 +7,7 @@ class Equipment(Item):
 
     def enhance(self, rng):
         if rng <= self.get_enhance_chance():
-            self.states.add('Modified', -1, var=1)
+            self.tags.increment('mod', 1, add=True)
             return True
         else:
             from src.entity.Particle import Particle
@@ -17,9 +17,7 @@ class Equipment(Item):
 
     def modify(self, arg):
         if arg == 'ascend':
-            mod = self.states.get('Modified')
-            if mod:
-                mod.end()
+            self.tags.remove('mod')
         elif arg == 'reinforce':
             self.host.armor.attributes.hp += 1
             self.host.armor.attributes.max_hp += 1
@@ -28,10 +26,7 @@ class Equipment(Item):
         return True
 
     def get_level(self):
-        mod = self.states.get('Modified')
-        if mod:
-            return mod.var
-        return 0
+        return self.tags.get('mod', 0)
 
     def get_display_name(self):
         level = self.get_level()
@@ -52,7 +47,7 @@ class Equipment(Item):
         super().on_unequip()
 
     def wear(self, start=False):
-        self.host.action.set('wait')
+        self.host.action.act('grab', 8)
         if self.host.weapon == self:
             host = self.host
             self.host.drop()
@@ -65,13 +60,21 @@ class Equipment(Item):
         self.on_unequip()
 
     def on_wear(self):
-        self.location.sound.register(self.pos, 3, file='wear')
+        from src.game import Global
+        Global.location.sound.register(self.pos, 3, file='wear')
+        speed = self.tags.get('spd', 0)
+        if speed != 0:
+            self.host.tags.increment('spd', speed, add=True)
         if self.tags.get('p'):
-            self.host.tags.add('p', self.tags.get('p'))
-            self.host.tags.add('p>', self.tags.get('p>'))
+            self.host.tags.increment('p', self.tags.get('p'))
+            self.host.tags.increment('p>', self.tags.get('p>'))
 
     def on_unwear(self):
-        self.location.sound.register(self.pos, 3, file='wear')
+        from src.game import Global
+        Global.location.sound.register(self.pos, 3, file='wear')
+        speed = self.tags.get('spd', 0)
+        if speed != 0:
+            self.host.tags.increment('spd', -speed, remove=True)
         if self.tags.get('p'):
             self.host.tags.set('p', max(1, self.host.tags.get('p') - self.tags.get('p')))
             self.host.tags.set('p>', max(1, self.host.tags.get('p>') - self.tags.get('p>')))

@@ -5,6 +5,7 @@ class Attribute:
     inactive = '!'
     script = '#'
     collision = 'col'
+    obstruct = 'ob'
     pivot = 'piv'
     material = 'mat'
     insubstantial = 'ix'
@@ -27,7 +28,6 @@ class Attribute:
                     self.attributes[strings[0]] = int(strings[1])
                 else:
                     self.attributes[strings[0]] = strings[1]
-        self.update()
 
     def remove(self, param):
         if param in self.attributes:
@@ -38,13 +38,21 @@ class Attribute:
             return self.attributes[param]
         return default
 
-    def set(self, param, arg):
-        if param in self.attributes:
+    def set(self, param, arg, add=False):
+        if param in self.attributes or add:
             self.attributes[param] = arg
+            return True
 
-    def add(self, param, arg):
+    def increment(self, param, arg, add=False, remove=False):
         if param in self.attributes:
             self.attributes[param] += arg
+            if remove:
+                if self.attributes[param] == 0:
+                    del self.attributes[param]
+            return True
+        elif add:
+            self.attributes[param] = arg
+            return True
 
     def require(self, param, arg, cost=True):
         if param in self.attributes:
@@ -59,7 +67,12 @@ class Attribute:
         else:
             self.host.hittable = 0
         if Attribute.collision in self.attributes:
-            self.host.collision_type = self.attributes['col']
+            cols = []
+            for i in str(self.attributes['col']):
+                cols.append(int(i))
+            self.host.collision_type = cols
+        if Attribute.obstruct in self.attributes:
+            self.host.obstruct_type = self.attributes['ob']
         if Attribute.pivot in self.attributes:
             self.host.form.image.anchor_y = self.host.form.image.height - self.attributes['piv']
         if 'seed' in self.attributes:
@@ -69,3 +82,7 @@ class Attribute:
 
     def is_combustible(self):
         return self.get('p') and self.get('mat') in ['wood', 'flesh', 'fuel']
+
+    def get_carry_over(self):
+        permanent = ['money', 'talent', 'seed', 'full']
+        return (lambda keys: {x: self.attributes[x] for x in keys})(permanent)

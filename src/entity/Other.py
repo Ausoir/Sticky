@@ -13,8 +13,8 @@ from src.tools.Dialog import Dialog
 
 
 class Scripter(Prop):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         from src.game.Script import Script
         self.script = Script(self)
 
@@ -32,8 +32,8 @@ class Scripter(Prop):
 
 
 class Door(Prop):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.form1 = None
         self.form2 = None
 
@@ -50,24 +50,24 @@ class Door(Prop):
     def turn(self):
         super().turn()
         if len(self.pos.things) > 1:
-            if self.collision_type != Tile.COLLIDE_ITEM:
+            if self.obstruct_type != Tile.COLLIDE_ITEM:
                 self.form2.show(True)
                 self.form2.bound(self.form.inbound)
                 self.form = self.form2
                 self.form1.show(False)
-                self.collision_type = Tile.COLLIDE_ITEM
+                self.obstruct_type = Tile.COLLIDE_ITEM
         else:
-            if self.collision_type != Tile.COLLIDE_FOG:
+            if self.obstruct_type != Tile.COLLIDE_FOG:
                 self.form1.show(True)
                 self.form1.bound(self.form.inbound)
                 self.form = self.form1
                 self.form2.show(False)
-                self.collision_type = Tile.COLLIDE_FOG
+                self.obstruct_type = Tile.COLLIDE_FOG
 
 
 class Credit(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.var = None
         self.amount = 0
 
@@ -85,14 +85,14 @@ class Credit(Item):
         return super().describe() + '\n' + Dialog.get(self.var.title()) + ': ' + str(self.amount)
 
     def use(self):
-        self.host.action.set('wait')
+        self.host.action.act('grab', 8)
         self.host.var[self.var] += self.amount
         self.die()
 
 
 class Food(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.nutrition = [-1, 0]
 
     def __str__(self):
@@ -132,24 +132,34 @@ class Food(Item):
     def use(self):
         if self.get_expiration():
             hunger = self.host.tags.get('full')
-            if hunger < 0:
-                self.host.tags.add('full', self.nutrition[1])
-                self.decay(1)
-                self.host.action.set('wait')
+            if hunger < 10:
+                self.host.action.act('eat', 8)
+                self.host.action.on_finish = self.eat
             else:
-                Global.main.monologue.set('Not hungry.')
+                Global.main.monologue.set(Dialog.get('!hungry'))
         else:
-            Global.main.monologue.set('That food had expired.')
+            Global.main.monologue.set(Dialog.get('!expire'))
             self.die()
+
+    def eat(self):
+        for i in self.states.buffs:
+            self.host.states.add(i.name, i.duration, i.var)
+        self.host.tags.increment('full', self.nutrition[1])
+        self.decay(1)
 
 
 class Corpse(Prop):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.direction = 1
-        self.collision_type = 0
-        self.form = Data.get_form('g_9x3')
+        self.obstruct_type = Tile.COLLIDE_ITEM
+        self.form = None
         self.has_host = False
+
+    def load(self, arg):
+        r = super().load(arg)
+        self.form = Data.get_form(self.form_name)
+        return r
 
     def invalid(self, state):
         pass
@@ -159,13 +169,12 @@ class Corpse(Prop):
 
     def set(self, form):
         self.has_host = True
-        self.add()
         self.form = form
+        self.add()
         dead = 'dead' + str(Global.r.rand_int(1, 2))
         self.form.randomize_clip(dead, 8)
         self.form.set_state(dead)
         self.form.set_state = self.invalid
-        self.form.show(True)
         return self
 
     def update(self):
@@ -191,22 +200,12 @@ class Break(Prop):
             self.pos.terrain = None
 
 
-class Mushroom(Item):
-    def die(self):
-        if self.host:
-            self.host.states.add('Sick', 40)
-        else:
-            for thing in self.pos.things:
-                thing.states.add('Sick', 40)
-        super().die()
-
-
 class Explosive(Item):
     def die(self):
         if self.states.get('Burn'):
             from src.entity.Stock import Stock
             Stock.make('Flame', self.pos)
-            aoe = self.location.get_area(self.pos, 1, 1)
+            aoe = Global.location.get_area(self.pos, 1, 1)
             for tile in aoe:
                 Particle.make('explode', tile.get_center(), offset=4, glow=2)
                 for thing in tile.things:
@@ -216,10 +215,8 @@ class Explosive(Item):
 
 
 class Manual(Item):
-    skills = ['Peek', 'Block', 'Sprint', 'Leap', 'Offhand', 'Tackle', 'Lunge', 'Flurry', 'Slam', 'Charge']
-
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.skill = None
 
     def __str__(self):
@@ -228,45 +225,45 @@ class Manual(Item):
     def load(self, arg):
         index = super().load(arg)
         self.skill = arg[index]
-        if self.skill == 'Random':
-            self.skill = Global.r.rand_list(Manual.skills)
+        if not self.skill:
+            if Global.r.rand_bool():
+                data = Data.get_line('raw/raw.txt', 'stacking skill')[1]
+                data = [x[0] for x in data]
+            else:
+                data = Data.get_line('raw/raw.txt', 'unique skill')[1]
+            self.skill = Global.r.rand_list(data)
         return index + 1
 
     def get_display_name(self):
-        return 'Manual of ' + self.skill
+        return '<' + self.skill.title() + '> Manual'
 
     def describe(self):
-        r = super().describe() + '\nTeaches skill [' + self.skill + ']'
-        if self.skill in Item.description:
-            r += '\n' + Item.description[self.skill]
-        r += '\nRequires ' + str(self.get_req()) + ' Strength'
+        r = super().describe() + '\nTeaches skill [' + self.skill.title() + ']'
+        data = Data.get_line('raw/descriptions.txt', 'sk.' + self.skill)
+        if data:
+            r += '\n' + data[1]
         return r
 
-    def get_req(self):
-        req = 2
-        # for i in self.host.action.skills:
-        #     if i.title() in Manual.skills:
-        #         req += 1
-        return req
-
     def use(self):
-        skill = self.skill.lower()
-        if skill not in self.host.action.skills:
-            req = self.get_req()
-            if self.host.attributes.strength >= req:
-                self.host.action.skills.append(skill)
+        if self.host == Global.player.character:
+            self.host.action.act('eat', 8)
+            self.host.action.on_finish = self.learn
+
+    def learn(self):
+        if Global.player.is_bright() and Global.player.sleep(1):
+            skill = self.skill.lower()
+            if skill not in self.host.skills:
+                self.host.skills.append(skill)
                 if self.host == Global.player.character:
-                    Global.player.character.say('Learned ' + self.skill + '!')
+                    Global.main.monologue.set('Learned ' + self.skill + '!')
                     self.die()
             elif self.host == Global.player.character:
-                Global.player.character.say('Need ' + str(req) + ' Strength to learn this skill!')
-        elif self.host == Global.player.character:
-            Global.player.character.say('I already know ' + self.skill + '.')
+                Global.main.monologue.set('I already know ' + self.skill + '.')
 
 
 class Handcuff(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.capture = None
 
     def __str__(self):
@@ -294,12 +291,12 @@ class Handcuff(Item):
                         self.capture = i
                         i.remove()
                 Particle.make('portal', self.host.pos.get_center())
-            self.host.action.set('wait')
+            self.host.action.act('grab', 8)
             self.host.action.set_animation('interact')
             self.host.action.on_finish = change
-            self.host.delay = 5
+            self.host.action.delay = 5
         else:
-            self.host.action.set('wait')
+            self.host.action.act('grab', 8)
             self.host.action.set_animation('interact')
             from src.entity.Stock import Stock
             self.capture.pos = self.host.get_front_tile()
@@ -309,8 +306,8 @@ class Handcuff(Item):
 
 
 class MemoryAmulet(Headgear):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.visible = 0
         self.memory_map = None
         self.memory_pos = Space()
@@ -327,7 +324,7 @@ class MemoryAmulet(Headgear):
 
     def use(self):
         super().use()
-        self.memory_map = self.host.location.name
+        self.memory_map = Global.location.name
         self.memory_pos = self.host.pos
 
     def activate(self):
@@ -337,8 +334,8 @@ class MemoryAmulet(Headgear):
 
 
 class RubyAmulet(Headgear):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.visible = 0
 
     def die(self):
@@ -360,8 +357,8 @@ class RubyAmulet(Headgear):
 
 
 class LifeAmulet(Headgear):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.visible = 0
         self.max_durability = 3
 
@@ -382,8 +379,8 @@ class LifeAmulet(Headgear):
 
 
 class Glasses(Headgear):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.sight = 4
 
     def __str__(self):
@@ -401,7 +398,7 @@ class Glasses(Headgear):
                 self.host.center_camera()
             channel = self.host.states.add('Channel', 12)
             channel.on_finish = done
-            new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
+            new_pos = Global.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
                                                       distance=self.sight, flag=Tile.CHECK_FIRM)
             from src.game.TempObject import TempObject
             viewer = TempObject(new_pos)
@@ -410,8 +407,8 @@ class Glasses(Headgear):
 
 
 class SafetyHat(Headgear):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.light = 6
 
     def __str__(self):
@@ -438,8 +435,8 @@ class SafetyHat(Headgear):
 
 
 class Tazer(Weapon):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.charge = 0
 
     def __str__(self):
@@ -466,6 +463,11 @@ class Tazer(Weapon):
             self.charge = self.charge + 50
 
 
+class Fist(Weapon):
+    def on_unequip(self):
+        pass
+
+
 class Pickaxe(Weapon):
     def attack(self, damage=1, delay=1, callback=None):
         super().attack(damage, delay, callback)
@@ -478,8 +480,8 @@ class Pickaxe(Weapon):
 
 
 class Ballistic(Equipment):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.motion = None
         self.ammo = 0
 
@@ -504,17 +506,39 @@ class Ballistic(Equipment):
             self.host.say('Out of ammunition.')
 
 
-class Unnatural(Unit):
-    def hit(self, damage, hitter=None):
-        if hitter and hitter.tags.get('silver'):
-            damage *= 2
-        return super().hit(damage, hitter)
+class Mine(Prop):
+    def __init__(self):
+        super().__init__()
+        self.area = 4
+        self.damage = 12
+
+    def __str__(self):
+        return super().__str__() + ',' + str(self.area) + ',' + str(self.damage)
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.area = arg[index]
+        index += 1
+        self.damage = arg[index]
+        return index + 1
+
+    def turn(self):
+        super().turn()
+        if self.pos.is_land([Tile.COLLIDE_UNIT]):
+            from src.entity.unit.Actions import Actions
+            for tile in Global.location.get_area(self.pos, self.area, self.area):
+                for thing in tile.things.copy():
+                    Actions.knockdown(thing)
+                    thing.states.add('Burn', 12)
+                    thing.hit(self.damage)
+                Particle.make('explode', tile.get_center())
+            self.remove()
 
 
 class Phantom(Unit):
-    def __init__(self, loc):
-        super().__init__(loc)
-        self.collision_type = Tile.COLLIDE_ITEM
+    def __init__(self):
+        super().__init__()
+        self.obstruct_type = Tile.COLLIDE_ITEM
         self.host = None
 
     def __str__(self):
@@ -530,5 +554,8 @@ class Phantom(Unit):
     def set_host(self, host):
         self.host = host
         self.form.organs[0].set(self.host.form)
-        self.tags = self.host.tags
+        self.tags.set('mat', self.host.tags.get('mat'))
+        if isinstance(self.host, Weapon):
+            self.strength = self.host.damage
+        self.tags.set('p', self.host.tags.get('p'))
         self.host.loot = []

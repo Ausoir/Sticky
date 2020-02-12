@@ -1,4 +1,5 @@
 import os
+
 import pyglet
 from pyglet.image import Texture, Animation
 
@@ -14,10 +15,6 @@ class Data:
     @staticmethod
     def init():
         Data.set_cache('none', Texture.create(1, 1))
-        Data.set_cache('setting', Data.process_raw(Data.read('setting.txt')))
-        Data.set_cache('tiles', Data.process_raw(Data.read('raw/tiles.txt')))
-        for i in Data.registry_list:
-            Data.set_cache(i, Data.process_raw(Data.read('raw/' + i + '.txt')))
         res = Data.process_raw(Data.read('raw/resource.txt'))
         for i in res:
             Data.initialize_image(i[0], i[1], i[2])
@@ -73,9 +70,18 @@ class Data:
         directory = 'sound/' + fdir
         cache = Data.get_cache(directory)
         if not cache:
-            cache = pyglet.media.StaticSource(pyglet.resource.media(directory + '.wav'))
+            cache = pyglet.media.StaticSource(pyglet.media.load(Data.direct(directory + '.wav')))
             Data.set_cache(directory, cache)
         return cache
+
+    @staticmethod
+    def get_image(fdir, cache):
+        img = pyglet.image.load(Data.direct(fdir + '.png')).get_texture()
+        img.anchor_x = img.width / 2
+        img.anchor_y = img.height / 2
+        if cache:
+            Data.cache[fdir] = img
+        return img
 
     @staticmethod
     def get_form(fdir, form=None, **kwargs):
@@ -116,15 +122,15 @@ class Data:
 
     @staticmethod
     def initialize_image(name, texture, subset_size):
-        image = pyglet.image.load(Data.direct(texture + '.png', path='../data/'))
+        image = pyglet.image.load(Data.direct(texture + '.png'))
         image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
         seq = pyglet.image.TextureGrid(image_grid)
         # seq = pyglet.image.Texture3D.create_for_image_grid(image_grid)
         i = 0
         for y in range(subset_size[1]):
             for x in range(subset_size[0]):
-                seq[i].anchor_x = Global.HALF_BLOCK
-                seq[i].anchor_y = Global.HALF_BLOCK
+                seq[i].anchor_x = int(seq[i].width / 2)
+                seq[i].anchor_y = int(seq[i].height / 2)
                 Data.cache[name + '_' + str(x) + 'x' + str(subset_size[1] - y - 1)] = seq[i]
                 i += 1
 
@@ -172,24 +178,18 @@ class Data:
         return r
 
     @staticmethod
-    def get_line(fdir, name):
+    def get_line(fdir, name, row=False):
         cache = Data.get_cache(fdir)
         if cache:
             data = cache
         else:
             data = Data.process_raw(Data.read(fdir))
-        for i in data:
+        for k, i in enumerate(data):
             if i[0] == name:
-                return i
-
-    @staticmethod
-    def get_image(fdir, cache):
-        img = pyglet.resource.image(Data.direct(fdir + '.png', path=''))
-        img.anchor_x = img.width / 2
-        img.anchor_y = img.height / 2
-        if cache:
-            Data.cache[fdir] = img
-        return img
+                if row:
+                    return k, i
+                else:
+                    return i
 
     @staticmethod
     def get_cache_clip(fdir):

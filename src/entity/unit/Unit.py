@@ -6,42 +6,46 @@ from src.map.Tile import Tile
 
 
 class Unit(Prop):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         from src.entity.unit.Actions import Actions
         self.draw_frame = 0
         self.bleed_frame = 0
         self.action = Actions(self)
-        self.proficiency = []
+        self.skills = []
         self.next_action = 'idle'
         self.direction = 3
-        self.collision_type = Tile.COLLIDE_UNIT
+        self.obstruct_type = Tile.COLLIDE_UNIT
         self.pilot = None
-        self.delay = 0
+        from src.form.HealthBar import HealthBar
+        self.healthbar = HealthBar(self.tags)
+        self.dodge = 0
+        self.strength = 0
+        self.stealth = 0
 
     def __str__(self):
-        att = '[' + self.action.__str__() + '],[' + ','.join(self.proficiency) + ']'
+        self.pilot.record()
+        att = '[' + ','.join(self.skills) + ']'
         return super().__str__() + ',' + att
 
     def load(self, p):
         index = super().load(p)
-        self.action.load(p[index])
-        index += 1
-        self.proficiency = p[index]
-        self.form.randomize(self.tags.get('seed', 0))
+        self.skills = p[index]
         from src.entity.unit.ai import Pilot
         ai = self.tags.get('ai')
-        if ai:
-            self.pilot = Pilot.Pilot(self)
-            self.pilot.load(ai)
-        else:
-            self.pilot = Pilot.Manual(self)
+        self.pilot = Pilot.Pilot(self)
+        self.pilot.load(ai)
         index += 1
         return index
+
+    def update_tags(self):
+        super().update_tags()
+        self.form.randomize(self.tags.get('seed', 0))
 
     def add(self):
         r = super().add()
         self.face(self.tags.get('dir', 4))
+        self.update_skill()
         return r
 
     def set_form(self, arg):
@@ -64,13 +68,15 @@ class Unit(Prop):
         self.vec.x += diff.x * .08
         self.vec.y += diff.y * .08
         self.form.place(self.vec.x, self.vec.y)
+        self.healthbar.place(self.vec.x, self.vec.y)
 
     def turn(self):
-        self.pilot.update()
+        if self.tags.get('ai'):
+            self.pilot.update()
         super().turn()
-        if self.delay > 0:
-            self.delay -= 1
-        elif self.delay == 0:
+        if self.action.delay > 0:
+            self.action.delay -= 1
+        elif self.action.delay == 0:
             self.action.attempt(self.next_action)
             self.next_action = 'idle'
         mhp = self.tags.get('p>')
@@ -89,9 +95,6 @@ class Unit(Prop):
     def set_row(self, row):
         self.form.set_row(self.depth(row))
 
-    def center_camera(self):
-        super().center_camera()
-
     def input(self, action):
         self.next_action = action
 
@@ -105,50 +108,149 @@ class Unit(Prop):
             return True
 
     def face_toward(self, pos):
+        return self.face(self.get_direction_toward(pos))
+
+    def is_facing(self, pos):
         diff = pos - self.pos
-        if diff.x < 0:
-            return self.face(1)
-        elif diff.x > 0:
-            return self.face(3)
-        if diff.y < 0:
-            return self.face(2)
-        elif diff.y > 0:
-            return self.face(4)
+        return diff.x <= 0 and self.direction == 1 or\
+            diff.y <= 0 and self.direction == 2 or\
+            diff.x >= 0 and self.direction == 3 or\
+            diff.y >= 0 and self.direction == 4
+
+    def update_skill(self):
+        self.dodge += self.get_skill('dodge', stacks=True)
+        self.strength += self.get_skill('strength', stacks=True)
+        self.stealth += self.get_skill('stealth', stacks=True)
 
     def get_defense(self):
         if self.action.current_action == 'fall':
             return 0, 0
-        r = self.get_proficiency('dodge')
-        return 0, r
+        armor = self.states.get('Armor')
+        if armor:
+            return 0, max(0, self.dodge + armor.var)
+        return 0, self.dodge
+
+    def get_damage(self):
+        return 0, self.strength + 1
+
+    def roll_damage(self):
+        min_d, max_d = self.get_damage()
+        return Global.r.rand_int(min_d, min_d + max_d)
 
     def hit(self, damage, hitter=None):
+        r = 0
+        self.action.frame = 0
         min_d, max_d = self.get_defense()
         max_d = max(min_d, max_d)
-        damage -= Global.r.rand_int(min_d, max_d)
+        backstab = False
+        if isinstance(hitter, Prop):
+            from src.tools import Direction
+            if self.is_facing(hitter.pos):
+                if hitter.pos == self.get_front_tile(self.direction):
+                    damage -= self.get_skill('block')
+                elif Global.r.rand_int(0, self.get_skill('guard')) != 0:
+                    damage -= self.get_skill('guard')
+            else:
+                backstab = True
+        if not backstab:
+            damage -= Global.r.rand_int(min_d, max_d)
+        if self.get_skill('vengeance'):
+            self.states.add('Vengeance', 20)
+        self.states.trigger(['hit', damage])
         if damage > 0:
+            if self.get_skill('toughness'):
+                self.states.add('Invulnerable', 40)
+            if self.get_skill('fury'):
+                self.states.add('Speed', 40, 1)
             self.pilot.hit(hitter)
-            if self.states.get('Distraction'):
-                self.die()
-                return 2
+            if self.get_skill('parry'):
+                concentration = self.states.get('Concentration')
+                if concentration:
+                    concentration.trigger(['spend'])
+                    if isinstance(hitter, Prop):
+                        hitter.decay(damage)
+                    return
             self.form.timer.set(4)
             self.form.randomize_once(4)
-            return super().hit(damage, hitter)
+            r = super().hit(damage, hitter)
+        self.healthbar.show()
+        return r
 
     def get_hitter(self):
         return self
+
+    def on_attack(self, target):
+        self.states.trigger(['attack', target])
+        if isinstance(target, Unit):
+            if self.get_skill('cleave'):
+                from src.tools import Direction
+                left = self.get_front_tile(Direction.add(self.direction, -1))
+                right = self.get_front_tile(Direction.add(self.direction, 1))
+                dmg = self.roll_damage() - 1
+                hitter = self.get_hitter()
+                Global.location.field.register(dmg, left, hitter=hitter, delay=0)
+                Global.location.field.register(dmg, right, hitter=hitter, delay=0)
+            if self.get_skill('frenzy'):
+                self.states.add('Damage', 40, 1)
+            if self.get_skill('sunder'):
+                target.states.add('Armor', 40, -4)
+            if self.get_skill('assassination') and not target.is_facing(self.pos):
+                target.tags.set('deaf', 1, add=True)
+                self.critical_attack(target)
+        flurry = self.get_skill('flurry', stacks=True)
+        crit = self.get_skill('calculated hit')
+        if flurry or crit:
+            concentration = self.states.get('Concentration')
+            if concentration:
+                if crit:
+                    if concentration.var == 0:
+                        concentration.trigger(['spend'])
+                        self.critical_attack(target)
+                if flurry:
+                    from src.entity.unit.Actions import Actions
+                    concentration.var += 1
+                    if concentration.var >= flurry:
+                        concentration.trigger(['spend'])
+                    self.action.attack()
+        if self.get_skill('execute'):
+            if target.tags.get('p', 20) <= self.get_damage()[1]:
+                target.die()
 
     def die(self):
         pos = self.pos
         super().die()
         if not self.tags.get('ix'):
+            self.tags.remove('ai')
             from src.entity.Stock import Stock
-            r = Stock.get('Corpse')
-            r.tags.set('p', self.tags.get('p>'))
-            r.relocate(pos.x, pos.y, force=1)
+            r = Stock.make('Corpse', pos)
+            r.tags.set('p', self.tags.get('p>') or self.tags.get('p') or 1, add=True)
             r.set(self.form)
 
-    def get_proficiency(self, school):
-        return 1 if school.lower() in self.proficiency else 0
+    def remove(self):
+        self.healthbar.remove()
+        super().remove()
 
-    def say(self, text):
-        pass
+    def get_skill(self, skill, stacks=False):
+        r = 0
+        for i in self.skills:
+            if skill == i:
+                if not stacks:
+                    return 1
+                r += 1
+        return r
+
+    def critical_attack(self, target):
+        target.decay(7)
+        from src.entity.Particle import Particle
+        Particle.make('power', target.vec)
+        Global.location.sound.register(target.pos, 0, file='hit_impale')
+        if self.get_skill('escape'):
+            self.states.add('Speed', 40, 1)
+        if self.get_skill('trip'):
+            from src.entity.unit.Actions import Actions
+            Actions.knockdown(target, time=20)
+            from src.tools import Direction
+            target.move_toward(self.direction)
+
+    def is_team(self, target):
+        return self.tags.get('npc') == target.tags.get('npc')

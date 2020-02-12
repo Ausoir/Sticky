@@ -1,10 +1,11 @@
 from src.entity.unit.Humanoid import Humanoid
-from src.player.Inventory import Inventory
+from src.entity.unit.Inventory import Inventory
+from src.game import Global
 
 
 class Character(Humanoid):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.inventory = Inventory(self)
         from src.tools.Data import Data
         self.shadow = Data.get_form('g_7x0')
@@ -19,12 +20,17 @@ class Character(Humanoid):
         return index + 1
 
     def add(self):
-        super().add()
+        r = super().add()
         self.shadow.show(True)
+        return r
 
     def remove(self):
         super().remove()
         self.shadow.show(False)
+
+    def show(self, visible):
+        super().show(visible)
+        self.shadow.show(visible)
 
     def set_row(self, row):
         super().set_row(row)
@@ -58,20 +64,14 @@ class Character(Humanoid):
         self.tags.set('sign', 'Accident')
         super().out_of_bounds()
 
-    def is_bright(self):
-        from src.game import Global
-        if Global.player.is_daytime() or self.pos.light > 1:
-            return True
-        self.say('Too dark!')
-
     def require_var(self, param, mag, cost=True):
         if not self.tags.require(param, mag, cost):
-            self.say('Not enough ' + param + '!')
+            from src.tools.Dialog import Dialog
+            Global.main.monologue.set(Dialog.get('!tag'))
 
     def get_possessions(self):
         r = [self.weapon]
         r += self.inventory.items
-        r.append(self.armor)
         if self.headgear:
             r.append(self.headgear)
         return r

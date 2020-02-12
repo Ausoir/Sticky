@@ -33,7 +33,7 @@ class BodyHumanoid(Body):
                     organ.form.switch(organ.texture_num + numeral)
                 organ.form.reset()
                 organ.set(organ.form)
-                organ.form.face(x=self.side)
+                organ.face(self.side, self.direction)
                 organ.form.z = t
             elif i == -2:
                 self.host.weapon.form.z = t

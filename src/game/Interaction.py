@@ -12,7 +12,7 @@ class Interaction:
             r = Stock.make('Wand', target.pos)
             r.name = spell[0] + ' Wand'
             r.spell = spell[0]
-            target.host.action.set('wait')
+            target.host.action.act('grab', 8)
             target.die()
         elif service == 'bandage':
             status = target.host.states.get('Bleed')
@@ -20,7 +20,7 @@ class Interaction:
                 Particle.make('barrier', target.host.vec)
                 status.trigger(['remove'])
                 target.hit(1)
-                target.host.action.set('wait')
+                target.host.action.act('grab', 8)
         elif service == 'cure':
             Particle.make('barrier', target.host.vec)
             sick = target.host.states.get('Sick')
@@ -29,7 +29,7 @@ class Interaction:
         elif target.name == 'rspawn':
             from src.entity.Stock import Stock
             Stock.make(Global.r.rand_list([v for v in Stock.registry.values()])[0], target.host.pos)
-            target.host.action.set('wait')
+            target.host.action.act('grab', 8)
             target.hit(1)
         else:
             return False

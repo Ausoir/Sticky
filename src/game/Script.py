@@ -40,7 +40,8 @@ class Script:
         self.exception = None
         self.seed = None
         self.rand = None
-        self.var = [host or Global.player.character, None, None, None, None]
+        self.host = host or Global.player.character
+        self.var = None
 
     def __str__(self):
         string = Dialog.deepnonstrlist
@@ -90,48 +91,55 @@ class Script:
         for i in self.exception:
             self.run_mechanism(i)
 
-    def run_preposition(self, segment, arg):
-        if arg[0].startswith('='):
-            what = None
+    def run_preposition(self, arg):
+        if arg[0] == '=':
             if arg[1] == '=':
-                what = arg[2]
+                self.var = arg[2]
             elif arg[1] == 'where':
-                what = self.var[0].location.get_tile([arg[2], arg[3]]).things
+                self.var = Global.location.get_tile([arg[2], arg[3]]).things
             elif arg[1] == 'wherer':
-                what = self.var[0].location.get_tile([self.var[0].pos.x + arg[2], self.var[0].pos.y + arg[3]]).things
+                self.var = Global.location.get_tile([self.host.pos.x + arg[2], self.host.pos.y + arg[3]]).things
             elif arg[1] == 'raw':
-                what = Data.get_line('raw/' + arg[2] + '.txt', arg[3].lower())
+                self.var = Data.get_line('raw/' + arg[2] + '.txt', arg[3].lower())
             elif arg[1] == 'array':
-                what = arg[2][arg[3]]
+                self.var = arg[2][arg[3]]
             elif arg[1] == 'name':
-                what = []
+                self.var = []
                 for i in arg[2]:
                     if i.name == arg[3]:
-                        what.append(i)
+                        self.var.append(i)
             elif arg[1] == '!name':
-                what = []
+                self.var = []
                 for i in arg[2]:
                     if i.name != arg[3]:
-                        what.append(i)
+                        self.var.append(i)
             elif arg[1] == 'player':
-                what = [Global.player.character]
+                self.var = Global.player.character
             elif arg[1] == '?list':
                 r = []
                 for i in range(arg[3]):
                     r.append(self.rand.rand_list(arg[2]))
-                what = r
+                self.var = r
             elif arg[1] == '?int':
-                what = self.rand.rand_int(arg[2], arg[3])
-            self.var[int(arg[0][1])] = what
-        elif arg[0] == 'seed':
-            if arg[1] == 'timespace':
-                self.var = Global.player.days * Global.player.character.location.seed
-            elif arg[1] == 'hostgene':
-                self.var = self.var[0].attributes.gene
-            else:
-                self.seed = arg[1]
-            from src.tools.Random import Random
-            self.rand = Random(self.seed)
+                self.var = self.rand.rand_int(arg[2], arg[3])
+            elif arg[1] == '+':
+                if isinstance(arg[2], str) or isinstance(arg[3], str):
+                    self.var = str(arg[2]) + str(arg[3])
+                else:
+                    self.var = arg[2] + arg[3]
+            elif arg[1] == 'tag':
+                self.var = self.host.tags.get(arg[2])
+            elif arg[1] == 'skill':
+                self.var = self.host.get_skill(arg[2])
+            elif arg[1] == 'host':
+                self.host = self.var
+            elif arg[1] == 'seed':
+                if arg[2] == 'timespace':
+                    self.var = Global.player.days * Global.player.character.location.seed
+                else:
+                    self.seed = arg[2]
+                from src.tools.Random import Random
+                self.rand = Random(self.seed)
         else:
             return False
         return True
@@ -139,13 +147,23 @@ class Script:
     def replace_variable(self, arg):
         new = []
         for i in arg:
-            if isinstance(i, str) and i.startswith('#'):
-                new.append(self.var[int(i[1])])
+            if isinstance(i, str):
+                if i == '*':
+                    new.append(self.var)
+                # elif i.startswith('#'):
+                #     new.append(self.var[int(i[1])])
+                else:
+                    new.append(i)
             elif isinstance(i, list):
                 nest = []
                 for ii in i:
-                    if isinstance(ii, str) and ii.startswith('#'):
-                        nest.append(self.var[int(ii[1])])
+                    if isinstance(ii, str):
+                        if i == '*':
+                            new.append(self.var)
+                        # elif ii.startswith('#'):
+                        #     nest.append(self.var[int(ii[1])])
+                        else:
+                            nest.append(ii)
                     else:
                         nest.append(ii)
                 new.append(nest)
@@ -158,13 +176,8 @@ class Script:
         if condition[0].startswith('!'):
             condition[0] = condition[0][1:]
             return not self.run_condition(condition)
-        elif self.run_preposition(self.condition, condition):
+        elif self.run_preposition(condition):
             return True
-        elif condition[0] == 'turn':
-            condition[2] += 1
-            if condition[2] >= condition[1]:
-                condition[2] = 0
-                return True
         elif condition[0] == 'be':
             return self.var
         elif condition[0] == 'bring':
@@ -175,18 +188,11 @@ class Script:
                         count += 1
             if count == condition[2]:
                 return True
-        elif condition[0] == 'reqvar':
-            ok = False
-            for i in self.var:
-                from src.entity.unit.Character import Character
-                if isinstance(i, Character):
-                    if not i.require_var(condition[1], condition[2], cost=False):
-                        return False
-                    else:
-                        ok = True
-            return ok
-        elif condition[0] == 'chance':
-            if self.rand.rand_int(1, condition[1]) <= condition[2]:
+        elif condition[0] == 'equal':
+            if self.var == condition[1]:
+                return True
+        elif condition[0] == 'greater':
+            if self.var > condition[1]:
                 return True
         elif condition[0] == 'date':
             if Global.player.days > condition[1]:
@@ -214,16 +220,19 @@ class Script:
             Global.menu.get_prompt(condition[1], condition[2], on_yes, 0)(None)
             return False
         elif condition[0] == 'wield':
-            return Global.player.character.weapon.name in condition[1]
+            return Global.player.character.weapon.name in self.var
 
     def run_mechanism(self, arg):
         arg = self.replace_variable(arg)
-        if self.run_preposition(self.mechanism, arg):
+        if self.run_preposition(arg):
             pass
         elif arg[0] == 'exit':
             Global.player.control.quit()
         elif arg[0] == 'script':
-            Script.execute_line(arg[1])
+            if len(arg) > 2:
+                Script.execute_line(arg[1], arg[2])
+            else:
+                Script.execute_line(arg[1])
         elif arg[0] == 'trigger':
             for i in self.var:
                 if isinstance(i, Scripter):
@@ -234,11 +243,11 @@ class Script:
             r = []
             from src.entity.Stock import Stock
             for i in arg[1]:
-                r.append(Stock.make(i, self.var[0].pos))
+                r.append(Stock.make(i, self.host.pos))
             if len(arg) > 2:
                 self.var[int(arg[2])] = r
         elif arg[0] == 'effect':
-            Particle.make(arg[1], self.var[0].pos.get_center(), offset=8)
+            Particle.make(arg[1], self.host.pos.get_center(), offset=8)
         elif arg[0] == 'toggle':
             Global.menu.toggle()
         elif arg[0] == 'message':
@@ -251,14 +260,16 @@ class Script:
                 if isinstance(i, Character):
                     i.say(arg[1])
         elif arg[0] == 'settag':
-            for i in self.var:
-                i.tags[arg[1]] = arg[2]
+            self.host.tags.set(arg[1], arg[2], add=True)
         elif arg[0] == 'addtag':
-            for i in self.var:
-                i.tags[arg[1]] += arg[2]
+            self.host.tags.increment(arg[1], arg[2])
+        elif arg[0] == 'removetag':
+            self.host.tags.remove(arg[1])
         elif arg[0] == 'remove':
-            for thing in reversed(self.var):
-                thing.remove()
+            self.var.remove()
+        elif arg[0] == 'spell':
+            from src.entity.unit.item.Spell import Spell
+            Spell.perform(self.host, arg[1])
         elif arg[0] == 'hit':
             for thing in self.var:
                 thing.hit(arg[2])
@@ -273,7 +284,7 @@ class Script:
                 thing.move(arg[2], arg[3])
         elif arg[0] == 'thief':
             from src.entity.unit.item.Item import Item
-            for i in self.var[0].location.record:
+            for i in Global.location.population.other:
                 if isinstance(i, Item):
                     if i.get_value() >= arg[1]:
                         i.remove()
@@ -282,9 +293,9 @@ class Script:
         elif arg[0] == 'blackout':
             Global.overlay.blackout()
         elif arg[0] == 'darkness':
-            self.var[0].location.view_range = arg[1]
-            self.var[0].location.sight_range = arg[2]
-            self.var[0].location.resize()
+            Global.location.view_range = arg[1]
+            Global.location.sight_range = arg[2]
+            Global.location.resize()
         elif arg[0] == 'enter':
             from src.entity.Space import Space
             Global.player.travel(arg[1], Space(int(arg[2]), int(arg[3])))
@@ -294,9 +305,9 @@ class Script:
         elif arg[0] == 'load':
             building = Data.process_raw(Data.read('map/' + arg[1] + '.map'))
             flip = False
-            if len(arg) > 2 and arg[2]:
+            if len(arg) > 3 and arg[3]:
                 flip = True
-            self.var[0].location.load_map(building, new=True, offset=self.where.to_list(), flip=flip)
+            Global.location.load_map(building, new=True, offset=arg[2].to_list(), flip=flip)
         elif arg[0] == 'make':
             from src.map.Location import Location
             Location.make(arg[1], arg[2])
@@ -307,15 +318,12 @@ class Script:
             from src.entity.unit.Character import Character
             from src.entity.Stock import Stock
             for gift in arg[1]:
-                self.var[0].inventory.attempt_add(gift)
+                self.host.inventory.attempt_add(gift)
         elif arg[0] == 'unwield':
             Global.player.character.weapon.remove()
         elif arg[0] == 'act':
-            from src.entity.unit.Unit import Unit
-            for i in self.var:
-                if isinstance(i, Unit):
-                    i.action.set('wait')
-                    i.form.set(arg[1])
-                    i.delay = arg[2]
+            self.host.action.set(arg[1])
+            if len(arg) > 2:
+                self.host.action.delay = arg[2]
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])

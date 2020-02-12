@@ -7,9 +7,9 @@ from src.tools.Data import Data
 
 
 class Control:
-    def __init__(self, player):
+    def __init__(self):
         Turn.fast_queue.append(self.turn)
-        self.player = player
+        self.player = None
         self.cursor = [0, 0]
         self.cursor_tile = None
         self.keypress = []
@@ -134,8 +134,8 @@ class Control:
 
     def quit(self):
         self.player.input('quit')
-        self.player.location.delay = 0
-        self.player.location.turn()
+        Global.location.delay = 0
+        Global.location.turn()
         Global.main.on_close()
 
     def turn(self):

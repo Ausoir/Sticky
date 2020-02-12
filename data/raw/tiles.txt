@@ -1,4 +1,4 @@
-void,t_0x0,1,0 //name,image,type,direction
+void,t_0x0,0,0 //name,image,type,direction
 black,t_0x0,2,0
 dirt,t_1x0,2,0
 grass,t_3x5,2,0
@@ -6,7 +6,7 @@ rock,t_5x0,1,0
 brick,t_2x2,1,0
 brickf,t_2x3,2,0
 concrete,t_4x5,1,0
-concretef,t_6x5,2,0
+concretef,t_1x1,2,0
 woodf,t_5x5,2,0
 marble,t_6x0,1,0
 wood,t_2x0,2,0

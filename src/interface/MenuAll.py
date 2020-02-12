@@ -112,12 +112,12 @@ class MenuAll(MenuPlayer):
                         count += 1
                 self.var[0].var['amount'] -= count
                 if self.var[0].var['amount'] <= 0:
-                    Global.player.character.say(Dialog.get('dealcomplete'))
+                    Global.main.monologue.set(Dialog.get('dealcomplete'))
                     Global.player.character.var['money'] += reward
                 elif count > 0:
-                    Global.player.character.say(Dialog.get('dealdelivery', [count, self.var[0].var['item']]))
+                    Global.main.monologue.set(Dialog.get('dealdelivery', [count, self.var[0].var['item']]))
                 else:
-                    Global.player.character.say('No ' + self.var[0].var['item'] + '...')
+                    Global.main.monologue.set('No ' + self.var[0].var['item'] + '...')
             rmb = self.get_message([Dialog.get('provideitem', [self.var[0].var['item']])])
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
             self.window.add(Menu.make(Dialog.get('provideitem', [self.var[0].var['item']]), sell, rmb, width=320))
@@ -125,7 +125,7 @@ class MenuAll(MenuPlayer):
 
     def menu_quest(self):
         def proceed(arg):
-            Global.player.character.say('FAR')
+            Global.main.monologue.set('FAR')
         import math
         mission = int(math.sin(Global.player.days + self.var[0].attributes.gene) * 10) % 3 + 1
         reward = 40
@@ -140,7 +140,7 @@ class MenuAll(MenuPlayer):
                 from src.entity.unit.Buff import BuffTags
                 Global.player.character.states.clear(lambda x: BuffTags.harmful in x.tags)
                 self.toggle()
-                Global.player.character.say(Dialog.get('treated'))
+                Global.main.monologue.set(Dialog.get('treated'))
         self.var = [Dialog.get('treated', [self.var[0].tags['value']]), [Dialog.get('Cure')], [treat]]
         self.state = self.menu_choice
         self.display(1)
@@ -151,7 +151,7 @@ class MenuAll(MenuPlayer):
             def package(arg):
                 if Global.player.character.require_var('money', value):
                     Global.player.character.states.add('Revive', -1, 'Insurance')
-                    Global.player.character.say(Dialog.get('insurebought'))
+                    Global.main.monologue.set(Dialog.get('insurebought'))
                     tgt.var['record'] += 1
                     self.toggle()
             text = []

@@ -1,4 +1,4 @@
-icon,Icon,[10,2] //Name, Directory, Subset
+icon,Icon,[10,2]
 gfx,image/_effect,[12,12]
 t,image/_tile,[24,6]
 g,image/_single,[24,8]

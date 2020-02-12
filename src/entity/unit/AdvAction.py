@@ -47,9 +47,9 @@ class Summoner(AdvAction):
         if isinstance(self.host.weapon, Weapon):
             phantom.attributes.strength = max(1, self.host.weapon.durability)
             if self.host.weapon.accuracy > 2:
-                phantom.proficiency.append('attack')
+                phantom.skill.append('attack')
             if self.host.weapon.weight > 2:
-                phantom.proficiency.append('damage')
+                phantom.skill.append('damage')
             if self.host.weapon.speed < 3:
                 phantom.states.add('Speed', -1, 1)
         self.host.weapon.die()
@@ -79,7 +79,7 @@ class Necromancer(AdvAction):
         channel = self.host.states.add('Channel', 40)
         channel.on_update = casting
         target = self.host.get_target_tile()
-        aoe = self.host.location.get_area(target, 2, 2)
+        aoe = Global.location.get_area(target, 2, 2)
         for tile in aoe:
             corpses = []
             for thing in tile.things:
@@ -95,11 +95,11 @@ class Druid(AdvAction):
         self.energy = 3
 
     def is_valid(self):
-        return self.host.is_armed() or self.host.is_armored()
+        return self.host.is_armed() or self.host.armor
 
     def on_cast(self):
         Particle.make('barrier', self.host.vec, offset=0)
-        if self.host.is_armored():
+        if self.host.armor:
             self.host.armor.repair()
         if self.host.is_armed():
             self.host.weapon.repair()
@@ -349,13 +349,13 @@ class Prophet(AdvAction):
             from src.map.Location import Location
             Global.main.background_color = (0, 0, 0)
             self.host.load(Data.process_raw(self.past_self))
-            self.host.location = Location(self.host.location.name, Data.process_raw(self.past_map))
-            Global.player.travel(self.host.location.name, self.host.pos)
+            Global.location = Location(Global.location.name, Data.process_raw(self.past_map))
+            Global.player.travel(Global.location.name, self.host.pos)
         channel = self.host.states.add('Foresee', 60)
         channel.trigger = reload
         Global.main.background_color = (180, 180, 180)
         self.past_self = self.host.__str__()
-        self.past_map = self.host.location.__str__()
+        self.past_map = Global.location.__str__()
 
 
 class Duplicater(AdvAction):

@@ -2,8 +2,8 @@ from src.entity.unit.item.Item import Item
 
 
 class Weapon(Item):
-    def __init__(self, loc):
-        super().__init__(loc)
+    def __init__(self):
+        super().__init__()
         self.damage = 1
 
     def __str__(self):

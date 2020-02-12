@@ -1,7 +1,6 @@
 from src.form.Picture import Picture
 from src.game import Global
 from src.game.Camera import Camera
-from src.game.Turn import Turn
 from src.map.Shade import Shade
 from src.map.Tile import Tile
 from src.tools.Data import Data
@@ -13,8 +12,6 @@ class MapView:
     display_ratio = .75
 
     def __init__(self):
-        Turn.add(self.turn)
-        Turn.add(self.update_region)
         self.sight_block = [Tile.COLLIDE_FOG, Tile.COLLIDE_OBJECT, Tile.COLLIDE_TERRAIN]
         self.update_frame = 0
         self.draw_frame = 0
@@ -29,7 +26,15 @@ class MapView:
         self.sight_range = 0
         self.sight_range_y = 0
         self.view_range = 0
+        self.view_range_y = 0
         self.new_start = None
+
+    def on_resize(self):
+        self.on_sight_change()
+
+    @staticmethod
+    def ratio_y(arg):
+        return int(arg * MapView.display_ratio)
 
     def on_sight_change(self):
         for rows in self.draw_tiles:
@@ -42,7 +47,8 @@ class MapView:
         self.draw_tiles.clear()
         pos_x = Camera.target.pos.x
         pos_y = Camera.target.pos.y
-        self.sight_range_y = int(self.sight_range * MapView.display_ratio)
+        self.view_range_y = MapView.ratio_y(self.view_range)
+        self.sight_range_y = MapView.ratio_y(self.sight_range)
         self.draw_tiles_min_x = pos_x - self.sight_range
         self.draw_tiles_max_x = pos_x + self.sight_range
         self.draw_tiles_min_y = pos_y - self.sight_range_y
@@ -50,8 +56,7 @@ class MapView:
         for y in range(-self.sight_range_y, self.sight_range_y + 1):
             row = []
             for x in range(-self.sight_range, self.sight_range + 1):
-                pic = Picture(Data.get_cache('g_0x1'), z=-1)
-                pic.group = Global.draw_group.group_tile
+                pic = Picture(Data.get_cache('g_0x0'), z=-1, group=Global.draw_group.group_tile)
                 pic.show(True)
                 pic.bound(True)
                 row.append([x + pos_x, y + pos_y, pic])
@@ -72,15 +77,13 @@ class MapView:
                 cell[2].update(x=vec_x + Global.HALF_BLOCK, y=vec_y - Global.HALF_BLOCK)
                 self.shadows[index].update(x=vec_x, y=Global.DISPLAY[1] - vec_y)
                 index += 1
-        for v in self.tiles.values():
-            for thing in v.things:
-                thing.update()
+        for v in self.objects:
+            v.update()
 
     def update_region(self):
         for i in self.objects:
             if not i.removed:
                 i.bound(False)
-        day = Global.player.is_daytime()
         self.objects = []
         x = Camera.target.pos.x
         y = Camera.target.pos.y
@@ -92,7 +95,7 @@ class MapView:
             row += 1
             for cell in rows:
                 edge_pass = False
-                this_tile = Global.player.location.get_tile((cell[0], cell[1]))
+                this_tile = Global.location.get_tile((cell[0], cell[1]))
                 this_tile.update_light()
                 if cell[0] - x > self.sight_range:
                     edge_pass = True
@@ -116,18 +119,18 @@ class MapView:
                     if edge_pass:
                         tile.light = 0
                     if tile.terrain:
-                        if not day:
-                            self.shadows[index].shade_overlay()
-                            if tile.light > 2:
-                                self.shadows[index].set_color([0, 0, 0, 0])
-                            elif tile.light > 1:
-                                c = Global.overlay.weather[:3] + [int(Global.overlay.weather[3]/2)]
-                                self.shadows[index].set_color(c)
+                        self.shadows[index].shade_overlay()
+                        if tile.light > 2:
+                            self.shadows[index].set_color([0, 0, 0, 0])
+                        elif tile.light > 1:
+                            self.shadows[index].set_color([0, 0, 0, 0])
+                            c = Global.overlay.weather[:3] + [int(Global.overlay.weather[3]/2)]
+                            self.shadows[index].set_color(c)
+                        else:
+                            if edge_pass:
+                                self.shadows[index].set_color([0, 0, 0, 255])
                             else:
-                                if edge_pass:
-                                    self.shadows[index].set_color([0, 0, 0, 255])
-                                else:
-                                    self.shadows[index].set_color(Global.overlay.weather)
+                                self.shadows[index].set_color(Global.overlay.weather)
                         if tile.terrain.type == 1:
                             self.shadows[index].shade_walls(tile.terrain.joint_neighbors)
                         else:
@@ -154,9 +157,9 @@ class MapView:
         self.draw_tiles_max_y += extend_y
 
     def update_fog(self):
-        center = Global.player.location.get_tile(Camera.target.pos)
+        center = Global.location.get_tile(Camera.target.pos)
         self.tiles = {str(Camera.target.pos.x) + ',' + str(Camera.target.pos.y): center}
-        max_range = [self.view_range, int(self.view_range * MapView.display_ratio)]
+        max_range = [self.view_range, self.view_range_y]
         for i in range(8):
             self.shadow_cast(Camera.target.pos, 1, 1.0, 0.0, self.octant_flip[i], max_range, 0)
 
@@ -178,7 +181,7 @@ class MapView:
                     tile_y = dx * flips[2] + dy * flips[3]
                     map_x = camera.x + tile_x
                     map_y = camera.y + tile_y
-                    tile = Global.player.location.get_tile([map_x, map_y])
+                    tile = Global.location.get_tile([map_x, map_y])
                     if abs(dx) < self.sight_range and abs(dy) < self.sight_range:
                         in_view_range = abs(tile_x) <= max_range[0] and abs(tile_y) <= max_range[1]
                         if in_view_range or (tile.light and abs(tile_x) <= self.sight_range

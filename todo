@@ -1,15 +1,26 @@
-town-gate-bridge-field-bridge-town
-tower/dungeon map
-abyss map
+pyglet
+- garbage collect Pictures after object removal
+
+field hunting - day: slime / night: dog, slime
+outpost raid - assassinate, hide
+sewer wanted - rats and boss (block, vengeance or sunder, frenzy or calculated hit)
 arena (*2 reward per win, $$$ entrance)
-uniques - spends 40$ for respawn, minion allies, power
-sewer - debuffer, regener, darkness
+dungeon treasure hunt - rats
+abyss
+uniques - +$1 a day, spends 40$ for respawn, minion allies, power
 nest - poisoner, fast
 slums - ranger, specialer
 crypt - revive, summoner, healer
 
 LS+WSAD - WW sprint, DWW charge
-Spells - 4 way shooter, fire trap, auto target shock
 
-pyglet
-- garbage collect Pictures after object removal
+crucials:
+1. Progression
+    skills
+    nutrition
+    motivation system
+    shop system
+2. Map
+    assaults
+    dungeons
+    map travel

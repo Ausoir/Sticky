@@ -1,4 +1,3 @@
 instance
-17,3,town
-#0,[4,-6],Player,Character,human,[p>:40,p:40,mat:flesh,money:13,talent:None,full:0,seed:6542],[[Heal,-1,1]],[],[dodge],[#4,[0,-8],Jumpsuit,Armor,image/unit/jumpsuit,[p>:4,p:4],[],1,0,0],0,[#3,[4,-6],Katana,Weapon,image/katana,[p:4,piv:6,sharp:1],[],2,3],[]
-
+1,0,instance
+#7,[-3,-5],Human,Character,human,[p>:22,p:22,mat:flesh,money:13,talent:None,seed:2537,full:11,spd:-1],[[Health,-1,1],[Concentration,-1,0],[Glow,-1,4]],[],[#3,[0,-4],Casual Wear,Armor,image/unit/scalemail,[p>:4,p:4,skill:calculated hit,spd:-1],[],1,0,8],[#3,[-3,-5],Bandana,Headgear,image/unit/lace_helm,[p>:4,p:4],[],0],0,[]

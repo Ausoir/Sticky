@@ -4,8 +4,8 @@ from src.game import Global
 
 
 class Prop(Object):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         from src.entity.unit.Buffs import Buffs
         self.hittable = 1
         self.states = Buffs(self)
@@ -77,13 +77,13 @@ class Prop(Object):
                     from src.entity.Particle import Particle
                     if hitter.tags.get('sharp'):
                         if self.tags.get('mat') == 'flesh':
-                            Global.location.sound.register(self.pos, 3, file='hit_bloody')
+                            self.location.sound.register(self.pos, 3, file='hit_bloody')
                             Particle.make('splat', self.vec)
                         else:
-                            Global.location.sound.register(self.pos, 3, file='hit_cut')
+                            self.location.sound.register(self.pos, 3, file='hit_cut')
                             Particle.make('slash', self.vec)
                     else:
-                        Global.location.sound.register(self.pos, 3, file='hit_bash')
+                        self.location.sound.register(self.pos, 3, file='hit_bash')
                         Particle.make('batter', self.vec)
             return self.decay(damage)
         return 0

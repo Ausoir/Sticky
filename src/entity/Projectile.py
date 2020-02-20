@@ -6,8 +6,8 @@ from src.tools.Math import Math
 
 
 class Projectile(Prop):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.faction = 0
         self.obstruct_type = 0
         self.lifetime = 100
@@ -55,7 +55,7 @@ class Projectile(Prop):
                 else:
                     self.vec += self.vel
                     self.form.rotate(-self.vel.get_atan())
-                    self.pos = Global.location.get_tile_from_vec(self.vec.x, self.vec.y)
+                    self.pos = self.location.get_tile_from_vec(self.vec.x, self.vec.y)
 
     def is_collide(self):
         return self.pos.is_land(Tile.CHECK_FIRM)

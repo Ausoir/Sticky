@@ -35,26 +35,26 @@ class Stock:
             Humanoid.faces.append(face)
 
     @staticmethod
-    def get(name, data=None):
+    def get(location, name, data=None):
         if not data:
             if name in Stock.registry:
                 record = Stock.registry[name]
-                object_id = Global.location.get_id()
+                object_id = location.get_id()
                 pos = [0, 0]
                 data = [object_id, pos] + record
-                r = globals()[record[1]]()
+                r = globals()[record[1]](location)
             else:
                 name = name or 'UNDEFINED'
                 print("Cannot load Stock Object " + name)
                 return None
         else:
-            r = globals()[data[3]]()
+            r = globals()[data[3]](location)
         r.load(data)
         return r
 
     @staticmethod
     def make(name, pos):
-        r = Stock.get(name)
+        r = Stock.get(pos.location, name)
         r.pos = pos
         r.add()
         return r

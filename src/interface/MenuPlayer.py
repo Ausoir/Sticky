@@ -1,5 +1,3 @@
-from src.entity.unit.item.Armor import Armor
-from src.entity.unit.item.Headgear import Headgear
 from src.game import Global
 from src.game.Crafting import Crafting
 from src.interface.Menu import Menu
@@ -29,8 +27,11 @@ class MenuPlayer(Menu):
         rmb = self.get_message(Dialog.get('dsc_date'))
         self.window.add(Menu.make(Dialog.date(Global.player.days), rmb, color=None))
         rmb = self.get_message(Dialog.get('dsc_hunger'))
-        if Global.player.character.states.get('Hunger'):
-            self.window.add(Menu.make(Dialog.get('Hungry'), rmb, color=None))
+        fullness = Global.player.character.tags.get('full', 0)
+        if fullness <= 0:
+            self.window.add(Menu.make(Dialog.get('hungry'), rmb, color=None))
+        elif fullness < 10:
+            self.window.add(Menu.make(Dialog.get('peckish'), rmb, color=None))
 
     def menu_skill(self):
         from src.tools.Data import Data
@@ -67,24 +68,23 @@ class MenuPlayer(Menu):
 
     def menu_equipment(self):
         def click_headgear(name):
-            if not Global.player.character.unheadgear() and isinstance(Global.player.character.weapon, Headgear):
-                Global.player.character.weapon.use()
-            self.direct(self.menu_equipment)
+            Global.player.character.unheadgear()
+            self.toggle()
 
         def click_armor(name):
-            if not Global.player.character.unarmor() and isinstance(Global.player.character.weapon, Armor):
-                Global.player.character.weapon.use()
-            self.direct(self.menu_equipment)
+            Global.player.character.unarmor()
+            self.toggle()
 
-        self.window.add(Menu.make(Dialog.get('headgear'), None, color=None, hover=False))
-        self.window.add(Menu.make(Dialog.get('body'), None, color=None, hover=False))
-        self.window.add(Menu.make(Dialog.get('weapon'), None, color=None, hover=False))
+        self.window.add(Menu.make(Dialog.get('headgear'), None, color=None))
+        self.window.add(Menu.make(Dialog.get('body'), None, color=None))
+        self.window.add(Menu.make(Dialog.get('weapon'), None, color=None))
         if not Global.player.character.headgear:
             display = '<' + Dialog.get('noaccessory') + '>'
             self.sub_window.add(Menu.make(display, lambda x: x, color=None))
         else:
             display = Global.player.character.headgear.get_display_name()
-            headgear_lmb = self.get_prompt(Global.player.character.headgear.describe(), Dialog.get('drop'), click_headgear)
+            headgear_lmb = self.get_prompt(Global.player.character.headgear.describe(), Dialog.get('drop'),
+                                           click_headgear)
             self.sub_window.add(Menu.make(display, headgear_lmb))
         if not Global.player.character.armor:
             display = '<' + Dialog.get('noarmor') + '>'
@@ -93,12 +93,13 @@ class MenuPlayer(Menu):
             display = Global.player.character.armor.get_display_name()
             armor_lmb = self.get_prompt(Global.player.character.armor.describe(), Dialog.get('drop'), click_armor)
             self.sub_window.add(Menu.make(display, armor_lmb))
-        if not Global.player.character.is_armed():
+        if not Global.player.character.weapon:
             display = '<' + Dialog.get('noweapon') + '>'
             self.sub_window.add(Menu.make(display, lambda x: x, color=None))
         else:
             display = Global.player.character.weapon.get_display_name()
-            weapon_lmb = self.get_prompt(Global.player.character.weapon.describe(), Dialog.get('drop'), lambda l: Global.player.character.drop())
+            weapon_lmb = self.get_prompt(Global.player.character.weapon.describe(), Dialog.get('drop'),
+                                         lambda l: Global.player.character.drop())
             self.sub_window.add(Menu.make(display, weapon_lmb))
         attack = str(Global.player.character.get_damage()[1])
         defense = str(Global.player.character.get_defense()[1])
@@ -110,13 +111,14 @@ class MenuPlayer(Menu):
 
     def menu_inventory(self):
         def click(index):
+            if Global.player.character.weapon:
+                index -= 1
             item = Global.player.character.inventory.get_item(index)
             if item:
                 def change():
                     Global.player.character.drop()
-                    item.on_equip(Global.player.character)
+                    item.on_wield(Global.player.character)
                 Global.player.character.action.act('grab', 8)
-                Global.player.character.action.set_animation('pocket')
                 Global.player.character.action.on_finish = change
                 Global.player.character.action.delay = 4
             self.toggle()
@@ -129,7 +131,7 @@ class MenuPlayer(Menu):
         self.window.margin.y = 2
         temp2 = self.sub_window.margin.y
         self.sub_window.margin.y = 2
-        if Global.player.character.is_armed():
+        if Global.player.character.weapon:
             items = [Global.player.character.weapon] + Global.player.character.inventory.items
         else:
             items = Global.player.character.inventory.items
@@ -147,8 +149,8 @@ class MenuPlayer(Menu):
         count = 0
         for i in items:
             size = min(self.window.height - 48, int(160 * (i.weight / max(1, capacity))))
-            button = Window(0, 0, width=0, height=size + 8, multi_line=False)
-            button.document.set_style(0, 1, dict(font_size=max(6, min(24, size))))
+            button = Window(0, 0, width=260, height=size + 10, multi_line=True)
+            button.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
             if i == Global.player.character.weapon:
                 button.set_text(i.get_display_name() + ' [' + Dialog.get('held') + ']')
                 button.on_click = self.get_prompt(i.describe(), Dialog.get('store'), sheathe, count)
@@ -157,8 +159,8 @@ class MenuPlayer(Menu):
                 button.on_click = self.get_prompt(i.describe(), Dialog.get('take'), click, count)
             button.width = button.text.content_width + 16
             button.margin.load(8, 0)
-            label = Window(0, 0, width=0, height=size + 8, multi_line=False)
-            label.document.set_style(0, 1, dict(font_size=max(6, min(24, size))))
+            label = Window(0, 0, width=0, height=size + 10, multi_line=False)
+            label.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
             label.set_text(Dialog.weight(i.weight))
             label.margin.load(100, 0)
             self.window.add(button)
@@ -178,7 +180,7 @@ class MenuPlayer(Menu):
         rmb = self.get_message(Dialog.get('dsc_hunger'))
         if Global.player.character.states.get('Hunger'):
             self.window.add(Menu.make(Dialog.get('hungry'), rmb, color=None))
-            self.sub_window.add(Menu.make('', None, None, color=None, hover=False))
+            self.sub_window.add(Menu.make('', None, None, color=None))
         if Global.player.character.tags['calories'] > 0:
             rmb = self.get_message(Dialog.get('dsc_calories'))
             self.window.add(Menu.make(Dialog.get('calories'), rmb, color=None))
@@ -194,7 +196,7 @@ class MenuPlayer(Menu):
             dur = i.describe_duration()
             rmb = self.get_message(i.describe() + '\nDuration: ' + dur)
             self.window.add(Menu.make(i.get_display_name(), rmb, color=Window.fore_color_transparent))
-            self.sub_window.add(Menu.make(dur, None, color=Window.fore_color_transparent, hover=False))
+            self.sub_window.add(Menu.make(dur, None, color=Window.fore_color_transparent))
         self.sub_window.display(1)
 
     def menu_travel(self):
@@ -205,9 +207,8 @@ class MenuPlayer(Menu):
         else:
             destination = self.var[0].title()
         text = Dialog.get('travelto?', [destination])
-        panel = Menu.make(text, None, None, color=Window.fore_color_transparent, hover=False, width=320)
+        panel = Menu.make(text, None, None, color=Window.fore_color_transparent, width=320)
         panel.normal_font_color = Window.font_color1
-        panel.hover_font_color = Window.font_color3
         panel.redraw()
         self.window.add(panel)
         from src.entity.Space import Space

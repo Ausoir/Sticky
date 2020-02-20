@@ -34,6 +34,13 @@ class TargetTask(Task):
         super().__init__(pilot)
         self.target = None
 
+    def record(self):
+        self.host.tags.set('tgt', self.target.id, add=True)
+
+    def load(self, arg):
+        group = self.host.get_team(ally=False)
+        self.target = self.host.location.population.get_from_id(group, arg)
+
 
 class Return(Task):
     def __init__(self, pilot, target):
@@ -108,7 +115,7 @@ class Wander(Task):
                 return i
 
     def random_state(self):
-        if Global.r.rand_int(0, 5) == 0:
+        if Global.r.rand_int(0, 10) == 0:
             self.state = 1
             self.reset()
             self.target = None
@@ -117,7 +124,7 @@ class Wander(Task):
 
     def perform(self):
         if self.state == 0:
-            if self.lifetime % 20 == 0:
+            if self.lifetime % 40 == 0:
                 self.random_state()
         elif self.state == 1:
             if self.result:
@@ -196,7 +203,7 @@ class Path(Task):  # path finding A*
 
     def load(self, arg):
         ints = arg[1:].split('y')
-        self.target = Global.location.get_tile([int(ints[0]), int(ints[1])])
+        self.target = self.host.location.get_tile(int(ints[0]), int(ints[1]))
 
     def record(self):
         self.host.tags.set('tgt', 'x' + str(self.target.x) + 'y' + str(self.target.y), add=True)
@@ -294,16 +301,6 @@ class Path(Task):  # path finding A*
 
 
 class Attack(TargetTask):
-    def record(self):
-        self.host.tags.set('tgt', self.target.id, add=True)
-
-    def load(self, arg):
-        if self.host.tags.get('npc'):
-            group = Global.location.population.bad
-        else:
-            group = [Global.player.character] + Global.location.population.good
-        self.target = Global.location.population.get_from_id(group, arg)
-
     def on_set(self):
         super().on_set()
         self.pilot.priority = 1
@@ -322,8 +319,7 @@ class Attack(TargetTask):
             if dist.difference() == 1:
                 self.host.face_toward(self.target.pos)
                 self.host.input('use')
-                return True
-            if self.pilot.move.out_of_reach:
+            elif self.pilot.move.out_of_reach:
                 self.pilot.set_task(self.pilot.move)
                 self.pilot.priority = 3
                 self.pilot.move.target = self.target.pos
@@ -333,16 +329,6 @@ class Attack(TargetTask):
 
 
 class Follow(TargetTask):
-    def record(self):
-        self.host.tags.set('tgt', self.target.id, add=True)
-
-    def load(self, arg):
-        if self.host.tags.get('npc'):
-            group = [Global.player.character] + Global.location.population.good
-        else:
-            group = Global.location.population.bad
-        self.target = Global.location.population.get_from_id(group, arg)
-
     def on_set(self):
         super().on_set()
         self.pilot.priority = 3

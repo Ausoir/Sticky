@@ -31,23 +31,22 @@ class Buffs:
         return None
 
     def add(self, buff, duration, var=0, load=False, stack=True):
-        if not self.get('Immune'):
-            preexisting = self.get(buff)
-            if not stack or not preexisting:
-                for i in Buff.__subclasses__():
-                    if i.__name__ == buff:
-                        buff = i(self.host, buff, duration, var)
-                        break
-                if buff.is_valid():
-                    self.buffs.append(buff)
-                    if load:
-                        buff.on_load()
-                    else:
-                        buff.on_start()
-                return buff
-            else:
-                preexisting.on_stack(duration, var)
-                return preexisting
+        preexisting = self.get(buff)
+        if not stack or not preexisting:
+            for i in Buff.__subclasses__():
+                if i.__name__ == buff:
+                    buff = i(self.host, buff, duration, var)
+                    break
+            if buff.is_valid():
+                self.buffs.append(buff)
+                if load:
+                    buff.on_load()
+                else:
+                    buff.on_start()
+            return buff
+        else:
+            preexisting.on_stack(duration, var)
+            return preexisting
 
     def clear(self, fn):
         r = 0

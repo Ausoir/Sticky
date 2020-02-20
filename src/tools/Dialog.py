@@ -18,7 +18,7 @@ class Dialog:
             r = ''
             for c in data:
                 if c == '#':
-                    r += str(var[index])
+                    r += Dialog.get(str(var[index]).lower())
                     index += 1
                 else:
                     r += c
@@ -68,11 +68,11 @@ class Dialog:
     def date(time):
         hour = time % 24
         day = str(int(time / 24))
-        hour_m = time % 12 + 1
+        hour_m = str(time % 12 + 1)
         meridian = 'am'
         if hour + 1 >= 12:
             meridian = 'pm'
-        return Dialog.get('time', [day, hour_m, meridian])
+        return Dialog.get('day') + ' ' + day + ' / ' + hour_m + ' ' + meridian
 
     @staticmethod
     def hours(time):

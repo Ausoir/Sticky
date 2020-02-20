@@ -1,0 +1,74 @@
+none,None
+proceed,Proceed
+dsc_health,You die when your health reaches 0. Current health: # out of #
+any,Any #
+weigh,kg
+and half days,# and a half days
+days,# days
+noaccessory,No Headgear
+noarmor,No Armor
+noweapon,No Weapon
+dsc_location,Your current location.
+dsc_date,Current date and time.
+dsc_hunger,You need to be full or have food in your inventory to perform time consuming actions.
+youdie,You die...
+sign,Sign: #
+dsc_insurance,Should you meet a tragic end\, our medical guild can bring you back to life. You will need to come and pay us $# after every revive.
+insureyes,Sign contract for #$
+insurefull,You already have a revival effect. Come back when you have none.
+insurerevive,You have been revived. # has passed since the tragedy.
+insurebought,Insurance contract signed!
+dsc_revive,You will be revived if you die.
+travelto?,Travel to <#>?
+travelto,Travel to <#>
+soldout,I am all out of merchandise. Thank you for your patronage!
+dealeroff,We do not need anything for now. Come back in #.
+dealerdeal,We are in need of # #. Deliver full amount in # to receive $#.
+dealcomplete,Completed delivery!
+dealdelivery,Provided # #.
+provideitem,Provide #
+reqnotmet,Requirements not met.
+nocraftables,You do not know of anything that can be crafted here.
+modifyitem,Modify <#>
+attachitem,Attach to <#>
+modchance,Success Chance - #%
+nomaterial,No Materials...
+reinforcewith,Reinforce with #
+dsc_reinforcewith,Reinforce to double maximum durability. Requires #.
+improvegripwith,Improve Grip with #
+dsc_improvewith,Improve grip\, increasing weapon speed. Requires #.
+modifybladewith,Modify Blade with #
+dsc_modifybladewith,Grind or attach weapon blade\, improving attack by 1 ~ 3. Requires #.
+modifybodywith,Modify Body with #
+dsc_modifybodywith,Modify weapon body\, decreasing weight. Requires #.
+fortifybodywith,Fortify Body with #
+dsc_fortifybodywith,Fortify weapon body\, increasing weight. Requires #.
+dsc_reinforcearmorwith,Improve maximum durability by 1. Requires #.
+padwith,Pad with #
+dsc_padwith,Improve defense by 1. Requires Plating.
+refitwith,Fortify Body with #
+dsc_refitwith,Decrease encumbrance by 1. Requires Tooth.
+spellknown,You already know #.
+treated,All debuffs removed.
+treatment,I can cure you of all illness for $#.
+?sell,Would you like to sell your # for $#?
+?modify,Select an equipment to modify.
+?pawn,Sell your # for $1?
+xpawn,You are not holding anything that you can sell. We only buy #.
+!heavy,Too heavy!
+!bright,Too dark!
+!safe,Not safe!
+!tag,Not enough #!
+!eat,Too hungry and nothing to eat!
+!hungry,Not hungry!
+!expire,Food has expired!
+?learn,Learn #?
+equipment_slow,This equipment slows the wearer.
+equipment_fast,This equipment makes the wearer act quicker.
+equipment_skill,Grants skill <#>
+manual_skill,Teaches skill <#>.
+monologue_learn,Learned skill <#>!
+!monologue_learn,<#> is already mastered.
+food_expire,Expires in #.
+food_expired,This food has expired.
+!pay,Not enough money!

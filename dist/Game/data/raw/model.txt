@@ -1,0 +1,8 @@
+human,unit/man,image/unit/body
+zombie,unit/man,image/unit/zombie
+worm,unit/worm,image/unit/worm
+slime,unit/slime,image/unit/slime
+rat,unit/rat,image/unit/rat
+dog,unit/dog,image/unit/dog
+ghost,unit/slime,g_8x0
+phantom,unit/man,none

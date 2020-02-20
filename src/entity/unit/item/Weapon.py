@@ -2,8 +2,8 @@ from src.entity.unit.item.Item import Item
 
 
 class Weapon(Item):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.damage = 1
 
     def __str__(self):
@@ -19,14 +19,18 @@ class Weapon(Item):
             super().set_form(arg)
             self.form.rotation = -75
 
-    def on_unequip(self):
-        super().on_unequip()
+    def on_unwield(self):
+        super().on_unwield()
         self.form.rotation = -75
 
     def describe(self):
         r = super().describe()
         min_d, max_d = self.get_damage()
-        r += '\nDamage: ' + str(min_d) + ' ~ ' + str(max_d)
+        from src.tools.Dialog import Dialog
+        r += '\n' + Dialog.get('damage') + ': ' + str(min_d) + ' ~ ' + str(max_d)
+        spd = self.tags.get('spd')
+        if spd:
+            r += '\n' + Dialog.get('attack speed') + ': ' + str(spd)
         return r
 
     def get_damage(self):

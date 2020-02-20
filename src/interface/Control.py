@@ -134,8 +134,8 @@ class Control:
 
     def quit(self):
         self.player.input('quit')
-        Global.location.delay = 0
-        Global.location.turn()
+        Global.land.delay = 0
+        Global.land.turn()
         Global.main.on_close()
 
     def turn(self):

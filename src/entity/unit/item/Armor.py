@@ -3,8 +3,8 @@ from src.tools.Data import Data
 
 
 class Armor(Equipment):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.armor = 0
         self.capacity = 0
 
@@ -58,16 +58,17 @@ class Armor(Equipment):
         return True
 
     def wear(self, start=False):
-        if self.host.armor:
-            self.host.unarmor()
+        self.host.unarmor()
+        self.host.armor = self
         super().wear(start)
         self.host.form.set_model(self.form_name)
-        self.host.armor = self
-        host = self.host
-        if self.host.weapon == self:
-            self.host.drop()
-        self.host = host
-        self.host.face(self.host.direction)
+
+    def unwear(self):
+        from src.tools.Data import Data
+        line = Data.get_line('raw/model.txt', self.host.form_name)
+        self.host.form.set_model(line[2])
+        self.host.armor = None
+        super().unwear()
 
     def on_wear(self):
         super().on_wear()

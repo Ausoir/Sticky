@@ -1,11 +1,10 @@
 from src.entity.unit.Humanoid import Humanoid
 from src.entity.unit.Inventory import Inventory
-from src.game import Global
 
 
 class Character(Humanoid):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.inventory = Inventory(self)
         from src.tools.Data import Data
         self.shadow = Data.get_form('g_7x0')
@@ -50,9 +49,7 @@ class Character(Humanoid):
             from src.entity.unit.Unit import Unit
             from src.entity.unit.Buff import Buff
             from src.entity.unit.item.Item import Item
-            if hitter == self.weapon:
-                self.tags.set('sign', 'Suicide')
-            elif isinstance(hitter, Humanoid) or (isinstance(hitter, Item) and hitter.host):
+            if isinstance(hitter, Humanoid) or (isinstance(hitter, Item) and hitter.host):
                 self.tags.set('sign', 'Homicide')
             elif isinstance(hitter, Unit):
                 self.tags.set('sign', 'Wildlife')
@@ -64,16 +61,18 @@ class Character(Humanoid):
         self.tags.set('sign', 'Accident')
         super().out_of_bounds()
 
-    def require_var(self, param, mag, cost=True):
-        if not self.tags.require(param, mag, cost):
-            from src.tools.Dialog import Dialog
-            Global.main.monologue.set(Dialog.get('!tag'))
+    def get_capacity(self):
+        r = 5
+        if self.weapon and self.get_skill('strength'):
+            r += self.weapon.weight
+        r += self.get_skill('constitution', stacks=True)
+        if self.armor:
+            r += self.armor.capacity
+        return r
 
     def get_possessions(self):
-        r = [self.weapon]
+        r = super().get_possessions()
         r += self.inventory.items
-        if self.headgear:
-            r.append(self.headgear)
         return r
 
     def get_accessibles(self):

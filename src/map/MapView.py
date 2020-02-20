@@ -40,10 +40,11 @@ class MapView:
         for rows in self.draw_tiles:
             for cell in rows:
                 cell[2].delete()
-        for i in self.shadows:
-            i.remove_overlay()
-            i.remove_shader()
-        self.shadows = []
+        while self.shadows:
+            item = self.shadows.pop()
+            item.remove_overlay()
+            item.remove_shader()
+        Global.land.process_terrain()
         self.draw_tiles.clear()
         pos_x = Camera.target.pos.x
         pos_y = Camera.target.pos.y
@@ -57,7 +58,6 @@ class MapView:
             row = []
             for x in range(-self.sight_range, self.sight_range + 1):
                 pic = Picture(Data.get_cache('g_0x0'), z=-1, group=Global.draw_group.group_tile)
-                pic.show(True)
                 pic.bound(True)
                 row.append([x + pos_x, y + pos_y, pic])
                 self.shadows.append(Shade())
@@ -89,14 +89,13 @@ class MapView:
         y = Camera.target.pos.y
         extend_x = 0
         extend_y = 0
-        row = 0
         index = 0
         for rows in self.draw_tiles:
-            row += 1
             for cell in rows:
                 edge_pass = False
-                this_tile = Global.location.get_tile((cell[0], cell[1]))
-                this_tile.update_light()
+                this_tile = Global.land.get_tile(cell[0], cell[1])
+                if this_tile:
+                    this_tile.update_light()
                 if cell[0] - x > self.sight_range:
                     edge_pass = True
                     cell[0] = self.draw_tiles_min_x - 1
@@ -118,35 +117,37 @@ class MapView:
                     tile = self.tiles[key]
                     if edge_pass:
                         tile.light = 0
-                    if tile.terrain:
-                        self.shadows[index].shade_overlay()
-                        if tile.light > 2:
-                            self.shadows[index].set_color([0, 0, 0, 0])
-                        elif tile.light > 1:
-                            self.shadows[index].set_color([0, 0, 0, 0])
-                            c = Global.overlay.weather[:3] + [int(Global.overlay.weather[3]/2)]
-                            self.shadows[index].set_color(c)
-                        else:
-                            if edge_pass:
-                                self.shadows[index].set_color([0, 0, 0, 255])
+                    else:
+                        if tile:
+                            self.shadows[index].shade_overlay()
+                            if tile.light > 2:
+                                self.shadows[index].set_color([0, 0, 0, 0])
+                            elif tile.light > 1:
+                                self.shadows[index].set_color([0, 0, 0, 0])
+                                c = Global.overlay.weather[:3] + [int(Global.overlay.weather[3]/2)]
+                                self.shadows[index].set_color(c)
                             else:
-                                self.shadows[index].set_color(Global.overlay.weather)
-                        if tile.terrain.type == 1:
-                            self.shadows[index].shade_walls(tile.terrain.joint_neighbors)
-                        else:
+                                if edge_pass:
+                                    self.shadows[index].set_color([0, 0, 0, 255])
+                                else:
+                                    self.shadows[index].set_color(Global.overlay.weather)
+                            if tile.type == -10:
+                                self.shadows[index].shade_walls(tile.joint_neighbors)
+                            else:
+                                self.shadows[index].remove_shader()
+                            cell[2].set(Data.get_cache(tile.get_image()))
+                            cell[2].face_direction(tile.direction)
+                            cell[2].show(True)
+                            row = tile.y - y + self.sight_range_y
+                            for thing in tile.things:
+                                if not thing.removed:
+                                    thing.bound(True)
+                                    thing.set_row(row)
+                                    self.objects.append(thing)
+                        else:  # tile is out of sight
                             self.shadows[index].remove_shader()
-                        cell[2].set(tile.terrain.image)
-                        cell[2].show(True)
-                        cell[2].face_direction(tile.terrain.direction)
-                        for thing in tile.things:
-                            if not thing.removed:
-                                thing.bound(True)
-                                thing.set_row(row)
-                                self.objects.append(thing)
-                    else:  # tile does not have terrain
-                        self.shadows[index].remove_shader()
-                        self.shadows[index].set_color([0, 0, 0, 0])
-                        cell[2].show(False)
+                            self.shadows[index].set_color([0, 0, 0, 0])
+                            cell[2].show(False)
                 else:  # tile is out of bounds
                     self.shadows[index].set_color([0, 0, 0, 255])
                     cell[2].show(False)
@@ -157,7 +158,7 @@ class MapView:
         self.draw_tiles_max_y += extend_y
 
     def update_fog(self):
-        center = Global.location.get_tile(Camera.target.pos)
+        center = Global.land.get_tile(Camera.target.pos.x, Camera.target.pos.y)
         self.tiles = {str(Camera.target.pos.x) + ',' + str(Camera.target.pos.y): center}
         max_range = [self.view_range, self.view_range_y]
         for i in range(8):
@@ -181,23 +182,24 @@ class MapView:
                     tile_y = dx * flips[2] + dy * flips[3]
                     map_x = camera.x + tile_x
                     map_y = camera.y + tile_y
-                    tile = Global.location.get_tile([map_x, map_y])
-                    if abs(dx) < self.sight_range and abs(dy) < self.sight_range:
-                        in_view_range = abs(tile_x) <= max_range[0] and abs(tile_y) <= max_range[1]
-                        if in_view_range or (tile.light and abs(tile_x) <= self.sight_range
-                                             and abs(tile_y) <= self.sight_range_y):
-                            self.tiles[str(map_x) + ',' + str(map_y)] = tile
-                    if blocked:
-                        if tile.is_land(self.sight_block):
-                            self.new_start = end_slope
-                            continue
+                    tile = Global.land.get_tile(map_x, map_y)
+                    if tile:
+                        if abs(dx) < self.sight_range and abs(dy) < self.sight_range:
+                            in_view_range = abs(tile_x) <= max_range[0] and abs(tile_y) <= max_range[1]
+                            if in_view_range or (tile.light and abs(tile_x) <= self.sight_range
+                                                 and abs(tile_y) <= self.sight_range_y):
+                                self.tiles[str(map_x) + ',' + str(map_y)] = tile
+                        if blocked:
+                            if tile.is_land(self.sight_block):
+                                self.new_start = end_slope
+                                continue
+                            else:
+                                blocked = False
+                                start = self.new_start
                         else:
-                            blocked = False
-                            start = self.new_start
-                    else:
-                        if tile.is_land(self.sight_block) and cell < self.sight_range:
-                            blocked = True
-                            self.shadow_cast(camera, cell + 1, start, start_slope, flips, max_range, depth + 1)
-                            self.new_start = end_slope
+                            if tile.is_land(self.sight_block) and cell < self.sight_range:
+                                blocked = True
+                                self.shadow_cast(camera, cell + 1, start, start_slope, flips, max_range, depth + 1)
+                                self.new_start = end_slope
             if blocked:
                 break

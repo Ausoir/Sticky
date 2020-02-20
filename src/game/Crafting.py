@@ -58,7 +58,7 @@ class Crafting:
                     break
         from src.entity.Stock import Stock
         result = Stock.make(item, host.pos)
-        if host.is_armed():
+        if host.weapon:
             host.drop()
-        result.on_equip(host)
+        result.on_wield(host)
         return result

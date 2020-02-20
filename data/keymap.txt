@@ -11,10 +11,7 @@ D,right
 SPACE,use
 Q,grab
 E,trinket
-_1,pocket_1
-_2,pocket_2
-_3,pocket_3
-_4,pocket_4
-Z,power_2
-X,power_3
-C,power_4
+_1,power_1
+Z,#equipment
+X,#inventory
+C,#skill

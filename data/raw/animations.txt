@@ -2,7 +2,7 @@ burn,[gfx_0x0,gfx_0x1,gfx_0x2,gfx_0x3],0.1,0 // id,images,speed,repeat
 wind,[gfx_1x0,gfx_1x1,gfx_1x2,gfx_1x3],0.1,0
 explode,[gfx_2x0,gfx_2x1,gfx_2x2,gfx_2x3],0.1,0
 barrier,[gfx_3x0,gfx_3x1,gfx_3x2,gfx_3x3],0.1,0
-kindle,[gfx_4x0,gfx_4x1,gfx_4x2,gfx_4x3],0.1,0
+fire,[gfx_4x0,gfx_4x1,gfx_4x2,gfx_4x3],0.1,0
 zip,[gfx_5x0,gfx_5x1,gfx_5x2,gfx_5x3],0.1,1
 batter,[gfx_6x0,gfx_6x1,gfx_6x2,gfx_6x3],0.1,0
 blood,[gfx_7x0,gfx_7x1,gfx_7x2,gfx_7x3],0.1,0

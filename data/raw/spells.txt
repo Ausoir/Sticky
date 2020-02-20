@@ -20,8 +20,8 @@ Ghost Form,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Ghost
 Stone Form,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Stoneskin
 Blizzard,Spell,g_1x5,[p>:1,p:1],[],1,Wand,Blizzard
 Spell Mine,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Mine
-Shockwave,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Shockwave
-Wall,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Wall
+Energy Wave,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Energywave
+Summon Wall,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Wall
 Raise Dead,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Zombie
 Summon Weapon,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Weapon
 Summon Armor,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Armor

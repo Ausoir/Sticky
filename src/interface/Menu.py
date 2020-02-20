@@ -11,9 +11,7 @@ class Menu:
         self.current_state = self.menu_message
         width = 180
         self.window = Window(300, 120, width=width, height=300)
-        self.window.hover_color = None
         self.sub_window = Window(self.window.x + width, 120, width=width, height=self.window.height)
-        self.sub_window.hover_color = None
         self.dialog = Window(300, 120, width=400, height=300)
         self.dialog.color = Window.fore_color1
         self.last_input = None
@@ -84,25 +82,22 @@ class Menu:
         self.display(1)
 
     @staticmethod
-    def make(text, callback, name=0, color=Window.fore_color2, width=160, height=40,
-             resize=False, hover=True):
+    def make(text, callback, name=0, color=Window.fore_color2, width=160, height=40, resize=False):
         if not color:
             color = Window.fore_color_transparent
         button = Window(0, 0, width=width, height=height, name=name, color=color, multi_line=resize)
         button.set_text(text)
         button.on_click = callback
-        if not hover:
-            button.hover_color = None
         return button
 
     def menu_message(self):
         x = self.window.width + self.sub_window.width - self.window.margin.x * 2
         height = 300 - (self.window.margin.y * 2)
         textbox = Window(0, 0, width=x, height=height, color=Window.fore_color2, multi_line=True)
+        textbox.align = 'top'
         textbox.text_spacing = Global.font.ascent - Global.font.descent + 2
         textbox.set_text(self.var[0])
         textbox.update_text()
-        textbox.hover_color = None
         self.window.add(textbox)
         self.sub_window.display(1)
 
@@ -128,18 +123,19 @@ class Menu:
 
     def menu_prompt(self):
         text = self.var[0]
-        self.window.add(Menu.make(text, None, color=Window.fore_color_transparent,
-                                  hover=False, width=320, resize=True))
-        self.window.next_y = self.window.height + self.window.y
         button = Menu.make(self.var[1], self.var[2], name=self.var[3], width=320)
+        height = self.window.height - (self.window.margin.y * 2 + button.height)
+        textbox = Menu.make(text, None, color=Window.fore_color_transparent, height=height, width=320, resize=True)
+        textbox.align = 'top'
+        self.window.add(textbox)
+        self.window.next_y = self.window.height + self.window.y
         self.window.add(button, reverse=True, index=0)
         self.sub_window.display(1)
 
     def menu_choice(self):
         if self.var[0]:
             text = self.var[0]
-            self.window.add(Menu.make(text, None, color=Window.fore_color_transparent,
-                                      hover=False, width=320, resize=True))
+            self.window.add(Menu.make(text, None, color=Window.fore_color_transparent, width=320, resize=True))
             self.window.next_y = self.window.height + self.window.y
             for i in self.var[1]:
                 button = Menu.make(i[0], Script.execute_code, name=i[1], width=320)
@@ -169,7 +165,7 @@ class Menu:
             self.sub_window.display(1)
 
     def menu_conversation(self):
-        self.window.add(Menu.make(self.var[0], None, color=None, hover=False, resize=True))
+        self.window.add(Menu.make(self.var[0], None, color=None, resize=True))
         for option in self.var[1:]:
             self.sub_window.add(Menu.make(option[0], Script.execute_code, width=160, name=option[1]))
         self.sub_window.display(1)

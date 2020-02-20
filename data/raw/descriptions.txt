@@ -5,7 +5,7 @@ Pocket,Attach to worn armor for an additional pocket slot at the cost of durabil
 Pouch,Attach to worn armor to add inventory space at the cost of encumbrance
 Hammer,Can be used to construct furniture at a constructor
 Saw,Can be used to construct furniture at a constructor
-Pickaxe,Can be used to destroy bricks and concrete
+Pickaxe,Can be used to destroy walls and floors
 Medicine,Use to counter sickness
 Amnesia Potion,Potion that makes the user forget few recipes
 Scorch,Create scorching ground that burns anything nearby
@@ -18,7 +18,7 @@ Safety Helmet,Activate to provide light. <E> is activate by default
 Manual,Read to learn skills
 Dispel,Purge all magical effects in vicinity of caster
 Gravity,Pull everything within 12 tiles toward the caster.
-Glow,Make everything within 10 by 10 tiles in front of the caster permanently glow. Repeated shots make targets glow brighter.
+Glow,Make everything within 10 by 10 tiles in front of the caster permanently glow. Redundant shots make targets glow brighter.
 Scorch,Create a scorching flame in front of the caster.
 Summon Bread,Summons bread.
 Darkness,Block out the sunlight to create darkness\, reducing sight range to 4.
@@ -32,8 +32,8 @@ Purge,Purge the soul of a unit in front of the caster.
 Possess,Take control of a unit in front of the caster.
 Blizzard,Anything adjacent to the caster are pushed away and become frozen in place for 8 seconds.
 Spell Mine,Create a magical trap that explodes when stepped on.
-Shockwave,Knock down all land based enemies in sight range for 8 seconds and set them on fire.
-Wall,Create a spell wall to block out enemies.
+Energy Wave,Knock down all land based enemies in sight range for 8 seconds and set them on fire. May destroy walls.
+Summon Wall,Create a spell wall to block out enemies.
 Raise Dead,Turn corpses into zombies.
 Summon Weapon,Summon a random weapon.
 Summon Armor,Summon a random piece of armor or clothing.
@@ -45,27 +45,30 @@ Ghost Form,Turn into a ghost that can pass through walls but cannot interact wit
 Dog Form,Turn into a dog that can consume corpses and move faster than average.
 Barkskin,Turn flesh into wood\, becoming slowed and vulnerable to fire but reducing incoming damage by 2.
 Stone Form,Turn flesh into stone\, becoming immobile but reducing incoming damage by 5.
+sk.strength,Unique Passive: Held weapon does not count against carry weight.
+sk.endurance,Stacking Passive: Increase carry weight by 1.
+sk.asceticism,Stacking Passive: Foods provide 1 extra nutrition.
 sk.dodge,Stacking Passive: Increase maximum defense by 1.
 sk.block,Unique Passive: Reduce damage from front by 1.
 sk.guard,Stacking Passive: Nullify damage from sides 1/2 of the time. On higher levels\, damage is reduced to 1/(2 + additional level).
-sk.endurance,Unique Passive: 1 second of invulnerability upon taking a hit.
-sk.parry,Unique Passive: Standing still for 4 seconds activates concentration\, evading next hit and reflecting damage. Reflected damage is unavoidable.
-sk.vengeance,Unique Passive: After receiving 4 continuous attacks\, push away all adjacent units and knock them down for 4 seconds.
+sk.constitution,Unique Passive: 1 second of invulnerability upon taking a hit.
+sk.parry,Unique Passive: Stand still to concentrate\, evading next hit and reflecting true damage with knockdown.
+sk.vengeance,Unique Passive: After receiving 4 continuous attacks\, push away and knockdown all adjacent units.
 sk.toughness,Unique Passive: Become immune to knockdown.
-sk.strength,Stacking Passive: Increase maximum damage by 1.
+sk.might,Stacking Passive: Increase maximum damage by 1.
 sk.fury,Unique Passive: Increase speed by 1 for 4 seconds after taking damage.
-sk.flurry,Stacking Passive: Standing still for 4 seconds activates concentration\, attacking an additional time on a successful hit. Additional attacks trigger flurry again up to your level of flurry.
+sk.flurry,Stacking Passive: Stand still to concentrate\, attacking an additional time on a successful hit.
 sk.cleave,Unique Passive: Successful attacks cleave to the sides at -1 damage penalty. Cleave attacks do not trigger skills.
 sk.frenzy,Unique Passive: Successful attacks increase maximum damage by 1 for 1 second. Stacks.
 sk.sunder,Unique Passive: Successful attacks lower targets defense by 4 for 4 seconds. Defense never fall below 0.
 sk.execute,Unique Passive: Successful attacks instantly kill enemies with health lower than current maximum damage.
 sk.stealth,Stacking Passive: Reduce enemy sight range by 1.
-sk.silent moving,Unique Passive: Removes sound from moving.
-sk.hide,Unique Passive: Standing still for 4 seconds activates concentration\, becoming invisible until moving.
-sk.calculated hit,Unique Passive: Standing still for 4 seconds activates concentration\, applying critical hit on your next successful attack. Critical hits add 7 unavoidable damage to your attack.
-sk.assassination,Unique Passive: Attacks from behind silence target and apply critical hit. Critical hits add 7 unavoidable damage to your attack.
-sk.escape,Unique Passive: Gain +1 speed for 4 seconds after a critical hit.
-sk.trip,Unique Passive: Critical hits push victims back and knock them down for 4 seconds.
+sk.hide,Unique Passive: Stand still to concentrate\, becoming invisible until moving.
+sk.critical strike,Stacking Passive: 10% of successful attacks are critical hit (+7 true damage).
+sk.calculated hit,Unique Passive: Stand still to concentrate\, preparing a critical hit (+7 true damage).
+sk.assassination,Unique Passive: Attacks from behind silence target and apply critical hit (+7 true damage).
+sk.adrenaline,Unique Passive: Gain +2 speed for 4 seconds on a critical hit.
+sk.trip,Unique Passive: Critical hits push victims back and cause knockdown.
 sk.cantrip,Create easy yet useful spells.
 sk.aura,Create aura manipulating scrolls.
 sk.enchant,Create scrolls that can inflict status effects.
@@ -73,4 +76,3 @@ sk.summon,Create summoning scrolls.
 sk.ritual,Create rituals to aid other spells.
 sk.memorize,Cast spell from memory.
 sk.blood ink,Create spell ink from blood.
-sk.innovation,Create a manual with 3 random skills to choose from.

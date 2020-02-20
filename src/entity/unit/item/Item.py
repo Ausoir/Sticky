@@ -3,8 +3,8 @@ from src.map.Tile import Tile
 
 
 class Item(Prop):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.host = None
         self.weight = 1
@@ -26,22 +26,15 @@ class Item(Prop):
     def face(self, direction):
         self.form.face_cardinal(direction)
 
-    def on_equip(self, host):
-        self.show(True)
+    def on_wield(self, host):
+        self.save = False
         self.host = host
         host.weapon = self
-        self.vec = host.vec
-        from src.game import Global
-        Global.location.population.remove(self)
-        self.pos.things.remove(self)
-        self.host.form.update_perspective()
+        self.host.face(self.host.direction)
 
-    def on_unequip(self):
-        self.vec = self.vec + 0
-        self.relocate(self.host.pos.x, self.host.pos.y, force=1)
+    def on_unwield(self):
+        self.save = True
         self.host = None
-        self.set_form(self.form_name)
-        self.add()
 
     def get_value(self):
         return self.tags.get('price', 1)
@@ -64,8 +57,6 @@ class Item(Prop):
             r += '\nThis item is metallic.'
         if material == 'wood':
             r += '\nThis item is composed of wood.'
-        if material == 'silver':
-            r += '\nThis item has silver properties.'
         return r
 
     def use(self):
@@ -76,6 +67,16 @@ class Item(Prop):
 
     def on_attack(self, target):
         self.states.trigger(['attack', target])
+        for i in self.states.buffs:
+            target.states.add(i.name, 40, i.var)
 
     def on_sleep(self, time):
         pass
+
+    def update(self):
+        if not self.host:
+            super().update()
+
+    def set_row(self, row):
+        if not self.host:
+            super().set_row(row)

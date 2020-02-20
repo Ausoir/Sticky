@@ -1,2 +1,0 @@
-Game.exe
-pause

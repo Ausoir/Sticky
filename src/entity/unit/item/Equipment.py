@@ -35,6 +35,23 @@ class Equipment(Item):
         else:
             return self.name
 
+    def describe(self):
+        r = super().describe()
+        spd = self.tags.get('spd', 0)
+        from src.tools.Dialog import Dialog
+        if spd < 0:
+            r += '\n' + Dialog.get('equipment_slow')
+        elif spd > 0:
+            r += '\n' + Dialog.get('equipment_fast')
+        skill = self.tags.get('skill')
+        if skill:
+            r += '\n' + Dialog.get('equipment_skill', [skill])
+            from src.tools.Data import Data
+            data = Data.get_line('raw/descriptions.txt', 'sk.' + skill)
+            if data:
+                r += '\n' + data[1]
+        return r
+
     def get_value(self):
         enc = 1 + (self.get_level() * self.get_level() * .05)
         r = int(max(1, int(self.tags.get('p', 0) / 10) - self.weight + super().get_value()) * enc)
@@ -43,10 +60,8 @@ class Equipment(Item):
     def use(self):
         self.wear()
 
-    def on_unequip(self):
-        super().on_unequip()
-
     def wear(self, start=False):
+        self.show(False)
         self.host.action.act('grab', 8)
         if self.host.weapon == self:
             host = self.host
@@ -54,14 +69,26 @@ class Equipment(Item):
             self.host = host
         if not start:
             self.on_wear()
+        host = self.host
+        if self.host.weapon == self:
+            self.host.drop()
+        self.save = False
+        self.host = host
+        self.host.face(self.host.direction)
+
+    def remove(self):
+        if self.host:
+            self.unwear()
+        super().remove()
 
     def unwear(self):
+        self.show(True)
         self.on_unwear()
-        self.on_unequip()
+        self.on_unwield()
+        return self
 
     def on_wear(self):
-        from src.game import Global
-        Global.location.sound.register(self.pos, 3, file='wear')
+        self.location.sound.register(self.pos, 3, file='wear')
         speed = self.tags.get('spd', 0)
         if speed != 0:
             self.host.tags.increment('spd', speed, add=True)
@@ -70,8 +97,7 @@ class Equipment(Item):
             self.host.tags.increment('p>', self.tags.get('p>'))
 
     def on_unwear(self):
-        from src.game import Global
-        Global.location.sound.register(self.pos, 3, file='wear')
+        self.location.sound.register(self.pos, 3, file='wear')
         speed = self.tags.get('spd', 0)
         if speed != 0:
             self.host.tags.increment('spd', -speed, remove=True)

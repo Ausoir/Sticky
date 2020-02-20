@@ -31,6 +31,10 @@ class Script:
             if arg.startswith('!'):
                 Global.menu.topic(arg[1:])
                 return True
+            elif arg.startswith('#'):
+                from src.game.ScriptManual import ScriptManual
+                ScriptManual.execute(arg[1:], host)
+                return True
             return Script.execute_line(arg, host)
 
     def __init__(self, host=None):
@@ -96,9 +100,9 @@ class Script:
             if arg[1] == '=':
                 self.var = arg[2]
             elif arg[1] == 'where':
-                self.var = Global.location.get_tile([arg[2], arg[3]]).things
+                self.var = Global.land.get_tile(arg[2], arg[3]).things
             elif arg[1] == 'wherer':
-                self.var = Global.location.get_tile([self.host.pos.x + arg[2], self.host.pos.y + arg[3]]).things
+                self.var = Global.land.get_tile(self.host.pos.x + arg[2], self.host.pos.y + arg[3]).things
             elif arg[1] == 'raw':
                 self.var = Data.get_line('raw/' + arg[2] + '.txt', arg[3].lower())
             elif arg[1] == 'array':
@@ -127,12 +131,19 @@ class Script:
                     self.var = str(arg[2]) + str(arg[3])
                 else:
                     self.var = arg[2] + arg[3]
-            elif arg[1] == 'tag':
+            elif arg[1] == 'time':
+                self.var = Global.player.days
+                Global.map_view.on_sight_change()
+            elif arg[1] == 'maptag':
+                self.var = Global.land.tags.get(arg[2])
+            elif arg[1] == 'hosttag':
                 self.var = self.host.tags.get(arg[2])
             elif arg[1] == 'skill':
                 self.var = self.host.get_skill(arg[2])
-            elif arg[1] == 'host':
+            elif arg[1] == 'sethost':
                 self.host = self.var
+            elif arg[1] == 'gethost':
+                self.var = self.host
             elif arg[1] == 'seed':
                 if arg[2] == 'timespace':
                     self.var = Global.player.days * Global.player.character.location.seed
@@ -178,8 +189,6 @@ class Script:
             return not self.run_condition(condition)
         elif self.run_preposition(condition):
             return True
-        elif condition[0] == 'be':
-            return self.var
         elif condition[0] == 'bring':
             count = 0
             for i in self.var:
@@ -205,7 +214,9 @@ class Script:
         elif condition[0] == 'safe':
             return Global.player.is_safe()
         elif condition[0] == 'bright':
-            return Global.player.character.is_bright()
+            return Global.player.is_bright()
+        elif condition[0] == 'delay':
+            return self.host.action.delay == 0
         elif condition[0] == 'inmenu':
             return Global.menu.visible == 1
         elif condition[0] == 'ask':
@@ -255,15 +266,18 @@ class Script:
         elif arg[0] == 'dialog':
             Global.menu.topic(arg[1])
         elif arg[0] == 'say':
-            from src.entity.unit.Character import Character
-            for i in self.var:
-                if isinstance(i, Character):
-                    i.say(arg[1])
-        elif arg[0] == 'settag':
+            Global.main.monologue.set(arg[1])
+        elif arg[0] == 'setmaptag':
+            Global.land.tags.set(arg[1], arg[2], add=True)
+        elif arg[0] == 'addmaptag':
+            Global.land.tags.increment(arg[1], arg[2])
+        elif arg[0] == 'removemaptag':
+            Global.land.tags.remove(arg[1])
+        elif arg[0] == 'sethosttag':
             self.host.tags.set(arg[1], arg[2], add=True)
-        elif arg[0] == 'addtag':
+        elif arg[0] == 'addhosttag':
             self.host.tags.increment(arg[1], arg[2])
-        elif arg[0] == 'removetag':
+        elif arg[0] == 'removehosttag':
             self.host.tags.remove(arg[1])
         elif arg[0] == 'remove':
             self.var.remove()
@@ -284,7 +298,7 @@ class Script:
                 thing.move(arg[2], arg[3])
         elif arg[0] == 'thief':
             from src.entity.unit.item.Item import Item
-            for i in Global.location.population.other:
+            for i in Global.land.population.other:
                 if isinstance(i, Item):
                     if i.get_value() >= arg[1]:
                         i.remove()
@@ -293,21 +307,42 @@ class Script:
         elif arg[0] == 'blackout':
             Global.overlay.blackout()
         elif arg[0] == 'darkness':
-            Global.location.view_range = arg[1]
-            Global.location.sight_range = arg[2]
-            Global.location.resize()
+            Global.land.view_range = arg[1]
+            Global.land.sight_range = arg[2]
+            Global.map_view.on_sight_change()
+        elif arg[0] == 'time':
+            Global.player.days = arg[1]
+            Global.map_view.on_sight_change()
         elif arg[0] == 'enter':
             from src.entity.Space import Space
             Global.player.travel(arg[1], Space(int(arg[2]), int(arg[3])))
         elif arg[0] == 'menu':
             Global.menu.var = self.var
             Global.menu.direct(getattr(Global.menu, 'menu_' + arg[1].lower()))
+        elif arg[0] == 'flip':
+            Global.land.flip(arg[1], arg[2])
         elif arg[0] == 'load':
-            building = Data.process_raw(Data.read('map/' + arg[1] + '.map'))
-            flip = False
-            if len(arg) > 3 and arg[3]:
-                flip = True
-            Global.location.load_map(building, new=True, offset=arg[2].to_list(), flip=flip)
+            building = Data.process_raw(Data.read('map/' + arg[2] + '.map'))
+            from src.map.Location import Location
+            location = Location(arg[1], building)
+            location.save()
+        elif arg[0] == 'merge':
+            building = Data.process_raw(Data.read('../save/' + arg[1] + '.map'))
+            from src.map.Location import Location
+            location = Location(arg[1], building)
+            building = Data.process_raw(Data.read('../save/' + arg[2] + '.map'))
+            location.load_map(building, offset=[arg[3], arg[4]])
+            location.save()
+        elif arg[0] == 'generate':
+            from src.map.Generator import Generator
+            seed = 0
+            if len(arg) > 7:
+                seed = arg[7]
+            runner = Generator.generate(arg[2], arg[3], arg[4], seed)
+            from src.map.Location import Location
+            location = Location(arg[1], None)
+            runner.transpose(location, arg[5], arg[6])
+            location.save()
         elif arg[0] == 'make':
             from src.map.Location import Location
             Location.make(arg[1], arg[2])
@@ -315,15 +350,18 @@ class Script:
             from src.map.Location import Location
             Location.make(arg[1], arg[2], overwrite=False)
         elif arg[0] == 'give':
-            from src.entity.unit.Character import Character
             from src.entity.Stock import Stock
             for gift in arg[1]:
                 self.host.inventory.attempt_add(gift)
         elif arg[0] == 'unwield':
             Global.player.character.weapon.remove()
+        elif arg[0] == 'delay':
+            self.host.action.delay = arg[1]
         elif arg[0] == 'act':
-            self.host.action.set(arg[1])
-            if len(arg) > 2:
-                self.host.action.delay = arg[2]
+            if self.host.action.delay == 0:
+                if arg[1] == 'act':
+                    self.host.action.act(arg[2], arg[3])
+                else:
+                    self.host.action.set(arg[1])
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])

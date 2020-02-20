@@ -28,7 +28,7 @@ class Spell(Item):
         return r
 
     def use(self):
-        if self.catalyst != 'Scroll' or Global.player.character.is_bright():
+        if self.catalyst != 'Scroll' or Global.player.is_bright():
             self.host.action.set('cast')
             self.host.action.on_finish = self.cast
 
@@ -42,16 +42,16 @@ class Spell(Item):
 
     @staticmethod
     def marker(host):
-        marker = Global.location.population.get_from_name(Global.location.population.other, 'Marker')
+        marker = host.location.population.get_from_name(host.location.population.other, 'Marker')
         while marker:
             marker.remove()
-            marker = Global.location.population.get_from_name(Global.location.population.other, 'Marker')
+            marker = host.location.population.get_from_name(host.location.population.other, 'Marker')
         from src.entity.Stock import Stock
         Stock.make('Marker', host.pos)
 
     @staticmethod
     def dispel(host):
-        aoe = Global.location.get_area(host.pos, 8, 8)
+        aoe = host.location.get_area(host.pos, 8, 8)
         for i in aoe:
             for thing in i.things:
                 Particle.make('sonic', thing.vec)
@@ -59,16 +59,16 @@ class Spell(Item):
                 if not thing.states.get('Immune'):
                     from src.entity.unit.Buff import BuffTags
                     thing.states.clear(lambda x: BuffTags.magic in x.tags)
-        Global.location.sound.register(host.pos, 8, file='void')
+        host.location.sound.register(host.pos, 8, file='void')
         if host == Global.player.character:
             Global.player.set_darkness()
 
     @staticmethod
     def gravity(host):
         def test():
-            Global.location.sound.register(host.pos, 8, file='twist')
+            host.location.sound.register(host.pos, 8, file='twist')
             if turnee.lifetime % 2 == 0:
-                units = Global.location.population.get_all()
+                units = host.location.population.get_all()
                 for unit in units:
                     if (unit.pos - host.pos).difference() <= 12:
                         Particle.make('zwip', unit.vec)
@@ -79,7 +79,7 @@ class Spell(Item):
     @staticmethod
     def glow(host):
         front = host.get_front_tile(host.direction, mag=6)
-        aoe = Global.location.get_area(front, 5, 5)
+        aoe = host.location.get_area(front, 5, 5)
         for tile in aoe:
             for thing in tile.things:
                 glow = thing.states.get('Glow')
@@ -91,7 +91,7 @@ class Spell(Item):
     @staticmethod
     def scorch(host):
         from src.entity.Stock import Stock
-        Global.location.sound.register(host.pos, 9, file='fire')
+        host.location.sound.register(host.pos, 9, file='fire')
         Stock.make('Flame', host.get_front_tile(host.direction))
 
     @staticmethod
@@ -99,7 +99,7 @@ class Spell(Item):
         from src.entity.Stock import Stock
         bread = Stock.make('Bread', host.pos)
         host.drop()
-        bread.on_equip(host)
+        bread.on_wield(host)
 
     @staticmethod
     def slime(host):
@@ -142,7 +142,7 @@ class Spell(Item):
         turnee = Turnee(effect, 60)
         host.states.add('Speed', 60, var=-12)
         r = Stock.make('Force', host.pos)
-        Global.location.population.remove(r)
+        host.location.population.remove(r)
         r.center_camera()
 
     @staticmethod
@@ -160,12 +160,12 @@ class Spell(Item):
         turnee = Turnee(effect, 16)
         host.states.add('Speed', 16, var=-12)
         r = Stock.make('Force', host.pos)
-        Global.location.population.remove(r)
+        host.location.population.remove(r)
         r.center_camera()
 
     @staticmethod
     def restoration(host):
-        aoe = Global.location.get_area(host.pos, 6, 6)
+        aoe = host.location.get_area(host.pos, 6, 6)
         for i in aoe:
             for thing in i.things:
                 Particle.make('heal', thing.vec)
@@ -190,8 +190,8 @@ class Spell(Item):
     @staticmethod
     def charm(host):
         for i in host.get_front_tile(host.direction).things:
-            if not i.tags.get('npc'):
-                i.tags.set('npc', 1, add=True)
+            if i.tags.get('bad'):
+                i.tags.remove('bad')
 
     @staticmethod
     def purge(host):
@@ -221,7 +221,7 @@ class Spell(Item):
     @staticmethod
     def blizzard(host):
         def test():
-            Global.location.sound.register(host.pos, 8, file='twist')
+            host.location.sound.register(host.pos, 8, file='twist')
             if turnee.lifetime % 2 == 0:
                 for i in [1, 2, 3, 4]:
                     adj = host.get_front_tile(i)
@@ -237,17 +237,25 @@ class Spell(Item):
     @staticmethod
     def mine(host):
         from src.entity.Stock import Stock
-        Global.location.sound.register(host.pos, 5, file='fire')
+        host.location.sound.register(host.pos, 5, file='fire')
         Stock.make('Mine', host.get_front_tile(host.direction))
 
     @staticmethod
-    def shockwave(host):
+    def energywave(host):
         from src.entity.unit.Actions import Actions
-        for i in Global.location.population.get_units():
+        for i in host.location.population.get_units():
             if (i.pos - host.pos).difference() < 13:
                 Particle.make('spin', i.vec)
                 Actions.knockdown(i, time=48)
                 i.states.add('Burn', 16)
+        host.location.sound.register(host.pos, 18, file='energy')
+        aoe = host.location.get_area(host.pos, 2, 2)
+        for i in aoe:
+            if i and i.type == -10:
+                if Global.r.rand_bool():
+                    Particle.make('disintegrate', i.get_center())
+                    i.set_terrain('.')
+                    i.update_update_shader()
 
     @staticmethod
     def wall(host):
@@ -267,13 +275,13 @@ class Spell(Item):
         turnee = Turnee(effect, 16)
         host.states.add('Speed', 16, var=-12)
         r = Stock.make('Force', host.pos)
-        Global.location.population.remove(r)
+        host.location.population.remove(r)
         r.center_camera()
 
     @staticmethod
     def zombie(host):
         from src.entity.Stock import Stock
-        for i in Global.location.population.other:
+        for i in host.location.population.other:
             if (i.pos - host.pos).difference() < 13:
                 if i.name == 'Corpse':
                     Particle.make('mist', i.vec)
@@ -283,22 +291,22 @@ class Spell(Item):
     @staticmethod
     def weapon(host):
         from src.entity.Stock import Stock
-        Global.location.sound.register(host.pos, 3, file='wield')
+        host.location.sound.register(host.pos, 3, file='wield')
         weapon = Global.r.rand_list(['Stick', 'Bottle', 'Parasol', 'Club', 'Dagger', 'Hammer'])
         r = Stock.make(weapon, host.get_front_tile(host.direction))
         host.drop()
-        r.on_equip(host)
+        r.on_wield(host)
 
     @staticmethod
     def armor(host):
         from src.entity.Stock import Stock
-        Global.location.sound.register(host.pos, 3, file='wield')
+        host.location.sound.register(host.pos, 3, file='wield')
         armors = ['Casual Wear', 'Green Robe', 'Teal Robe', 'Blue Robe', 'Tuxedo', 'Leather Armor', 'Jumpsuit',
                   'Hat', 'Headband', 'Bandana', 'Beanie', 'Sunglasses', 'Top Hat', 'Cap']
         armor = Global.r.rand_list(armors)
         r = Stock.make(armor, host.get_front_tile(host.direction))
         host.drop()
-        r.on_equip(host)
+        r.on_wield(host)
 
     @staticmethod
     def phantom(host):

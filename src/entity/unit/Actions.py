@@ -27,22 +27,19 @@ class Actions:
     def set(self, action):
         if self.current_action != action:
             if self.delay > 0:
-                Global.location.field.unregister(self.host.get_hitter())
-            frenzy = self.host.states.get('Frenzy')
-            if frenzy and action not in Actions.priority:
-                action = frenzy.var
+                self.host.location.field.unregister(self.host.get_hitter())
             self.current_action = action
             self.current_action_fn = getattr(self, action)
-            if self.on_finish:
-                if self.delay:
-                    self.on_finish = None
-                else:
-                    fn = self.on_finish  # prevent recursion
-                    self.on_finish = None
-                    fn()
             self.frame = 0
         else:
             self.frame += 1
+        if self.on_finish:
+            if self.delay:
+                self.on_finish = None
+            else:
+                fn = self.on_finish  # prevent recursion
+                self.on_finish = None
+                fn()
         r = self.current_action_fn()
         self.last_action = action
         return r
@@ -65,19 +62,17 @@ class Actions:
 
     def idle(self):
         if self.last_action == 'idle':
-            self.make('standby', turn=0)
-            if self.frame == 16:
+            if self.frame == 18:
+                self.make('standby', turn=0)
                 self.host.states.add('Concentration', -1)
-                if self.host.get_skill('hide'):
-                    self.host.states.add('Invisible', -1, var=1)
         else:
             self.make('idle', turn=0)
 
-    def fill(self):
+    def nothing(self):
         pass
 
     def act(self, action, time):
-        self.set('fill')
+        self.set('nothing')  # calls the set function
         self.make(action, turn=time)
 
     def trinket(self):
@@ -87,28 +82,9 @@ class Actions:
             self.make('cast', turn=4)
             self.on_finish = fin
 
-    def ability(self, arg):
-        from src.entity.unit.AdvAction import AdvAction
-        name = self.host.get_tag(self.host, arg)
-        if name:
-            ability = AdvAction.get(self.host, name.title())
-            if ability and ability.is_valid():
-                if self.host.stamina(ability.energy):
-                    self.make(ability.animation, turn=ability.delay)
-                    self.on_finish = ability.on_cast
-                    ability.on_start()
-
     def power_1(self):
-        self.ability('power1')
-
-    def power_2(self):
-        self.ability('power2')
-
-    def power_3(self):
-        self.ability('power3')
-
-    def power_4(self):
-        self.ability('power4')
+        pass
+        # self.ability('power1')
 
     def left(self):
         if self.host.direction != 1:
@@ -140,7 +116,9 @@ class Actions:
 
     def walk(self):
         front = self.host.get_front_tile(self.host.direction)
-        if front.is_land(self.host.collision_type):
+        if not front:
+            self.idle()
+        elif front.is_land(self.host.collision_type):
             from src.game.Script import Script
             if self.host == Global.player.character:
                 for thing in front.things:
@@ -149,28 +127,33 @@ class Actions:
                         self.make('interact', turn=3)
                         Script.execute_code(code, host=thing)
                         return
-            self.set('idle')
+            self.idle()
         else:
             speed = self.host.tags.get('spd', 0)
+            speed += front.type
             if speed > -10:
                 if self.host.move_toward(self.host.direction):
                     self.make('walk', turn=max(0, 2 - speed))
-                    if not self.host.get_skill('silent moving'):
-                        Global.location.sound.register(self.host.pos, 2, file='step')
+                    self.host.location.sound.register(self.host.pos, 0, file='step')
                     invis = self.host.states.get('Invisible')
                     if invis:
                         invis.trigger(['move'])
 
     def fall(self):
-        self.make('fall', turn=14)
+        def rise():
+            self.host.obstruct_type = t
+        t = self.host.obstruct_type
+        self.host.obstruct_type = 4
+        self.on_finish = rise
+        self.make('fall', turn=18)
 
     def peek(self):
         def fin():
             self.host.center_camera()
         self.make('idle', turn=1)
         self.on_finish = fin
-        new_pos = Global.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                               distance=1, flag=Tile.CHECK_FIRM)
+        new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
+                                                  distance=1, flag=Tile.CHECK_FIRM)
         from src.game.TempObject import TempObject
         viewer = TempObject(new_pos)
         from src.game.Camera import Camera
@@ -204,15 +187,16 @@ class Actions:
         target = None
         for thing in reversed(self.host.pos.things):
             if isinstance(thing, Item):
-                target = thing
-                break
+                if thing not in [self.host.weapon, self.host.headgear, self.host.armor]:
+                    target = thing
+                    break
         if target:
             self.make('grab', turn=3)
-            if self.host.is_armed():
+            if self.host.weapon:
                 self.host.inventory.attempt_add(target)
             else:
                 if self.host.inventory.is_vacant(target.weight):
-                    target.on_equip(self.host)
+                    target.on_wield(self.host)
                 else:
                     from src.tools.Dialog import Dialog
                     Global.main.monologue.set(Dialog.get('!heavy'))
@@ -221,14 +205,14 @@ class Actions:
             self.host.drop()
 
     def attack(self):
-        speed = self.host.tags.get('spd', 0)
+        speed = self.host.tags.get('spd', 0) + self.host.get_attack_speed()
         self.make('attack', turn=max(6, 10 - speed))
         slow = max(0, 1 - speed)
         dmg = self.host.roll_damage()
         front = self.host.get_front_tile(self.host.direction)
         hitter = self.host.get_hitter()
-        Global.location.sound.register(self.host.pos, 0, file='swing')
-        Global.location.field.register(dmg, front, hitter=hitter, delay=slow, callback=self.host.on_attack)
+        self.host.location.field.register(dmg, front, hitter=hitter, delay=slow,
+                                   sound=['swing', 0], callback=self.host.on_attack)
         self.host.form.timer.set(slow * 4 + 4)
 
     def arch(self):
@@ -257,9 +241,6 @@ class Actions:
         self.host.attributes.exert(0, self.host.weapon.weight)
         dest = self.host.next_target
         self.on_finish = fin
-
-    def cast(self):
-        self.make('cast', turn=12)
 
     def cast(self):
         self.make('cast', turn=12)

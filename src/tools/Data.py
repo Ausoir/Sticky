@@ -5,7 +5,6 @@ from pyglet.image import Texture, Animation
 
 from src.form.Model import Model
 from src.form.Picture import Picture
-from src.game import Global
 
 
 class Data:
@@ -17,7 +16,7 @@ class Data:
         Data.set_cache('none', Texture.create(1, 1))
         res = Data.process_raw(Data.read('raw/resource.txt'))
         for i in res:
-            Data.initialize_image(i[0], i[1], i[2])
+            Data.initialize_image(i[0], i[1], i[2], i[3])
         animation = Data.process_raw(Data.read('raw/animations.txt'))
         for i in animation:
             sequence = []
@@ -28,6 +27,9 @@ class Data:
                 sequence.append(Data.get_cache('none'))
             ani = pyglet.image.Animation.from_image_sequence(sequence, period=float(i[2]), loop=loop)
             Data.set_cache(i[0], ani)
+        from src.map.Tile import Tile
+        tile_data = Data.process_raw(Data.read('raw/tiles.txt'))
+        Tile.init(tile_data)
 
     @staticmethod
     def direct(fdir, path='../data/'):
@@ -121,7 +123,7 @@ class Data:
         return Model(seq, **kwargs)
 
     @staticmethod
-    def initialize_image(name, texture, subset_size):
+    def initialize_image(name, texture, subset_size, anchor=None):
         image = pyglet.image.load(Data.direct(texture + '.png'))
         image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
         seq = pyglet.image.TextureGrid(image_grid)
@@ -129,8 +131,12 @@ class Data:
         i = 0
         for y in range(subset_size[1]):
             for x in range(subset_size[0]):
-                seq[i].anchor_x = int(seq[i].width / 2)
-                seq[i].anchor_y = int(seq[i].height / 2)
+                if anchor:
+                    seq[i].anchor_x = anchor[0]
+                    seq[i].anchor_y = anchor[1]
+                else:
+                    seq[i].anchor_x = int(seq[i].width / 2)
+                    seq[i].anchor_y = int(seq[i].height / 2)
                 Data.cache[name + '_' + str(x) + 'x' + str(subset_size[1] - y - 1)] = seq[i]
                 i += 1
 
@@ -149,11 +155,10 @@ class Data:
         while data:
             code = data[0]
             data = data[1:]
-            if code == '\\':
-                special = True
+            if code == '\'':
+                special = not special
             elif special:
                 raw += code
-                special = False
             elif code == '[':
                 data, result = Data.parse(data)
                 r.append(result)
@@ -190,6 +195,8 @@ class Data:
                     return k, i
                 else:
                     return i
+        if row:
+            return None, None
 
     @staticmethod
     def get_cache_clip(fdir):

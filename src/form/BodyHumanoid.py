@@ -14,7 +14,8 @@ class BodyHumanoid(Body):
             if i >= 0:
                 self.organs[i].form.z = t
             elif i == -2:
-                self.host.weapon.form.z = t
+                if self.host.weapon:
+                    self.host.weapon.form.z = t
             elif i == -3:
                 if self.host.headgear:
                     self.host.headgear.form.z = t
@@ -36,7 +37,8 @@ class BodyHumanoid(Body):
                 organ.face(self.side, self.direction)
                 organ.form.z = t
             elif i == -2:
-                self.host.weapon.form.z = t
+                if self.host.weapon:
+                    self.host.weapon.form.z = t
             elif i == -3:
                 if self.host.headgear:
                     self.host.headgear.form.z = t

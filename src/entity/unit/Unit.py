@@ -6,8 +6,8 @@ from src.map.Tile import Tile
 
 
 class Unit(Prop):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         from src.entity.unit.Actions import Actions
         self.draw_frame = 0
         self.bleed_frame = 0
@@ -119,7 +119,7 @@ class Unit(Prop):
 
     def update_skill(self):
         self.dodge += self.get_skill('dodge', stacks=True)
-        self.strength += self.get_skill('strength', stacks=True)
+        self.strength += self.get_skill('might', stacks=True)
         self.stealth += self.get_skill('stealth', stacks=True)
 
     def get_defense(self):
@@ -167,9 +167,13 @@ class Unit(Prop):
                 concentration = self.states.get('Concentration')
                 if concentration:
                     concentration.trigger(['spend'])
+                    from src.entity.Particle import Particle
+                    Particle.make('barrier', self.pos.get_center())
                     if isinstance(hitter, Prop):
+                        from src.entity.unit.Actions import Actions
+                        Actions.knockdown(hitter)
                         hitter.decay(damage)
-                    return
+                    return 0
             self.form.timer.set(4)
             self.form.randomize_once(4)
             r = super().hit(damage, hitter)
@@ -188,8 +192,8 @@ class Unit(Prop):
                 right = self.get_front_tile(Direction.add(self.direction, 1))
                 dmg = self.roll_damage() - 1
                 hitter = self.get_hitter()
-                Global.location.field.register(dmg, left, hitter=hitter, delay=0)
-                Global.location.field.register(dmg, right, hitter=hitter, delay=0)
+                self.location.field.register(dmg, left, hitter=hitter, delay=0)
+                self.location.field.register(dmg, right, hitter=hitter, delay=0)
             if self.get_skill('frenzy'):
                 self.states.add('Damage', 40, 1)
             if self.get_skill('sunder'):
@@ -197,21 +201,24 @@ class Unit(Prop):
             if self.get_skill('assassination') and not target.is_facing(self.pos):
                 target.tags.set('deaf', 1, add=True)
                 self.critical_attack(target)
+            critical = self.get_skill('critical strike', stacks=True)
+            if critical and Global.r.rand_int(1, 10) <= critical:
+                self.critical_attack(target)
         flurry = self.get_skill('flurry', stacks=True)
-        crit = self.get_skill('calculated hit')
-        if flurry or crit:
+        calculation = self.get_skill('calculated hit')
+        if flurry or calculation:
             concentration = self.states.get('Concentration')
             if concentration:
-                if crit:
-                    if concentration.var == 0:
-                        concentration.trigger(['spend'])
-                        self.critical_attack(target)
+                concentration.trigger(['spend'])
+                if calculation:
+                    concentration.duration = self.action.delay
+                    self.critical_attack(target)
                 if flurry:
                     from src.entity.unit.Actions import Actions
                     concentration.var += 1
-                    if concentration.var >= flurry:
-                        concentration.trigger(['spend'])
-                    self.action.attack()
+                    if concentration.var <= flurry:
+                        self.action.attack()
+                        concentration.duration = self.action.delay
         if self.get_skill('execute'):
             if target.tags.get('p', 20) <= self.get_damage()[1]:
                 target.die()
@@ -223,7 +230,6 @@ class Unit(Prop):
             self.tags.remove('ai')
             from src.entity.Stock import Stock
             r = Stock.make('Corpse', pos)
-            r.tags.set('p', self.tags.get('p>') or self.tags.get('p') or 1, add=True)
             r.set(self.form)
 
     def remove(self):
@@ -243,14 +249,23 @@ class Unit(Prop):
         target.decay(7)
         from src.entity.Particle import Particle
         Particle.make('power', target.vec)
-        Global.location.sound.register(target.pos, 0, file='hit_impale')
-        if self.get_skill('escape'):
-            self.states.add('Speed', 40, 1)
+        self.location.sound.register(target.pos, 0, file='hit_impale')
+        if self.get_skill('adrenaline'):
+            self.states.add('Speed', 40, 2)
         if self.get_skill('trip'):
             from src.entity.unit.Actions import Actions
-            Actions.knockdown(target, time=20)
+            Actions.knockdown(target)
             from src.tools import Direction
             target.move_toward(self.direction)
 
     def is_team(self, target):
-        return self.tags.get('npc') == target.tags.get('npc')
+        return self.tags.get('bad') == target.tags.get('bad')
+
+    def get_attack_speed(self):
+        return 0
+
+    def get_team(self, ally=True):
+        if bool(self.tags.get('bad')) == ally:
+            return self.location.population.bad
+        else:
+            return self.location.population.good

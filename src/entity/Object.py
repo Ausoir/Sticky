@@ -12,11 +12,13 @@ from src.tools.Dialog import Dialog
 class Object(Image):
     BLOCK = 40
 
-    def __init__(self):
+    def __init__(self, location):
         super().__init__(Space())
+        self.location = location
         self.class_name = None
         self.pos = None
         self.old_pos = self.pos
+        self.save = True
         self.obstruct_type = Tile.COLLIDE_OBJECT
         self.collision_type = Tile.CHECK_FIRM
         self.removed = 0
@@ -33,7 +35,7 @@ class Object(Image):
         index = super().load(p)
         if isinstance(p[index][0], list):
             p[index] = p[index][0]
-        self.pos = Global.location.get_tile(p[index])
+        self.pos = self.location.get_tile(p[index][0], p[index][1], limit=True)
         index += 1
         self.name = p[index]
         index += 1
@@ -48,14 +50,14 @@ class Object(Image):
         self.show(True)
         Turn.add(self.turn)
         self.relocate(self.pos.x, self.pos.y, force=1)
-        Global.location.population.add(self)
+        self.location.population.add(self)
         return self
 
     def remove(self):
         self.removed = 1
         self.show(False)
         Turn.remove(self.turn)
-        Global.location.population.remove(self)
+        self.location.population.remove(self)
         self.pos.things.remove(self)
         del self
 
@@ -108,8 +110,8 @@ class Object(Image):
     def relocate(self, x, y, force=0):
         if force or x != self.pos.x or y != self.pos.y:
             diff = [x - self.pos.x, y - self.pos.y]
-            Global.location.get_tile(self.pos).things.remove(self)
-            new = Global.location.get_tile(self.pos + diff)
+            self.pos.things.remove(self)
+            new = self.location.get_tile(self.pos.x + diff[0], self.pos.y + diff[1], limit=True)
             new.things.append(self)
             self.old_pos = self.pos
             self.pos = new
@@ -121,18 +123,22 @@ class Object(Image):
     def move_toward(self, direction, distance=1, flag=None):
         coord = Direction.coord[direction]
         target = self.pos + coord
-        flag = flag or self.collision_type
-        new_pos = Global.location.collide_land(self.pos, target, flag=flag, distance=distance)
+        if flag is None:
+            flag = self.collision_type
+        new_pos = self.location.collide_land(self.pos, target, flag=flag, distance=distance)
         moved = self.pos != new_pos
-        self.relocate(new_pos.x, new_pos.y)
+        if new_pos:
+            self.relocate(new_pos.x, new_pos.y)
         return moved
 
     def move(self, x, y, distance=8, flag=None):
         target = self.pos + (x, y)
-        flag = flag or self.collision_type
-        new_pos = Global.location.collide_land(self.pos, target, distance=distance, flag=flag)
-        self.relocate(new_pos.x, new_pos.y)
-        return new_pos
+        if flag is None:
+            flag = self.collision_type
+        new_pos = self.location.collide_land(self.pos, target, distance=distance, flag=flag)
+        if new_pos:
+            self.relocate(new_pos.x, new_pos.y)
+            return new_pos
 
     def update_vec(self):
         self.vec.load(self.pos.get_center())

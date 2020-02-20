@@ -13,16 +13,15 @@ class Headgear(Equipment):
         self.form.reset()
         super().face(direction)
 
-    def on_equip(self, host):
-        super().on_equip(host)
-        self.face(1)
-
     def wear(self, start=False):
-        if self.host.headgear:
-            self.host.unheadgear()
+        self.host.unheadgear()
         self.host.headgear = self
         super().wear(start)
-        self.host.face(self.host.direction)
+        self.show(True)
+
+    def unwear(self):
+        self.host.headgear = None
+        super().unwear()
 
     def set_form(self, arg):
         from src.tools.Data import Data

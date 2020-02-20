@@ -21,11 +21,11 @@ class Pilot:
             self.task.record()
 
     def load(self, arg):
-        if arg == 'neutral':
+        if arg == 'guard':
             self.default = Idle(self)
             self.move = Path(self)
             self.attack = Attack(self)
-        elif arg == 'hostile':
+        elif arg == 'wander':
             self.default = Wander(self)
             self.move = Path(self)
             self.attack = Attack(self)
@@ -52,10 +52,7 @@ class Pilot:
 
     def act(self):
         if self.priority > 2:
-            if self.host.tags.get('npc'):
-                enemies = Global.location.population.bad
-            else:
-                enemies = [Global.player.character] + Global.location.population.good
+            enemies = self.host.get_team(ally=False)
             targets = self.perceive(enemies)
             if targets:
                 self.spot_enemy(targets)
@@ -70,7 +67,6 @@ class Pilot:
                 if isinstance(hitter, Item) and hitter.host:
                     hitter = hitter.host
                 self.set_task(self.attack)
-                self.host.tags.set('tgt', hitter.id)
                 self.task.target = hitter
 
     def perceive(self, enemies):
@@ -93,7 +89,7 @@ class Pilot:
             if self.priority > 3:
                 if not self.host.tags.get('deaf'):
                     self.host.face_toward(pos)
-                    seen = Global.location.collide_land(self.host.pos, pos, Tile.CHECK_SIGHT)
+                    seen = self.host.location.collide_land(self.host.pos, pos, Tile.CHECK_SIGHT)
                     if seen == pos:
                         units = []
                         from src.entity.unit.Unit import Unit
@@ -104,6 +100,14 @@ class Pilot:
                     else:
                         self.move.target = pos
                         self.set_task(self.move)
+
+    def lose(self, target):
+        if self.task.target == target:
+            from src.map.Tile import Tile
+            seen = self.host.location.collide_land(self.host.pos, self.task.target.pos, Tile.CHECK_SIGHT)
+            if seen != target.pos:
+                self.move.target = self.task.target.pos
+                self.set_task(self.move)
 
     def prioritize(self, targets):
         nearest_dist = 10
@@ -118,7 +122,7 @@ class Pilot:
     def spot_enemy(self, targets):
         valids = []
         for thing in targets:
-            seen = Global.location.collide_land(self.host.pos, thing.pos, Tile.CHECK_SIGHT)
+            seen = self.host.location.collide_land(self.host.pos, thing.pos, Tile.CHECK_SIGHT)
             if seen == thing.pos:
                 valids.append(thing)
         if valids:
@@ -129,7 +133,7 @@ class Pilot:
                 if not self.host.tags.get('deaf'):
                     from src.entity.Particle import Particle
                     Particle.make('shout', self.host.vec)
-                    Global.location.sound.register(self.host.pos, 9)
+                    self.host.location.sound.register(self.host.pos, 9)
 
     def get_routes(self, pos):
         options = []
@@ -137,12 +141,12 @@ class Pilot:
         right = pos.get_neighbor(1, 0)
         down = pos.get_neighbor(0, 1)
         up = pos.get_neighbor(0, -1)
-        if not up.is_land(self.host.collision_type):
+        if up and not up.is_land(self.host.collision_type):
             options.append((0, -1))
-        if not right.is_land(self.host.collision_type):
+        if right and not right.is_land(self.host.collision_type):
             options.append((1, 0))
-        if not left.is_land(self.host.collision_type):
+        if left and not left.is_land(self.host.collision_type):
             options.append((-1, 0))
-        if not down.is_land(self.host.collision_type):
+        if down and not down.is_land(self.host.collision_type):
             options.append((0, 1))
         return options

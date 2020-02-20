@@ -1,8 +1,6 @@
 from src.entity.Particle import Particle
 from src.entity.Prop import Prop
-from src.entity.Space import Space
 from src.entity.unit.Unit import Unit
-from src.entity.unit.item.Equipment import Equipment
 from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
@@ -13,8 +11,8 @@ from src.tools.Dialog import Dialog
 
 
 class Scripter(Prop):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         from src.game.Script import Script
         self.script = Script(self)
 
@@ -30,10 +28,15 @@ class Scripter(Prop):
         super().add()
         self.script.run()
 
+    def run_make(self):
+        from src.game.Script import Script
+        if self.script.period == Script.MAKE:
+            self.script.run_script()
+
 
 class Door(Prop):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.form1 = None
         self.form2 = None
 
@@ -46,28 +49,31 @@ class Door(Prop):
 
     def set_row(self, row):
         self.form.z = row * 20 + 100
+        self.form1.z = self.form.z
+        self.form2.z = self.form.z
 
     def turn(self):
         super().turn()
-        if len(self.pos.things) > 1:
-            if self.obstruct_type != Tile.COLLIDE_ITEM:
-                self.form2.show(True)
-                self.form2.bound(self.form.inbound)
-                self.form = self.form2
-                self.form1.show(False)
-                self.obstruct_type = Tile.COLLIDE_ITEM
-        else:
-            if self.obstruct_type != Tile.COLLIDE_FOG:
-                self.form1.show(True)
-                self.form1.bound(self.form.inbound)
-                self.form = self.form1
-                self.form2.show(False)
-                self.obstruct_type = Tile.COLLIDE_FOG
+        if self.form.inbound:
+            if len(self.pos.things) > 1:
+                if self.obstruct_type != Tile.COLLIDE_ITEM:
+                    self.form2.show(True)
+                    self.form2.bound(True)
+                    self.form = self.form2
+                    self.form1.show(False)
+                    self.obstruct_type = Tile.COLLIDE_ITEM
+            else:
+                if self.obstruct_type != Tile.COLLIDE_FOG:
+                    self.form1.show(True)
+                    self.form1.bound(True)
+                    self.form = self.form1
+                    self.form2.show(False)
+                    self.obstruct_type = Tile.COLLIDE_FOG
 
 
 class Credit(Item):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.var = None
         self.amount = 0
 
@@ -91,8 +97,8 @@ class Credit(Item):
 
 
 class Food(Item):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.nutrition = [-1, 0]
 
     def __str__(self):
@@ -116,13 +122,12 @@ class Food(Item):
 
     def describe(self):
         r = super().describe()
-        r += '\nCalories: ' + str(self.nutrition[1])
-        r += '\nProtein: ' + str(self.nutrition[2])
+        r += '\n' + Dialog.get('Nutrition') + ': ' + str(self.nutrition[1])
         expire = self.get_expiration()
         if expire:
-            r += '\nExpires in ' + Dialog.day(expire)
+            r += '\n' + Dialog.get('food_expire', [Dialog.day(expire)])
         else:
-            r += '\nThis food is expired.'
+            r += '\n' + Dialog.get('food_expired')
         return r
 
     def get_expiration(self):
@@ -144,13 +149,13 @@ class Food(Item):
     def eat(self):
         for i in self.states.buffs:
             self.host.states.add(i.name, i.duration, i.var)
-        self.host.tags.increment('full', self.nutrition[1])
+        self.host.tags.increment('full', self.nutrition[1] + self.host.get_skill('asceticism', stacks=True))
         self.decay(1)
 
 
 class Corpse(Prop):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.direction = 1
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.form = None
@@ -193,19 +198,12 @@ class Corpse(Prop):
         self.remove()
 
 
-class Break(Prop):
-    def die(self):
-        super().die()
-        if self.pos.terrain:
-            self.pos.terrain = None
-
-
 class Explosive(Item):
     def die(self):
         if self.states.get('Burn'):
             from src.entity.Stock import Stock
             Stock.make('Flame', self.pos)
-            aoe = Global.location.get_area(self.pos, 1, 1)
+            aoe = self.location.get_area(self.pos, 1, 1)
             for tile in aoe:
                 Particle.make('explode', tile.get_center(), offset=4, glow=2)
                 for thing in tile.things:
@@ -215,8 +213,8 @@ class Explosive(Item):
 
 
 class Manual(Item):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.skill = None
 
     def __str__(self):
@@ -235,10 +233,10 @@ class Manual(Item):
         return index + 1
 
     def get_display_name(self):
-        return '<' + self.skill.title() + '> Manual'
+        return '<' + self.skill.title() + '> ' + Dialog.get('manual')
 
     def describe(self):
-        r = super().describe() + '\nTeaches skill [' + self.skill.title() + ']'
+        r = super().describe() + '\n' + Dialog.get('manual_skill', [self.skill.title()])
         data = Data.get_line('raw/descriptions.txt', 'sk.' + self.skill)
         if data:
             r += '\n' + data[1]
@@ -250,137 +248,19 @@ class Manual(Item):
             self.host.action.on_finish = self.learn
 
     def learn(self):
-        if Global.player.is_bright() and Global.player.sleep(1):
-            skill = self.skill.lower()
-            if skill not in self.host.skills:
+        skill = self.skill.lower()
+        if skill not in self.host.skills:
+            if Global.player.is_bright() and Global.player.sleep(1):
+                Global.main.monologue.set(Dialog.get('monologue_learn', [self.skill]))
                 self.host.skills.append(skill)
-                if self.host == Global.player.character:
-                    Global.main.monologue.set('Learned ' + self.skill + '!')
-                    self.die()
-            elif self.host == Global.player.character:
-                Global.main.monologue.set('I already know ' + self.skill + '.')
-
-
-class Handcuff(Item):
-    def __init__(self):
-        super().__init__()
-        self.capture = None
-
-    def __str__(self):
-        return super().__str__() + ',[' + str(self.capture) + ']'
-
-    def load(self, arg):
-        index = super().load(arg)
-        if arg[index][0] != 'None':
-            from src.entity.Stock import Stock
-            self.capture = Stock.get(None, data=arg[index])
-        return index + 1
-
-    def describe(self):
-        r = super().describe()
-        if self.capture:
-            return r + '\nContains ' + self.capture.name
-        else:
-            return r
-
-    def use(self):
-        if not self.capture:
-            def change():
-                for i in self.host.pos.things:
-                    if i != self.host and isinstance(i, Prop):
-                        self.capture = i
-                        i.remove()
-                Particle.make('portal', self.host.pos.get_center())
-            self.host.action.act('grab', 8)
-            self.host.action.set_animation('interact')
-            self.host.action.on_finish = change
-            self.host.action.delay = 5
-        else:
-            self.host.action.act('grab', 8)
-            self.host.action.set_animation('interact')
-            from src.entity.Stock import Stock
-            self.capture.pos = self.host.get_front_tile()
-            Particle.make('portal', self.capture.pos.get_center())
-            self.capture.add()
-            self.capture = None
-
-
-class MemoryAmulet(Headgear):
-    def __init__(self):
-        super().__init__()
-        self.visible = 0
-        self.memory_map = None
-        self.memory_pos = Space()
-
-    def __str__(self):
-        return super().__str__() + ',' + self.memory_map + ',' + self.memory_pos.__str__()
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.memory_map = arg[index]
-        index += 1
-        self.memory_pos.load(arg[index])
-        return index + 1
-
-    def use(self):
-        super().use()
-        self.memory_map = Global.location.name
-        self.memory_pos = self.host.pos
-
-    def activate(self):
-        super().activate()
-        self.hit(1)
-        Global.player.travel(self.memory_map, self.memory_pos)
-
-
-class RubyAmulet(Headgear):
-    def __init__(self):
-        super().__init__()
-        self.visible = 0
-
-    def die(self):
-        if self.host:
-            return
-        super().die()
-
-    def activate(self):
-        super().activate()
-        if self.durability <= 0:
-            for thing in self.host.pos.things:
-                if thing.name == 'Corpse':
-                    self.weight = thing.durability
-                    thing.die()
-                    break
-
-    def on_sleep(self, time):
-        self.durability = self.weight
-
-
-class LifeAmulet(Headgear):
-    def __init__(self):
-        super().__init__()
-        self.visible = 0
-        self.max_durability = 3
-
-    def die(self):
-        if self.host:
-            return
-        super().die()
-
-    def on_sleep(self, time):
-        self.durability = min(self.max_durability, self.durability + time)
-
-    def enhance(self, rng):
-        r = super().enhance(rng)
-        if r:
-            self.max_durability += 3
-            self.weight += 1
-        return r
+                self.die()
+        elif self.host == Global.player.character:
+            Global.main.monologue.set(Dialog.get('!monologue_learn', [self.skill]))
 
 
 class Glasses(Headgear):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.sight = 4
 
     def __str__(self):
@@ -398,8 +278,8 @@ class Glasses(Headgear):
                 self.host.center_camera()
             channel = self.host.states.add('Channel', 12)
             channel.on_finish = done
-            new_pos = Global.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                                      distance=self.sight, flag=Tile.CHECK_FIRM)
+            new_pos = self.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
+                                                   distance=self.sight, flag=Tile.CHECK_FIRM)
             from src.game.TempObject import TempObject
             viewer = TempObject(new_pos)
             from src.game.Camera import Camera
@@ -407,8 +287,8 @@ class Glasses(Headgear):
 
 
 class SafetyHat(Headgear):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.light = 6
 
     def __str__(self):
@@ -419,11 +299,11 @@ class SafetyHat(Headgear):
         self.light = arg[index]
         return index + 1
 
-    def on_unequip(self):
+    def on_unwield(self):
         light = self.host.states.get('Glow')
         if light:
             light.end()
-        super().on_unequip()
+        super().on_unwield()
 
     def activate(self):
         super().activate()
@@ -435,8 +315,8 @@ class SafetyHat(Headgear):
 
 
 class Tazer(Weapon):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.charge = 0
 
     def __str__(self):
@@ -456,59 +336,34 @@ class Tazer(Weapon):
     def on_attack(self, target):
         super().on_attack(target)
         if self.charge >= 100:
-            target.states.add('Influence', 60, var='hit')
             target.states.add('Effect', 60, var='zap')
             self.charge = 0
         else:
             self.charge = self.charge + 50
 
 
-class Fist(Weapon):
-    def on_unequip(self):
-        pass
-
-
 class Pickaxe(Weapon):
-    def attack(self, damage=1, delay=1, callback=None):
-        super().attack(damage, delay, callback)
-        breakables = Data.get_line('raw/raw.txt', 'breakable')[1]
+    def use(self):
+        self.host.action.attack()
+        self.host.action.on_finish = self.destroy
+
+    def destroy(self):
+        self.host.action.act('rest', 8)
         tile = self.host.get_front_tile(self.host.direction, mag=1)
-        if tile.terrain and tile.terrain.name.split(' ')[0] in breakables:
-            if not tile.things:
+        if tile and tile.terrain != '.':
+            if tile.things:
+                for thing in tile.things:
+                    if thing.name == 'Break':
+                        thing.remove()
+                        tile.set_terrain('.')
+            else:
                 from src.entity.Stock import Stock
                 Stock.make('Break', tile)
 
 
-class Ballistic(Equipment):
-    def __init__(self):
-        super().__init__()
-        self.motion = None
-        self.ammo = 0
-
-    def __str__(self):
-        return super().__str__() + ',' + self.motion + ',' + str(self.ammo)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.motion = arg[index]
-        index += 1
-        self.ammo = arg[index]
-        return index + 1
-
-    def is_reloaded(self):
-        return self.ammo > 0
-
-    def use(self):
-        if self.is_reloaded():
-            self.host.action.set(self.motion)
-            self.ammo -= 1
-        else:
-            self.host.say('Out of ammunition.')
-
-
 class Mine(Prop):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.area = 4
         self.damage = 12
 
@@ -526,7 +381,7 @@ class Mine(Prop):
         super().turn()
         if self.pos.is_land([Tile.COLLIDE_UNIT]):
             from src.entity.unit.Actions import Actions
-            for tile in Global.location.get_area(self.pos, self.area, self.area):
+            for tile in self.location.get_area(self.pos, self.area, self.area):
                 for thing in tile.things.copy():
                     Actions.knockdown(thing)
                     thing.states.add('Burn', 12)
@@ -536,8 +391,8 @@ class Mine(Prop):
 
 
 class Phantom(Unit):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.host = None
 
@@ -548,7 +403,7 @@ class Phantom(Unit):
         index = super().load(p)
         if p[index]:
             from src.entity.Stock import Stock
-            self.set_host(Stock.get(p[index][2], p[index]))
+            self.set_host(Stock.get(self.location, p[index][2], p[index]))
         return index + 1
 
     def set_host(self, host):

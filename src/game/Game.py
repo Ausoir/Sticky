@@ -17,10 +17,10 @@ class Game:
         if not data:
             data = Data.process_raw(Data.read('map/template.char'))
         map_data = list(Data.process_raw(Data.read('../save/' + data[0][0] + '.map')))
-        Location(data[0][0], map_data)
+        Global.land = Location(data[0][0], map_data)
         from src.entity.Stock import Stock
         self.character = None
-        self.set_player(Stock.get(data[2][2], data=data[2]).add())
+        self.set_player(Stock.get(Global.land, data[2][2], data=data[2]).add())
         self.dead = 0
         self.days = data[1][0]
         Turn.frame = data[1][1]
@@ -38,7 +38,7 @@ class Game:
         self.control.player = player
         player.center_camera()
         player.action.delay = 4
-        Global.location.population.remove(player)
+        player.save = False
         self.character = player
         return player
 
@@ -62,8 +62,11 @@ class Game:
                             i.on_sleep(time)
                         for i in self.character.states.buffs:
                             i.trigger(['time', time])
+                else:
+                    return False
         Global.overlay.blackout()
         self.set_darkness()
+        return True
 
     def set_darkness(self):
         if self.is_daytime():
@@ -77,15 +80,15 @@ class Game:
         Global.map_view.on_sight_change()
 
     def travel(self, to_map, to_pos):
-        self.depart = Global.location.name
-        if Global.location.name != to_map:
-            Global.location.save()
+        self.depart = Global.land.name
+        if Global.land.name != to_map:
+            Global.land.save()
         self.character.action.set('idle')
         self.character.form.set_state('interact')
         self.character.relocate(to_pos.x, to_pos.y, force=1)
         if to_map == 'home':
             to_map = Global.player.character.tags.get('home')
-        Global.location.name = to_map
+        Global.land.name = to_map
         Global.player.turn()
         Turn.init()
         Global.player = Game()
@@ -99,7 +102,7 @@ class Game:
             self.control.player = self.editor
             self.temporary = Global.map_view.sight_block
             Global.map_view.sight_block = []
-            Global.location.save()
+            Global.land.save()
         else:
             self.editor_mode = False
             self.editor.remove()
@@ -107,7 +110,7 @@ class Game:
             self.control.player = self.character
             self.character.center_camera()
             Global.map_view.sight_block = self.temporary
-            Global.location.save()
+            Global.land.save()
 
     def turn(self):
         if self.character.removed:
@@ -148,13 +151,13 @@ class Game:
                             pos = str(self.character.pos.x + x) + ',' + str(self.character.pos.y + y)
                             if pos not in Global.map_view.draw_tiles:
                                 Global.map_view.draw_tiles[pos] = self.character.pos.get_neighbor(x, y)
-            r = Global.location.name + '\n'
+            r = Global.land.name + '\n'
             r += str(self.days) + ',' + str(Turn.frame) + ',' + str(self.depart) + '\n'
             r += self.character.__str__() + '\n'
             Data.write('../save/player.char', r)
 
     def is_safe(self):
-        for unit in Global.location.population.bad:
+        for unit in Global.land.population.bad:
             if unit.pilot.var == self.character:
                 Global.main.monologue.set(Dialog.get('!safe'))
                 return False
@@ -170,6 +173,11 @@ class Game:
                     i.decay(1)
                     return nutrition
         Global.main.monologue.set(Dialog.get('!eat'))
+
+    def pay(self, amount):
+        if self.character.tags.require('money', amount):
+            return True
+        Global.main.monologue.set(Dialog.get('!pay'))
 
     def is_bright(self):
         if self.is_daytime() or self.character.pos.light > 1:

@@ -1,17 +1,17 @@
 Human,Character,human,[p>:4,p:4,mat:flesh],[],[],0,0,0,[] //Name,class,form,tags,state,action,skill,armor,headgear,weapon,inventory
-Silkworm,Unit,worm,[p>:4,p:4,mat:flesh,ai:hostile,spd:-5],[],[]
-Slime,Unit,slime,[p>:8,p:8,mat:other,ai:hostile,deaf:1,loot:Jelly,spd:-5],[],[]
-Rat,Unit,rat,[p>:4,p:4,mat:flesh,ai:hostile,spd:1,sharp:1],[],[hide]
-Dog,Unit,dog,[p>:4,p:4,mat:flesh,ai:hostile,spd:1,loot:Tooth,sharp:1],[[Speed,-1,1]],[strength,dodge]
-Zombie,Unit,zombie,[p>:7,p:7,mat:flesh,ai:hostile,seed:-1],[],[toughness],0,0,0
-Looter,Humanoid,human,[p>:7,p:7,mat:flesh,ai:hostile,seed:-1],[],[],Jumpsuit,0,Stick
-Tank,Humanoid,human,[p>:17,p:17,mat:flesh,ai:hostile,seed:-1],[],[calculated hit,trip],Leather Armor,0,Club
+Slime,Unit,slime,[p>:8,p:8,mat:other,ai:wander,deaf:1,loot:Jelly,spd:-5],[],[]
+Rat,Unit,rat,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:1,sharp:1],[],[hide]
+Worm,Unit,worm,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:-5],[],[]
+Dog,Unit,dog,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:1,loot:Tooth,sharp:1],[[Speed,-1,1]],[might,dodge]
+Zombie,Unit,zombie,[p>:7,p:7,bad:1,mat:flesh,ai:wander,seed:-1],[],[toughness],0,0,0
+Looter,Humanoid,human,[p>:7,p:7,bad:1,mat:flesh,ai:wander,seed:-1],[],[],Jumpsuit,0,Stick
+Tank,Humanoid,human,[p>:20,p:20,bad:1,mat:flesh,ai:wander,seed:-1],[],[calculated hit,trip],Platemail,0,Club
 Ghost,Unit,ghost,[p>:7,p:7,mat:fuel,col:7,seed:-1],[],[]
-Phantom,Phantom,phantom,[p:7,mat:fuel,ai:hostile,npc:1,col:7,seed:-1],[],[],0
-Mercenary,Humanoid,human,[p>:14,p:14,mat:flesh,npc:1,ai:neutral],[],[swing],Chainmail,0,Glaive
-Merchant,Character,human,[p>:4,p:4,mat:flesh,npc:1,ai:neutral,#:merchant],[],[swing,dodge],Gold Robe,Top Hat,0,[Manual,Torch]
-Pawnbroker,Humanoid,human,[p>:4,p:4,mat:flesh,npc:1,ai:neutral,#:pawn],[],[],Jumpsuit,Safety Helmet,0,[Box,Club,Torch]
-Contractor,Humanoid,human,[p>:4,p:4,mat:flesh,npc:1,ai:neutral],[],[flurry,block,dodge],Tuxedo,0,0,[time:4,type:guild,due:-1]
-Insurer,Humanoid,human,[p>:4,p:4,mat:flesh,npc:1,ai:neutral],[],[],Silver Robe,Holy Hat,[record:0,inc:1]
-Doctor,Humanoid,human,[p>:4,p:4,mat:flesh,npc:1,ai:neutral],[],[],Silver Robe,Glasses,[value:1]
-Innkeep,Humanoid,human,[p>:4,p:4,mat:flesh,npc:1,ai:neutral],[],[],Green Robe,0,[stay:1,rent:15,own:0,due:-1]
+Phantom,Phantom,phantom,[p:7,mat:fuel,ai:wander,col:7,seed:-1],[],[],0
+Mercenary,Humanoid,human,[p>:14,p:14,mat:flesh,ai:guard],[],[swing],Chainmail,0,Glaive
+Merchant,Character,human,[p>:4,p:4,mat:flesh,ai:guard,#:merchant],[],[],Gold Robe,Top Hat,0,[Manual,Torch]
+Pawnbroker,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,#:pawn],[],[],Jumpsuit,Safety Helmet,0,[Box,Club,Torch]
+Contractor,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard],[],[flurry,block,dodge],Tuxedo,0,0,[time:4,type:guild,due:0]
+Insurer,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard],[],[],Silver Robe,Holy Hat,[record:0,inc:1]
+Doctor,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard],[],[],Silver Robe,Glasses,[value:1]
+Innkeep,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard],[],[],Green Robe,0,[stay:1,rent:15,own:0,due:-1]

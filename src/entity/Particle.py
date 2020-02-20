@@ -8,10 +8,10 @@ class Particle(Prop):
     @classmethod
     def make(cls, arg, pos, glow=-1, lifetime=10, offset=16, direction=1):
         from src.game import Global
-        r = cls()
+        r = cls(Global.land)
         r.set_form(arg)
         r.lifetime = lifetime
-        r.pos = Global.location.get_tile_from_vec(pos.x, pos.y)
+        r.pos = r.location.get_tile_from_vec(pos.x, pos.y)
         r.vec = pos + 0
         r.offset = [offset, offset]
         r.form.face(direction)
@@ -19,8 +19,8 @@ class Particle(Prop):
             r.pos.glow(glow)
         return r.add()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, location):
+        super().__init__(location)
         self.lifetime = 4
         self.obstruct_type = 0
         self.offset = None

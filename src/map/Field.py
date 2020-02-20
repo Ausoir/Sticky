@@ -1,5 +1,6 @@
 class Field:
-    def __init__(self):
+    def __init__(self, location):
+        self.location = location
         self.registry = []
 
     def turn(self):
@@ -19,7 +20,7 @@ class Field:
     def register(self, damage, pos, delay=1, hitter=None, sound=None, callback=None):
         data = [hitter, delay, pos, damage, sound, callback]
         if delay <= 0:
-            Field.perform(data)
+            self.perform(data)
         else:
             self.registry.append(data)
 
@@ -28,12 +29,12 @@ class Field:
             if i[0] == victim:
                 i[1] = -1
 
-    @staticmethod
-    def perform(data):
+    def perform(self, data):
         if data[4]:
-            data[0].location.sound.register(data[0].pos, data[4][1], file=data[4][0])
-        for thing in data[2].things.copy():
-            if thing.hittable:
-                if thing.hit(data[3], hitter=data[0]) >= 1:
-                    if data[5]:
-                        data[5](thing)
+            self.location.sound.register(data[0].pos, data[4][1], file=data[4][0])
+        if data[2]:
+            for thing in data[2].things.copy():
+                if thing.hittable:
+                    if thing.hit(data[3], hitter=data[0]) >= 1:
+                        if data[5]:
+                            data[5](thing)

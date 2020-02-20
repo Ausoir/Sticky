@@ -45,7 +45,7 @@ class Buff:
         self.duration = 0
 
     def is_valid(self):
-        return True
+        return not self.host.states.get('Immune')
 
     def on_start(self):
         pass
@@ -76,6 +76,9 @@ class BuffTags:
 
 
 class Glow(Buff):
+    def get_tags(self):
+        return [BuffTags.magic]
+
     def describe(self):
         return 'You emit light.'
 
@@ -84,7 +87,7 @@ class Glow(Buff):
         self.var = max(self.var, var)
 
     def on_update(self):
-        self.host.pos.glow(self.var)
+        self.host.pos.glow(self.var + 1)
 
 
 class Revive(Buff):
@@ -162,9 +165,22 @@ class Armor(Buff):
         self.var = var
 
 
+class Brand(Buff):
+    def get_display_name(self):
+        return self.var
+
+    def describe(self):
+        return 'Creates special on hit effect.'
+
+    def trigger(self, arg):
+        if arg[0] == 'attack':
+            from src.game.Script import Script
+            Script.execute_code(self.var, host=arg[1])
+
+
 class Curse(Buff):
     def get_tags(self):
-        return [BuffTags.harmful]
+        return [BuffTags.magic, BuffTags.harmful]
 
     def describe(self):
         return 'Die when this curse expire.'
@@ -183,7 +199,7 @@ class Curse(Buff):
 
 class Weak(Buff):
     def get_tags(self):
-        return [BuffTags.harmful]
+        return [BuffTags.magic, BuffTags.harmful]
 
     def describe(self):
         return 'Your defense is set to 0.'
@@ -191,23 +207,6 @@ class Weak(Buff):
     def on_update(self):
         if self.effect(8):
             Particle.make('sweat', self.host.vec)
-
-
-class Fire(Buff):
-    def get_tags(self):
-        return [BuffTags.magic]
-
-    def describe(self):
-        return 'Cause fire.'
-
-    def on_update(self):
-        if self.effect(6):
-            Particle.make('kindle', self.host.vec, offset=12)
-
-    def trigger(self, arg):
-        super().trigger(arg)
-        if arg[0] == 'attack':
-            arg[1].states.add('Burn', 16)
 
 
 class Burn(Buff):
@@ -218,13 +217,13 @@ class Burn(Buff):
         return 'Constantly take damage and spread to nearby flammables.'
 
     def is_valid(self):
-        if self.host.tags.is_combustible() and not self.host.states.get('Fire'):
-            return True
+        if self.host.tags.is_combustible():
+            return super().is_valid()
 
     def on_start(self):
         self.host.hit(1, hitter=self)
         if self.host.tags.get('mat') == 'wood':
-            self.duration += 32
+            self.duration += 64
 
     def on_update(self):
         self.var += 1
@@ -283,7 +282,7 @@ class Speed(Buff):
     def is_valid(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            return True
+            return super().is_valid()
 
     def on_start(self):
         Particle.make('wind', self.host.vec)
@@ -299,60 +298,48 @@ class Speed(Buff):
 
 
 class Shapeshift(Buff):
+    def __str__(self):
+        return '[' + self.name + ',' + str(self.duration) + ',\'' + str(self.var) + '\']'
+
+    def get_tags(self):
+        return [BuffTags.magic]
+
     def describe(self):
         return 'You are shapeshifting.'
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            return True
+            return super().is_valid()
 
     def on_start(self):
         Particle.make('mist', self.host.vec)
-        Global.player.character.unheadgear()
-        Global.player.character.unarmor()
-        Global.player.character.drop()
-        old_form = Global.player.character.name
+        old_form = Global.player.character.__str__()
         from src.entity.Stock import Stock
-        old = Global.player.character.tags.get_carry_over()
-        old_state = Global.player.character.states
-        unit = Stock.get(self.var)
+        unit = Stock.get(self.host.location, self.var)
         unit.pos = Global.player.character.pos
-        unit.tags.attributes.update(old)
         unit.add()
+        for i in Global.player.character.states.buffs:
+            i.host = unit
+        unit.states = Global.player.character.states
+        Global.player.character.states.load([])
+        self.var = old_form
         Global.player.character.remove()
         Global.player.set_player(unit)
-        Global.player.character.states = old_state
-        self.var = old_form
 
     def on_finish(self):
         Particle.make('mist', self.host.vec)
         from src.entity.Stock import Stock
-        old = Global.player.character.tags.get_carry_over()
-        old_state = Global.player.character.states
-        unit = Stock.get(self.var)
+        from src.tools.Data import Data
+        data = Data.parse(self.var)
+        unit = Stock.get(Global.player.character.location, data[2], data)
         unit.pos = Global.player.character.pos
-        unit.tags.attributes.update(old)
         unit.add()
+        for i in Global.player.character.states.buffs:
+            i.host = unit
+        unit.states = Global.player.character.states
         Global.player.character.remove()
         Global.player.set_player(unit)
-        Global.player.character.states = old_state
-
-
-class Influence(Buff):
-    def get_tags(self):
-        return [BuffTags.magic, BuffTags.harmful]
-
-    def describe(self):
-        return 'You have limited control.'
-
-    def is_valid(self):
-        from src.entity.unit.Unit import Unit
-        if isinstance(self.host, Unit):
-            return True
-
-    def on_update(self):
-        self.host.next_action = self.var
 
 
 class Invisible(Buff):
@@ -370,6 +357,9 @@ class Invisible(Buff):
     def on_start(self):
         Particle.make('mist', self.host.pos.get_center())
         self.on_load()
+        for unit in self.host.get_team(ally=False):
+            if unit.pilot.priority == 1:
+                unit.pilot.lose(self.host)
 
     def on_load(self):
         from src.entity.unit.Unit import Unit
@@ -407,7 +397,8 @@ class Invulnerable(Buff):
         return 'Immune to damage.'
 
     def is_valid(self):
-        return self.host.hittable
+        if not self.host.hittable:
+            return super().is_valid()
 
     def on_start(self):
         self.host.hittable = 0
@@ -425,7 +416,18 @@ class Concentration(Buff):
     def describe(self):
         return 'You are concentrated.'
 
+    def apply(self):
+        if self.host.get_skill('hide'):
+            self.host.states.add('Invisible', -1, var=1)
+
+    def on_start(self):
+        self.apply()
+
+    def on_load(self):
+        self.apply()
+
     def on_stack(self, duration, var):
+        self.apply()
         self.duration = duration
 
     def trigger(self, arg):
@@ -433,7 +435,7 @@ class Concentration(Buff):
         if arg[0] == 'spend':
             self.host.action.frame = 0
             Particle.make('sweat', self.host.pos.get_center())
-            self.end()
+            self.duration = 1
 
 
 class Vengeance(Buff):
@@ -451,19 +453,23 @@ class Vengeance(Buff):
                 if tile:
                     for thing in tile.things:
                         thing.move(i[0], i[1])
-                        Actions.knockdown(thing, 20)
+                        Actions.knockdown(thing)
                     Particle.make('batter', tile.get_center())
-            Global.location.sound.register(self.host.pos, 1, file='hit_impale')
+            self.host.location.sound.register(self.host.pos, 1, file='hit_impale')
             self.end()
 
 
 class Barkskin(Buff):
+    def get_tags(self):
+        return [BuffTags.magic]
+
     def describe(self):
         return 'Incoming damage are reduced by 2 but you are now vulnerable to fire and act slower.'
 
     def is_valid(self):
         mat = self.host.tags.get('mat')
-        return mat and mat != 'wood'
+        if mat and mat != 'wood':
+            return super().is_valid()
 
     def on_start(self):
         Particle.make('mist', self.host.vec)
@@ -477,12 +483,16 @@ class Barkskin(Buff):
 
 
 class Petrified(Buff):
+    def get_tags(self):
+        return [BuffTags.magic]
+
     def describe(self):
         return 'Incoming damage are reduced by 4 but you are now immobile.'
 
     def is_valid(self):
         mat = self.host.tags.get('mat')
-        return mat and mat != 'metal'
+        if mat and mat != 'metal':
+            return super().is_valid()
 
     def on_start(self):
         Particle.make('mist', self.host.vec)

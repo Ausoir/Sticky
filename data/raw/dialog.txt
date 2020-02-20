@@ -1,7 +1,6 @@
 none,None
 proceed,Proceed
 dsc_health,You die when your health reaches 0. Current health: # out of #
-time,Day # / ##
 any,Any #
 weigh,kg
 and half days,# and a half days
@@ -10,8 +9,8 @@ noaccessory,No Headgear
 noarmor,No Armor
 noweapon,No Weapon
 dsc_location,Your current location.
-dsc_date,Current time and date.
-dsc_hunger,You do not heal when hungry.
+dsc_date,Current date and time.
+dsc_hunger,You need to be full or have food in your inventory to perform time consuming actions.
 youdie,You die...
 sign,Sign: #
 dsc_insurance,Should you meet a tragic end\, our medical guild can bring you back to life. You will need to come and pay us $# after every revive.
@@ -64,3 +63,12 @@ xpawn,You are not holding anything that you can sell. We only buy #.
 !hungry,Not hungry!
 !expire,Food has expired!
 ?learn,Learn #?
+equipment_slow,This equipment slows the wearer.
+equipment_fast,This equipment makes the wearer act quicker.
+equipment_skill,Grants skill <#>
+manual_skill,Teaches skill <#>.
+monologue_learn,Learned skill <#>!
+!monologue_learn,<#> is already mastered.
+food_expire,Expires in #.
+food_expired,This food has expired.
+!pay,Not enough money!

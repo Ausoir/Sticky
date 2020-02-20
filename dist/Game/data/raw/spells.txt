@@ -1,0 +1,30 @@
+Dispel,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Dispel
+Gravity,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Gravity
+Glow,Spell,g_1x5,[p>:4,p:4],[],1,Wand,Glow
+Scorch,Spell,g_1x5,[p>:4,p:4],[],1,Wand,Scorch
+Summon Bread,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Bread
+Slime Form,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Slime
+Darkness,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Darkness
+Scry,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Scry
+Purify,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Purify
+Blink,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Blink
+Restoration,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Heal
+Haste,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Haste
+Invisibility,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Invisibility
+Barkskin,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Barkskin
+Dog Form,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Dog
+Charm,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Charm
+Purge,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Purge
+Possess,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Possess
+Ghost Form,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Ghost
+Stone Form,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Stoneskin
+Blizzard,Spell,g_1x5,[p>:1,p:1],[],1,Wand,Blizzard
+Spell Mine,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Mine
+Energy Wave,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Energywave
+Summon Wall,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Wall
+Raise Dead,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Zombie
+Summon Weapon,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Weapon
+Summon Armor,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Armor
+Summon Phantom,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Phantom
+Evacuate,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Evacuate
+Banish,Spell,g_1x5,[p>:1,p:1],[],1,Scroll,Banish

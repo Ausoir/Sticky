@@ -1,11 +1,10 @@
-import pyglet
-
-from src.game import Global
+from pyglet.media import Player
 
 
 class Sound:
-    def __init__(self):
-        self.play = pyglet.media.Player()
+    def __init__(self, location):
+        self.location = location
+        self.play = Player()
         self.registry = []
 
     def turn(self):
@@ -27,7 +26,7 @@ class Sound:
             self.play.play()
 
     def update(self, data):
-        units = Global.location.population.get_units()
+        units = self.location.population.get_units()
         for unit in units:
             if (unit.pos - data[0]).difference() <= data[1]:
                 unit.pilot.hear(data[0])

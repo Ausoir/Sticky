@@ -24,11 +24,11 @@ class Window(Shape):
         self.on_click = None
         self.margin = Space(8, 8)
         self.normal_color = self.color
-        self.hover_color = Window.fore_color3
         self.next_y = self.y + self.margin.y
         self.document = FormattedDocument(' ')
         self.document.set_style(0, 1, dict(font_name='Default Font', font_size=16, color=Window.font_color1))
         self.text = TextLayout(self.document, width, height, multiline=multi_line, group=Global.draw_group.group_gui)
+        self.align = 'middle'
 
     def display(self, visible):
         if self.visible != visible:
@@ -56,10 +56,6 @@ class Window(Shape):
         for i in self.children:
             if i.input(event):
                 return 1
-        if event == 0:
-            mouse = Global.player.control.cursor
-            if self.hover_color:
-                self.glow(self.collide(mouse[0], mouse[1]))
         if event in [1, 4]:
             mouse = Global.player.control.cursor
             if self.collide(mouse[0], mouse[1]):
@@ -68,24 +64,16 @@ class Window(Shape):
                     return 1
         return 0
 
-    def glow(self, on):
-        if on:
-            self.color = self.hover_color
-        else:
-            self.color = self.normal_color
-
     def update_text(self):
         self.text.width = self.width
         self.text.height = self.height
         position = [self.x + self.margin.x, self.y]
         self.text.x = position[0]
-        font = self.document.get_font(0)
-        self.text.y = Global.DISPLAY[1] - position[1] - self.document.get_style('font_size')
-        self.text.y += (font.ascent - font.descent) - self.height
-        if self.text.multiline:
-            self.text.y += -font.ascent
+        if self.align == 'top':
+            y = position[1] + self.margin.y + self.height
         else:
-            self.text.y += int((-font.descent - self.height)/2)
+            y = position[1] + int(self.height * 1.5) - int(self.text.content_height / 2)
+        self.text.y = Global.DISPLAY[1] - y
         self.text.z = self.z + 1
 
     def set_text(self, text):

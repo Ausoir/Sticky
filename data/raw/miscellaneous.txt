@@ -8,17 +8,9 @@ Estate,Script,g_4x0,[fly:1,ob:0],[],[[make]],[[rand,load,1,#building],[rand,load
 Spawn,Script,g_4x0,[fly:1,ob:0],[],[[make],[chance,5,1]],[[spawn,Slime,20]]
 Cash,Credit,g_6x4,[p>:1,p:1],[],1,money,5
 Corpse,Corpse,g_9x1,[p:1,mat:flesh],[]
-Break,Break,g_1x1,[p>:2,p:2,ob:0,fly:1,mat:metal],[]
 Flame,Prop,scorch,[p>:12,p:12,ob:0,mat:fuel],[[Burn,-1,0]]
 Mine,Mine,scorch,[p>:1,p:1,ob:0],[],4,12
 Manual,Manual,g_8x5,[p>:1,p:1],[],1,0
-Handcuff,Handcuff,g_15x7,[p>:1,p:1],[],1,[None]
-Memory Amulet,MemoryAmulet,image/unit/necklace,[p>:1,p:1],[],1,1,1,home,[0,0]
-Life Amulet,LifeAmulet,image/unit/necklace,[p>:1,p:1],[],1,1,2
-Ruby Amulet,RubyAmulet,image/unit/necklace,[p>:1,p:1],[],1,1,2
-Spell,Spell,g_11x7,[p>:1,p:1],[],1,Scroll,Echo
-Staff,Spell,image/staff,[p>:1,p:1],[],1,Staff,Echo
-Wand,Spell,image/wand,[p>:1,p:1],[],1,Wand,Echo
 Bread,Food,half_0x3,[p:1],[],2,[-5,7] //expire, nutrition
 Jerky,Food,half_8x3,[p:4],[],1,[-10,4]
 Fish,Food,half_4x3,[p:1],[],1,[-1,10]

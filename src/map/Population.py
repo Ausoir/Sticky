@@ -10,20 +10,23 @@ class Population:
     def __str__(self):
         r = []
         for i in self.other:
-            r.append('['+i.__str__()+']')
+            if i.save:
+                r.append('['+i.__str__()+']')
         for i in self.bad:
-            r.append('['+i.__str__()+']')
+            if i.save:
+                r.append('['+i.__str__()+']')
         for i in self.good:
-            r.append('['+i.__str__()+']')
+            if i.save:
+                r.append('['+i.__str__()+']')
         return ','.join(r)
 
     def add(self, unit):
         if not isinstance(unit, Unit):
             self.other.append(unit)
-        elif unit.tags.get('npc'):
-            self.good.append(unit)
-        else:
+        elif unit.tags.get('bad'):
             self.bad.append(unit)
+        else:
+            self.good.append(unit)
 
     def remove(self, unit):
         if unit in self.other:

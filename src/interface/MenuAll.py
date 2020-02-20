@@ -6,50 +6,27 @@ from src.tools.Dialog import Dialog
 
 
 class MenuAll(MenuPlayer):
-    def menu_search(self):
-        def buy(index):
-            appraise = host.inventory.items[index].get_value() + int(host.attributes.gene % 2)
-            if Global.player.character.require_var('money', appraise):
-                sold = host.inventory.get_item(index)
-                sold.relocate(Global.player.character.pos.x, Global.player.character.pos.y, force=1)
-                sold.add()
-            self.toggle()
-        loot = self.var[0].tags.get('loot')
-        if loot:
-            if loot.startswith('#'):
-                from src.entity.Stock import Stock
-                from src.tools.Data import Data
-                loot = Global.r.rand_list(Data.get_line('raw/trade.txt', loot[1:])[1])
-                self.var[0].tags.set('loot', loot)
-            from src.entity.Stock import Stock
-            count = 0
-            for item in host.inventory.items:
-                money = '$' + str(item.get_value() + int(host.attributes.gene % 2))
-                lmb = self.get_prompt(item.describe(), Dialog.get('buy'), buy, count)
-                self.window.add(Menu.make(item.name, lmb))
-                self.sub_window.add(Menu.make(money, lmb, color=None, hover=False))
-                count += 1
-            self.sub_window.display(1)
-
+    # noinspection PyUnresolvedReferences
     def menu_shop(self):
+        # noinspection PyUnresolvedReferences
         def buy(index):
-            appraise = host.inventory.items[index].get_value() + int(host.attributes.gene % 2)
-            if Global.player.character.require_var('money', appraise):
+            appraise = host.inventory.items[index].get_value() + int(host.tags.get('seed', 0) % 2)
+            if Global.player.pay(appraise):
                 sold = host.inventory.get_item(index)
                 sold.relocate(Global.player.character.pos.x, Global.player.character.pos.y, force=1)
                 sold.add()
             self.toggle()
-        host = self.var[0]
+        host = self.var
         if not host.inventory.items:
             self.get_message(Dialog.get('soldout'))(None)
         else:
             from src.entity.Stock import Stock
             count = 0
             for item in host.inventory.items:
-                money = '$' + str(item.get_value() + int(host.attributes.gene % 2))
+                money = '$' + str(item.get_value() + int(host.tags.get('seed', 0) % 2))
                 lmb = self.get_prompt(item.describe(), Dialog.get('buy'), buy, count)
                 self.window.add(Menu.make(item.name, lmb))
-                self.sub_window.add(Menu.make(money, lmb, color=None, hover=False))
+                self.sub_window.add(Menu.make(money, lmb, color=None))
                 count += 1
             self.sub_window.display(1)
 
@@ -58,7 +35,7 @@ class MenuAll(MenuPlayer):
             Global.player.character.tags['money'] += 1
             wpn.remove()
             self.toggle()
-        if Global.player.character.is_armed():
+        if Global.player.character.weapon:
             wpn = Global.player.character.weapon
             self.get_prompt(Dialog.get('?pawn', [wpn]), Dialog.get('buy'), buy, 0)
         else:
@@ -98,7 +75,7 @@ class MenuAll(MenuPlayer):
             dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
             reward = self.var[0].var['value']
             text = Dialog.get('dealerdeal', [self.var[0].var['amount'], self.var[0].var['item'], dur, reward])
-            panel = Menu.make(text, None, None, color=None, hover=False, width=320, resize=True)
+            panel = Menu.make(text, None, None, color=None, width=320, resize=True)
             panel.redraw()
             self.window.add(panel)
 
@@ -158,8 +135,7 @@ class MenuAll(MenuPlayer):
             tgt = self.var[0]
             value = int(self.var[0].attributes.gene % 9 + 4) + (tgt.tags['record'] * tgt.tags['inc'])
             text.append(Dialog.get('dsc_insurance', [str(value)]))
-            panel = Menu.make(text, None, None, color=Window.fore_color_transparent,
-                              hover=False, width=320, resize=True)
+            panel = Menu.make(text, None, None, color=Window.fore_color_transparent, width=320, resize=True)
             self.window.add(panel)
             self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
             self.window.add(Menu.make(Dialog.get('insureyes', [str(value)]), package, None, width=320))

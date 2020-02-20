@@ -15,9 +15,9 @@ class Inventory:
         self.items = []
         for i in p:
             if isinstance(i, str):
-                item = Stock.get(i)
+                item = Stock.get(self.host.location, i)
             else:
-                item = Stock.get(i[2], i)
+                item = Stock.get(self.host.location, i[2], i)
                 item.show(False)
             self.items.append(item)
 
@@ -25,10 +25,12 @@ class Inventory:
         total = 0
         for i in self.items:
             total += i.weight
-        return total + self.host.weapon.weight
+        if self.host.weapon:
+            total += self.host.weapon.weight
+        return total
 
     def get_capacity(self):
-        return self.host.armor.capacity + 8
+        return self.host.get_capacity()
 
     def attempt_add(self, item):
         if self.is_vacant(item.weight):
@@ -52,10 +54,16 @@ class Inventory:
         if 0 <= item_index < len(self.items):
             item = self.items[item_index]
             self.items.remove(item)
-            return item
+            return item.add()
 
     def update_capacity(self):
         while not self.is_vacant(0):
             item = self.get_item(0)
             item.host = self.host
-            item.on_unequip()
+            item.on_unwield()
+
+    def drop_all(self):
+        while self.items:
+            item = self.get_item(0)
+            item.host = self.host
+            item.on_unwield()

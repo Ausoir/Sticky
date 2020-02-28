@@ -24,16 +24,14 @@ class Inventory:
     def get_weight(self):
         total = 0
         for i in self.items:
-            total += i.weight
-        if self.host.weapon:
-            total += self.host.weapon.weight
+            total += i.get_weight()
         return total
 
     def get_capacity(self):
         return self.host.get_capacity()
 
     def attempt_add(self, item):
-        if self.is_vacant(item.weight):
+        if self.is_vacant(item.get_weight()):
             self.add_item(item)
         else:
             from src.game import Global
@@ -44,7 +42,7 @@ class Inventory:
         return self.get_capacity() >= self.get_weight() + weight and len(self.items) < 12
 
     def add_item(self, item):
-        if self.is_vacant(item.weight):
+        if self.is_vacant(item.get_weight()):
             item.remove()
             item.host = self.host
             self.items.append(item)
@@ -54,6 +52,7 @@ class Inventory:
         if 0 <= item_index < len(self.items):
             item = self.items[item_index]
             self.items.remove(item)
+            item.pos = self.host.pos
             return item.add()
 
     def update_capacity(self):
@@ -67,3 +66,7 @@ class Inventory:
             item = self.get_item(0)
             item.host = self.host
             item.on_unwield()
+
+    def on_sleep(self, time):
+        for i in self.items.copy():
+            i.on_sleep(time)

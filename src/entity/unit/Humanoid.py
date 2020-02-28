@@ -1,5 +1,5 @@
+from src.entity.unit.Inventory import Inventory
 from src.entity.unit.Unit import Unit
-from src.tools import Direction
 
 
 class Humanoid(Unit):
@@ -7,16 +7,18 @@ class Humanoid(Unit):
 
     def __init__(self, location):
         super().__init__(location)
+        self.inventory = Inventory(self)
         self.armor = None
         self.headgear = None
         self.weapon = None
+        self.action.humanoid = True
 
     def __str__(self):
         armor = '['+self.armor.__str__()+']' if self.armor else '0'
         headgear = '['+self.headgear.__str__()+']' if self.headgear else '0'
         weapon = '['+self.weapon.__str__()+']' if self.weapon else '0'
         gear = armor + ',' + headgear + ',' + weapon
-        return super().__str__() + ',' + gear
+        return super().__str__() + ',' + gear + ',' + self.inventory.__str__()
 
     def load(self, p):
         index = super().load(p)
@@ -46,9 +48,10 @@ class Humanoid(Unit):
                 weapon = Stock.get(self.location, p[index])
             else:
                 weapon = Stock.get(self.location, p[index][2], p[index])
-            weapon.update_tags()
             weapon.on_wield(self)
-        from src.game import Global
+            weapon.add()
+        index += 1
+        self.inventory.load(p[index])
         for i in self.get_possessions():
             i.id = self.location.get_id()
         return index + 1
@@ -91,7 +94,7 @@ class Humanoid(Unit):
             if not Script.execute_code(self.weapon.tags.get('#'), host=self):
                 self.weapon.use()
         else:
-            super().use()
+            self.action.kick()
 
     def relocate(self, x, y, force=0):
         super().relocate(x, y, force)
@@ -104,6 +107,9 @@ class Humanoid(Unit):
 
     def remove(self):
         super().remove()
+        if self.armor:
+            self.armor.host = None
+            self.armor.remove()
         if self.weapon:
             self.weapon.remove()
         if self.headgear:
@@ -111,30 +117,31 @@ class Humanoid(Unit):
 
     def die(self):
         self.drop()
+        self.inventory.drop_all()
         super().die()
 
     def update(self):
-        super().update()
+        bound_x, bound_y = super().update()
         if self.weapon:
             if self.direction == 2:
-                x = self.vec.x + self.form.organs[3].lower_joint.x
-                y = self.vec.y + self.form.organs[3].lower_joint.y + 2
+                x = bound_x + self.form.organs[3].lower_joint.x
+                y = bound_y - self.form.organs[3].lower_joint.y
                 arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
-                self.weapon.form.rotation = arm + 60
+                self.weapon.form.rotation = arm - 15
             elif self.direction == 4:
-                x = self.vec.x + self.form.organs[3].lower_joint.x
-                y = self.vec.y + self.form.organs[3].lower_joint.y + 2
+                x = bound_x + self.form.organs[3].lower_joint.x
+                y = bound_y - self.form.organs[3].lower_joint.y
                 arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
-                self.weapon.form.rotation = arm - 120
+                self.weapon.form.rotation = arm - 30
             else:
-                x = self.vec.x + self.form.organs[2].lower_joint.x
-                y = self.vec.y + self.form.organs[2].lower_joint.y + 2
+                x = bound_x + self.form.organs[2].lower_joint.x
+                y = bound_y - self.form.organs[2].lower_joint.y
                 arm = (self.form.organs[2].lower_joint - self.form.organs[2].upper_joint).get_atan()
-                self.weapon.form.rotation = arm + 90 + (Direction.side[self.direction] * 90)
+                self.weapon.form.rotation = arm - 90
             self.weapon.form.place(x, y)
         if self.headgear:
-            x = self.vec.x + self.form.organs[0].lower_joint.x
-            y = self.vec.y + self.form.organs[0].lower_joint.y - 2
+            x = bound_x + self.form.organs[0].lower_joint.x
+            y = bound_y - self.form.organs[0].lower_joint.y - 2
             neck = (self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
             self.headgear.form.rotation = neck + 90
             self.headgear.form.place(x, y)
@@ -149,12 +156,11 @@ class Humanoid(Unit):
         super().face(direction)
 
     def get_defense(self):
-        min_d, max_d = super().get_defense()
+        max_d = super().get_defense()
         if self.armor:
-            min_d2, max_d2 = self.armor.get_defense()
-            return min_d + min_d2, max_d + max_d2
+            return max_d + self.armor.armor
         else:
-            return min_d, max_d
+            return max_d
 
     def get_hitter(self):
         if self.weapon:
@@ -162,12 +168,11 @@ class Humanoid(Unit):
         return self
 
     def get_damage(self):
-        min_d, max_d = super().get_damage()
+        max_d = super().get_damage()
         if self.weapon:
-            min_d2, max_d2 = self.weapon.get_damage()
-            return min_d + min_d2, max_d + max_d2
+            return max_d + self.weapon.damage
         else:
-            return min_d, max_d
+            return max_d
 
     def on_attack(self, target):
         super().on_attack(target)
@@ -182,6 +187,16 @@ class Humanoid(Unit):
             r.append(self.armor)
         if self.headgear:
             r.append(self.headgear)
+        r += self.inventory.items
+        return r
+
+    def get_accessibles(self):
+        r = []
+        from src.entity.unit.item.Item import Item
+        for thing in self.pos.things:
+            if isinstance(thing, Item):
+                r.append(thing)
+        r += self.get_possessions()
         return r
 
     def drop(self):
@@ -221,3 +236,13 @@ class Humanoid(Unit):
         if not self.weapon:
             return 0
         return self.weapon.tags.get('spd', 0)
+
+    def get_capacity(self):
+        r = 5
+        r += self.get_skill('endurance', stacks=True)
+        if self.armor:
+            r += self.armor.get_weight()
+        return r
+
+    def on_sleep(self, time):
+        self.inventory.on_sleep(time)

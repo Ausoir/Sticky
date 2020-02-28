@@ -17,7 +17,7 @@ class Window(Shape):
     font_color3 = (60, 80, 80, 220)
 
     def __init__(self, x, y, width, height, name=0, color=fore_color1, multi_line=False):
-        super().__init__(x, y, 900, group=Global.draw_group.group_gui, width=width, height=height, color=color)
+        super().__init__(x, y, 900, width=width, height=height, color=color, group=Global.draw_group.group_gui)
         self.name = name
         self.children = []
         self.visible = -1
@@ -68,12 +68,12 @@ class Window(Shape):
         self.text.width = self.width
         self.text.height = self.height
         position = [self.x + self.margin.x, self.y]
-        self.text.x = position[0]
+        self.text.x = position[0] + Global.OFFSET[0]
         if self.align == 'top':
             y = position[1] + self.margin.y + self.height
         else:
             y = position[1] + int(self.height * 1.5) - int(self.text.content_height / 2)
-        self.text.y = Global.DISPLAY[1] - y
+        self.text.y = Global.DISPLAY[1] - y + Global.OFFSET[1]
         self.text.z = self.z + 1
 
     def set_text(self, text):

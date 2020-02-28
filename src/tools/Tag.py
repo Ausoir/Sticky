@@ -17,9 +17,12 @@ class Tag:
                 else:
                     self.attributes[strings[0]] = strings[1]
 
-    def remove(self, param):
+    def remove(self, param, default=None):
         if param in self.attributes:
+            r = self.attributes[param]
             del self.attributes[param]
+            return r
+        return default
 
     def get(self, param, default=None):
         if param in self.attributes:

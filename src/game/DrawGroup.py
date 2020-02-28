@@ -10,7 +10,6 @@ class DrawGroup:
         self.group_object = OrderedGroup(2)
         self.group_overlay = OrderedGroup(3)
         self.group_gui = OrderedGroup(4)
-        self.other = []
 
     def draw(self):
         self.batch.draw()

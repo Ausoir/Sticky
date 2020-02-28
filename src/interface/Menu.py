@@ -10,10 +10,8 @@ class Menu:
         self.state = self.menu_message
         self.current_state = self.menu_message
         width = 180
-        self.window = Window(300, 120, width=width, height=300)
-        self.sub_window = Window(self.window.x + width, 120, width=width, height=self.window.height)
-        self.dialog = Window(300, 120, width=400, height=300)
-        self.dialog.color = Window.fore_color1
+        self.window = Window(-400, 500, width=width, height=300)
+        self.sub_window = Window(self.window.x + width, self.window.y, width=width, height=self.window.height)
         self.last_input = None
         self.history = []
         self.history_var = []

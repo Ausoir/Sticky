@@ -13,7 +13,6 @@ class Editor:
     def __init__(self, control):
         self.backup = Turn.update
         Turn.update = self.update
-        Global.draw_group.other.append(self)
         control.set_keymap('editor_keymap.txt')
         self.control = control
         self.visible = 1
@@ -30,7 +29,7 @@ class Editor:
         center.center_camera()
         Global.land.population.remove(center)
         Global.land.population.remove(Camera.target)
-        Global.overlay.fade.remove_batch()
+        Global.map_view.overlay.clear()
 
     def update(self):
         self.control.turn()

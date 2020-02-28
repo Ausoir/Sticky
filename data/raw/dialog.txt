@@ -5,6 +5,7 @@ any,Any #
 weigh,kg
 and half days,# and a half days
 days,# days
+oos,Out of sight.
 noaccessory,No Headgear
 noarmor,No Armor
 noweapon,No Weapon
@@ -72,3 +73,5 @@ monologue_learn,Learned skill <#>!
 food_expire,Expires in #.
 food_expired,This food has expired.
 !pay,Not enough money!
+sight_range,Sight Range: #
+sight_type,Sight blocked by: #

@@ -1,12 +1,13 @@
 import random
 
 from src.entity.Prop import Prop
+from src.game.Camera import Camera
 from src.game.Turn import Turn
 
 
 class Particle(Prop):
     @classmethod
-    def make(cls, arg, pos, glow=-1, lifetime=10, offset=16, direction=1):
+    def make(cls, arg, pos, glow=-1, lifetime=6, offset=16, direction=1):
         from src.game import Global
         r = cls(Global.land)
         r.set_form(arg)
@@ -58,4 +59,5 @@ class Particle(Prop):
     def update(self):
         diff = self.pos.get_center() - self.vec
         self.vec += diff * .07
-        self.form.place(self.vec.x + self.offset[0], self.vec.y + self.offset[1])
+        bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
+        self.form.place(bound_x + self.offset[0], bound_y + self.offset[1])

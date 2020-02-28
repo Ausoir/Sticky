@@ -9,3 +9,17 @@ def add(direction, offset):
     if r == 0:
         return 4
     return r
+
+
+def get_direction_toward(diff):
+    horizontal = abs(diff[0]) >= abs(diff[1])
+    if horizontal:
+        if diff[0] < 0:
+            return 1
+        else:
+            return 3
+    else:
+        if diff[1] < 0:
+            return 2
+        else:
+            return 4

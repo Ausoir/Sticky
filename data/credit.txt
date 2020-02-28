@@ -1,11 +1,1 @@
-Sounds
-other : generated using bfxr. http://www.bfxr.net/
-grass footstep : http://www.freesound.org/people/Badkitty67044/sounds/274679/
-cloth 1 & 2 : http://www.freesound.org/people/Walter_Odington/sounds/18626/
-cloth 3 : http://www.freesound.org/people/RutgerMuller/sounds/51140/
-scroll : http://www.freesound.org/people/natenaterson/sounds/223375/
-hit 1 : http://www.freesound.org/people/scarbelly25/sounds/35409/
-hit 2 : http://www.freesound.org/people/Kreastricon62/sounds/323526/
-freeze : http://www.freesound.org/people/karlis.stigis/sounds/168712/
-fire: http://www.freesound.org/people/pengo_au/sounds/90143/
-drink: http://www.freesound.org/people/Q.K./sounds/56270/
+Sounds generated using bfxr. http://www.bfxr.net/

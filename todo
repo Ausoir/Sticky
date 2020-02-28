@@ -1,56 +1,23 @@
-pyglet
-- garbage collect Pictures after object removal
-
-fastie (poison, fast, grouped)
-range (spells and bows)
-toughie (block, vengeance or sunder, frenzy or calculated hit)
-summoners (inf summon, revive)
-healers (inf heal, enchants too)
-
-trident
-broad greatsword
-warhammer
-spiked mace
-scythe
-
-blink no center camera
-spell - sanctuary - permanent dispel area
 spell - soul stone - turn enemy into soul stone, containing enemy data
-CCTV spell (see 10x10 tiles through walls, permanent) combine with scry?
-combine ghost form with possess, leaves behind host
-blink lasts long and tp at will (space bar)
-clone self (manual input all)
-clone item
-fire form (on fire, gradual death)
+Clone (summon 2) - clone item/unit/clone self (manual input all)
+fire burns wood tile
 minotaur form (strong, fast, uncontrollable, humanoid)
-degenerate (5x5 tiles front of caster turn to slime)
-raw meat raise deadable
-see through walls buff
-see sounds in fog as sonic effect
-door to portal
-pocket dimension
+door to portal pocket dimension
+summon rune marker - Tile.Collide_Magic - combine with summon wall?
+replace darkness with summon fog (checkered)
 brain feed - steal 1 skill
-complete the 3 unique spell skills
-parry skill blocks buffs too and rename to instinct
-skill - iron will - dispell any buffs on rest. Add to headband
-skill - parry - activate concentration on level * 5% chance on hit
-skill - wrestle - when moving into enemy swap positions, takes 12 turns
-skill - Preparation - after concentration, insta cast next spell (delay 1)
-
-potions low cast time, single use, self spells = users are spell host
-scrolls high cast time, single use, lightest, shoot spells = force are spell host
-wands lowest cast time, single use, shoot spells = targets are spell host
-staves high cast time, inf use, requires concentration
+talisman - headgear, activates tag.spell when breaks - play trinket activation sound/animation
+spider - creates web (Tile.COLLIDE_WINDOW), walks through windows
+enemies use skill side step
 
 3 Unique Passives and 2 Actives are disabled per game (except by item)
-
-class? choose 1:
-skill - Active - Memorize - uses held scroll and store in memory and use to cast without scroll, recharges after 1 hour
+class? choose 1. Once every hour:
+skill - Active - Memorize - uses held scroll and store in memory and use to cast without scroll
 skill - Active - Dexterity - immediately take out and use an item (separate storage)
 skill - Active - Sprint Charge - charge forward, push away things in way, on_finish knockdown self (=cant turn)
+skill - Active - Adrenaline - immediate concentration
 skill - Active - Crush - crush walls
-skill - Active - Tank - lose 1 health and be invulnerable for 4 seconds
-skill - Active - Peek - peek 1 tile in front of user (only work if tile is collide_fog or back is open and 1 side is blocked) make sound 1 constantly at destination
+skill - Active - Tank - Be invulnerable for 16 seconds
 
 4 clans - (weak teal robe clan w/ many minions, red robe clan using spells, etc) each hold manuals n stuff. join or challenge
 
@@ -58,12 +25,6 @@ skill - Active - Peek - peek 1 tile in front of user (only work if tile is colli
     trips - assault, dungeon, defense, survive, assault (inf spawn)
 2. Battle
     ranged units to not force tunnel fights, flankers, blink users, etc
-
-crucials:
-1. Map
-  rewards
-2. Battle
-  ranged units, pushbacks, blink close
 
 
 

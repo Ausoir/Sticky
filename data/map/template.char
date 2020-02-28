@@ -1,3 +1,3 @@
-sewer
-17,0,sewer
-#0,[4,-6],Human,Character,human,[p>:40,p:40,mat:flesh,money:13,talent:None,full:0,seed:6542],[[Health,-1,1]],[dodge],[#4,[0,-8],Jumpsuit,Armor,image/unit/jumpsuit,[p>:4,p:4],[],1,0,0],0,0,[]
+instance
+17,0,instance
+#48,[1,1],Human,Character,human,[p>:114,p:114,mat:flesh,money:9,talent:None,seed:8140,full:10],[[Health,-1,1],[Concentration,-1,0]],[time,gen1],[#31,[1,1],Jumpsuit,Armor,image/unit/scalemail,[p>:100,p:20,skill:escape],[],1,0,0],0,0,[]

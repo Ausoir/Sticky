@@ -6,6 +6,18 @@ from src.tools.Dialog import Dialog
 
 
 class MenuPlayer(Menu):
+    def menu_examine(self):
+        if not Global.player.control.target_mark.form.visible:
+            Global.player.control.move_mark_toward(0)
+        tile = Global.player.control.get_mark()
+        if tile:
+            if tile.things:
+                self.get_message(tile.things[0].describe())(0)
+            else:
+                self.get_message(Dialog.describe_terrain(tile))(0)
+        else:
+            self.get_message(Dialog.get('oos'))(0)
+
     def menu_main(self):
         def update():
             hp = Global.player.character.tags.get('p')
@@ -46,14 +58,15 @@ class MenuPlayer(Menu):
         for k, v in skills.items():
             name = 'sk.' + k
             data = Data.get_line('raw/script.txt', name)
-            desc = Data.get_line('raw/descriptions.txt', name)
-            if desc and desc[1].startswith('Stacking'):
+            stacking = Data.get_line('raw/raw.txt', 'stacking skill')[1]
+            if k in [x[0] for x in stacking]:
                 title = k.title() + ' ' + str(v)
             else:
                 title = k.title()
             if data:
                 button = Menu.make(title, Script.execute_code, name=name)
             else:
+                desc = Data.get_line('raw/descriptions.txt', name)
                 if desc:
                     rmb = self.get_message(desc[1])
                 else:
@@ -101,8 +114,8 @@ class MenuPlayer(Menu):
             weapon_lmb = self.get_prompt(Global.player.character.weapon.describe(), Dialog.get('drop'),
                                          lambda l: Global.player.character.drop())
             self.sub_window.add(Menu.make(display, weapon_lmb))
-        attack = str(Global.player.character.get_damage()[1])
-        defense = str(Global.player.character.get_defense()[1])
+        attack = str(Global.player.character.get_damage())
+        defense = str(Global.player.character.get_defense())
         self.sub_window.add(Menu.make(attack, None, color=None))
         self.sub_window.add(Menu.make(defense, None, color=None))
         money = Menu.make('$' + str(Global.player.character.tags.get('money', 0)), None, color=None)
@@ -124,17 +137,14 @@ class MenuPlayer(Menu):
             self.toggle()
 
         def sheathe(arg):
-            weapon = Global.player.character.drop()
-            Global.player.character.inventory.attempt_add(weapon)
+            dropped = Global.player.character.drop()
+            Global.player.character.inventory.attempt_add(dropped)
             self.previous()
         temp = self.window.margin.y
         self.window.margin.y = 2
         temp2 = self.sub_window.margin.y
         self.sub_window.margin.y = 2
-        if Global.player.character.weapon:
-            items = [Global.player.character.weapon] + Global.player.character.inventory.items
-        else:
-            items = Global.player.character.inventory.items
+        items = Global.player.character.inventory.items
         text = 'Capacity: ' + str(len(items)) + ' / 12'
         capacity_label = Menu.make(text, None, None, height=20, color=None)
         capacity_label.margin.load(0, 0)
@@ -147,21 +157,27 @@ class MenuPlayer(Menu):
         capacity_label.document.set_style(0, 99, dict(font_size=12, bold='True'))
         self.sub_window.add(capacity_label)
         count = 0
+        weapon = Global.player.character.weapon
+        if weapon:
+            weapon_display = Window(0, 0, width=260, height=24, multi_line=True)
+            weapon_display.set_text(weapon.get_display_name() + ' [' + Dialog.get('held') + ']')
+            weapon_display.on_click = self.get_prompt(weapon.describe(), Dialog.get('store'), sheathe, count)
+            self.window.add(weapon_display)
+            weapon_label = Window(0, 0, width=0, height=24)
+            weapon_label.set_text(Dialog.weight(weapon.get_weight()))
+            weapon_label.margin.load(100, 0)
+            self.sub_window.add(weapon_label)
         for i in items:
-            size = min(self.window.height - 48, int(160 * (i.weight / max(1, capacity))))
+            size = min(self.window.height - 48, int(160 * (i.get_weight() / max(1, capacity))))
             button = Window(0, 0, width=260, height=size + 10, multi_line=True)
             button.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
-            if i == Global.player.character.weapon:
-                button.set_text(i.get_display_name() + ' [' + Dialog.get('held') + ']')
-                button.on_click = self.get_prompt(i.describe(), Dialog.get('store'), sheathe, count)
-            else:
-                button.set_text(i.get_display_name())
-                button.on_click = self.get_prompt(i.describe(), Dialog.get('take'), click, count)
+            button.set_text(i.get_display_name())
+            button.on_click = self.get_prompt(i.describe(), Dialog.get('take'), click, count)
             button.width = button.text.content_width + 16
             button.margin.load(8, 0)
             label = Window(0, 0, width=0, height=size + 10, multi_line=False)
             label.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
-            label.set_text(Dialog.weight(i.weight))
+            label.set_text(Dialog.weight(i.get_weight()))
             label.margin.load(100, 0)
             self.window.add(button)
             self.sub_window.add(label)

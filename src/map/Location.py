@@ -76,8 +76,13 @@ class Location:
                     self.tiles[row_num + offset[1]][col_num + offset[0]].set_terrain(terrain)
                     col_num += 1
                 row_num += 1
+            for prop in self.population.get_all():
+                if offset[0] <= prop.pos.x < offset[0] + len(rows[0])\
+                        and offset[1] <= prop.pos.y < offset[1] + len(rows):
+                    prop.remove()
         self.process_terrain()
         objects = []
+        from src.entity.Other import Scripter
         for i in arg[2]:
             obj = Stock.get(self, i[2], i)
             if new:
@@ -85,6 +90,9 @@ class Location:
             obj.relocate(obj.pos.x + offset[0], obj.pos.y + offset[1], force=1)
             obj.add()
             objects.append(obj)
+        for i in objects:
+            if not new and isinstance(i, Scripter):
+                i.run_make()
         return objects
 
     def process_terrain(self):
@@ -111,12 +119,12 @@ class Location:
     def get_tile_from_vec(self, x, y):
         x = math.floor(x / Global.BLOCK)
         y = math.floor(y / Global.BLOCK)
-        return self.get_tile(x, y)
+        return self.get_tile(x, y, limit=True)
 
     def collide_line(self, x1, y1, x2, y2, function, distance=10):
         degree = math.atan2(y2 - y1, x2 - x1)
         current = [x1 * Global.BLOCK + Global.HALF_BLOCK, y1 * Global.BLOCK + Global.HALF_BLOCK]
-        prev_tile = self.get_tile(x1, y1)
+        prev_tile = self.get_tile(x1, y1, limit=True)
         while distance > 0 and (prev_tile.x != x2 or prev_tile.y != y2):
             distance -= 1
             dx = math.cos(degree) * Global.BLOCK
@@ -164,6 +172,22 @@ class Location:
                     thing.update_vec()
         self.process_terrain()
 
+    def rotate(self):
+        copy = []
+        for x in self.tiles[0]:
+            copy.append([None] * len(self.tiles))
+        for y in range(len(self.tiles)):
+            for x in range(len(self.tiles[0])):
+                copy[x][y] = self.tiles[y][x]
+        self.tiles = copy
+        for y in range(len(self.tiles)):
+            for x in range(len(self.tiles[0])):
+                self.tiles[y][x].x = x
+                self.tiles[y][x].y = y
+                for thing in self.tiles[y][x].things:
+                    thing.update_vec()
+        self.process_terrain()
+
     def stretch(self, new_x, new_y):
         for y in range(new_y):
             if y >= len(self.tiles):
@@ -171,3 +195,7 @@ class Location:
             for x in range(new_x):
                 if x >= len(self.tiles[y]):
                     self.tiles[y].append(Tile(self, '?', x, y))
+
+    def on_sleep(self, time):
+        for i in self.population.get_all():
+            i.on_sleep(time)

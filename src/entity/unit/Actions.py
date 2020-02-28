@@ -9,8 +9,7 @@ class Actions:
 
     def __init__(self, host):
         self.host = host
-        from src.entity.unit.Humanoid import Humanoid
-        self.humanoid = isinstance(self.host, Humanoid)
+        self.humanoid = False
         self.current_action = 'idle'
         self.current_action_fn = self.idle
         self.on_finish = None
@@ -39,7 +38,8 @@ class Actions:
             else:
                 fn = self.on_finish  # prevent recursion
                 self.on_finish = None
-                fn()
+                if fn():
+                    return True
         r = self.current_action_fn()
         self.last_action = action
         return r
@@ -55,7 +55,7 @@ class Actions:
     @staticmethod
     def knockdown(victim, time=None):
         if isinstance(victim, Unit):
-            if not victim.get_skill('toughness'):
+            if victim.action.current_action != 'fall' and not victim.get_skill('toughness'):
                 victim.action.set('fall')
                 if time:
                     victim.action.delay = time
@@ -79,38 +79,35 @@ class Actions:
         if self.host.headgear:
             def fin():
                 self.host.headgear.activate()
-            self.make('cast', turn=4)
+            self.make('eat', turn=4)
             self.on_finish = fin
 
-    def power_1(self):
-        pass
-        # self.ability('power1')
+    def turn_direction(self, direction):
+        speed = min(1, max(0, 3 - self.host.tags.get('spd', 0)))
+        self.make('idle', turn=speed)
+        self.host.face(direction)
 
     def left(self):
         if self.host.direction != 1:
-            self.make('idle', turn=1)
-            self.host.face(1)
+            self.turn_direction(1)
         else:
             self.set('walk')
 
     def up(self):
         if self.host.direction != 2:
-            self.make('idle', turn=1)
-            self.host.face(2)
+            self.turn_direction(2)
         else:
             self.set('walk')
 
     def right(self):
         if self.host.direction != 3:
-            self.make('idle', turn=1)
-            self.host.face(3)
+            self.turn_direction(3)
         else:
             self.set('walk')
 
     def down(self):
         if self.host.direction != 4:
-            self.make('idle', turn=1)
-            self.host.face(4)
+            self.turn_direction(4)
         else:
             self.set('walk')
 
@@ -125,16 +122,37 @@ class Actions:
                     code = thing.tags.get('#')
                     if code:
                         self.make('interact', turn=3)
-                        Script.execute_code(code, host=thing)
+                        Script.execute_code(code, host=thing, var=self.host)
                         return
+                if self.host.get_skill('side step'):
+                    if front.is_land([Tile.COLLIDE_UNIT]):
+                        for thing in front.things:
+                            if isinstance(thing, Unit) and thing.action.delay == 0:
+                                concentration = self.host.states.get('Concentration')
+                                if concentration:
+                                    concentration.trigger(['spend'])
+                                    old = thing.pos
+                                    thing.relocate(self.host.pos.x, self.host.pos.y)
+                                    Actions.knockdown(thing, 10)
+                                    from src.tools import Direction
+                                    toward = Direction.get_direction_toward((old - self.host.pos).to_list())
+                                    self.host.move_toward(toward)
+                                    speed = self.host.tags.get('spd', 0)
+                                    if front.type > -10 and not self.host.tags.get('fly'):
+                                        speed += front.type
+                                    self.make('walk', turn=max(0, 4 - speed))
+                                    return
             self.idle()
         else:
             speed = self.host.tags.get('spd', 0)
-            speed += front.type
+            fly = self.host.tags.get('fly')
+            if front.type > -10 and not fly:
+                speed += front.type
             if speed > -10:
                 if self.host.move_toward(self.host.direction):
                     self.make('walk', turn=max(0, 2 - speed))
-                    self.host.location.sound.register(self.host.pos, 0, file='step')
+                    if not fly:
+                        self.host.location.sound.register(self.host.pos, 0, file='step')
                     invis = self.host.states.get('Invisible')
                     if invis:
                         invis.trigger(['move'])
@@ -142,22 +160,13 @@ class Actions:
     def fall(self):
         def rise():
             self.host.obstruct_type = t
+            self.host.collision_type = t2
         t = self.host.obstruct_type
+        t2 = self.host.collision_type
         self.host.obstruct_type = 4
+        self.host.collision_type = Tile.CHECK_FIRM
         self.on_finish = rise
         self.make('fall', turn=18)
-
-    def peek(self):
-        def fin():
-            self.host.center_camera()
-        self.make('idle', turn=1)
-        self.on_finish = fin
-        new_pos = self.host.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                                  distance=1, flag=Tile.CHECK_FIRM)
-        from src.game.TempObject import TempObject
-        viewer = TempObject(new_pos)
-        from src.game.Camera import Camera
-        Camera.target = viewer
 
     def click(self):
         x_diff = Global.player.control.cursor_tile[0] - self.host.pos.x
@@ -195,11 +204,7 @@ class Actions:
             if self.host.weapon:
                 self.host.inventory.attempt_add(target)
             else:
-                if self.host.inventory.is_vacant(target.weight):
-                    target.on_wield(self.host)
-                else:
-                    from src.tools.Dialog import Dialog
-                    Global.main.monologue.set(Dialog.get('!heavy'))
+                target.on_wield(self.host)
         else:
             self.make('grab', turn=1)
             self.host.drop()
@@ -211,14 +216,25 @@ class Actions:
         dmg = self.host.roll_damage()
         front = self.host.get_front_tile(self.host.direction)
         hitter = self.host.get_hitter()
-        self.host.location.field.register(dmg, front, hitter=hitter, delay=slow,
-                                   sound=['swing', 0], callback=self.host.on_attack)
+        self.host.location.field.register(dmg, front, hitter=hitter, delay=slow, sound=['swing', 0],
+                                          callback=self.host.on_attack)
+        self.host.form.timer.set(slow * 4 + 4)
+
+    def kick(self):
+        speed = self.host.tags.get('spd', 0) + self.host.get_attack_speed()
+        self.make('kick', turn=max(6, 10 - speed))
+        slow = max(0, 1 - speed)
+        dmg = self.host.roll_damage()
+        front = self.host.get_front_tile(self.host.direction)
+        hitter = self.host.get_hitter()
+        self.host.location.field.register(dmg, front, hitter=hitter, delay=slow, sound=['swing', 0],
+                                          callback=self.host.on_attack)
         self.host.form.timer.set(slow * 4 + 4)
 
     def arch(self):
         def fin():
             def check_collision():
-                ob = r.pos.is_land(Tile.CHECK_FIRM)
+                ob = r.pos.is_land(Tile.CHECK_SOLID)
                 if not ob:
                     for i in r.pos.things:
                         if isinstance(i, Unit):
@@ -238,9 +254,6 @@ class Actions:
         rating = 1 + self.host.get_skill('bow')
         orig_rot = self.host.weapon.rotation
         self.host.weapon.rotation = 0
-        self.host.attributes.exert(0, self.host.weapon.weight)
+        self.host.attributes.exert(0, self.host.weapon.get_weight())
         dest = self.host.next_target
         self.on_finish = fin
-
-    def cast(self):
-        self.make('cast', turn=12)

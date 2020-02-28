@@ -3,6 +3,7 @@ from src.form.Body import Body
 from src.game import Global
 from src.game.Camera import Camera
 from src.map.Tile import Tile
+from src.tools import Direction
 
 
 class Unit(Prop):
@@ -19,6 +20,7 @@ class Unit(Prop):
         self.pilot = None
         from src.form.HealthBar import HealthBar
         self.healthbar = HealthBar(self.tags)
+        self.sight = Tile.CHECK_SIGHT
         self.dodge = 0
         self.strength = 0
         self.stealth = 0
@@ -67,10 +69,13 @@ class Unit(Prop):
         diff = self.pos.get_center() - self.vec
         self.vec.x += diff.x * .08
         self.vec.y += diff.y * .08
-        self.form.place(self.vec.x, self.vec.y)
-        self.healthbar.place(self.vec.x, self.vec.y)
+        bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
+        self.form.place(bound_x, bound_y)
+        self.healthbar.place(bound_x, Global.DISPLAY[1] - bound_y)
+        return bound_x, bound_y
 
     def turn(self):
+        self.healthbar.turn()
         if self.tags.get('ai'):
             self.pilot.update()
         super().turn()
@@ -93,7 +98,15 @@ class Unit(Prop):
                         self.bleed_frame -= 1
 
     def set_row(self, row):
-        self.form.set_row(self.depth(row))
+        self.form.set_row(row * 20 + 100)
+
+    def show(self, visible):
+        self.healthbar.show(visible)
+        super().show(visible)
+
+    def bound(self, visible):
+        self.healthbar.bound(visible)
+        super().bound(visible)
 
     def input(self, action):
         self.next_action = action
@@ -108,7 +121,7 @@ class Unit(Prop):
             return True
 
     def face_toward(self, pos):
-        return self.face(self.get_direction_toward(pos))
+        return self.face(Direction.get_direction_toward((pos - self.pos).to_list()))
 
     def is_facing(self, pos):
         diff = pos - self.pos
@@ -118,47 +131,44 @@ class Unit(Prop):
             diff.y >= 0 and self.direction == 4
 
     def update_skill(self):
-        self.dodge += self.get_skill('dodge', stacks=True)
-        self.strength += self.get_skill('might', stacks=True)
-        self.stealth += self.get_skill('stealth', stacks=True)
+        self.dodge = self.get_skill('dodge', stacks=True)
+        self.strength = self.get_skill('strength', stacks=True)
+        self.stealth = self.get_skill('stealth', stacks=True)
 
     def get_defense(self):
         if self.action.current_action == 'fall':
-            return 0, 0
-        armor = self.states.get('Armor')
-        if armor:
-            return 0, max(0, self.dodge + armor.var)
-        return 0, self.dodge
+            return 0
+        return self.dodge
 
     def get_damage(self):
-        return 0, self.strength + 1
+        return self.strength + 1
+
+    def roll_defense(self):
+        defense = self.get_defense()
+        return Global.r.rand_int(0, defense)
 
     def roll_damage(self):
-        min_d, max_d = self.get_damage()
-        return Global.r.rand_int(min_d, min_d + max_d)
+        damage = self.get_damage()
+        dex = min(self.get_skill('dexterity', stacks=True), damage)
+        return Global.r.rand_int(dex, damage)
 
     def hit(self, damage, hitter=None):
         r = 0
         self.action.frame = 0
-        min_d, max_d = self.get_defense()
-        max_d = max(min_d, max_d)
         backstab = False
         if isinstance(hitter, Prop):
-            from src.tools import Direction
             if self.is_facing(hitter.pos):
                 if hitter.pos == self.get_front_tile(self.direction):
                     damage -= self.get_skill('block')
-                elif Global.r.rand_int(0, self.get_skill('guard')) != 0:
-                    damage -= self.get_skill('guard')
             else:
                 backstab = True
         if not backstab:
-            damage -= Global.r.rand_int(min_d, max_d)
+            damage -= self.roll_defense()
         if self.get_skill('vengeance'):
             self.states.add('Vengeance', 20)
         self.states.trigger(['hit', damage])
         if damage > 0:
-            if self.get_skill('toughness'):
+            if self.get_skill('constitution'):
                 self.states.add('Invulnerable', 40)
             if self.get_skill('fury'):
                 self.states.add('Speed', 40, 1)
@@ -172,12 +182,11 @@ class Unit(Prop):
                     if isinstance(hitter, Prop):
                         from src.entity.unit.Actions import Actions
                         Actions.knockdown(hitter)
-                        hitter.decay(damage)
+                        hitter.decay(damage + self.get_defense())
                     return 0
             self.form.timer.set(4)
             self.form.randomize_once(4)
             r = super().hit(damage, hitter)
-        self.healthbar.show()
         return r
 
     def get_hitter(self):
@@ -187,7 +196,6 @@ class Unit(Prop):
         self.states.trigger(['attack', target])
         if isinstance(target, Unit):
             if self.get_skill('cleave'):
-                from src.tools import Direction
                 left = self.get_front_tile(Direction.add(self.direction, -1))
                 right = self.get_front_tile(Direction.add(self.direction, 1))
                 dmg = self.roll_damage() - 1
@@ -196,41 +204,40 @@ class Unit(Prop):
                 self.location.field.register(dmg, right, hitter=hitter, delay=0)
             if self.get_skill('frenzy'):
                 self.states.add('Damage', 40, 1)
-            if self.get_skill('sunder'):
-                target.states.add('Armor', 40, -4)
-            if self.get_skill('assassination') and not target.is_facing(self.pos):
-                target.tags.set('deaf', 1, add=True)
-                self.critical_attack(target)
-            critical = self.get_skill('critical strike', stacks=True)
-            if critical and Global.r.rand_int(1, 10) <= critical:
-                self.critical_attack(target)
+            if not target.is_facing(self.pos):
+                if self.get_skill('assassinate'):
+                    target.tags.set('deaf', 1, add=True)
+                    self.critical_attack(target)
         flurry = self.get_skill('flurry', stacks=True)
-        calculation = self.get_skill('calculated hit')
-        if flurry or calculation:
+        if flurry:
             concentration = self.states.get('Concentration')
             if concentration:
                 concentration.trigger(['spend'])
-                if calculation:
+                concentration.var += 1
+                if concentration.var <= flurry:
+                    self.tags.increment('spd', -self.get_attack_speed(), add=True)
+                    self.action.attack()
+                    self.tags.increment('spd', self.get_attack_speed(), remove=True)
                     concentration.duration = self.action.delay
-                    self.critical_attack(target)
-                if flurry:
-                    from src.entity.unit.Actions import Actions
-                    concentration.var += 1
-                    if concentration.var <= flurry:
-                        self.action.attack()
-                        concentration.duration = self.action.delay
         if self.get_skill('execute'):
-            if target.tags.get('p', 20) <= self.get_damage()[1]:
+            if target.tags.get('p', 20) <= self.get_damage():
                 target.die()
+
+    def decay(self, damage):
+        r = super().decay(damage)
+        self.healthbar.appear()
+        return r
 
     def die(self):
         pos = self.pos
         super().die()
-        if not self.tags.get('ix'):
+        if self.tags.get('mat') == 'flesh':
             self.tags.remove('ai')
             from src.entity.Stock import Stock
             r = Stock.make('Corpse', pos)
             r.set(self.form)
+            hp = self.tags.get('p>', 1)
+            r.tags.set('p', hp)
 
     def remove(self):
         self.healthbar.remove()
@@ -246,17 +253,11 @@ class Unit(Prop):
         return r
 
     def critical_attack(self, target):
-        target.decay(7)
+        critical = self.get_skill('assassinate', stacks=True)
+        target.decay(max(7, critical * 7))
         from src.entity.Particle import Particle
         Particle.make('power', target.vec)
-        self.location.sound.register(target.pos, 0, file='hit_impale')
-        if self.get_skill('adrenaline'):
-            self.states.add('Speed', 40, 2)
-        if self.get_skill('trip'):
-            from src.entity.unit.Actions import Actions
-            Actions.knockdown(target)
-            from src.tools import Direction
-            target.move_toward(self.direction)
+        self.location.sound.register(target.pos, 0, file='critical')
 
     def is_team(self, target):
         return self.tags.get('bad') == target.tags.get('bad')
@@ -265,7 +266,14 @@ class Unit(Prop):
         return 0
 
     def get_team(self, ally=True):
-        if bool(self.tags.get('bad')) == ally:
+        if bool(self.tags.get('bad') == 1) == ally:
             return self.location.population.bad
         else:
             return self.location.population.good
+
+    def set_team(self, target):
+        bad = target.tags.get('bad')
+        if bad == 1:
+            self.tags.set('bad', 1, add=True)
+        elif self.tags.get('bad') == 1:
+            self.tags.remove('bad')

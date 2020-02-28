@@ -17,13 +17,15 @@ class Sound:
             data = [pos, min(magnitude, 13)]
             self.registry.append(data)
         if file:
-            from src.tools.Data import Data
-            self.play.queue(Data.get_track(file))
-            if self.play.playing:
-                self.play.next_source()
-            else:
-                self.play.pause()
-            self.play.play()
+            from src.game.Camera import Camera
+            if (pos - Camera.target.pos).difference() < 13:
+                from src.tools.Data import Data
+                self.play.queue(Data.get_track(file))
+                if self.play.playing:
+                    self.play.next_source()
+                else:
+                    self.play.pause()
+                self.play.play()
 
     def update(self, data):
         units = self.location.population.get_units()

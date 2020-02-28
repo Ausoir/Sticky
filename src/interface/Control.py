@@ -18,12 +18,24 @@ class Control:
         self.text_mode = False
         self.directory = 'keymap.txt'
         self.set_keymap(self.directory)
+        self.target_mark = self.make_mark()
+        self.target_mark_frame = 0
 
     def set_keymap(self, fdir):
         self.directory = fdir
         control = Data.process_raw(Data.read(fdir))
         for k, v in control:
             self.keymap[Control.get_key_code(k)] = v
+
+    @staticmethod
+    def make_mark():
+        from src.entity.Image import Image
+        mark = Image()
+        mark.form = Data.get_form('g_9x0', group=Global.draw_group.group_object)
+        mark.form.z = 900
+        mark.form.bound(True)
+        mark.vec += Global.HALF_BLOCK
+        return mark
 
     def get_key(self, value):
         for k, v in self.keymap.items():
@@ -109,6 +121,7 @@ class Control:
                         else:
                             self.keypress.append(code)
             elif code < 0:
+                self.target_mark_frame = 0
                 if -code not in self.keyrelease:
                     if 65505 in self.keypress:
                         if (100000 - code) in self.keypress:
@@ -136,9 +149,12 @@ class Control:
         self.player.input('quit')
         Global.land.delay = 0
         Global.land.turn()
+        Global.player.save()
         Global.main.on_close()
 
     def turn(self):
+        self.target_mark_frame += 1
+        self.target_mark.update()
         self.cursor_tile = Camera.get_relative_tile_pos(self.cursor[0], self.cursor[1])
         self.cursor_tile[0] += Camera.target.pos.x
         self.cursor_tile[1] += Camera.target.pos.y
@@ -164,7 +180,17 @@ class Control:
                     self.clear_press(code)
                     Global.player.switch()
                 elif Global.menu.visible != 1:
-                    self.player.input(command)
+                    if command == 'left2':
+                        self.move_mark_toward(1)
+                    elif command == 'up2':
+                        self.move_mark_toward(2)
+                    elif command == 'right2':
+                        self.move_mark_toward(3)
+                    elif command == 'down2':
+                        self.move_mark_toward(4)
+                    else:
+                        self.target_mark.form.show(False)
+                        self.player.input(command)
         else:
             self.player.input('idle')
         for i in self.keyrelease:
@@ -175,3 +201,30 @@ class Control:
                 realkey = i - 100000
                 if realkey in self.keypress:
                     self.keypress.remove(realkey)
+
+    def move_mark_toward(self, direction):
+        self.move_mark(Camera.target.pos.to_list())
+        if self.target_mark_frame > 4:
+            if direction == 1:
+                self.target_mark.vec.x -= Global.BLOCK
+            elif direction == 2:
+                self.target_mark.vec.y -= Global.BLOCK
+            elif direction == 3:
+                self.target_mark.vec.x += Global.BLOCK
+            elif direction == 4:
+                self.target_mark.vec.y += Global.BLOCK
+            self.target_mark_frame = 0
+
+    def move_mark(self, pos):
+        if not self.target_mark.form.visible:
+            x = pos[0] * Global.BLOCK + Global.HALF_BLOCK
+            y = pos[1] * Global.BLOCK + Global.HALF_BLOCK
+            self.target_mark.vec.load(x, y)
+            self.target_mark.form.show(True)
+            self.target_mark.update()
+
+    def get_mark(self):
+        vec = self.target_mark.vec
+        tile = Global.player.character.location.get_tile_from_vec(vec.x, vec.y)
+        if str(tile.x) + ',' + str(tile.y) in Global.map_view.tiles:
+            return tile

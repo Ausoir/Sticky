@@ -115,16 +115,20 @@ class Wander(Task):
                 return i
 
     def random_state(self):
-        if Global.r.rand_int(0, 10) == 0:
+        rand = Global.r.rand_int(0, 10)
+        if rand == 0:
             self.state = 1
             self.reset()
             self.target = None
+        elif rand <= 3:
+            self.host.face(Global.r.rand_int(1, 4))
+            self.state = 0
         else:
             self.state = 0
 
     def perform(self):
         if self.state == 0:
-            if self.lifetime % 40 == 0:
+            if self.lifetime % 20 == 0:
                 self.random_state()
         elif self.state == 1:
             if self.result:
@@ -148,7 +152,8 @@ class Wander(Task):
                 if self.open:
                     self.iterate(self.open[0])
                 else:
-                    break
+                    self.next_reset = 0
+                    return
             # self.debug_trace()
             if self.next_reset > 9:
                 if not self.target:
@@ -174,7 +179,7 @@ class Wander(Task):
 
 
 class Path(Task):  # path finding A*
-    chase = 4  # 9
+    chase = 9
 
     class Node:
         def __init__(self, parent, node):
@@ -234,12 +239,12 @@ class Path(Task):  # path finding A*
             if conflict:
                 if node.g + 1 <= conflict.g:
                     conflict.parent = node
-                    conflict.g = node.g + 1
+                    conflict.g = node.g + 1 - node.node.type
                     conflict.set_h(self.target)
                     conflict.f = conflict.h + conflict.g
                 continue
             new = Path.Node(node, pos)
-            new.g = node.g + 1
+            new.g = node.g + 1 - node.node.type
             new.set_h(self.target)
             new.f = new.h + new.g
             if new.h < self.heuristic_threshold:
@@ -307,7 +312,7 @@ class Attack(TargetTask):
 
     def update(self):
         super().update()
-        if self.target and self.target.tags.get('p', 0) > 0:
+        if self.target and self.target.removed == 0 and self.target.tags.get('p', 0) > 0:
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()
         else:
@@ -318,7 +323,7 @@ class Attack(TargetTask):
             dist = self.target.pos - self.host.pos
             if dist.difference() == 1:
                 self.host.face_toward(self.target.pos)
-                self.host.input('use')
+                self.host.input('attack')
             elif self.pilot.move.out_of_reach:
                 self.pilot.set_task(self.pilot.move)
                 self.pilot.priority = 3

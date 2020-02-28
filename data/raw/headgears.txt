@@ -1,14 +1,13 @@
-Hat,Headgear,image/unit/hat,[p>:100,p:100],[],0 // Weight
-Headband,Headgear,image/unit/headband,[p>:100,p:100,skill:endurance],[],0
-Bandana,Headgear,image/unit/bandana,[p>:100,p:100,skill:assassination],[],0
-Beanie,Headgear,image/unit/beanie,[p>:100,p:100],[],0
-Lace Helm,Headgear,image/unit/lace_helm,[p>:100,p:100],[],1
-Full Helm,Headgear,image/unit/full_helm,[p>:100,p:100],[],2
-Fur Hat,Headgear,image/unit/fur_hat,[p>:100,p:100],[],1
-Cap,Headgear,image/unit/cap,[p>:100,p:100,skill:dodge],[],0
-Top Hat,Headgear,image/unit/top_hat,[p>:100,p:100],[],0
-Safety Helmet,SafetyHat,image/unit/safety_hat,[p>:100,p:100],[],1,7
-Glasses,Glasses,image/unit/glasses,[p>:100,p:100],[],0,8
-Sunglasses,Headgear,image/unit/sunglasses,[p>:100,p:100,skill:stealth],[],0
-Straw Hat,Headgear,image/unit/straw_hat,[p>:100,p:100,skill:hide],[],0
-Holy Hat,Headgear,image/unit/turban,[p>:100,p:100],[],1
+Hat,Headgear,image/unit/hat,[p>:100,p:100],[]
+Headband,Headgear,image/unit/headband,[skill:iron will],[]
+Bandana,Headgear,image/unit/bandana,[skill:assassinate],[]
+Beanie,Headgear,image/unit/beanie,[p>:50,p:50],[]
+Lace Helm,Headgear,image/unit/lace_helm,[skill:dodge,w:4],[]
+Full Helm,Headgear,image/unit/full_helm,[skill:block,w:4],[]
+Fur Hat,Headgear,image/unit/fur_hat,[p>:50,p:50],[]
+Cap,Headgear,image/unit/cap,[p>:30,p:30,skill:strength],[]
+Top Hat,Headgear,image/unit/top_hat,[p>:50,p:50],[]
+Safety Helmet,SafetyHat,image/unit/safety_hat,[w:4],[],7
+Glasses,Glasses,image/unit/glasses,[p>:20,p:20,col:12],[],4
+Sunglasses,Headgear,image/unit/sunglasses,[p>:30,p:30,skill:stealth],[]
+Straw Hat,Headgear,image/unit/straw_hat,[p>:20,p:20,skill:hide],[]

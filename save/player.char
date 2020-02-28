@@ -1,3 +1,3 @@
 instance
-17,0,instance
-#48,[5,11],Human,Character,human,[p>:114,p:114,mat:flesh,money:9,talent:None,seed:8140,full:10],[[Health,-1,1],[Concentration,-1,0]],[time,gen1,flip,critical strike],[#3d,[5,11],Jumpsuit,Armor,image/unit/jumpsuit,[p>:100,p:20,skill:escape],[],1,0,0],0,[#3c,[5,11],Saw,Weapon,image/saw,[p>:4,p:4,mat:metal,loot:Scrap,piv:4,sharp:1],[],3,2],[]
+17,1,instance
+#9,[15,11],Looter,Humanoid,human,[p>:100,p:96,mat:flesh,seed:9618,full:0,task:Attack,tgt:#25],[],[gen,dexterity,vengeance,flurry,flurry,flurry,flurry],[#b,[15,11],Tuxedo,Armor,wear_2x1,[w:10],[],0],0,0,[]

@@ -54,7 +54,7 @@ class Equipment(Item):
 
     def get_value(self):
         enc = 1 + (self.get_level() * self.get_level() * .05)
-        r = int(max(1, int(self.tags.get('p', 0) / 10) - self.weight + super().get_value()) * enc)
+        r = int(max(1, int(self.tags.get('p', 0) / 10) + super().get_value()) * enc)
         return r
 
     def use(self):
@@ -92,15 +92,17 @@ class Equipment(Item):
         speed = self.tags.get('spd', 0)
         if speed != 0:
             self.host.tags.increment('spd', speed, add=True)
-        if self.tags.get('p'):
-            self.host.tags.increment('p', self.tags.get('p'))
-            self.host.tags.increment('p>', self.tags.get('p>'))
+        add_hp = self.tags.get('hp')
+        if add_hp:
+            self.host.tags.increment('p', add_hp)
+            self.host.tags.increment('p>', add_hp)
 
     def on_unwear(self):
         self.location.sound.register(self.pos, 3, file='wear')
         speed = self.tags.get('spd', 0)
         if speed != 0:
             self.host.tags.increment('spd', -speed, remove=True)
-        if self.tags.get('p'):
-            self.host.tags.set('p', max(1, self.host.tags.get('p') - self.tags.get('p')))
-            self.host.tags.set('p>', max(1, self.host.tags.get('p>') - self.tags.get('p>')))
+        add_hp = self.tags.get('hp')
+        if add_hp:
+            self.host.tags.set('p', max(1, self.host.tags.get('p') - add_hp))
+            self.host.tags.set('p>', max(1, self.host.tags.get('p>') - add_hp))

@@ -1,6 +1,7 @@
 from src.entity.Space import Space
 from src.game import Global
 from src.game.Camera import Camera
+from src.game.Turn import Turn
 from src.tools import Direction
 from src.tools.List import List
 
@@ -8,7 +9,8 @@ from src.tools.List import List
 class Tile(Space):
     CHECK_NONE = []
     CHECK_ANY = [1, 2, 3, 4, 5, 6, 7]
-    CHECK_FIRM = [1, 2, 3, 5]
+    CHECK_SOLID = [1, 2, 3, 5]
+    CHECK_FIRM = [1, 2, 5]
     CHECK_SIGHT = [1, 2, 6]
     COLLIDE_TERRAIN = 1
     COLLIDE_OBJECT = 2
@@ -36,11 +38,28 @@ class Tile(Space):
             self.extend = 0
         self.direction = 0
         self.sub_image = None
-        self.frame = 0
         self.things = List()
         self.light = 0
+        self.light_source = 0
         self.shadow = None
         self.joint_neighbors = [0, 0, 0, 0]
+
+    @staticmethod
+    def get_collision_by_name(num):
+        if num == Tile.COLLIDE_TERRAIN:
+            return 'Terrain'
+        elif num == Tile.COLLIDE_OBJECT:
+            return 'Object'
+        elif num == Tile.COLLIDE_UNIT:
+            return 'Unit'
+        elif num == Tile.COLLIDE_ITEM:
+            return 'Item'
+        elif num == Tile.COLLIDE_WINDOW:
+            return 'Window'
+        elif num == Tile.COLLIDE_FOG:
+            return 'Fog'
+        elif num == Tile.COLLIDE_MAGIC:
+            return 'Magic'
 
     @staticmethod
     def init(arg):
@@ -72,18 +91,6 @@ class Tile(Space):
             return 1
         return 0
 
-    def update_light(self):
-        if self.light > 0:
-            if self.light > 2:
-                for coord in Direction.coord.values():
-                    tile = self.get_neighbor(coord[0], coord[1])
-                    if tile and tile.light < self.light - 1:
-                        if tile.is_land(Tile.CHECK_SIGHT):
-                            tile.glow(2)
-                        else:
-                            tile.glow(self.light - 1)
-            self.light = min(3, self.light - 1)
-
     def update_shader(self):
         if self.type == -10:
             for k, neighbors in Direction.coord.items():
@@ -100,16 +107,44 @@ class Tile(Space):
                 tile.update_shader()
         self.update_shader()
 
-    def glow(self, mag):
-        self.light = max(mag, self.light)
-        diff = (Camera.target.pos - self).abs()
-        in_x_range = diff.x > Global.map_view.sight_range > diff.x - self.light + 2
-        in_y_range = diff.y > Global.map_view.sight_range_y > diff.y - self.light + 2
-        if in_x_range or in_y_range:
-            self.update_light()
+    def update_light(self):
+        if self.light_source > 0:
+            self.light_source -= 1
+        else:
+            for coord in Direction.coord.values():
+                tile = self.get_neighbor(coord[0], coord[1])
+                if tile:
+                    diminish = tile.light - Turn.rounds
+                    if diminish > self.light:
+                        if not tile.is_land(Tile.CHECK_SIGHT):
+                            self.light = diminish
+            if self.light > 0:
+                self.light -= 1
 
-    def get_neighbor(self, x, y):
-        return self.location.get_tile(self.x + x, self.y + y)
+    def glow(self, mag):
+        self.light = max(mag * Turn.rounds, self.light)
+        self.light_source = Turn.rounds
+        diff = (Camera.target.pos - self).abs()
+        if diff.x > Global.map_view.sight_range and diff.y > Global.map_view.sight_range_y:
+            self.glow_reach(mag * Turn.rounds)
+
+    def glow_reach(self, prev_diff):
+        if self.light > 0:
+            diff = (Camera.target.pos - self).abs()
+            current_diff = diff.sum()
+            if current_diff < prev_diff:
+                dist = int(self.light / Turn.rounds) - 1
+                in_x_range = Global.map_view.sight_range < diff.x < Global.map_view.sight_range + dist
+                in_y_range = Global.map_view.sight_range_y < diff.y < Global.map_view.sight_range_y + dist
+                if in_x_range or in_y_range:
+                    for coord in Direction.coord.values():
+                        tile = self.get_neighbor(coord[0], coord[1])
+                        if tile and tile.light == 0:
+                            tile.update_light()
+                            tile.glow_reach(current_diff)
+
+    def get_neighbor(self, x, y, limit=False):
+        return self.location.get_tile(self.x + x, self.y + y, limit=limit)
 
     def get_vec(self):
         return self * Global.BLOCK

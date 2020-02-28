@@ -17,11 +17,11 @@ class Weapon(Item):
     def set_form(self, arg):
         if not self.form:
             super().set_form(arg)
-            self.form.rotation = -75
+            self.form.rotation = 15
 
     def on_unwield(self):
         super().on_unwield()
-        self.form.rotation = -75
+        self.form.rotation = 15
 
     def describe(self):
         r = super().describe()
@@ -33,13 +33,6 @@ class Weapon(Item):
             r += '\n' + Dialog.get('attack speed') + ': ' + str(spd)
         return r
 
-    def get_damage(self):
-        min_d = 0
-        acc = self.tags.get('acc')
-        if acc:
-            min_d += acc
-        return min_d, self.damage
-
     def get_value(self):
         other = 0
         if self.tags.get('sharp'):
@@ -47,5 +40,5 @@ class Weapon(Item):
         if self.tags.get('silver'):
             other += 1
         from src.entity.unit.item.Item import Item
-        score = Item.get_value(self) + other + self.weight
+        score = Item.get_value(self) + other + self.get_weight()
         return max(1, score)

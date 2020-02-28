@@ -1,22 +1,12 @@
 from src.entity.unit.Humanoid import Humanoid
-from src.entity.unit.Inventory import Inventory
 
 
 class Character(Humanoid):
     def __init__(self, location):
         super().__init__(location)
-        self.inventory = Inventory(self)
         from src.tools.Data import Data
         self.shadow = Data.get_form('g_7x0')
         self.shadow.bound(True)
-
-    def __str__(self):
-        return super().__str__() + ',' + self.inventory.__str__()
-
-    def load(self, p):
-        index = super().load(p)
-        self.inventory.load(p[index])
-        return index + 1
 
     def add(self):
         r = super().add()
@@ -33,7 +23,7 @@ class Character(Humanoid):
 
     def set_row(self, row):
         super().set_row(row)
-        self.shadow.z = self.depth(row)
+        self.shadow.z = row * 20 + 100
 
     def bound(self, visible):
         super().bound(visible)
@@ -60,26 +50,3 @@ class Character(Humanoid):
     def out_of_bounds(self):
         self.tags.set('sign', 'Accident')
         super().out_of_bounds()
-
-    def get_capacity(self):
-        r = 5
-        if self.weapon and self.get_skill('strength'):
-            r += self.weapon.weight
-        r += self.get_skill('constitution', stacks=True)
-        if self.armor:
-            r += self.armor.capacity
-        return r
-
-    def get_possessions(self):
-        r = super().get_possessions()
-        r += self.inventory.items
-        return r
-
-    def get_accessibles(self):
-        r = []
-        from src.entity.unit.item.Item import Item
-        for thing in self.pos.things:
-            if isinstance(thing, Item):
-                r.append(thing)
-        r += self.get_possessions()
-        return r

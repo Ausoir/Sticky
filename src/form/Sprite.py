@@ -104,15 +104,12 @@ __docformat__ = 'restructuredtext'
 __version__ = '$Id$'
 
 import math
-import sys
 
 from pyglet.gl import *
 from pyglet import clock
 from pyglet import event
 from pyglet import graphics
 from pyglet import image
-
-_is_pyglet_doc_run = hasattr(sys, "is_pyglet_doc_run") and sys.is_pyglet_doc_run
 
 
 class SpriteGroup(graphics.Group):
@@ -279,7 +276,6 @@ class Sprite(event.EventDispatcher):
         self._frame_index += 1
         if self._frame_index >= len(self._animation.frames):
             self._frame_index = 0
-            self.dispatch_event('on_animation_end')
             if self._vertex_list is None:
                 return  # Deleted in event handler.
 
@@ -291,8 +287,6 @@ class Sprite(event.EventDispatcher):
             duration = min(max(0, duration), frame.duration)
             clock.schedule_once(self._animate, duration)
             self._next_dt = duration
-        else:
-            self.dispatch_event('on_animation_end')
 
     @property
     def batch(self):
@@ -684,17 +678,3 @@ class Sprite(event.EventDispatcher):
         self._group.set_state_recursive()
         self._vertex_list.draw(GL_QUADS)
         self._group.unset_state_recursive()
-
-    if _is_pyglet_doc_run:
-        def on_animation_end(self):
-            """The sprite animation reached the final frame.
-
-            The event is triggered only if the sprite has an animation, not an
-            image.  For looping animations, the event is triggered each time
-            the animation loops.
-
-            :event:
-            """
-
-
-Sprite.register_event_type('on_animation_end')

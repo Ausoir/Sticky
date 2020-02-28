@@ -7,15 +7,6 @@ class Item(Prop):
         super().__init__(location)
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.host = None
-        self.weight = 1
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.weight)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.weight = arg[index]
-        return index + 1
 
     def remove(self):
         if self.host:
@@ -45,22 +36,25 @@ class Item(Prop):
     def describe(self):
         r = self.get_display_name()
         from src.tools.Data import Data
+        from src.tools.Dialog import Dialog
         data = Data.get_line('raw/descriptions.txt', r)
         if data:
             r += '\n' + data[1]
-        r += '\nDurability: ' + str(self.tags.get('p', 'Indefinite')) + '/' + str(self.tags.get('p>', 'Indefinite'))
-        r += '\nWeight: ' + str(self.weight)
-        material = self.tags.attributes.get('mat')
-        if material == 'flesh':
-            r += '\nThis item is an organic material.'
-        if material == 'metal':
-            r += '\nThis item is metallic.'
-        if material == 'wood':
-            r += '\nThis item is composed of wood.'
+        hp = self.tags.get('p')
+        if hp:
+            max_hp = self.tags.get('p>')
+            r += '\n' + Dialog.durability(hp, max_hp)
+        r += '\nWeight: ' + str(self.get_weight())
+        mat = Dialog.material(self.tags.attributes.get('mat'))
+        if mat:
+            r += '\n' + mat
         return r
 
     def use(self):
         self.host.action.attack()
+
+    def get_weight(self):
+        return self.tags.get('w', 1)
 
     def get_damage(self):
         return 0, 1
@@ -69,9 +63,6 @@ class Item(Prop):
         self.states.trigger(['attack', target])
         for i in self.states.buffs:
             target.states.add(i.name, 40, i.var)
-
-    def on_sleep(self, time):
-        pass
 
     def update(self):
         if not self.host:

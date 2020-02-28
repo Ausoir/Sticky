@@ -1,12 +1,9 @@
-from src.form.Shape import Shape
-from src.game import Global
-
-
 class Overlay:
     def __init__(self):
-        self.fade = Shape(0, 0, 700, Global.draw_group.group_overlay,
-                          width=Global.DISPLAY[0], height=Global.DISPLAY[1])
         self.weather = [0, 0, 0, 0]
+        self.fade = [0, 0, 0, 0]
+        self.fading = False
+        self.minimum = [0, 0, 0, 0]
 
     def colorize(self, color):
         if not color:
@@ -15,19 +12,19 @@ class Overlay:
             self.weather = color
 
     def blackout(self):
-        self.fade.set_solid_color([0, 0, 0, 255])
-        self.fade.add_batch()
+        self.fade = [0, 0, 0, 255]
+        self.fading = True
 
-    def on_resize(self):
-        self.fade.width = Global.DISPLAY[0]
-        self.fade.height = Global.DISPLAY[1]
-        self.fade.update()
+    def clear(self):
+        self.fade[3] = 0
+        self.turn()
 
     def turn(self):
-        if not self.fade.removed:
-            if self.fade.color[3] <= 10:
-                self.fade.remove_batch()
+        if self.fading:
+            if self.fade[3] <= 10:
+                self.fading = False
+                self.fade[3] = 0
             else:
-                self.fade.set_solid_color([self.fade.color[0], self.fade.color[1],
-                                           self.fade.color[2], self.fade.color[3] - 8])
-                self.fade.update()
+                self.fade = [self.fade[0], self.fade[1], self.fade[2], self.fade[3] - 8]
+            for i in range(4):
+                self.minimum[i] = max(self.weather[i], self.fade[i])

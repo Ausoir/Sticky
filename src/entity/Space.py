@@ -116,6 +116,9 @@ class Space:
     def difference(self):
         return abs(self.x) + abs(self.y)
 
+    def sum(self):
+        return self.x + self.y
+
     def to_int(self):
         self.load(math.floor(self.x), math.floor(self.y))
         return self

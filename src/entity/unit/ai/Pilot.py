@@ -1,5 +1,4 @@
 from src.entity.unit.ai.Task import *
-from src.map.Tile import Tile
 
 
 class Pilot:
@@ -66,8 +65,9 @@ class Pilot:
             if isinstance(hitter, Prop):
                 if isinstance(hitter, Item) and hitter.host:
                     hitter = hitter.host
-                self.set_task(self.attack)
-                self.task.target = hitter
+                if hitter != self.host:
+                    self.set_task(self.attack)
+                    self.task.target = hitter
 
     def perceive(self, enemies):
         perceived = []
@@ -88,23 +88,23 @@ class Pilot:
         if self.host.tags.get('ai'):
             if self.priority > 3:
                 if not self.host.tags.get('deaf'):
-                    self.host.face_toward(pos)
-                    seen = self.host.location.collide_land(self.host.pos, pos, Tile.CHECK_SIGHT)
-                    if seen == pos:
-                        units = []
-                        from src.entity.unit.Unit import Unit
-                        for i in pos.things:
-                            if isinstance(i, Unit):
-                                units.append(i)
-                        self.perceive(units)
-                    else:
-                        self.move.target = pos
-                        self.set_task(self.move)
+                    if (pos - self.host.pos).difference() > 1:
+                        self.host.face_toward(pos)
+                        seen = self.host.location.collide_land(self.host.pos, pos, self.host.sight)
+                        if seen == pos:
+                            units = []
+                            from src.entity.unit.Unit import Unit
+                            for i in pos.things:
+                                if isinstance(i, Unit):
+                                    units.append(i)
+                            self.perceive(units)
+                        else:
+                            self.move.target = pos
+                            self.set_task(self.move)
 
     def lose(self, target):
         if self.task.target == target:
-            from src.map.Tile import Tile
-            seen = self.host.location.collide_land(self.host.pos, self.task.target.pos, Tile.CHECK_SIGHT)
+            seen = self.host.location.collide_land(self.host.pos, self.task.target.pos, self.host.sight)
             if seen != target.pos:
                 self.move.target = self.task.target.pos
                 self.set_task(self.move)
@@ -122,7 +122,7 @@ class Pilot:
     def spot_enemy(self, targets):
         valids = []
         for thing in targets:
-            seen = self.host.location.collide_land(self.host.pos, thing.pos, Tile.CHECK_SIGHT)
+            seen = self.host.location.collide_land(self.host.pos, thing.pos, self.host.sight)
             if seen == thing.pos:
                 valids.append(thing)
         if valids:

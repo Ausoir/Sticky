@@ -39,9 +39,7 @@ class Buffs:
                     break
             if buff.is_valid():
                 self.buffs.append(buff)
-                if load:
-                    buff.on_load()
-                else:
+                if not load:
                     buff.on_start()
             return buff
         else:
@@ -62,3 +60,7 @@ class Buffs:
 
     def dispel(self):
         self.clear(lambda x: BuffTags.magic in x.get_tags())
+
+    def on_load(self):
+        for i in self.buffs:
+            i.on_load()

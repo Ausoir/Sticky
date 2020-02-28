@@ -2,6 +2,7 @@ import os
 
 import pyglet
 from pyglet.image import Texture, Animation
+from pyglet.image.atlas import TextureAtlas
 
 from src.form.Model import Model
 from src.form.Picture import Picture
@@ -10,9 +11,11 @@ from src.form.Picture import Picture
 class Data:
     cache = {}
     registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'spells', 'miscellaneous']
+    atlas = None
 
     @staticmethod
     def init():
+        Data.atlas = TextureAtlas()
         Data.set_cache('none', Texture.create(1, 1))
         res = Data.process_raw(Data.read('raw/resource.txt'))
         for i in res:
@@ -78,7 +81,7 @@ class Data:
 
     @staticmethod
     def get_image(fdir, cache):
-        img = pyglet.image.load(Data.direct(fdir + '.png')).get_texture()
+        img = Data.atlas.add(pyglet.image.load(Data.direct(fdir + '.png')))
         img.anchor_x = img.width / 2
         img.anchor_y = img.height / 2
         if cache:
@@ -127,7 +130,6 @@ class Data:
         image = pyglet.image.load(Data.direct(texture + '.png'))
         image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
         seq = pyglet.image.TextureGrid(image_grid)
-        # seq = pyglet.image.Texture3D.create_for_image_grid(image_grid)
         i = 0
         for y in range(subset_size[1]):
             for x in range(subset_size[0]):
@@ -189,6 +191,7 @@ class Data:
             data = cache
         else:
             data = Data.process_raw(Data.read(fdir))
+            Data.set_cache(fdir, data)
         for k, i in enumerate(data):
             if i[0] == name:
                 if row:

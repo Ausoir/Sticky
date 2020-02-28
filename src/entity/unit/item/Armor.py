@@ -6,18 +6,15 @@ class Armor(Equipment):
     def __init__(self, location):
         super().__init__(location)
         self.armor = 0
-        self.capacity = 0
 
     def __str__(self):
         r = super().__str__()
-        r += ',' + str(self.armor) + ',' + str(self.capacity)
+        r += ',' + str(self.armor)
         return r
 
     def load(self, p):
         index = super().load(p)
         self.armor = p[index]
-        index += 1
-        self.capacity = p[index]
         return index + 1
 
     def set_form(self, arg):
@@ -30,20 +27,12 @@ class Armor(Equipment):
         super().die()
 
     def get_value(self):
-        return super().get_value() + self.armor + self.capacity
-
-    def get_defense(self):
-        min_d = 0
-        armor = self.tags.get('armor')
-        if armor:
-            min_d += armor
-        return min_d, self.armor + min_d
+        return super().get_value() + self.armor + self.get_weight()
 
     def describe(self):
         r = super().describe()
-        r += '\nCan hold items up to ' + str(self.capacity) + 'kg'
-        min_d, max_d = self.get_defense()
-        r += '\nDefense: ' + str(min_d) + ' ~ ' + str(max_d)
+        r += '\nCan hold items up to ' + str(self.get_weight()) + 'kg'
+        r += '\nDefense: ' + str(self.armor)
         return r
 
     def modify(self, arg):
@@ -51,8 +40,6 @@ class Armor(Equipment):
             pass
         elif arg == 'reinforce':
             self.armor += 1
-        elif arg == 'refit':
-            self.capacity += 1
         else:
             return False
         return True
@@ -72,18 +59,8 @@ class Armor(Equipment):
 
     def on_wear(self):
         super().on_wear()
-        from src.entity.unit.Character import Character
-        if isinstance(self.host, Character):
-            t = self.capacity
-            self.capacity = 0
-            self.host.inventory.update_capacity()
-            self.capacity = t
+        self.host.inventory.update_capacity()
 
     def on_unwear(self):
         super().on_unwear()
-        from src.entity.unit.Character import Character
-        if isinstance(self.host, Character):
-            t = self.capacity
-            self.capacity = 0
-            self.host.inventory.update_capacity()
-            self.capacity = t
+        self.host.inventory.update_capacity()

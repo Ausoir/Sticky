@@ -1,14 +1,14 @@
 Human,Character,human,[p>:4,p:4,mat:flesh],[],[],0,0,0,[] //Name,class,form,tags,state,action,skill,armor,headgear,weapon,inventory
 Slime,Unit,slime,[p>:8,p:8,mat:other,ai:wander,deaf:1,loot:Jelly,spd:-5],[],[]
 Rat,Unit,rat,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:1,sharp:1],[],[hide]
-Worm,Unit,worm,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:-5],[],[]
-Dog,Unit,dog,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:1,loot:Tooth,sharp:1],[[Speed,-1,1]],[might,dodge]
-Zombie,Unit,zombie,[p>:7,p:7,bad:1,mat:flesh,ai:wander,seed:-1],[],[toughness],0,0,0
-Looter,Humanoid,human,[p>:7,p:7,bad:1,mat:flesh,ai:wander,seed:-1],[],[],Jumpsuit,0,Stick
-Tank,Humanoid,human,[p>:20,p:20,bad:1,mat:flesh,ai:wander,seed:-1],[],[calculated hit,trip],Platemail,0,Club
-Ghost,Unit,ghost,[p>:7,p:7,mat:fuel,col:7,seed:-1],[],[]
-Phantom,Phantom,phantom,[p:7,mat:fuel,ai:wander,col:7,seed:-1],[],[],0
-Mercenary,Humanoid,human,[p>:14,p:14,mat:flesh,ai:guard],[],[swing],Chainmail,0,Glaive
+Worm,Unit,worm,[p>:1,p:1,bad:1,mat:flesh,ai:wander,spd:-5],[],[]
+Dog,Unit,dog,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:1,loot:Tooth,sharp:1],[[Speed,-1,1]],[strength,dodge]
+Zombie,Unit,zombie,[p>:7,p:7,bad:1,mat:flesh,ai:wander],[],[toughness],0,0,0
+Looter,Humanoid,human,[p>:7,p:7,bad:1,mat:flesh,ai:wander,seed:-1],[],[],Jumpsuit,0,Club,[]
+Tank,Humanoid,human,[p>:20,p:20,bad:1,mat:flesh,ai:wander,seed:-1],[],[trip],Chainmail,0,Falchion,[]
+Ghost,Ghost,ghost,[p:1,mat:fuel,fly:1,col:7],[],[]
+Phantom,Phantom,phantom,[p:7,mat:fuel,fly:1,ai:wander,col:7,seed:-1],[],[],0
+Mercenary,Humanoid,human,[p>:20,p:20,mat:flesh,ai:guard],[],[swing],Scalemail,0,Glaive,[]
 Merchant,Character,human,[p>:4,p:4,mat:flesh,ai:guard,#:merchant],[],[],Gold Robe,Top Hat,0,[Manual,Torch]
 Pawnbroker,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,#:pawn],[],[],Jumpsuit,Safety Helmet,0,[Box,Club,Torch]
 Contractor,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard],[],[flurry,block,dodge],Tuxedo,0,0,[time:4,type:guild,due:0]

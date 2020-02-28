@@ -123,5 +123,36 @@ class Dialog:
             return str(number)
 
     @staticmethod
+    def describe_terrain(tile):
+        r = tile.name.title()
+        if tile.type <= -10:
+            r += '\nThis terrain is a wall.'
+        elif tile.type < 0:
+            r += '\nThis terrain slows movement by ' + str(-tile.type) + '.'
+        elif tile.type > 0:
+            r += '\nThis terrain speeds up movement by ' + str(tile.type) + '.'
+        if tile.light > 0:
+            r += '\nThis terrain is lit up.'
+        return r
+
+    @staticmethod
     def weight(measure):
         return str(measure) + Dialog.get('weigh')
+
+    @staticmethod
+    def durability(hp, max_hp):
+        if max_hp:
+            return Dialog.get('durability') + ': ' + str(hp) + '/' + str(max_hp)
+        else:
+            return Dialog.get('durability') + ': ' + str(hp)
+
+    @staticmethod
+    def material(mat):
+        r = ''
+        if mat == 'flesh':
+            r = 'This object is organic.'
+        elif mat == 'metal':
+            r = 'This object is metallic.'
+        elif mat == 'wood':
+            r = 'This object is wooden.'
+        return r

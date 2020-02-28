@@ -87,7 +87,7 @@ class Glow(Buff):
         self.var = max(self.var, var)
 
     def on_update(self):
-        self.host.pos.glow(self.var + 1)
+        self.host.pos.glow(self.var)
 
 
 class Revive(Buff):
@@ -140,29 +140,13 @@ class Damage(Buff):
         self.on_start()
 
     def on_start(self):
-        self.host.tags.increment('str', self.var, add=True)
+        self.host.strength += self.var
+
+    def on_load(self):
+        self.host.strength += self.var
 
     def on_finish(self):
-        self.host.tags.increment('str', -self.var, remove=True)
-
-
-class Armor(Buff):
-    def get_tags(self):
-        if self.var < 0:
-            return [BuffTags.harmful]
-        return []
-
-    def get_display_name(self):
-        if self.var < 0:
-            return 'Sunder'
-        return self.name
-
-    def describe(self):
-        return 'Your defense is modified by ' + str(self.var)
-
-    def on_stack(self, duration, var):
-        self.duration = duration
-        self.var = var
+        self.host.strength -= self.var
 
 
 class Brand(Buff):
@@ -178,37 +162,6 @@ class Brand(Buff):
             Script.execute_code(self.var, host=arg[1])
 
 
-class Curse(Buff):
-    def get_tags(self):
-        return [BuffTags.magic, BuffTags.harmful]
-
-    def describe(self):
-        return 'Die when this curse expire.'
-
-    def describe_duration(self):
-        from src.tools.Dialog import Dialog
-        return Dialog.day(self.var)
-
-    def on_stack(self, duration, var):
-        self.duration = duration
-        self.var = var
-
-    def on_finish(self):
-        self.host.die()
-
-
-class Weak(Buff):
-    def get_tags(self):
-        return [BuffTags.magic, BuffTags.harmful]
-
-    def describe(self):
-        return 'Your defense is set to 0.'
-
-    def on_update(self):
-        if self.effect(8):
-            Particle.make('sweat', self.host.vec)
-
-
 class Burn(Buff):
     def get_tags(self):
         return [BuffTags.magic, BuffTags.harmful]
@@ -221,21 +174,31 @@ class Burn(Buff):
             return super().is_valid()
 
     def on_start(self):
-        self.host.hit(1, hitter=self)
         if self.host.tags.get('mat') == 'wood':
-            self.duration += 64
+            self.duration += 32
 
     def on_update(self):
         self.var += 1
         if not self.var % 2:
+            self.host.pos.glow(12)
             Particle.make('burn', self.host.vec, glow=1)
             if not self.var % 4:
-                self.host.hit(1, hitter=self)
-                x = Global.r.rand_int(-1, 1)
-                y = Global.r.rand_int(-1, 1)
-                for thing in self.host.pos.get_neighbor(x, y).things:
-                    thing.states.add('Burn', 12)
                 self.var = 0
+                self.host.decay(1)
+                from src.entity.Stock import Stock
+                if self.host.pos.name.startswith('wood') and Global.r.rand_int(1, 8) == 1:
+                    Stock.make('Plank', self.host.pos)
+                    self.host.pos.set_terrain('.')
+                else:
+                    x = Global.r.rand_int(-1, 1)
+                    y = Global.r.rand_int(-1, 1)
+                    neighbor = self.host.pos.get_neighbor(x, y)
+                    if neighbor:
+                        if not neighbor.things and neighbor.name.startswith('wood'):
+                            Stock.make('Flame', neighbor)
+                        else:
+                            for thing in neighbor.things:
+                                thing.states.add('Burn', 12)
 
 
 class Banish(Buff):
@@ -245,11 +208,16 @@ class Banish(Buff):
     def describe(self):
         return 'Become banished to the abyss.'
 
+    def end(self):
+        self.var = 1
+        super().end()
+
     def on_finish(self):
-        self.host.remove()
+        if self.var == 0:
+            self.host.remove()
 
     def on_update(self):
-        if self.effect(14):
+        if self.effect(4):
             Particle.make('zwip', self.host.vec)
 
 
@@ -302,44 +270,51 @@ class Shapeshift(Buff):
         return '[' + self.name + ',' + str(self.duration) + ',\'' + str(self.var) + '\']'
 
     def get_tags(self):
-        return [BuffTags.magic]
+        return [BuffTags.magic, BuffTags.harmful]
 
     def describe(self):
         return 'You are shapeshifting.'
 
-    def is_valid(self):
-        from src.entity.unit.Unit import Unit
-        if isinstance(self.host, Unit):
-            return super().is_valid()
-
     def on_start(self):
         Particle.make('mist', self.host.vec)
-        old_form = Global.player.character.__str__()
+        from src.entity.unit.Humanoid import Humanoid
+        if isinstance(self.host, Humanoid):
+            self.host.drop()
+            self.host.unarmor()
+            self.host.unheadgear()
+            self.host.inventory.drop_all()
         from src.entity.Stock import Stock
-        unit = Stock.get(self.host.location, self.var)
-        unit.pos = Global.player.character.pos
-        unit.add()
-        for i in Global.player.character.states.buffs:
-            i.host = unit
-        unit.states = Global.player.character.states
-        Global.player.character.states.load([])
-        self.var = old_form
-        Global.player.character.remove()
-        Global.player.set_player(unit)
+        unit = Stock.make(self.var, self.host.pos)
+        unit.tags.remove('ai')
+        self.var = self.change_host(unit).__str__()
+
+    def on_stack(self, duration, var):
+        self.duration = duration
+        self.var = var
+        self.on_finish()
+        self.on_start()
 
     def on_finish(self):
         Particle.make('mist', self.host.vec)
         from src.entity.Stock import Stock
         from src.tools.Data import Data
         data = Data.parse(self.var)
-        unit = Stock.get(Global.player.character.location, data[2], data)
-        unit.pos = Global.player.character.pos
+        unit = Stock.get(self.host.location, data[2], data)
+        unit.pos = self.host.pos
         unit.add()
-        for i in Global.player.character.states.buffs:
+        self.change_host(unit)
+
+    def change_host(self, unit):
+        old_host = self.host
+        for i in self.host.states.buffs:
             i.host = unit
-        unit.states = Global.player.character.states
-        Global.player.character.remove()
-        Global.player.set_player(unit)
+        unit.states = old_host.states
+        from src.entity.unit.Buffs import Buffs
+        old_host.states = Buffs(old_host)
+        old_host.remove()
+        if old_host == Global.player.character:
+            Global.player.set_player(unit)
+        return old_host
 
 
 class Invisible(Buff):
@@ -357,9 +332,11 @@ class Invisible(Buff):
     def on_start(self):
         Particle.make('mist', self.host.pos.get_center())
         self.on_load()
-        for unit in self.host.get_team(ally=False):
-            if unit.pilot.priority == 1:
-                unit.pilot.lose(self.host)
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            for unit in self.host.get_team(ally=False):
+                if unit.pilot.priority == 1:
+                    unit.pilot.lose(self.host)
 
     def on_load(self):
         from src.entity.unit.Unit import Unit
@@ -387,6 +364,8 @@ class Invisible(Buff):
         elif arg[0] == 'attack':
             r = self.var != -1
         elif arg[0] == 'hit':
+            r = self.var != -1
+        elif arg[0] == 'time' and arg[1] > 0:
             r = self.var != -1
         if r:
             self.end()
@@ -416,19 +395,46 @@ class Concentration(Buff):
     def describe(self):
         return 'You are concentrated.'
 
-    def apply(self):
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return super().is_valid()
+
+    def effect_on_load(self):
+        if self.host.get_skill('heightened sense'):
+            copy = self.host.sight
+            from src.map.Tile import Tile
+            new = []
+            for i in copy:
+                if i != Tile.COLLIDE_FOG:
+                    new.append(i)
+            self.host.sight = new
         if self.host.get_skill('hide'):
             self.host.states.add('Invisible', -1, var=1)
 
+    def effect_on_apply(self):
+        if self.host.get_skill('iron will'):
+            for i in self.host.states.buffs:
+                if BuffTags.harmful in i.get_tags():
+                    i.end()
+                    return
+
     def on_start(self):
-        self.apply()
+        self.effect_on_load()
+        Particle.make('sweat', self.host.pos.get_center(), offset=4)
+        self.effect_on_apply()
 
     def on_load(self):
-        self.apply()
+        self.effect_on_load()
 
     def on_stack(self, duration, var):
-        self.apply()
+        self.effect_on_apply()
         self.duration = duration
+
+    def on_finish(self):
+        if self.host.get_skill('heightened sense'):
+            from src.map.Tile import Tile
+            self.host.sight.append(Tile.COLLIDE_FOG)
 
     def trigger(self, arg):
         super().trigger(arg)
@@ -455,7 +461,7 @@ class Vengeance(Buff):
                         thing.move(i[0], i[1])
                         Actions.knockdown(thing)
                     Particle.make('batter', tile.get_center())
-            self.host.location.sound.register(self.host.pos, 1, file='hit_impale')
+            self.host.location.sound.register(self.host.pos, 1, file='critical')
             self.end()
 
 
@@ -503,3 +509,55 @@ class Petrified(Buff):
     def on_finish(self):
         self.host.tags.set('mat', self.var)
         self.host.tags.increment('spd', 12, remove=True)
+
+
+class Vision(Buff):
+    def __str__(self):
+        return '[' + self.name + ',' + str(self.duration) + ',\'' + str(self.var) + '\']'
+
+    def get_tags(self):
+        return [BuffTags.magic]
+
+    def describe(self):
+        return 'Improves sight.'
+
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return super().is_valid()
+
+    def on_start(self):
+        Particle.make('portal', self.host.vec)
+        self.var = self.host.sight
+        from src.map.Tile import Tile
+        self.host.sight = [Tile.COLLIDE_MAGIC]
+
+    def on_finish(self):
+        self.host.sight = self.var
+
+
+class Levitate(Buff):
+    def get_tags(self):
+        return [BuffTags.magic]
+
+    def describe(self):
+        return 'Levitate off the ground.'
+
+    def is_valid(self):
+        return not self.host.tags.get('fly')
+
+    def on_start(self):
+        Particle.make('wind', self.host.vec)
+        self.host.tags.set('fly', 1, add=True)
+
+    def on_finish(self):
+        self.host.tags.remove('fly')
+
+    def trigger(self, arg):
+        if arg[0] == 'time':
+            if arg[1] > 0:
+                self.end()
+
+    def on_update(self):
+        if self.effect(16):
+            Particle.make('wind', self.host.vec)

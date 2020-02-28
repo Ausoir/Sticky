@@ -42,6 +42,13 @@ class Population:
     def get_all(self):
         return self.good + self.bad + self.other
 
+    def get_close(self, pos, mag):
+        r = []
+        for i in self.get_all():
+            if (i.pos - pos).difference() < mag:
+                r.append(i)
+        return r
+
     @staticmethod
     def get_from_id(group, identification):
         for i in group:

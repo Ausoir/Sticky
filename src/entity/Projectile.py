@@ -58,7 +58,7 @@ class Projectile(Prop):
                     self.pos = self.location.get_tile_from_vec(self.vec.x, self.vec.y)
 
     def is_collide(self):
-        return self.pos.is_land(Tile.CHECK_FIRM)
+        return self.pos.is_land(Tile.CHECK_SOLID)
 
     def on_collide(self):
         self.remove()

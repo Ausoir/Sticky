@@ -2,7 +2,6 @@ from pyglet.image import Animation
 
 from src.form.Sprite import Sprite
 from src.game import Global
-from src.game.Camera import Camera
 from src.tools import Direction
 
 
@@ -67,8 +66,7 @@ class Picture(Sprite):
             self.scale_y = y / (self.height / self.scale_y)
 
     def place(self, x, y):
-        bound_x, bound_y = Camera.get_relative_pos(x, y)
-        self.update(x=bound_x, y=bound_y)
+        self.update(x=Global.OFFSET[0] + x, y=Global.OFFSET[1] + y)
 
     def flip(self, x=0, y=0):
         if x:

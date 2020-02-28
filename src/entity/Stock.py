@@ -3,7 +3,7 @@ from src.entity.unit.item.Armor import Armor
 # noinspection PyUnresolvedReferences
 from src.entity.unit.item.Headgear import Headgear
 # noinspection PyUnresolvedReferences
-from src.entity.unit.item.Spell import Spell
+from src.entity.unit.item.Focus import Focus
 # noinspection PyUnresolvedReferences
 from src.entity.unit.item.Weapon import Weapon
 # noinspection PyUnresolvedReferences

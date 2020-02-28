@@ -1,5 +1,6 @@
-human,unit/man,image/unit/body
-zombie,unit/man,image/unit/zombie
+target,unit/static,g_1x0
+human,unit/man,wear_0x0
+zombie,unit/man,wear_0x3
 worm,unit/worm,image/unit/worm
 slime,unit/slime,image/unit/slime
 rat,unit/rat,image/unit/rat

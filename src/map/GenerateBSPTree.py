@@ -9,6 +9,7 @@ class BSPTree(Generator):
         self.theme['1'] = 'Weed'
         self.theme['2'] = 'Dandelion'
         self.theme['3'] = 'Bush'
+        self.theme['4'] = 'Tree'
         self.background['Door'] = 'w'
         self.background['Lamp'] = '.'
         self.divide = 10
@@ -20,6 +21,8 @@ class BSPTree(Generator):
             for y in range(rect[1], rect[3] - 1):
                 for x in range(rect[0], rect[2] - 1):
                     self.str_map[y][x] = '*'
+            buildable = [rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1]
+            self.build_on_garden(buildable)
         for rect in estate:
             for y in range(rect[1] + 1, rect[3] - 1):
                 for x in range(rect[0] + 1, rect[2] - 1):
@@ -39,6 +42,8 @@ class BSPTree(Generator):
                         self.str_map[y][x] = '2'
                     elif rand == 3:
                         self.str_map[y][x] = '3'
+                    elif rand == 4:
+                        self.str_map[y][x] = '4'
                 if self.str_map[y][x] == 'X':
                     blocked = []
                     for i in Direction.coord.values():
@@ -51,6 +56,9 @@ class BSPTree(Generator):
                             rand = self.random.rand_int(1, 16)
                             if rand == 1:
                                 self.str_map[y][x] = 'W'
+
+    def build_on_garden(self, estate):
+        pass
 
     def build_on_estate(self, estate):
         for y in range(estate[1] + 1, estate[3] - 1):

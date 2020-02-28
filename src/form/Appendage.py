@@ -1,5 +1,6 @@
 from src.entity.Space import Space
 from src.game import Global
+from src.game.Camera import Camera
 
 
 class Limb:
@@ -41,16 +42,16 @@ class Appendage(Limb):
         if self.flip_y:
             self.form.image.anchor_y = 2
         else:
-            self.form.image.anchor_y = self.form.height
+            self.form.image.anchor_y = self.form.height - 2
 
     def place(self, x, y):
         diff = self.lower_joint - self.upper_joint
         self.form.rotation = diff.get_atan() - 90
         if self.resize:
-            length = int(diff.distance() * 1.2)
+            length = int(diff.distance() * 1.1)
             if abs(length) > 2:
                 self.form.resize(y=length)
-        self.form.place(x + self.upper_joint.x, y + self.upper_joint.y)
+        self.form.place(x + self.upper_joint.x, y - self.upper_joint.y)
 
     def face(self, side, direction):
         self.form.face(x=side)

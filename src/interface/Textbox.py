@@ -25,7 +25,8 @@ class Textbox:
 
     def on_resize(self):
         self.text.width = Global.DISPLAY[0]
-        self.x = Global.CENTER[0]
+        self.x = -80
+        self.y = Global.CENTER[0] + 400
 
     def input(self, code):
         if code in Global.player.control.keymap:
@@ -53,8 +54,8 @@ class Textbox:
             self.add_batch()
         self.display = time
         self.document.text = arg
-        self.text.x = self.x - int(self.text.content_width / 2)
-        self.text.y = self.y
+        self.text.x = self.x - int(self.text.content_width / 2) + Global.OFFSET[0]
+        self.text.y = Global.DISPLAY[1] - self.y + Global.OFFSET[1]
 
     def update(self):
         if self.display > 0:

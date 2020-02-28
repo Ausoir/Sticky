@@ -1,4 +1,3 @@
-from src.tools.Dialog import Dialog
 from src.tools.Tag import Tag
 
 
@@ -19,8 +18,10 @@ class Attribute(Tag):
             self.host.collision_type = cols
         if 'ob' in self.attributes:
             self.host.obstruct_type = self.attributes['ob']
-        if 'piv' in self.attributes:
-            self.host.form.image.anchor_y = self.host.form.image.height - self.attributes['piv']
+        if 'pivx' in self.attributes:
+            self.host.form.image.anchor_x = self.attributes['pivx']
+        if 'pivy' in self.attributes:
+            self.host.form.image.anchor_y = self.host.form.image.height - self.attributes['pivy']
         if 'seed' in self.attributes:
             if self.attributes['seed'] == -1:
                 from src.game import Global
@@ -30,5 +31,5 @@ class Attribute(Tag):
         return self.get('p') and self.get('mat') in ['wood', 'flesh', 'fuel']
 
     def get_carry_over(self):
-        permanent = ['money', 'talent', 'seed', 'full']
+        permanent = ['money', 'seed', 'full']
         return (lambda keys: {x: self.attributes[x] for x in keys})(permanent)

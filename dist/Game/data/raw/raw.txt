@@ -1,5 +1,0 @@
-face,[[half_0x0,half_0x1,half_0x2],[half_1x0,half_1x1,half_1x2],[half_2x0,half_2x1,half_2x2],[half_3x0,half_3x1,half_3x2],[half_4x0,half_4x1,half_4x2],[half_5x0,half_5x1,half_5x2],[half_6x0,half_6x1,half_6x2],[half_7x0,half_7x1,half_7x2],[half_8x0,half_8x1,half_8x2],[half_9x0,half_9x1,half_9x2]]
-cue,[crystallized,tickling,warm,otherworldly,colorful,sweet smelling,pulsating,sparkling,humming,reflective,shimmering,shiny,rough,slippery,translucent,crackling,sticky,slimy,oily,foamy]
-color,[white,yellow,orange,red,magenta,purple,blue,cyan,green,dark green,brown,tan,light grey,medium grey,dark grey,black]
-unique skill,[strength,endurance,block,constitution,parry,vengeance,toughness,fury,cleave,frenzy,sunder,execute,hide,calculated hit,assassination,escape,trip,cantrip,ritual,blood ink]
-stacking skill,[[dodge,9],[guard,5],[might,9],[flurry,5],[stealth,9],[critical strike,5],[aura,2],[enchant,2],[summon,2],[memorize,3]]

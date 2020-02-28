@@ -28,10 +28,42 @@ class Scripter(Prop):
         super().add()
         self.script.run()
 
+    def bound(self, visible):
+        if not visible:
+            super().bound(False)
+        elif Global.player and Global.player.editor_mode:
+            super().bound(True)
+
+    def set_row(self, row):
+        self.form.z = 800
+
+    def trigger(self):
+        self.script.run()
+
     def run_make(self):
         from src.game.Script import Script
         if self.script.period == Script.MAKE:
             self.script.run_script()
+
+
+class Force(Prop):
+    def __init__(self, location):
+        super().__init__(location)
+        self.obstruct_type = 0
+        self.save = False
+
+    def add(self):
+        self.removed = 0
+        self.relocate(self.pos.x, self.pos.y, force=1)
+        return self
+
+    def remove(self):
+        self.removed = 1
+        del self
+
+    def relocate(self, x, y, force=0):
+        self.pos = self.location.get_tile(x, y, limit=True)
+        self.update_vec()
 
 
 class Door(Prop):
@@ -172,20 +204,28 @@ class Corpse(Prop):
     def set_form(self, arg):
         self.form_name = arg
 
+    def set_row(self, row):
+        if self.has_host:
+            self.form.set_row(row)
+        else:
+            super().set_row(row)
+
     def set(self, form):
         self.has_host = True
         self.form = form
-        self.add()
         dead = 'dead' + str(Global.r.rand_int(1, 2))
         self.form.randomize_clip(dead, 8)
         self.form.set_state(dead)
         self.form.set_state = self.invalid
+        self.show(True)
         return self
 
     def update(self):
         super().update()
         if self.has_host:
-            self.form.place(self.vec.x, self.vec.y)
+            from src.game.Camera import Camera
+            bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
+            self.form.place(bound_x, bound_y)
 
     def hit(self, damage, hitter=None):
         r = super().hit(damage, hitter)
@@ -196,20 +236,6 @@ class Corpse(Prop):
 
     def die(self):
         self.remove()
-
-
-class Explosive(Item):
-    def die(self):
-        if self.states.get('Burn'):
-            from src.entity.Stock import Stock
-            Stock.make('Flame', self.pos)
-            aoe = self.location.get_area(self.pos, 1, 1)
-            for tile in aoe:
-                Particle.make('explode', tile.get_center(), offset=4, glow=2)
-                for thing in tile.things:
-                    thing.states.add('Burn', 24)
-                    thing.hit(1)
-        super().die()
 
 
 class Manual(Item):
@@ -248,14 +274,15 @@ class Manual(Item):
             self.host.action.on_finish = self.learn
 
     def learn(self):
-        skill = self.skill.lower()
-        if skill not in self.host.skills:
-            if Global.player.is_bright() and Global.player.sleep(1):
-                Global.main.monologue.set(Dialog.get('monologue_learn', [self.skill]))
-                self.host.skills.append(skill)
-                self.die()
-        elif self.host == Global.player.character:
-            Global.main.monologue.set(Dialog.get('!monologue_learn', [self.skill]))
+        if self.host:
+            skill = self.skill.lower()
+            if skill not in self.host.skills:
+                if Global.player.is_bright() and Global.player.sleep(1):
+                    Global.main.monologue.set(Dialog.get('monologue_learn', [self.skill]))
+                    self.host.skills.append(skill)
+                    self.die()
+            elif self.host == Global.player.character:
+                Global.main.monologue.set(Dialog.get('!monologue_learn', [self.skill]))
 
 
 class Glasses(Headgear):
@@ -271,17 +298,28 @@ class Glasses(Headgear):
         self.sight = arg[index]
         return index + 1
 
+    def describe(self):
+        r = super().describe()
+        r += '\n' + Dialog.get('sight_range', [self.sight])
+        sight_type = []
+        for i in self.collision_type:
+            sight_type.append(Tile.get_collision_by_name(i))
+        r += '\n' + Dialog.get('sight_type', [', '.join(sight_type)])
+        return r
+
     def activate(self):
         super().activate()
         if self.host == Global.player.character:
             def done():
                 self.host.center_camera()
-            channel = self.host.states.add('Channel', 12)
-            channel.on_finish = done
-            new_pos = self.location.collide_land(self.host.pos, self.host.next_target.x, self.host.next_target.y,
-                                                   distance=self.sight, flag=Tile.CHECK_FIRM)
+            self.host.action.act('rest', 16)
+            self.host.action.on_finish = done
+            from src.tools import Direction
+            coord = Direction.coord[self.host.direction]
+            target = self.host.pos + [coord[0] * self.sight, coord[1] * self.sight]
+            pos = self.host.location.collide_land(self.host.pos, target, distance=self.sight, flag=self.collision_type)
             from src.game.TempObject import TempObject
-            viewer = TempObject(new_pos)
+            viewer = TempObject(pos)
             from src.game.Camera import Camera
             Camera.target = viewer
 
@@ -307,39 +345,16 @@ class SafetyHat(Headgear):
 
     def activate(self):
         super().activate()
-        light = self.host.states.get('Glow')
+        light = self.states.get('Glow')
         if light:
             light.end()
         else:
-            self.host.states.add('Glow', -1, var=self.light)
+            self.states.add('Glow', -1, var=self.light)
 
 
-class Tazer(Weapon):
-    def __init__(self, location):
-        super().__init__(location)
-        self.charge = 0
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.charge)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.charge = arg[index]
-        return index + 1
-
-    def describe(self):
-        return super().describe() + '\nCurrent charge: ' + str(self.charge)
-
-    def on_sleep(self, time):
-        self.charge = 100
-
-    def on_attack(self, target):
-        super().on_attack(target)
-        if self.charge >= 100:
-            target.states.add('Effect', 60, var='zap')
-            self.charge = 0
-        else:
-            self.charge = self.charge + 50
+class Break(Prop):
+    def set_row(self, row):
+        self.form.z = 90
 
 
 class Pickaxe(Weapon):
@@ -348,46 +363,42 @@ class Pickaxe(Weapon):
         self.host.action.on_finish = self.destroy
 
     def destroy(self):
-        self.host.action.act('rest', 8)
         tile = self.host.get_front_tile(self.host.direction, mag=1)
         if tile and tile.terrain != '.':
+            self.location.sound.register(self.pos, 16, file='critical')
             if tile.things:
                 for thing in tile.things:
                     if thing.name == 'Break':
                         thing.remove()
                         tile.set_terrain('.')
+                        return
             else:
                 from src.entity.Stock import Stock
+                self.host.action.act('rest', 8)
                 Stock.make('Break', tile)
 
 
 class Mine(Prop):
     def __init__(self, location):
         super().__init__(location)
-        self.area = 4
-        self.damage = 12
+        self.spell = None
 
     def __str__(self):
-        return super().__str__() + ',' + str(self.area) + ',' + str(self.damage)
+        return super().__str__() + ',' + str(self.spell)
 
     def load(self, arg):
         index = super().load(arg)
-        self.area = arg[index]
-        index += 1
-        self.damage = arg[index]
+        self.spell = arg[index]
         return index + 1
 
     def turn(self):
         super().turn()
-        if self.pos.is_land([Tile.COLLIDE_UNIT]):
-            from src.entity.unit.Actions import Actions
-            for tile in self.location.get_area(self.pos, self.area, self.area):
-                for thing in tile.things.copy():
-                    Actions.knockdown(thing)
-                    thing.states.add('Burn', 12)
-                    thing.hit(self.damage)
-                Particle.make('explode', tile.get_center())
-            self.remove()
+        for thing in self.pos.things:
+            if thing != self and not isinstance(thing, Particle) and thing.tags.get('fly') != 1:
+                from src.entity.unit.item.Spell import Spell
+                Spell.perform(thing, self.spell)
+                self.remove()
+                return
 
 
 class Phantom(Unit):
@@ -414,3 +425,21 @@ class Phantom(Unit):
             self.strength = self.host.damage
         self.tags.set('p', self.host.tags.get('p'))
         self.host.loot = []
+
+
+class Ghost(Unit):
+    def __init__(self, location):
+        super().__init__(location)
+        self.obstruct_type = Tile.COLLIDE_ITEM
+        self.collision_type = [Tile.COLLIDE_UNIT, Tile.COLLIDE_MAGIC]
+
+    def move_toward(self, direction, distance=1, flag=None):
+        pos = super().move_toward(direction, distance, flag)
+        if self == Global.player.character:
+            for i in self.pos.things:
+                if i != self and isinstance(i, Unit) and i.pilot.priority > 3:
+                    Global.player.character.remove()
+                    Global.player.set_player(i)
+                    i.center_camera()
+                    break
+        return pos

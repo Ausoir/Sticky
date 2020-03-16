@@ -1,7 +1,6 @@
 from src.entity.Particle import Particle
 from src.entity.Prop import Prop
 from src.entity.unit.Unit import Unit
-from src.entity.unit.item.Headgear import Headgear
 from src.entity.unit.item.Item import Item
 from src.entity.unit.item.Weapon import Weapon
 from src.game import Global
@@ -28,17 +27,11 @@ class Scripter(Prop):
         super().add()
         self.script.run()
 
-    def bound(self, visible):
-        if not visible:
-            super().bound(False)
-        elif Global.player and Global.player.editor_mode:
-            super().bound(True)
-
     def set_row(self, row):
         self.form.z = 800
 
     def trigger(self):
-        self.script.run()
+        self.script.run_script()
 
     def run_make(self):
         from src.game.Script import Script
@@ -64,6 +57,13 @@ class Force(Prop):
     def relocate(self, x, y, force=0):
         self.pos = self.location.get_tile(x, y, limit=True)
         self.update_vec()
+
+
+class Landscape(Prop):
+    def describe(self):
+        r = super().describe()
+        r += '\n' + Dialog.get('landscape', [self.pos.get_speed()])
+        return r
 
 
 class Door(Prop):
@@ -124,7 +124,7 @@ class Credit(Item):
 
     def use(self):
         self.host.action.act('grab', 8)
-        self.host.var[self.var] += self.amount
+        self.host.tags.increment(self.var, self.amount, add=True)
         self.die()
 
 
@@ -154,7 +154,15 @@ class Food(Item):
 
     def describe(self):
         r = super().describe()
-        r += '\n' + Dialog.get('Nutrition') + ': ' + str(self.nutrition[1])
+        r += '\n' + Dialog.get('nutrition') + ': '
+        if self.nutrition[1] >= 15:
+            r += Dialog.get('great')
+        elif self.nutrition[1] >= 10:
+            r += Dialog.get('good')
+        elif self.nutrition[1] >= 5:
+            r += Dialog.get('basic')
+        elif self.nutrition[1] > 0:
+            r += Dialog.get('poor')
         expire = self.get_expiration()
         if expire:
             r += '\n' + Dialog.get('food_expire', [Dialog.day(expire)])
@@ -168,8 +176,8 @@ class Food(Item):
 
     def use(self):
         if self.get_expiration():
-            hunger = self.host.tags.get('full')
-            if hunger < 10:
+            hunger = self.host.tags.get('hunger', 0)
+            if hunger > self.nutrition[0]:
                 self.host.action.act('eat', 8)
                 self.host.action.on_finish = self.eat
             else:
@@ -181,8 +189,10 @@ class Food(Item):
     def eat(self):
         for i in self.states.buffs:
             self.host.states.add(i.name, i.duration, i.var)
-        self.host.tags.increment('full', self.nutrition[1] + self.host.get_skill('asceticism', stacks=True))
+        nutrition = -(self.nutrition[1] + self.host.get_skill('asceticism', stacks=True))
+        self.host.tags.increment('hunger', nutrition)
         self.decay(1)
+        return nutrition
 
 
 class Corpse(Prop):
@@ -251,10 +261,10 @@ class Manual(Item):
         self.skill = arg[index]
         if not self.skill:
             if Global.r.rand_bool():
-                data = Data.get_line('raw/raw.txt', 'stacking skill')[1]
+                data = Data.get_line('raw.txt', 'stacking skill')[1]
                 data = [x[0] for x in data]
             else:
-                data = Data.get_line('raw/raw.txt', 'unique skill')[1]
+                data = Data.get_line('raw.txt', 'unique skill')[1]
             self.skill = Global.r.rand_list(data)
         return index + 1
 
@@ -263,7 +273,7 @@ class Manual(Item):
 
     def describe(self):
         r = super().describe() + '\n' + Dialog.get('manual_skill', [self.skill.title()])
-        data = Data.get_line('raw/descriptions.txt', 'sk.' + self.skill)
+        data = Data.get_line('descriptions.txt', 'sk.' + self.skill)
         if data:
             r += '\n' + data[1]
         return r
@@ -285,78 +295,6 @@ class Manual(Item):
                 Global.main.monologue.set(Dialog.get('!monologue_learn', [self.skill]))
 
 
-class Glasses(Headgear):
-    def __init__(self, location):
-        super().__init__(location)
-        self.sight = 4
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.sight)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.sight = arg[index]
-        return index + 1
-
-    def describe(self):
-        r = super().describe()
-        r += '\n' + Dialog.get('sight_range', [self.sight])
-        sight_type = []
-        for i in self.collision_type:
-            sight_type.append(Tile.get_collision_by_name(i))
-        r += '\n' + Dialog.get('sight_type', [', '.join(sight_type)])
-        return r
-
-    def activate(self):
-        super().activate()
-        if self.host == Global.player.character:
-            def done():
-                self.host.center_camera()
-            self.host.action.act('rest', 16)
-            self.host.action.on_finish = done
-            from src.tools import Direction
-            coord = Direction.coord[self.host.direction]
-            target = self.host.pos + [coord[0] * self.sight, coord[1] * self.sight]
-            pos = self.host.location.collide_land(self.host.pos, target, distance=self.sight, flag=self.collision_type)
-            from src.game.TempObject import TempObject
-            viewer = TempObject(pos)
-            from src.game.Camera import Camera
-            Camera.target = viewer
-
-
-class SafetyHat(Headgear):
-    def __init__(self, location):
-        super().__init__(location)
-        self.light = 6
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.light)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.light = arg[index]
-        return index + 1
-
-    def on_unwield(self):
-        light = self.host.states.get('Glow')
-        if light:
-            light.end()
-        super().on_unwield()
-
-    def activate(self):
-        super().activate()
-        light = self.states.get('Glow')
-        if light:
-            light.end()
-        else:
-            self.states.add('Glow', -1, var=self.light)
-
-
-class Break(Prop):
-    def set_row(self, row):
-        self.form.z = 90
-
-
 class Pickaxe(Weapon):
     def use(self):
         self.host.action.attack()
@@ -366,6 +304,26 @@ class Pickaxe(Weapon):
         tile = self.host.get_front_tile(self.host.direction, mag=1)
         if tile and tile.terrain != '.':
             self.location.sound.register(self.pos, 16, file='critical')
+            if tile.things:
+                for thing in tile.things:
+                    if thing.name == 'Break':
+                        thing.remove()
+                        tile.set_terrain('.')
+                        return
+            else:
+                from src.entity.Stock import Stock
+                self.host.action.act('rest', 8)
+                Stock.make('Break', tile)
+
+
+class Bottle(Weapon):
+    def use(self):
+        self.host.action.attack()
+        self.host.action.on_finish = self.fill_water
+
+    def fill_water(self):
+        tile = self.host.get_front_tile(self.host.direction, mag=1)
+        if tile:
             if tile.things:
                 for thing in tile.things:
                     if thing.name == 'Break':
@@ -432,6 +390,9 @@ class Ghost(Unit):
         super().__init__(location)
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.collision_type = [Tile.COLLIDE_UNIT, Tile.COLLIDE_MAGIC]
+
+    def use(self):
+        pass
 
     def move_toward(self, direction, distance=1, flag=None):
         pos = super().move_toward(direction, distance, flag)

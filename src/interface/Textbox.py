@@ -11,7 +11,7 @@ class Textbox:
         self.y = y
         self.display = 0
         self.document = FormattedDocument(' ')
-        properties = dict(font_name='Default Font', font_size=16, bold=True, color=(70, 70, 70, 240))
+        properties = dict(font_name='Ubuntu', font_size=16, bold=True, color=(70, 70, 70, 240))
         self.document.set_style(0, 1, properties)
         self.text = TextLayout(self.document, 120, 120, multiline=True, wrap_lines=True, group=Global.draw_group.group_gui)
 
@@ -28,28 +28,7 @@ class Textbox:
         self.x = -80
         self.y = Global.CENTER[0] + 400
 
-    def input(self, code):
-        if code in Global.player.control.keymap:
-            if Global.player.control.keymap[code] == 'text':
-                self.display = 100
-                self.document.set_style(0, 1, {'color': (200, 230, 200)})
-                Global.main.text_mode = False
-                Global.player.control.player.input('command', (0, 0))
-                return
-            elif Global.player.control.keymap[code] == 'quit':
-                self.document.text = ''
-                Global.main.text_mode = False
-                return
-        self.display = -1
-        self.document.set_style(0, 1, {'color': (220, 220, 220)})
-        if code == pyglet.window.key.BACKSPACE:
-            self.document.text = self.document.text[:-1]
-        elif code == pyglet.window.key.SPACE:
-            self.document.text += ' '
-        else:
-            self.document.text += pyglet.window.key.symbol_string(code)
-
-    def set(self, arg, time=200):
+    def set(self, arg, time=120):
         if self.display <= 0:
             self.add_batch()
         self.display = time

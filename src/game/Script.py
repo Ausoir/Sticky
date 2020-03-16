@@ -1,4 +1,3 @@
-from src.entity.Other import Scripter
 from src.entity.Particle import Particle
 from src.game import Global
 from src.tools.Data import Data
@@ -8,9 +7,8 @@ from src.tools.Dialog import Dialog
 class Script:
     NONE = 0
     ONCE = 1
-    MANUAL = 2
+    MAKE = 2
     TURN = 3
-    MAKE = 4
 
     @staticmethod
     def execute_string(arg, host=None, var=None):
@@ -21,7 +19,7 @@ class Script:
 
     @staticmethod
     def execute_line(arg, host=None, var=None):
-        data = Data.get_line('raw/script.txt', arg.lower())
+        data = Data.get_line('script.txt', arg.lower())
         if data:
             Script.execute_string(data[1:], host, var)
             return True
@@ -34,7 +32,7 @@ class Script:
                 return True
             elif arg.startswith('#'):
                 from src.game.ScriptManual import ScriptManual
-                ScriptManual.execute(arg[1:], host)
+                ScriptManual.execute(arg[1:], host, var)
                 return True
             return Script.execute_line(arg, host, var)
 
@@ -71,8 +69,6 @@ class Script:
         if self.period == Script.ONCE:
             self.run_script()
             self.period = Script.NONE
-        elif self.period == Script.MANUAL:
-            self.run_script()
         elif self.period == Script.TURN:
             from src.game.Turn import Turn
             Turn.add(self.turn)
@@ -104,7 +100,7 @@ class Script:
             elif arg[1] == 'where':
                 self.var = [self.host.pos.x, self.host.pos.y]
             elif arg[1] == 'raw':
-                self.var = Data.get_line('raw/' + arg[2] + '.txt', arg[3].lower())
+                self.var = Data.get_line(arg[2] + '.txt', arg[3].lower())
             elif arg[1] == 'array':
                 self.var = arg[2][arg[3]]
             elif arg[1] == 'player':
@@ -186,7 +182,7 @@ class Script:
         elif condition[0] == 'equal':
             if self.var == condition[1]:
                 return True
-        elif condition[0] == 'geq':
+        elif condition[0] == 'greater':
             if self.var > condition[1]:
                 return True
         elif condition[0] == 'date':
@@ -228,12 +224,8 @@ class Script:
                 Script.execute_line(arg[1], arg[2])
             else:
                 Script.execute_line(arg[1])
-        elif arg[0] == 'trigger':
-            for i in self.var:
-                if isinstance(i, Scripter):
-                    i.script.run()
         elif arg[0] == 'save':
-            Data.write('raw/' + arg[1] + '.txt', arg[2])
+            Data.write('data/raw/' + arg[1] + '.txt', arg[2])
         elif arg[0] == 'spawn':
             from src.entity.Stock import Stock
             Stock.make(arg[1], self.host.pos)
@@ -244,7 +236,7 @@ class Script:
         elif arg[0] == 'message':
             Global.menu.get_message(arg[1])(None)
         elif arg[0] == 'dialog':
-            Global.menu.topic(arg[1])
+            Global.menu.topic(arg[1:])
         elif arg[0] == 'say':
             Global.main.monologue.set(arg[1])
         elif arg[0] == 'removeat':
@@ -286,36 +278,40 @@ class Script:
             Global.player.set_darkness()
         elif arg[0] == 'time':
             Global.player.days = arg[1]
-            Global.player.set_darkness()
+            Global.map_view.overlay.blackout()
+            Global.player.sleep(0)
         elif arg[0] == 'enter':
-            from src.entity.Space import Space
-            Global.player.travel(arg[1], Space(int(arg[2]), int(arg[3])))
+            if len(arg) == 2:
+                Global.player.travel(arg[1])
+            else:
+                Global.player.travel(arg[1], arg[2], arg[3])
         elif arg[0] == 'menu':
             Global.menu.var = self.var
             Global.menu.direct(getattr(Global.menu, 'menu_' + arg[1].lower()))
+        elif arg[0] == 'script':
+            from src.game.ScriptManual import ScriptManual
+            ScriptManual.execute(arg[1], self.host, self.var)
         elif arg[0] == 'flip':
             Global.land.flip(arg[1], arg[2])
         elif arg[0] == 'rotate':
             Global.land.rotate()
             Global.map_view.on_sight_change()
         elif arg[0] == 'load':
-            building = Data.process_raw(Data.read('map/' + arg[2] + '.map'))
+            building = Data.process_raw(Data.read(arg[2] + '.map'))
             from src.map.Location import Location
-            location = Location(arg[1], building)
+            location = Location(arg[1], building, make=True)
             location.save()
         elif arg[0] == 'merge':
-            building = Data.process_raw(Data.read('../save/' + arg[1] + '.map'))
+            building = Data.process_raw(Data.read(arg[2] + '.map'))
             from src.map.Location import Location
-            location = Location(arg[1], building)
-            building = Data.process_raw(Data.read('../save/' + arg[2] + '.map'))
-            location.load_map(building, offset=[arg[3], arg[4]])
+            location = Location(arg[1], building, make=True)
+            building = Data.process_raw(Data.read(arg[3] + '.map'))
+            location.load(building, offset=[arg[4], arg[5]], make=True)
             location.save()
         elif arg[0] == 'generate':
             from src.map.Generator import Generator
-            seed = 0
-            if len(arg) > 5:
-                seed = arg[5]
-            location = Generator.generate(arg[1], arg[2], arg[3], arg[4], seed)
+            generator = Generator.get(arg[2])(arg[3], arg[4])
+            location = generator.run(arg[1])
             location.save()
         elif arg[0] == 'unwield':
             Global.player.character.weapon.remove()

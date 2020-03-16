@@ -3,8 +3,8 @@ from src.tools import Direction
 
 
 class Tunneler(Generator):
-    def __init__(self, x, y, seed=0):
-        super().__init__(x, y, seed=seed)
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
         self.theme = {'.': 'w', 'o': '.', 'X': 'B', 'D': 'Door', 'W': 'Window'}
         self.activity_threshold = int(x * y * .1)
         self.tunneler = None
@@ -17,14 +17,14 @@ class Tunneler(Generator):
 
     def color(self):
         nodes = []
-        self.fill(nodes, 1, 1)
+        self.fill_connect(nodes, 1, 1)
         for i in nodes:
             coords = i.split(',')
             x = int(coords[0])
             y = int(coords[1])
             self.str_map[y][x] = '*'
 
-    def fill(self, nodes, pos_x, pos_y):
+    def fill_connect(self, nodes, pos_x, pos_y):
         for i in Direction.coord.values():
             x = pos_x + i[0]
             y = pos_y + i[1]
@@ -32,7 +32,7 @@ class Tunneler(Generator):
                 key = str(x) + ',' + str(y)
                 if key not in nodes and self.str_map[y][x] not in Generator.BLOCKED:
                     nodes.append(key)
-                    self.fill(nodes, x, y)
+                    self.fill_connect(nodes, x, y)
 
     def run(self):
         self.build_structure()

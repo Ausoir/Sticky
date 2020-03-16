@@ -12,10 +12,6 @@ class Turn:
         Turn.fast_queue = []
         Turn.frame = 0
         Turn.queue_turn = 0
-        from src.game import Global
-        Turn.add(Global.menu.turn)
-        Turn.add(Global.map_view.turn)
-        Turn.add(Global.map_view.update_region)
 
     @staticmethod
     def update():

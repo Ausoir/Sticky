@@ -1,4 +1,4 @@
-from src.entity.Space import Space
+from src.tools.Space import Space
 from src.game import Global
 from src.game.Camera import Camera
 from src.game.Turn import Turn
@@ -9,8 +9,8 @@ from src.tools.List import List
 class Tile(Space):
     CHECK_NONE = []
     CHECK_ANY = [1, 2, 3, 4, 5, 6, 7]
-    CHECK_SOLID = [1, 2, 3, 5]
-    CHECK_FIRM = [1, 2, 5]
+    CHECK_SOLID = [1, 2, 3, 5, 7]
+    CHECK_FIRM = [1, 2, 5, 7]
     CHECK_SIGHT = [1, 2, 6]
     COLLIDE_TERRAIN = 1
     COLLIDE_OBJECT = 2
@@ -20,6 +20,14 @@ class Tile(Space):
     COLLIDE_FOG = 6
     COLLIDE_MAGIC = 7
     DICTIONARY = None
+    frame = 0
+
+    @staticmethod
+    def turn():
+        if Tile.frame < 5:
+            Tile.frame += 1
+        else:
+            Tile.frame = 0
 
     def __init__(self, location, terrain, x, y):
         super().__init__(x, y)
@@ -29,12 +37,12 @@ class Tile(Space):
         if data:
             self.name = data[0]
             self.image = data[1]
-            self.type = data[2]
+            self.speed = data[2]
             self.extend = data[3]
         else:
             self.name = 'None'
             self.image = 'g_0x0'
-            self.type = -10
+            self.speed = 0
             self.extend = 0
         self.direction = 0
         self.sub_image = None
@@ -62,9 +70,10 @@ class Tile(Space):
             return 'Magic'
 
     @staticmethod
-    def init(arg):
+    def init(turn, data):
         from src.tools.Dialog import Dialog
-        Tile.DICTIONARY = Dialog.to_dict(arg)
+        Tile.DICTIONARY = Dialog.to_dict(data)
+        turn.add(Tile.turn)
 
     def set_terrain(self, terrain):
         data = Tile.DICTIONARY.get(terrain)
@@ -72,30 +81,33 @@ class Tile(Space):
             self.terrain = terrain
             self.name = data[0]
             self.image = data[1]
-            self.type = data[2]
+            self.speed = data[2]
             self.extend = data[3]
             self.direction = 0
-            if self.extend:
-                self.sub_image = '0'
+            if self.extend != 0:
+                self.sub_image = 0
             return True
 
     def get_image(self):
-        if self.extend:
-            return self.image + self.sub_image
+        if self.extend != 0:
+            if self.extend == -1:
+                return self.image + str(Tile.frame)
+            else:
+                return self.image[self.sub_image]
         return self.image
 
     def get_depth(self):
         if self.terrain:
-            if self.type == -10:
+            if self.speed == -10:
                 return 2
             return 1
         return 0
 
     def update_shader(self):
-        if self.type == -10:
+        if self.speed == -10:
             for k, neighbors in Direction.coord.items():
                 tile = self.get_neighbor(neighbors[0], neighbors[1])
-                if tile and tile.type > -10:
+                if tile and tile.speed != -10:
                     self.joint_neighbors[k - 1] = 1
                 else:
                     self.joint_neighbors[k - 1] = 0
@@ -156,72 +168,77 @@ class Tile(Space):
         return self.get_vec() + (Global.HALF_BLOCK, Global.BLOCK)
 
     def is_land(self, check):
-        if self.type == -11:
+        if self.speed == -10 and Tile.COLLIDE_TERRAIN in check:
             return 1
-        elif self.type == -10 and Tile.COLLIDE_TERRAIN in check:
+        elif self.speed == -11 and Tile.COLLIDE_WINDOW in check:
             return 1
-        elif self.type == 3 and Tile.COLLIDE_FOG in check:
+        elif self.speed == -12 and Tile.COLLIDE_FOG in check:
             return 1
         for i in self.things:
             if i.obstruct_type in check:
                 return 1
         return 0
 
-    def to_space(self):
-        return Space(self)
+    def get_speed(self):
+        total = self.speed
+        for i in self.things:
+            move = i.tags.get('mvspd')
+            if move:
+                total += move
+        return total
 
     def connect(self):
-        if self.extend:
+        if self.extend != 0:
             grid = []
             for coord in Direction.coord.values():
                 tile = self.get_neighbor(coord[0], coord[1])
-                grid.append(tile is not None and tile.terrain == self.terrain)
+                grid.append(tile is None or tile.extend == self.extend)
             if grid == [True, True, True, True]:
-                self.sub_image = '5'
+                self.sub_image = 5
             elif grid == [False, False, False, False]:
-                self.sub_image = '0'
+                self.sub_image = 0
             elif grid == [False, True, True, True]:
                 self.direction = 1
-                self.sub_image = '4'
+                self.sub_image = 4
             elif grid == [True, False, True, True]:
                 self.direction = 2
-                self.sub_image = '4'
+                self.sub_image = 4
             elif grid == [True, True, False, True]:
                 self.direction = 3
-                self.sub_image = '4'
+                self.sub_image = 4
             elif grid == [True, True, True, False]:
                 self.direction = 4
-                self.sub_image = '4'
+                self.sub_image = 4
             elif grid == [True, False, True, False]:
                 self.direction = 1
-                self.sub_image = '3'
+                self.sub_image = 3
             elif grid == [False, True, False, True]:
                 self.direction = 2
-                self.sub_image = '3'
+                self.sub_image = 3
             elif grid == [True, False, False, True]:
                 self.direction = 1
-                self.sub_image = '2'
+                self.sub_image = 2
             elif grid == [True, True, False, False]:
                 self.direction = 2
-                self.sub_image = '2'
+                self.sub_image = 2
             elif grid == [False, True, True, False]:
                 self.direction = 3
-                self.sub_image = '2'
+                self.sub_image = 2
             elif grid == [False, False, True, True]:
                 self.direction = 4
-                self.sub_image = '2'
+                self.sub_image = 2
             elif grid == [True, False, False, False]:
                 self.direction = 1
-                self.sub_image = '1'
+                self.sub_image = 1
             elif grid == [False, True, False, False]:
                 self.direction = 2
-                self.sub_image = '1'
+                self.sub_image = 1
             elif grid == [False, False, True, False]:
                 self.direction = 3
-                self.sub_image = '1'
+                self.sub_image = 1
             elif grid == [False, False, False, True]:
                 self.direction = 4
-                self.sub_image = '1'
+                self.sub_image = 1
             else:
                 print(str(grid) + ' error')
                 assert False

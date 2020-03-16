@@ -33,3 +33,15 @@ class Attribute(Tag):
     def get_carry_over(self):
         permanent = ['money', 'seed', 'full']
         return (lambda keys: {x: self.attributes[x] for x in keys})(permanent)
+
+    def get_material_defense(self):
+        material = self.get('mat')
+        if material == 'solid':
+            return 1
+        elif material == 'wood':
+            return 3
+        elif material == 'metal':
+            return 7
+        elif material == 'unnatural':
+            return 20
+        return 0

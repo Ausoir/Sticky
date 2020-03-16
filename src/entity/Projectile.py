@@ -1,5 +1,5 @@
 from src.entity.Prop import Prop
-from src.entity.Space import Space
+from src.tools.Space import Space
 from src.game import Global
 from src.map.Tile import Tile
 from src.tools.Math import Math

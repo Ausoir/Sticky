@@ -1,5 +1,6 @@
 from src.entity.Attribute import Attribute
 from src.entity.Object import Object
+from src.game.Turn import Turn
 
 
 class Prop(Object):
@@ -22,37 +23,41 @@ class Prop(Object):
 
     def add(self):
         r = super().add()
-        self.update_tags()
-        self.states.on_load()
-        return r
+        if r:
+            Turn.add(self.turn)
+            self.update_tags()
+            self.states.on_load()
+            return r
+
+    def remove(self):
+        Turn.remove(self.turn)
+        super().remove()
 
     def update_tags(self):
         self.tags.update()
 
     def turn(self):
-        super().turn()
         self.states.update()
 
     def die(self):
         from src.entity.Particle import Particle
         Particle.make('disintegrate', self.pos.get_center(), offset=0)
-        self.spawn_loot()
-        self.remove()
-
-    def spawn_loot(self):
-        loot = self.tags.get('loot')
+        loot = self.get_loot()
         if loot:
             from src.entity.Stock import Stock
-            from src.game import Global
+            Stock.make(loot, self.pos)
+        self.remove()
+
+    def get_loot(self):
+        loot = self.tags.get('loot')
+        if loot:
             if loot.startswith('#'):
-                from src.entity.Stock import Stock
+                seed = self.tags.get('seed', 0)
                 from src.tools.Data import Data
-                loot_table = Global.r.rand_list(Data.get_line('raw/raw.txt', loot[1:])[1])
-                Stock.make(loot_table, self.pos)
+                spawn_list = Data.get_line('raw.txt', loot[1:])[1]
+                return spawn_list[seed % len(spawn_list)]
             else:
-                lootc = self.tags.get('loot%')
-                if not lootc or Global.r.rand_int(1, 100) <= lootc:
-                    Stock.make(loot, self.pos)
+                return loot
 
     def decay(self, damage):
         hp = self.tags.get('p')
@@ -64,11 +69,7 @@ class Prop(Object):
         return 1
 
     def hit(self, damage, hitter=None):
-        material = self.tags.get('mat')
-        if material == 'wood':
-            damage = max(0, damage - 3)
-        elif material == 'metal':
-            damage = max(0, damage - 7)
+        damage = max(0, damage - self.tags.get_material_defense())
         if damage > 0:
             if hitter:
                 if isinstance(hitter, Prop):
@@ -90,7 +91,7 @@ class Prop(Object):
         r = self.name
         from src.tools.Data import Data
         from src.tools.Dialog import Dialog
-        data = Data.get_line('raw/descriptions.txt', r)
+        data = Data.get_line('descriptions.txt', r)
         if data:
             r += '\n' + data[1]
         hp = self.tags.get('p')

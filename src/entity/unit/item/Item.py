@@ -37,7 +37,7 @@ class Item(Prop):
         r = self.get_display_name()
         from src.tools.Data import Data
         from src.tools.Dialog import Dialog
-        data = Data.get_line('raw/descriptions.txt', r)
+        data = Data.get_line('descriptions.txt', r)
         if data:
             r += '\n' + data[1]
         hp = self.tags.get('p')
@@ -57,7 +57,7 @@ class Item(Prop):
         return self.tags.get('w', 1)
 
     def get_damage(self):
-        return 0, 1
+        return 0
 
     def on_attack(self, target):
         self.states.trigger(['attack', target])

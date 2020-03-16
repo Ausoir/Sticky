@@ -62,7 +62,6 @@ class MapView:
                 pic.bound(True)
                 row.append([x + pos_x, y + pos_y, pic])
                 shade = Shade()
-                shade.set_color(self.overlay.weather)
                 self.shadows.append(shade)
             self.draw_tiles.append(row)
 
@@ -77,15 +76,17 @@ class MapView:
     def update(self):
         self.draw_frame += 1
         index = 0
+        light_period2 = Turn.rounds * 5
+        light_period = Turn.rounds * 2
         for rows in self.draw_tiles:
             for cell in rows:
                 this_tile = Global.land.get_tile(cell[0], cell[1])
                 if this_tile:
                     this_tile.update_light()
                     if cell[2].visible:
-                        if this_tile.light > Turn.rounds * 5:
+                        if this_tile.light > light_period2:
                             self.shadows[index].set_color(self.overlay.fade)
-                        elif this_tile.light > Turn.rounds * 2:
+                        elif this_tile.light > light_period:
                             c = self.overlay.minimum[:3] + [int(self.overlay.minimum[3]/2)]
                             self.shadows[index].set_color(c)
                         else:
@@ -127,7 +128,7 @@ class MapView:
                 key = str(cell[0]) + ',' + str(cell[1])
                 tile = self.tiles.get(key)
                 if tile:
-                    if tile.type == -10:
+                    if tile.speed == -10:
                         self.shadows[index].shade_walls(tile.joint_neighbors)
                     else:
                         self.shadows[index].remove_shades()
@@ -141,7 +142,7 @@ class MapView:
                             thing.set_row(row)
                             self.objects.append(thing)
                 else:  # tile is out of bounds
-                    self.shadows[index].set_color(self.overlay.weather)
+                    self.shadows[index].set_color([0, 0, 0, 255])
                     self.shadows[index].remove_shades()
                     cell[2].show(False)
                 index += 1

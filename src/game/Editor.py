@@ -1,6 +1,5 @@
 import sys
 
-from src.entity.Space import Space
 from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Camera import Camera
@@ -10,11 +9,10 @@ from src.tools.Data import Data
 
 
 class Editor:
-    def __init__(self, control):
+    def __init__(self, player):
         self.backup = Turn.update
         Turn.update = self.update
-        control.set_keymap('editor_keymap.txt')
-        self.control = control
+        self.control = player.control
         self.visible = 1
         self.tool = ToolTerrain()
         self.display_text = Global.land.name
@@ -25,7 +23,7 @@ class Editor:
         self.prev_action = None
         self.prev_command = None
         self.selection = None
-        center = Stock.make('Force', Global.player.character.pos)
+        center = Stock.make('Force', player.character.pos)
         center.center_camera()
         Global.land.population.remove(center)
         Global.land.population.remove(Camera.target)
@@ -83,8 +81,11 @@ class Editor:
                 if objs:
                     self.tool = ToolObject('props')
                     obj = objs.pop()
-                    while objs and obj not in Global.land.population.get_all():
-                        obj = objs.pop()
+                    while obj not in Global.land.population.get_all():
+                        if objs:
+                            obj = objs.pop()
+                        else:
+                            return
                     self.display_text = obj.__str__()
                     self.tool.select(obj.name, data=Data.process_raw(self.display_text))
                 else:
@@ -157,8 +158,8 @@ class Editor:
         return 0
 
     def command(self):
-        self.prev_command = Global.main.monologue.label.text
-        params = Global.main.monologue.label.text.split(' ')
+        self.prev_command = Global.main.monologue.document.text
+        params = Global.main.monologue.document.text.split(' ')
         arg1 = ' '.join(params[1:])
         if params[0] == 'set':
             if isinstance(self.tool, ToolObject):
@@ -227,7 +228,7 @@ class Editor:
             r = Location(params[2], list(Data.process_raw(Data.read('data/map/' + params[1] + '.map'))))
             r.save()
             Global.player.switch()
-            Global.player.travel(params[2], Space())
+            Global.player.travel(params[2])
             Global.player.switch()
         elif params[0] == 'create':
             self.input('props')
@@ -244,8 +245,8 @@ class Editor:
             pos = params[1].split(',')
             Global.land.tiles = {}
             Global.land.record.clear()
-            map_data = list(Data.process_raw(Data.read('save/' + Global.land.name + '.map')))
-            Global.land.load_map(map_data, offset=(int(pos[0]), int(pos[1])))
+            map_data = list(Data.process_raw(Data.read('data/save/' + Global.land.name + '.map')))
+            Global.land.load(map_data, offset=(int(pos[0]), int(pos[1])))
         elif params[0] == 'moveobj':
             pos = params[1].split(',')
             for i in Global.land.record:
@@ -255,19 +256,18 @@ class Editor:
             new = Location(params[1], Data.process_raw('0,[0,0,0,1],field\n\n'))
             new.save()
             Global.player.switch()
-            Global.player.travel(params[1], Space())
+            Global.player.travel(params[1])
             Global.player.switch()
         elif params[0] == 'load':
             maps = Data.get_files('save', lambda x: x.endswith('.map'))
             if arg1 + '.map' in maps:
                 Global.player.switch()
-                Global.player.travel(arg1, Space())
+                Global.player.travel(arg1)
                 Global.player.switch()
-        elif params[0] == 'loadraw':
-            if Data.is_file('data/map/' + arg1 + '.map'):
-                Global.player.switch()
-                Global.player.travel('../data/map/' + arg1, Space())
-                Global.player.switch()
+        elif params[0] == 'script':
+            Global.player.switch()
+            from src.game.Script import Script
+            Script.execute_string(Data.process_raw('1,[],[' + params[1] + '],[]'))
         elif params[0] == 'save':
             self.tool.cancel()
             Global.land.name = arg1
@@ -323,7 +323,7 @@ class ToolObject:
         self.text = 'Door'
         self.selection = Stock.get(Global.land, 'Door').add()
         self.tile = Global.land.get_tile(0, 0)
-        self.object_list = list(Data.process_raw(Data.read('raw/' + object_type + '.txt')))
+        self.object_list = list(Data.process_raw(Data.read('data/raw/' + object_type + '.txt')))
         self.current = 0
         self.last_data = None
         self.last = None

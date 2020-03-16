@@ -1,0 +1,15 @@
+ESCAPE,#exit
+F11,fullscreen
+GRAVE,switch
+TAB,#menu
+LMB,click
+RMB,#examine
+A,left
+W,up
+D,right
+S,down
+LEFT,left2
+UP,up2
+RIGHT,right2
+DOWN,down2
+ENTER,#examine

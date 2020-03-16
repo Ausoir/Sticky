@@ -15,7 +15,7 @@ class Menu:
         self.last_input = None
         self.history = []
         self.history_var = []
-        self.var = []
+        self.var = None
         self.update = None
 
     def turn(self):
@@ -67,6 +67,7 @@ class Menu:
         self.sub_window.display(-1)
         self.window.display(-1)
         if self.visible == 1:
+            self.update = None
             self.window.flush()
             self.sub_window.flush()
             self.current_state = self.state
@@ -168,19 +169,22 @@ class Menu:
             self.sub_window.add(Menu.make(option[0], Script.execute_code, width=160, name=option[1]))
         self.sub_window.display(1)
 
-    def topic(self, name):
-        topic = Data.get_line('raw/menu.txt', name.lower())
+    def load(self, name):
+        topic = Data.get_line('menu.txt', name.lower())
         if topic:
-            self.var = topic[2]
-            if topic[1] == 1:
-                self.get_message(topic[2][0])(None)
-            elif topic[1] == 2:
-                def confirm(index):
-                    Script.execute_code(topic[2][2])
-                self.get_prompt(topic[2][0], topic[2][1], confirm)(None)
-            elif topic[1] == 3:
-                self.direct(self.menu_conversation)
-            elif topic[1] == 4:
-                self.direct(self.menu_choice)
-            elif topic[1] == 5:
-                self.direct(self.menu_many_choice)
+            self.topic(topic)
+
+    def topic(self, topic):
+        self.var = topic[2:]
+        if topic[1] == 1:
+            self.get_message(self.var[0])(None)
+        elif topic[1] == 2:
+            def confirm(index):
+                Script.execute_code(self.var[2])
+            self.get_prompt(self.var[0], self.var[1], confirm)(None)
+        elif topic[1] == 3:
+            self.direct(self.menu_conversation)
+        elif topic[1] == 4:
+            self.direct(self.menu_choice)
+        elif topic[1] == 5:
+            self.direct(self.menu_many_choice)

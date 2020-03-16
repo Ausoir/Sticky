@@ -1,3 +1,0 @@
-[]
-BBbBBB%bbbbbB%BbbBBB%BBbB**
-[#2,[0,1],Window,Prop,g_3x2,[p:1,ob:5,mat:fuel],[]],[#3,[2,0],Window,Prop,g_3x2,[p:1,ob:5,mat:fuel],[]],[#4,[3,1],Door,Door,g_1x2,[p:4,mat:wood,ob:6,morph:g_2x2,loot:Plank],[]],[#b,[4,1],Toilet,Prop,g_9x2,[p:4,ob:5,#:dispel],[]],[#c,[5,3],Lamp,Prop,g_6x2,[p:4,ob:5],[[Glow,-1,9]]],[#1,[2,3],Door,Door,g_1x2,[p:4,mat:wood,ob:6,morph:g_2x2,loot:Plank],[]],[#7,[1,1],Bed,Prop,g_2x3,[p:4,mat:wood,ob:5,#:rest],[]],[#3f,[1,2],Kitchen,Prop,g_7x3,[p:4,mat:wood,ob:5,#:cook,loot:Plank],[]],[#4b,[2,1],Spawn,Scripter,g_4x0,[ob:0],[],[4,[[=,?int,1,4],[equal,1]],[[=,raw,raw,loot],[=,array,*,1],[=,?list,*],[spawn,*],[removeself]],[[removeself]]]]

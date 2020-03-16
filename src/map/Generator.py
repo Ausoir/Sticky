@@ -5,28 +5,58 @@ class Generator:
     BLOCKED = ['D', 'S', 'X', 'W']
 
     @staticmethod
-    def generate(name, generator_type, x, y, seed=0):
-        if generator_type == 2:
-            from src.map.GenerateTunneler import Tunneler
-            location = Tunneler(x, y, seed)
-        elif generator_type == 3:
-            from src.map.GenerateBSPTree import BSPTree
-            location = BSPTree(x, y, seed)
-        elif generator_type == 4:
-            from src.map.GenerateTown import GenerateTown
-            location = GenerateTown(x, y, seed)
+    def generate_terrain(name, terrain):
+        rand = Random()
+        if terrain == 'woods':
+            gen = Generator.get(terrain)(rand.rand_int(20, 60), rand.rand_int(20, 60), random=rand)
+        elif terrain == 'grass':
+            gen = Generator.get('field')(40, 40, random=rand)
+        elif terrain == 'town':
+            gen = Generator.get(terrain)(rand.rand_int(40, 80), rand.rand_int(40, 80), random=rand)
         else:
-            from src.map.Location import Location
-            return Location(name, None)
-        return location.publish(name)
+            gen = Generator.get('field')(40, 40, random=rand)
+        r = gen.run(name)
+        r.tags.set('edge', 'travel', add=True)
+        return r
 
-    def __init__(self, x, y, seed=0):
-        self.random = Random(seed)
-        self.theme = {'X': 'B', 'D': 'Door', 'W': 'Window'}
+    @staticmethod
+    def get(generator):
+        if generator == 'town':
+            from src.map.GenerateBSPTree import GenerateTown
+            return GenerateTown
+        elif generator == 'woods':
+            from src.map.GeneratePerlin import GenerateWoods
+            return GenerateWoods
+        elif generator == 'field':
+            from src.map.GeneratePerlin import GenerateField
+            return GenerateField
+        elif generator == 'island':
+            from src.map.GeneratePerlin import GenerateIsland
+            return GenerateIsland
+        elif generator == 'warehouse':
+            from src.map.GenerateWarehouse import GenerateWarehouse
+            return GenerateWarehouse
+
+    @staticmethod
+    def make_map(x, y, arg=None):
+        r = []
+        for rows in range(y):
+            row = []
+            for col in range(x):
+                row.append(arg)
+            r.append(row)
+        return r
+
+    def __init__(self, x, y, random=None):
+        if random is None:
+            random = Random()
+        self.random = random
+        self.theme = {}
         self.background = {'!': '.'}
         self.width = x
         self.height = y
-        self.str_map = self.make_map(x, y)
+        self.str_map = Generator.make_map(x, y)
+        self.fill_rect('.', 0, 0, x, y)
 
     def __str__(self):
         r = []
@@ -72,21 +102,21 @@ class Generator:
                     location.tiles[self_y][self_x].set_terrain(terrain)
         return location
 
-    def run(self):
+    def run(self, name):
+        self.process()
+        r = self.to_location(name)
+        return self.post_process(r)
+
+    def process(self):
         pass
 
-    def publish(self, name):
-        self.run()
-        return self.to_location(name)
+    def post_process(self, location):
+        return location
 
-    def make_map(self, size_x, size_y):
-        r = []
-        for y in range(size_y):
-            row = []
-            for x in range(size_x):
-                row.append('.')
-            r.append(row)
-        return r
+    def fill_rect(self, terrain, x1, y1, x2, y2):
+        for y in range(y1, y2):
+            for x in range(x1, x2):
+                self.str_map[y][x] = terrain
 
     def flip(self, flip_x, flip_y):
         if flip_y:
@@ -99,11 +129,23 @@ class Generator:
 
     def place_mobs(self, location, mobs):
         from src.entity.Stock import Stock
-        from src.map.Tile import Tile
         for mob_data in mobs:
-            for i in range(mob_data[1]):
+            count = mob_data[1]
+            tries = mob_data[1] + 5
+            while count > 0 and tries > 0:
                 x = self.random.rand_int(1, len(location.tiles[0]) - 2)
                 y = self.random.rand_int(1, len(location.tiles) - 2)
                 tile = location.get_tile(x, y)
-                if not tile.is_land(Tile.CHECK_SOLID):
+                if tile.terrain == mob_data[2]:
                     Stock.make(mob_data[0], tile)
+                    count -= 1
+                else:
+                    tries -= 1
+
+    def outline(self, terrain):
+        for x in range(self.width):
+            self.str_map[0][x] = terrain
+            self.str_map[self.height - 1][x] = terrain
+        for y in range(self.height):
+            self.str_map[y][0] = terrain
+            self.str_map[y][self.width - 1] = terrain

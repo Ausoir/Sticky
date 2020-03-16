@@ -1,31 +1,31 @@
-Gravity,Focus,g_4x5,[p>:8,p:1],[],Potion,Gravity
-Dispel,Focus,g_4x5,[p>:1,p:1],[],Potion,Dispel
-Glow,Focus,g_4x5,[p>:1,p:1],[],Potion,Glow
-Scorch,Focus,image/wand,[p>:1,p:1,w:2],[],Wand,Scorch
-Summon Bread,Focus,g_4x5,[p>:1,p:1],[],Potion,Bread
-Slime Form,Focus,g_4x5,[p>:1,p:1],[],Potion,Slime
-Darkness,Focus,g_4x5,[p>:1,p:1],[],Potion,Darkness
-Scry,Focus,g_4x5,[p>:1,p:1],[],Potion,Scry
-Vision,Focus,g_4x5,[p>:1,p:1],[],Potion,Vision
-Passwall,Focus,g_4x5,[p>:1,p:1],[],Potion,Passwall
-Levitation,Focus,g_4x5,[p>:1,p:1],[],Potion,Levitation
-Haste,Focus,g_4x5,[p>:1,p:1],[],Potion,Haste
-Invisibility,Focus,g_4x5,[p>:1,p:1],[],Potion,Invisibility
-Barkskin,Focus,g_4x5,[p>:1,p:1],[],Potion,Barkskin
-Dog Form,Focus,g_4x5,[p>:1,p:1],[],Potion,Dog
-Human Form,Focus,g_4x5,[p>:1,p:1],[],Potion,Man
-Charm,Focus,g_4x5,[p>:1,p:1],[],Potion,Charm
-Banish,Focus,g_4x5,[p>:1,p:1],[],Potion,Banish
-Transience,Focus,g_4x5,[p>:1,p:1],[],Potion,Transience
-Stone Form,Focus,g_4x5,[p>:1,p:1],[],Potion,Stoneskin
-Disintegrate,Focus,g_4x5,[p>:1,p:1],[],Potion,Disintegrate
-Blizzard,Focus,g_4x5,[p>:1,p:1],[],Potion,Blizzard
-Spell Mine,Focus,g_4x5,[p>:1,p:1],[],Potion,Mine
-Summon Wall,Focus,g_4x5,[p>:1,p:1],[],Potion,Wall
-Raise Dead,Focus,g_4x5,[p>:1,p:1],[],Potion,Zombie
-Summon Weapon,Focus,g_4x5,[p>:1,p:1],[],Potion,Weapon
-Summon Armor,Focus,g_4x5,[p>:1,p:1],[],Potion,Armor
-Summon Phantom,Focus,g_4x5,[p>:1,p:1],[],Potion,Phantom
-Evacuate,Focus,g_4x5,[p>:1,p:1],[],Potion,Evacuate
-Banish,Focus,g_4x5,[p>:1,p:1],[],Potion,Banish
+Gravity,Focus,g_11x4,[p>:8,p:1],[],Potion,Gravity
+Dispel,Focus,g_11x4,[p>:1,p:1],[],Potion,Dispel
+Glow,Focus,g_11x4,[p>:1,p:1],[],Potion,Glow
+Scorch,Focus,wand,[p>:1,p:1,w:2],[],Wand,Scorch
+Summon Bread,Focus,g_11x4,[p>:1,p:1],[],Potion,Bread
+Slime Form,Focus,g_11x4,[p>:1,p:1],[],Potion,Slime
+Darkness,Focus,g_11x4,[p>:1,p:1],[],Potion,Darkness
+Scry,Focus,g_11x4,[p>:1,p:1],[],Potion,Scry
+Vision,Focus,g_11x4,[p>:1,p:1],[],Potion,Vision
+Passwall,Focus,g_11x4,[p>:1,p:1],[],Potion,Passwall
+Levitation,Focus,g_11x4,[p>:1,p:1],[],Potion,Levitation
+Haste,Focus,g_11x4,[p>:1,p:1],[],Potion,Haste
+Invisibility,Focus,g_11x4,[p>:1,p:1],[],Potion,Invisibility
+Barkskin,Focus,g_11x4,[p>:1,p:1],[],Potion,Barkskin
+Dog Form,Focus,g_11x4,[p>:1,p:1],[],Potion,Dog
+Human Form,Focus,g_11x4,[p>:1,p:1],[],Potion,Man
+Charm,Focus,g_11x4,[p>:1,p:1],[],Potion,Charm
+Banish,Focus,g_11x4,[p>:1,p:1],[],Potion,Banish
+Transience,Focus,g_11x4,[p>:1,p:1],[],Potion,Transience
+Stone Form,Focus,g_11x4,[p>:1,p:1],[],Potion,Stoneskin
+Disintegrate,Focus,g_11x4,[p>:1,p:1],[],Potion,Disintegrate
+Blizzard,Focus,g_11x4,[p>:1,p:1],[],Potion,Blizzard
+Spell Mine,Focus,g_11x4,[p>:1,p:1],[],Potion,Mine
+Summon Wall,Focus,g_11x4,[p>:1,p:1],[],Potion,Wall
+Raise Dead,Focus,g_11x4,[p>:1,p:1],[],Potion,Zombie
+Summon Weapon,Focus,g_11x4,[p>:1,p:1],[],Potion,Weapon
+Summon Armor,Focus,g_11x4,[p>:1,p:1],[],Potion,Armor
+Summon Phantom,Focus,g_11x4,[p>:1,p:1],[],Potion,Phantom
+Evacuate,Focus,g_11x4,[p>:1,p:1],[],Potion,Evacuate
+Banish,Focus,g_11x4,[p>:1,p:1],[],Potion,Banish
 Restoration,Focus,g_1x5,[p>:1,p:1],[],Scroll,Restoration

@@ -1,4 +1,4 @@
-from src.entity.Space import Space
+from src.tools.Space import Space
 from src.game.Camera import Camera
 
 

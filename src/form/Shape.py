@@ -64,6 +64,8 @@ class Shape:
         self.color = color1 + color2 + color3 + color4
 
     def collide(self, point_x, point_y):
-        if self.x <= point_x <= self.x + self.width:
-            if self.y <= point_y <= self.y + self.height:
+        left = Global.CENTER[0] + self.x
+        if left <= point_x <= left + self.width:
+            top = self.y - Global.CENTER[1]
+            if top <= point_y <= top + self.height:
                 return True

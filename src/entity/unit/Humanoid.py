@@ -12,6 +12,9 @@ class Humanoid(Unit):
         self.headgear = None
         self.weapon = None
         self.action.humanoid = True
+        from src.tools.Data import Data
+        self.shadow = Data.get_form('g_7x0')
+        self.shadow.bound(True)
 
     def __str__(self):
         armor = '['+self.armor.__str__()+']' if self.armor else '0'
@@ -65,12 +68,17 @@ class Humanoid(Unit):
         self.form_name = arg
         from src.tools.Data import Data
         from src.form.BodyHumanoid import BodyHumanoid
-        line = Data.get_line('raw/model.txt', arg)
+        line = Data.get_line('model.txt', arg)
         self.form = BodyHumanoid(line[1], self)
         self.form.set_model(line[2])
 
+    def set_row(self, row):
+        super().set_row(row)
+        self.shadow.z = row * 20 + 100
+
     def show(self, visible):
         super().show(visible)
+        self.shadow.show(visible)
         if self.weapon:
             self.weapon.show(visible)
         if self.headgear:
@@ -78,6 +86,7 @@ class Humanoid(Unit):
 
     def bound(self, visible):
         super().bound(visible)
+        self.shadow.bound(visible)
         if self.weapon:
             self.weapon.bound(visible)
         if self.headgear:
@@ -86,7 +95,9 @@ class Humanoid(Unit):
     def turn(self):
         super().turn()
         if self.weapon:
-            self.weapon.states.update()
+            self.weapon.turn()
+        if self.headgear:
+            self.headgear.turn()
 
     def use(self):
         from src.game.Script import Script
@@ -122,6 +133,7 @@ class Humanoid(Unit):
 
     def update(self):
         bound_x, bound_y = super().update()
+        self.shadow.place(bound_x, bound_y)
         if self.weapon:
             if self.direction == 2:
                 x = bound_x + self.form.organs[3].lower_joint.x
@@ -137,7 +149,7 @@ class Humanoid(Unit):
                 x = bound_x + self.form.organs[2].lower_joint.x
                 y = bound_y - self.form.organs[2].lower_joint.y
                 arm = (self.form.organs[2].lower_joint - self.form.organs[2].upper_joint).get_atan()
-                self.weapon.form.rotation = arm - 90
+                self.weapon.form.rotation = arm - 90 + (15 * self.form.side)
             self.weapon.form.place(x, y)
         if self.headgear:
             x = bound_x + self.form.organs[0].lower_joint.x
@@ -145,6 +157,7 @@ class Humanoid(Unit):
             neck = (self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
             self.headgear.form.rotation = neck + 90
             self.headgear.form.place(x, y)
+        return bound_x, bound_y
 
     def face(self, direction):
         if self.armor:
@@ -170,7 +183,7 @@ class Humanoid(Unit):
     def get_damage(self):
         max_d = super().get_damage()
         if self.weapon:
-            return max_d + self.weapon.damage
+            return max_d + self.weapon.get_damage()
         else:
             return max_d
 

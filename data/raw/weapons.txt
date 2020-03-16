@@ -1,28 +1,28 @@
-Bottle,Weapon,g_10x5,[p>:8,p:8,w:1],[],1 //Name, Class, Image, Tags, HP, State, Weight, Damage
-Parasol,Weapon,image/parasol,[p>:8,p:8,pivx:4,w:3],[],1
-Stick,Weapon,image/stick,[p>:8,p:8,mat:wood,pivx:8,spd:-1,w:4],[],1
-Club,Weapon,image/club,[p>:8,p:8,mat:wood,pivx:8,spd:-1,w:8],[],2
-Torch,Weapon,g_7x2,[p:8,mat:wood,pivx:12,loot:Plank,spd:-1,w:2],[[Glow,-1,6],[Effect,-1,fire],[Brand,-1,burn]],1
-Dagger,Weapon,image/dagger,[p>:8,p:8,mat:metal,pivx:4,sharp:1,spd:2,w:1],[],1
-Cleaver,Weapon,image/cleaver,[p>:8,p:8,mat:metal,pivx:6,pivy:2,sharp:1,w:2],[],2
-Saw,Weapon,image/saw,[p>:8,p:8,mat:metal,loot:Scrap,pivx:4,sharp:1,w:3],[],2
-Hammer,Weapon,image/hammer,[p>:8,p:8,mat:metal,spd:-1,w:4],[],3
-Pickaxe,Pickaxe,image/pickaxe,[p>:8,p:8,mat:metal,pivx:14,sharp:1,spd:-3,w:6],[],4
-Shortsword,Weapon,image/shortsword,[p>:8,p:8,mat:metal,pivx:6,sharp:1,w:4],[],3
-Rapier,Weapon,image/rapier,[p>:8,p:8,mat:metal,pivx:6,sharp:1,spd:1,w:4],[],3
-Katana,Weapon,image/katana,[p>:8,p:8,is,pivx:6,sharp:1,spd:1,w:2],[],3
-Scimitar,Weapon,image/scimitar,[p>:8,p:8,mat:metal,pivx:6,sharp:1,w:4],[],3
-Axe,Weapon,image/axe,[p>:8,p:8,mat:metal,pivx:14,sharp:1,spd:-3,w:5],[],4
-Falchion,Weapon,image/falchion,[p>:8,p:8,mat:metal,pivx:6,sharp:1,spd:-2,w:4],[],3
-Broadsword,Weapon,image/broadsword,[p>:8,p:8,mat:metal,pivx:6,sharp:1,w:4],[],6
-Longsword,Weapon,image/longsword,[p>:8,p:8,mat:metal,pivx:6,sharp:1,spd:-1,w:6],[],6
-Mace,Weapon,image/mace,[p>:8,p:8,mat:metal,pivx:12,spd:-1,w:5],[],6
-Warhammer,Weapon,image/warhammer,[p>:8,p:8,mat:metal,pivx:18,spd:-1,w:5],[],6
-Spiked Mace,Weapon,image/spiked mace,[p>:8,p:8,mat:metal,pivx:14,spd:-1,w:5],[],6
-Spear,Weapon,image/spear,[p>:8,p:8,mat:metal,pivx:24,w:4],[],3
-Trident,Weapon,image/trident,[p>:8,p:8,mat:metal,pivx:22,w:5],[],4
-Scythe,Weapon,image/scythe,[p>:8,p:8,mat:metal,pivx:24,pivy:7,spd:-7,w:7],[],8
-Glaive,Weapon,image/glaive,[p>:8,p:8,mat:metal,pivx:24,spd:-3,w:10],[],7
-Greatsword,Weapon,image/greatsword,[p>:8,p:8,mat:metal,pivx:6,spd:-5,w:12],[],15
-Lance,Weapon,image/lance,[p>:8,p:8,mat:metal,pivx:6,w:5],[],6
-Blue Baton,Weapon,image/bluestick,[p>:8,p:8,mat:metal,pivx:6,w:4],[[Brand,-1,shock]],1
+Bottle,Bottle,g_9x4,[p>:8,p:8],[],1 //Name, Class, Image, Tags, HP, State, Weight, Damage
+Parasol,Weapon,parasol,[p>:8,p:8,pivx:4,w:3],[],1
+Stick,Weapon,stick,[p>:8,p:8,mat:wood,pivx:8,spd:-1,w:4],[],1
+Club,Weapon,club,[p>:8,p:8,mat:wood,pivx:8,spd:-1,w:8],[],2
+Torch,Weapon,g_17x4,[p:8,mat:wood,pivx:12,loot:Plank,spd:-1,w:2],[[Glow,-1,6],[Effect,-1,fire],[Brand,-1,burn]],1
+Dagger,Weapon,dagger,[p>:8,p:8,mat:metal,pivx:4,sharp:1,spd:2,w:1],[],1
+Cleaver,Weapon,cleaver,[p>:8,p:8,mat:metal,pivx:6,pivy:2,sharp:1,w:2],[],2
+Saw,Weapon,saw,[p>:8,p:8,mat:metal,loot:Scrap,pivx:4,sharp:1,w:3],[],2
+Hammer,Weapon,hammer,[p>:8,p:8,mat:metal,spd:-1,w:4],[],3
+Pickaxe,Pickaxe,pickaxe,[p>:8,p:8,mat:metal,pivx:14,sharp:1,spd:-3,w:6],[],4
+Shortsword,Weapon,shortsword,[p>:8,p:8,mat:metal,pivx:6,sharp:1,w:4],[],3
+Rapier,Weapon,rapier,[p>:8,p:8,mat:metal,pivx:6,sharp:1,spd:1,w:4],[],3
+Katana,Weapon,katana,[p>:8,p:8,is,pivx:6,sharp:1,spd:1,w:2],[],3
+Scimitar,Weapon,scimitar,[p>:8,p:8,mat:metal,pivx:6,sharp:1,w:4],[],3
+Axe,Weapon,axe,[p>:8,p:8,mat:metal,pivx:14,sharp:1,spd:-3,w:5],[],4
+Falchion,Weapon,falchion,[p>:8,p:8,mat:metal,pivx:6,sharp:1,spd:-2,w:4],[],3
+Broadsword,Weapon,broadsword,[p>:8,p:8,mat:metal,pivx:6,sharp:1,w:4],[],6
+Longsword,Weapon,longsword,[p>:8,p:8,mat:metal,pivx:6,sharp:1,spd:-1,w:6],[],6
+Mace,Weapon,mace,[p>:8,p:8,mat:metal,pivx:12,spd:-1,w:5],[],6
+Spiked Mace,Weapon,spiked mace,[p>:8,p:8,mat:metal,pivx:14,spd:-1,w:5],[],6
+Warhammer,Weapon,warhammer,[p>:8,p:8,mat:metal,pivx:18,spd:-1,w:6],[],8
+Spear,Weapon,spear,[p>:8,p:8,mat:metal,pivx:24,w:4],[],3
+Trident,Weapon,trident,[p>:8,p:8,mat:metal,pivx:22,w:5],[],4
+Scythe,Weapon,scythe,[p>:8,p:8,mat:metal,pivx:24,pivy:7,spd:-7,w:7],[],8
+Glaive,Weapon,glaive,[p>:8,p:8,mat:metal,pivx:24,spd:-3,w:10],[],7
+Greatsword,Weapon,greatsword,[p>:8,p:8,mat:metal,pivx:6,spd:-5,w:12],[],15
+Lance,Weapon,lance,[p>:8,p:8,mat:metal,pivx:6,w:5],[],6
+Blue Baton,Weapon,bluestick,[p>:8,p:8,mat:metal,pivx:6,w:4],[[Brand,-1,shock]],1

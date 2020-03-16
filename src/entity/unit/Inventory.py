@@ -25,6 +25,8 @@ class Inventory:
         total = 0
         for i in self.items:
             total += i.get_weight()
+        if self.host.weapon:
+            total += self.host.weapon.get_weight()
         return total
 
     def get_capacity(self):
@@ -36,7 +38,7 @@ class Inventory:
         else:
             from src.game import Global
             from src.tools.Dialog import Dialog
-            Global.main.monologue.set(Dialog.get('!heavy'))
+            Global.main.monologue.set(Dialog.get('!heavy', [self.get_weight(), self.get_capacity(), item.get_weight()]))
 
     def is_vacant(self, weight):
         return self.get_capacity() >= self.get_weight() + weight and len(self.items) < 12

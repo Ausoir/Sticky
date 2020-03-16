@@ -52,7 +52,7 @@ class Armor(Equipment):
 
     def unwear(self):
         from src.tools.Data import Data
-        line = Data.get_line('raw/model.txt', self.host.form_name)
+        line = Data.get_line('model.txt', self.host.form_name)
         self.host.form.set_model(line[2])
         self.host.armor = None
         super().unwear()

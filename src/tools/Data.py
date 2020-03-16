@@ -17,10 +17,10 @@ class Data:
     def init():
         Data.atlas = TextureAtlas()
         Data.set_cache('none', Texture.create(1, 1))
-        res = Data.process_raw(Data.read('raw/resource.txt'))
+        res = Data.process_raw(Data.read('data/raw/resource.txt'))
         for i in res:
             Data.initialize_image(i[0], i[1], i[2], i[3])
-        animation = Data.process_raw(Data.read('raw/animations.txt'))
+        animation = Data.process_raw(Data.read('data/raw/animations.txt'))
         for i in animation:
             sequence = []
             for sprite in i[1]:
@@ -30,12 +30,9 @@ class Data:
                 sequence.append(Data.get_cache('none'))
             ani = pyglet.image.Animation.from_image_sequence(sequence, period=float(i[2]), loop=loop)
             Data.set_cache(i[0], ani)
-        from src.map.Tile import Tile
-        tile_data = Data.process_raw(Data.read('raw/tiles.txt'))
-        Tile.init(tile_data)
 
     @staticmethod
-    def direct(fdir, path='../data/'):
+    def direct(fdir, path='../'):
         return os.path.join(path + fdir)
 
     @staticmethod
@@ -72,7 +69,7 @@ class Data:
 
     @staticmethod
     def get_track(fdir):
-        directory = 'sound/' + fdir
+        directory = 'data/sound/' + fdir
         cache = Data.get_cache(directory)
         if not cache:
             cache = pyglet.media.StaticSource(pyglet.media.load(Data.direct(directory + '.wav')))
@@ -81,7 +78,7 @@ class Data:
 
     @staticmethod
     def get_image(fdir, cache):
-        img = Data.atlas.add(pyglet.image.load(Data.direct(fdir + '.png')))
+        img = Data.atlas.add(pyglet.image.load(Data.direct('data/image/' + fdir + '.png')))
         img.anchor_x = img.width / 2
         img.anchor_y = img.height / 2
         if cache:
@@ -127,7 +124,7 @@ class Data:
 
     @staticmethod
     def initialize_image(name, texture, subset_size, anchor=None):
-        image = pyglet.image.load(Data.direct(texture + '.png'))
+        image = pyglet.image.load(Data.direct('data/image/' + texture + '.png'))
         image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
         seq = pyglet.image.TextureGrid(image_grid)
         i = 0
@@ -190,7 +187,7 @@ class Data:
         if cache:
             data = cache
         else:
-            data = Data.process_raw(Data.read(fdir))
+            data = Data.process_raw(Data.read('data/raw/' + fdir))
             Data.set_cache(fdir, data)
         for k, i in enumerate(data):
             if i[0] == name:
@@ -203,14 +200,10 @@ class Data:
 
     @staticmethod
     def get_cache_clip(fdir):
-        cache = Data.get_cache(fdir)
-        if not cache:
-            r = []
-            clip = Data.read(fdir + '.2d')
-            lines = clip.split('\n\n')
-            r.append(Data.process_raw(lines[0]))
-            r.append(Data.process_raw(lines[1]))
-            r.append(Data.process_raw(lines[2]))
-            Data.set_cache(fdir, r)
-            return r
-        return cache
+        r = []
+        clip = Data.read(fdir + '.2d')
+        lines = clip.split('\n\n')
+        r.append(Data.process_raw(lines[0]))
+        r.append(Data.process_raw(lines[1]))
+        r.append(Data.process_raw(lines[2]))
+        return r

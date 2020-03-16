@@ -1,7 +1,9 @@
 from src.game import Global
 from src.game.Crafting import Crafting
+from src.game.Script import Script
 from src.interface.Menu import Menu
 from src.interface.Window import Window
+from src.tools.Data import Data
 from src.tools.Dialog import Dialog
 
 
@@ -17,37 +19,68 @@ class MenuPlayer(Menu):
                 self.get_message(Dialog.describe_terrain(tile))(0)
         else:
             self.get_message(Dialog.get('oos'))(0)
+        Global.player.control.target_mark.form.show(False)
 
-    def menu_main(self):
-        def update():
-            hp = Global.player.character.tags.get('p')
-            mhp = Global.player.character.tags.get('p>')
-            trmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
-            text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('health')
-            hp_display.set_text(text)
-            hp_display.on_click = trmb
-        self.update = update
-        self.window.add(Menu.make(Dialog.get('equipment'), lambda x: self.direct(self.menu_equipment)))
-        self.window.add(Menu.make(Dialog.get('inventory'), lambda x: self.direct(self.menu_inventory)))
-        self.window.add(Menu.make(Dialog.get('skills'), lambda x: self.direct(self.menu_skill)))
-        hp = Global.player.character.tags.get('p')
-        mhp = Global.player.character.tags.get('p>')
+    def menu_world(self):
+        def enter(arg):
+            if True:  # not Data.is_file('save/' + map_name + '.map'):
+                from src.entity.Other import Landscape
+                landscape = host.pos.name
+                for i in host.pos.things:
+                    if isinstance(i, Landscape):
+                        landscape = i.name.lower()
+                        break
+                from src.map.Generator import Generator
+                location = Generator.generate_terrain(map_name, landscape)
+                location.save()
+            host.location.tags.set('enterx', host.pos.x, add=True)
+            host.location.tags.set('entery', host.pos.y, add=True)
+            Global.player.player.remove()
+            Global.player.travel(map_name)
+        host = Global.player.character
+        map_name = 'instance'
+        # map_name = 'x' + str(host.pos.x) + 'y' + str(host.pos.y)
+        self.window.add(Menu.make(Dialog.get('enter map'), enter))
+        hp = host.tags.get('p')
+        mhp = host.tags.get('p>')
         rmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
         text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('health')
         hp_display = Menu.make(text, rmb, color=None)
         self.window.add(hp_display)
-        rmb = self.get_message(Dialog.get('dsc_date'))
-        self.window.add(Menu.make(Dialog.date(Global.player.days), rmb, color=None))
-        rmb = self.get_message(Dialog.get('dsc_hunger'))
-        fullness = Global.player.character.tags.get('full', 0)
-        if fullness <= 0:
+        datetime = Dialog.date(Global.player.days)
+        hunger = host.tags.get('hunger', 0)
+        rmb = self.get_message(Dialog.get('dsc_date', [datetime, hunger]))
+        self.window.add(Menu.make(datetime, rmb, color=None))
+        self.window.add(Menu.make(Dialog.get('hunger') + ': ' + str(hunger) + '%', rmb, color=None))
+
+    def menu_main(self):
+        def update():
+            hp = host.tags.get('p')
+            mhp = host.tags.get('p>')
+            trmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
+            text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('health')
+            hp_display.set_text(text)
+            hp_display.on_click = trmb
+        host = Global.player.character
+        self.update = update
+        self.window.add(Menu.make(Dialog.get('equipment'), lambda x: self.direct(self.menu_equipment)))
+        self.window.add(Menu.make(Dialog.get('inventory'), lambda x: self.direct(self.menu_inventory)))
+        self.window.add(Menu.make(Dialog.get('skills'), lambda x: self.direct(self.menu_skill)))
+        hp = host.tags.get('p')
+        mhp = host.tags.get('p>')
+        rmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
+        text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('health')
+        hp_display = Menu.make(text, rmb, color=None)
+        self.window.add(hp_display)
+        datetime = Dialog.date(Global.player.days)
+        hunger = host.tags.get('hunger', 0)
+        rmb = self.get_message(Dialog.get('dsc_date', [datetime, hunger]))
+        if Global.player.is_hungry():
             self.window.add(Menu.make(Dialog.get('hungry'), rmb, color=None))
-        elif fullness < 10:
-            self.window.add(Menu.make(Dialog.get('peckish'), rmb, color=None))
+        else:
+            self.window.add(Menu.make(datetime, rmb, color=None))
 
     def menu_skill(self):
-        from src.tools.Data import Data
-        from src.game.Script import Script
         skills = {}
         for i in Global.player.character.skills:
             if i in skills:
@@ -57,21 +90,21 @@ class MenuPlayer(Menu):
         index = 0
         for k, v in skills.items():
             name = 'sk.' + k
-            data = Data.get_line('raw/script.txt', name)
-            stacking = Data.get_line('raw/raw.txt', 'stacking skill')[1]
+            stacking = Data.get_line('raw.txt', 'stacking skill')[1]
             if k in [x[0] for x in stacking]:
                 title = k.title() + ' ' + str(v)
             else:
                 title = k.title()
-            if data:
+            data = Data.get_line('script.txt', name)
+            desc = Data.get_line('descriptions.txt', name)
+            if data and desc:
+                button = Menu.make(title, self.get_prompt(desc[1], Dialog.get('perform'), Script.execute_code, name))
+            elif data:
                 button = Menu.make(title, Script.execute_code, name=name)
+            elif desc:
+                button = Menu.make(title, self.get_message(desc[1]))
             else:
-                desc = Data.get_line('raw/descriptions.txt', name)
-                if desc:
-                    rmb = self.get_message(desc[1])
-                else:
-                    rmb = None
-                button = Menu.make(title, rmb)
+                button = Menu.make(title, Dialog.get('!dsc_skill'))
             if index < 6:
                 self.window.add(button)
             else:
@@ -144,7 +177,10 @@ class MenuPlayer(Menu):
         self.window.margin.y = 2
         temp2 = self.sub_window.margin.y
         self.sub_window.margin.y = 2
-        items = Global.player.character.inventory.items
+        if Global.player.character.weapon:
+            items = [Global.player.character.weapon] + Global.player.character.inventory.items
+        else:
+            items = Global.player.character.inventory.items
         text = 'Capacity: ' + str(len(items)) + ' / 12'
         capacity_label = Menu.make(text, None, None, height=20, color=None)
         capacity_label.margin.load(0, 0)
@@ -157,22 +193,16 @@ class MenuPlayer(Menu):
         capacity_label.document.set_style(0, 99, dict(font_size=12, bold='True'))
         self.sub_window.add(capacity_label)
         count = 0
-        weapon = Global.player.character.weapon
-        if weapon:
-            weapon_display = Window(0, 0, width=260, height=24, multi_line=True)
-            weapon_display.set_text(weapon.get_display_name() + ' [' + Dialog.get('held') + ']')
-            weapon_display.on_click = self.get_prompt(weapon.describe(), Dialog.get('store'), sheathe, count)
-            self.window.add(weapon_display)
-            weapon_label = Window(0, 0, width=0, height=24)
-            weapon_label.set_text(Dialog.weight(weapon.get_weight()))
-            weapon_label.margin.load(100, 0)
-            self.sub_window.add(weapon_label)
         for i in items:
             size = min(self.window.height - 48, int(160 * (i.get_weight() / max(1, capacity))))
             button = Window(0, 0, width=260, height=size + 10, multi_line=True)
             button.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
-            button.set_text(i.get_display_name())
-            button.on_click = self.get_prompt(i.describe(), Dialog.get('take'), click, count)
+            if i == Global.player.character.weapon:
+                button.set_text(i.get_display_name() + ' [' + Dialog.get('held') + ']')
+                button.on_click = self.get_prompt(i.describe(), Dialog.get('store'), sheathe, count)
+            else:
+                button.set_text(i.get_display_name())
+                button.on_click = self.get_prompt(i.describe(), Dialog.get('take'), click, count)
             button.width = button.text.content_width + 16
             button.margin.load(8, 0)
             label = Window(0, 0, width=0, height=size + 10, multi_line=False)
@@ -185,27 +215,6 @@ class MenuPlayer(Menu):
         self.sub_window.display(1)
         self.window.margin.y = temp
         self.sub_window.margin.y = temp2
-
-    def menu_status(self):
-        rmb = self.get_message(Dialog.get('dsc_location'))
-        self.window.add(Menu.make(Dialog.get('location'), rmb, color=None))
-        self.sub_window.add(Menu.make(Global.player.character.location.name.title(), rmb, color=None))
-        rmb = self.get_message(Dialog.get('dsc_date'))
-        self.window.add(Menu.make(Dialog.get('date'), rmb, color=None))
-        self.sub_window.add(Menu.make(Dialog.date(Global.player.days), rmb, color=None))
-        rmb = self.get_message(Dialog.get('dsc_hunger'))
-        if Global.player.character.states.get('Hunger'):
-            self.window.add(Menu.make(Dialog.get('hungry'), rmb, color=None))
-            self.sub_window.add(Menu.make('', None, None, color=None))
-        if Global.player.character.tags['calories'] > 0:
-            rmb = self.get_message(Dialog.get('dsc_calories'))
-            self.window.add(Menu.make(Dialog.get('calories'), rmb, color=None))
-            self.sub_window.add(Menu.make(str(Global.player.character.tags['calories']), None, None, color=None))
-        if Global.player.character.tags['protein'] > 0:
-            rmb = self.get_message(Dialog.get('dsc_protein'))
-            self.window.add(Menu.make(Dialog.get('protein'), rmb, color=None))
-            self.sub_window.add(Menu.make(str(Global.player.character.tags['protein']), None, None, color=None))
-        self.sub_window.display(1)
 
     def menu_effects(self):
         for i in Global.player.character.states.buffs:
@@ -227,7 +236,7 @@ class MenuPlayer(Menu):
         panel.normal_font_color = Window.font_color1
         panel.redraw()
         self.window.add(panel)
-        from src.entity.Space import Space
+        from src.tools.Space import Space
 
         def travel(name):
             if Global.player.eat():
@@ -262,3 +271,12 @@ class MenuPlayer(Menu):
                 add_button(self.sub_window, i)
             self.window.display(1)
             self.sub_window.display(1)
+
+    def menu_memorize(self):
+        def memorize(arg):
+            Global.player.character.tags.set('memorize', arg, add=True)
+        weapon = Global.player.character.weapon
+        if weapon:
+            self.get_prompt(Dialog.get('dsc_memorize'), Dialog.get('memorize'), memorize, weapon.name)()
+        else:
+            self.get_prompt(Dialog.get('dsc_memorize'), Dialog.get('memorize'), memorize, weapon.name)()

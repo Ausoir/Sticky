@@ -23,11 +23,13 @@ class Weapon(Item):
         super().on_unwield()
         self.form.rotation = 15
 
+    def get_damage(self):
+        return self.damage
+
     def describe(self):
         r = super().describe()
-        min_d, max_d = self.get_damage()
         from src.tools.Dialog import Dialog
-        r += '\n' + Dialog.get('damage') + ': ' + str(min_d) + ' ~ ' + str(max_d)
+        r += '\n' + Dialog.get('damage') + ': ' + str(self.get_damage())
         spd = self.tags.get('spd')
         if spd:
             r += '\n' + Dialog.get('attack speed') + ': ' + str(spd)

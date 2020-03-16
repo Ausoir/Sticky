@@ -6,7 +6,7 @@ class Dialog:
 
     @staticmethod
     def init():
-        Dialog.data = Dialog.to_dict(Data.process_raw(Data.read('raw/dialog.txt')))
+        Dialog.data = Dialog.to_dict(Data.process_raw(Data.read('data/raw/dialog.txt')))
 
     @staticmethod
     def get(topic, var=None):
@@ -18,7 +18,7 @@ class Dialog:
             r = ''
             for c in data:
                 if c == '#':
-                    r += Dialog.get(str(var[index]).lower())
+                    r += str(var[index])
                     index += 1
                 else:
                     r += c
@@ -125,14 +125,13 @@ class Dialog:
     @staticmethod
     def describe_terrain(tile):
         r = tile.name.title()
-        if tile.type <= -10:
-            r += '\nThis terrain is a wall.'
-        elif tile.type < 0:
-            r += '\nThis terrain slows movement by ' + str(-tile.type) + '.'
-        elif tile.type > 0:
-            r += '\nThis terrain speeds up movement by ' + str(tile.type) + '.'
+        speed = tile.get_speed()
+        if tile.speed <= -10:
+            r += '\n' + Dialog.get('terrain wall')
+        elif speed != 0:
+            r += '\n' + Dialog.get('terrain speed', [str(speed)])
         if tile.light > 0:
-            r += '\nThis terrain is lit up.'
+            r += '\n' + Dialog.get('terrain lit')
         return r
 
     @staticmethod

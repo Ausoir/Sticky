@@ -3,7 +3,7 @@ from src.tools.Dialog import Dialog
 
 
 class Crafting:
-    recipe = Data.process_raw(Data.read('raw/recipes.txt'))
+    recipe = Data.process_raw(Data.read('data/raw/recipes.txt'))
 
     @staticmethod
     def get_ingredients(item):
@@ -24,7 +24,7 @@ class Crafting:
                 r += ' [' + i + ']'
         else:
             r += ' ' + Dialog.get('none')
-        data = Data.get_line('raw/descriptions.txt', item)
+        data = Data.get_line('descriptions.txt', item)
         if data:
             return r + '\n' + data[1]
         return r

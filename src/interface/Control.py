@@ -7,23 +7,21 @@ from src.tools.Data import Data
 
 
 class Control:
-    def __init__(self):
+    def __init__(self, output):
         Turn.fast_queue.append(self.turn)
-        self.player = None
         self.cursor = [0, 0]
         self.cursor_tile = None
         self.keypress = []
         self.keyrelease = []
         self.keymap = {}
         self.text_mode = False
-        self.directory = 'keymap.txt'
-        self.set_keymap(self.directory)
         self.target_mark = self.make_mark()
         self.target_mark_frame = 0
+        self.next_action = None
+        self.output = output
 
     def set_keymap(self, fdir):
-        self.directory = fdir
-        control = Data.process_raw(Data.read(fdir))
+        control = Data.process_raw(Data.read('data/' + fdir))
         for k, v in control:
             self.keymap[Control.get_key_code(k)] = v
 
@@ -41,16 +39,6 @@ class Control:
         for k, v in self.keymap.items():
             if v == value:
                 return k
-
-    def change_key(self, key, action):
-        self.keymap[key] = action
-        data = Data.process_raw(Data.read(self.directory))
-        new_data = []
-        for k, v in data:
-            if k != key and v != action:
-                new_data.append(str(k) + ',' + v)
-        new_data.append(str(key) + ',' + action)
-        Data.write(self.directory, '\n'.join(new_data))
 
     @staticmethod
     def get_key_code(name):
@@ -93,17 +81,18 @@ class Control:
 
     def on_text(self, key):
         if self.text_mode:
-            Global.main.monologue.set(Global.main.monologue.label.text + key)
+            Global.main.monologue.set(Global.main.monologue.document.text + key)
 
     def input(self, code):
         if self.text_mode:
+            self.clear_press(code)
             if code in self.keymap and self.keymap[code] == 'text':
                 self.text_mode = False
-                self.player.input('command')
+                self.output('command')
                 Global.main.monologue.set('')
             elif code > 5:
                 if code == pyglet.window.key.BACKSPACE:
-                    Global.main.monologue.set(Global.main.monologue.label.text[:-1])
+                    Global.main.monologue.set(Global.main.monologue.document.text[:-1])
         else:
             if Global.menu.visible == 1:
                 if Global.menu.input(code):
@@ -146,7 +135,7 @@ class Control:
             self.keypress.clear()
 
     def quit(self):
-        self.player.input('quit')
+        self.output('quit')
         Global.land.delay = 0
         Global.land.turn()
         Global.player.save()
@@ -179,6 +168,10 @@ class Control:
                 elif command == 'switch':
                     self.clear_press(code)
                     Global.player.switch()
+                elif command == 'text':
+                    self.clear_press(code)
+                    Global.main.monologue.set('')
+                    self.text_mode = True
                 elif Global.menu.visible != 1:
                     if command == 'left2':
                         self.move_mark_toward(1)
@@ -190,9 +183,9 @@ class Control:
                         self.move_mark_toward(4)
                     else:
                         self.target_mark.form.show(False)
-                        self.player.input(command)
+                        self.output(command)
         else:
-            self.player.input('idle')
+            self.output('idle')
         for i in self.keyrelease:
             self.keyrelease.remove(i)
             if i in self.keypress:
@@ -203,17 +196,19 @@ class Control:
                     self.keypress.remove(realkey)
 
     def move_mark_toward(self, direction):
+        self.next_action = direction
         self.move_mark(Camera.target.pos.to_list())
-        if self.target_mark_frame > 4:
-            if direction == 1:
+        if self.target_mark_frame > 3 and self.next_action > 0:
+            if self.next_action == 1:
                 self.target_mark.vec.x -= Global.BLOCK
-            elif direction == 2:
+            elif self.next_action == 2:
                 self.target_mark.vec.y -= Global.BLOCK
-            elif direction == 3:
+            elif self.next_action == 3:
                 self.target_mark.vec.x += Global.BLOCK
-            elif direction == 4:
+            elif self.next_action == 4:
                 self.target_mark.vec.y += Global.BLOCK
             self.target_mark_frame = 0
+            self.next_action = 0
 
     def move_mark(self, pos):
         if not self.target_mark.form.visible:

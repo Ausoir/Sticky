@@ -10,6 +10,7 @@ class Particle(Prop):
     def make(cls, arg, pos, glow=-1, lifetime=6, offset=16, direction=1):
         from src.game import Global
         r = cls(Global.land)
+        r.name = arg
         r.set_form(arg)
         r.lifetime = lifetime
         r.pos = r.location.get_tile_from_vec(pos.x, pos.y)
@@ -44,7 +45,8 @@ class Particle(Prop):
     def turn(self):
         if self.lifetime == 0:
             self.remove()
-        self.lifetime -= 1
+        else:
+            self.lifetime -= 1
 
     def set_form(self, arg):
         super().set_form(arg)

@@ -1,3 +1,2 @@
-instance
-17,1,instance
-#9,[15,11],Looter,Humanoid,human,[p>:100,p:96,mat:flesh,seed:9618,full:0,task:Attack,tgt:#25],[],[gen,dexterity,vengeance,flurry,flurry,flurry,flurry],[#b,[15,11],Tuxedo,Armor,wear_2x1,[w:10],[],0],0,0,[]
+[map:worldmap,time:89,frame:1]
+#9,[16,17],Human,Humanoid,human,[p>:100,p:100,mat:flesh,seed:9618,hunger:0,task:Attack,money:0],[[Concentration,-1,0],[Invisible,24,0]],[gen,time,eat,aura,memorize,side step,dexterity,assassinate,strength,strength],[#79,[16,17],Tuxedo,Armor,wear_2x1,[w:10],[],0],0,0,[]

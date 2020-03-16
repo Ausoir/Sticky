@@ -10,8 +10,7 @@ noaccessory,No Headgear
 noarmor,No Armor
 noweapon,No Weapon
 dsc_location,Your current location.
-dsc_date,Current date and time.
-dsc_hunger,You need to be full or have food in your inventory to perform time consuming actions.
+dsc_date,Date and Time: #. Current Hunger: #%
 youdie,You die...
 sign,Sign: #
 dsc_insurance,Should you meet a tragic end\, our medical guild can bring you back to life. You will need to come and pay us $# after every revive.
@@ -56,11 +55,11 @@ treatment,I can cure you of all illness for $#.
 ?modify,Select an equipment to modify.
 ?pawn,Sell your # for $1?
 xpawn,You are not holding anything that you can sell. We only buy #.
-!heavy,Too heavy!
+!heavy,Too heavy! #/# + #kg
 !bright,Too dark!
 !safe,Not safe!
 !tag,Not enough #!
-!eat,Too hungry and nothing to eat!
+!eat,Too hungry!
 !hungry,Not hungry!
 !expire,Food has expired!
 ?learn,Learn #?
@@ -75,3 +74,16 @@ food_expired,This food has expired.
 !pay,Not enough money!
 sight_range,Sight Range: #
 sight_type,Sight blocked by: #
+pickup,Pick up #?
+!dsc_skill,No skill information provided.
+dsc_memorize,Memorize?
+light_range,Light Radius: #
+charged,Item is ready.
+!charged,Item is out of charge.
+artifact,Use to cast spell: #
+terrain wall,This terrain is impassible.
+terrain speed,This terrain changes movement speed by #.
+terrain lit,This terrain is lit up.
+landscape,This landscape changes movement by #.
+starve,You are too hungry to travel. Force travel at 2 health cost per hour?
+succumb,You are starving. Give up?

@@ -10,6 +10,7 @@ BLOCK = 40
 HALF_BLOCK = int(BLOCK / 2)
 CENTER = (600, 300)
 SCREEN_TILES = None
+CURRENT_OFFSET = (0, 0)
 OFFSET = (10000, 10000)
 menu = None
 r = None

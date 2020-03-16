@@ -12,9 +12,10 @@ from src.tools.Tag import Tag
 
 
 class Location:
-    def __init__(self, name, data):
+    def __init__(self, name, data, make=False):
         self.name = name
         self.tags = Tag()
+        self.tags.set('name', name, add=True)
         self.identity = 0
         self.update_frame = 0
         self.field = Field(self)
@@ -24,7 +25,10 @@ class Location:
         self.tiles = []
         self.header = None
         if data:
-            self.load(data)
+            while len(data) < 3:
+                data.append([])
+            self.tags.load(data[0][0])
+            self.load(data, make)
         else:
             self.tiles = [[Tile(self, '.', 0, 0)]]
         Turn.add(self.turn)
@@ -42,24 +46,18 @@ class Location:
         objects = self.population.__str__()
         return self.tags.__str__() + '\n' + tiles + '\n' + objects + '\n'
 
-    def load(self, arg):
-        while len(arg) < 3:
-            arg.append([])
-        self.tags.load(arg[0][0])
-        self.load_map(arg, new=True)
-
     def turn(self):
         if not self.delay:
             self.delay = 400
             self.save()
 
     def save(self):
-        Data.write('../save/' + self.name + '.map', self.__str__())
+        Data.write('save/' + self.name + '.map', self.__str__())
 
-    def load_map(self, arg, new=False, offset=(0, 0)):
+    def load(self, arg, make=True, offset=(0, 0)):
         rows = arg[1][0].split('%')
         row_num = 0
-        if new:
+        if not make:
             for y in rows:
                 row = []
                 col_num = 0
@@ -82,17 +80,18 @@ class Location:
                     prop.remove()
         self.process_terrain()
         objects = []
-        from src.entity.Other import Scripter
         for i in arg[2]:
             obj = Stock.get(self, i[2], i)
-            if new:
+            if not make:
                 obj.id = self.get_id()
             obj.relocate(obj.pos.x + offset[0], obj.pos.y + offset[1], force=1)
             obj.add()
             objects.append(obj)
-        for i in objects:
-            if not new and isinstance(i, Scripter):
-                i.run_make()
+        if make:
+            from src.entity.Other import Scripter
+            for i in objects:
+                if isinstance(i, Scripter):
+                    i.run_make()
         return objects
 
     def process_terrain(self):

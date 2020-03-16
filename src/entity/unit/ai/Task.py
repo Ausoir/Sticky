@@ -35,7 +35,8 @@ class TargetTask(Task):
         self.target = None
 
     def record(self):
-        self.host.tags.set('tgt', self.target.id, add=True)
+        if self.target:
+            self.host.tags.set('tgt', self.target.id, add=True)
 
     def load(self, arg):
         group = self.host.get_team(ally=False)
@@ -93,7 +94,7 @@ class Wander(Task):
                 node = v
         self.open.pop(index)
         self.closed.append(node)
-        options = self.pilot.get_routes(node.node)
+        options = self.pilot.route.get(node.node)
         for i in options:
             pos = node.node.get_neighbor(i[0], i[1])
             if self.check_loop(self.closed, pos):
@@ -230,7 +231,7 @@ class Path(Task):  # path finding A*
             return node
         if achieved < (self.closest.node - self.target).difference():
             self.closest = node
-        options = self.pilot.get_routes(node.node)
+        options = self.pilot.route.get(node.node)
         for i in options:
             pos = node.node.get_neighbor(i[0], i[1])
             if self.check_loop(self.closed, pos):
@@ -239,12 +240,12 @@ class Path(Task):  # path finding A*
             if conflict:
                 if node.g + 1 <= conflict.g:
                     conflict.parent = node
-                    conflict.g = node.g + 1 - node.node.type
+                    conflict.g = node.g + 1 - node.node.speed
                     conflict.set_h(self.target)
                     conflict.f = conflict.h + conflict.g
                 continue
             new = Path.Node(node, pos)
-            new.g = node.g + 1 - node.node.type
+            new.g = node.g + 1 - node.node.speed
             new.set_h(self.target)
             new.f = new.h + new.g
             if new.h < self.heuristic_threshold:
@@ -259,7 +260,11 @@ class Path(Task):  # path finding A*
     def perform(self):
         if self.result:
             self.host.face_toward(self.result[0])
-            self.host.input('walk')
+            front = self.host.get_front_tile(self.host.direction)
+            if front.is_land(self.host.collision_type) and self.pilot.can_destroy(front):
+                self.host.input('attack')
+            else:
+                self.host.input('walk')
             self.result = []
         if (self.host.pos - self.target).difference() <= 1:
             return True
@@ -323,7 +328,11 @@ class Attack(TargetTask):
             dist = self.target.pos - self.host.pos
             if dist.difference() == 1:
                 self.host.face_toward(self.target.pos)
-                self.host.input('attack')
+                concentration = self.host.states.get('Concentration')
+                if concentration and self.host.get_skill('side step'):
+                    self.host.input('walk')
+                else:
+                    self.host.input('attack')
             elif self.pilot.move.out_of_reach:
                 self.pilot.set_task(self.pilot.move)
                 self.pilot.priority = 3

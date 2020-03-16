@@ -1,6 +1,4 @@
 from src.entity.Image import Image
-from src.game import Global
-from src.game.Turn import Turn
 from src.map.Tile import Tile
 from src.tools import Direction
 from src.tools.Dialog import Dialog
@@ -18,9 +16,7 @@ class Object(Image):
         self.save = True
         self.obstruct_type = Tile.COLLIDE_OBJECT
         self.collision_type = Tile.CHECK_SOLID
-        self.removed = 0
-        self.falling = 0
-        self.in_sight = False
+        self.removed = 1
 
     def __str__(self):
         r = Dialog.space(self.pos)
@@ -41,20 +37,20 @@ class Object(Image):
         return index
 
     def add(self):
-        self.removed = 0
-        self.show(True)
-        Turn.add(self.turn)
-        self.relocate(self.pos.x, self.pos.y, force=1)
-        self.location.population.add(self)
-        return self
+        if self.removed == 1:
+            self.removed = 0
+            self.show(True)
+            self.relocate(self.pos.x, self.pos.y, force=1)
+            self.location.population.add(self)
+            return self
 
     def remove(self):
-        self.removed = 1
-        self.show(False)
-        Turn.remove(self.turn)
-        self.location.population.remove(self)
-        self.pos.things.remove(self)
-        del self
+        if self.removed == 0:
+            self.removed = 1
+            self.show(False)
+            self.location.population.remove(self)
+            self.pos.things.remove(self)
+            del self
 
     def set_row(self, row):
         self.form.z = row * 20 + 100
@@ -64,18 +60,11 @@ class Object(Image):
         self.vec += diff * .07
         super().update()
 
-    def turn(self):
-        pass
-
     def show(self, visible):
         self.form.show(visible)
 
     def bound(self, visible):
         self.form.bound(visible)
-
-    def out_of_bounds(self):
-        from src.tools.Turnee import Turnee
-        Turnee(self.remove, 0)
 
     def trigger(self):
         pass

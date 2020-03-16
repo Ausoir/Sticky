@@ -3,13 +3,13 @@ from src.entity.unit.item.Armor import Armor
 # noinspection PyUnresolvedReferences
 from src.entity.unit.item.Headgear import Headgear
 # noinspection PyUnresolvedReferences
+from src.entity.unit.item.Trinket import *
+# noinspection PyUnresolvedReferences
 from src.entity.unit.item.Focus import Focus
 # noinspection PyUnresolvedReferences
 from src.entity.unit.item.Weapon import Weapon
 # noinspection PyUnresolvedReferences
 from src.entity.unit.Unit import Unit
-# noinspection PyUnresolvedReferences
-from src.entity.unit.Character import Character
 # noinspection PyUnresolvedReferences
 from src.entity.Projectile import Projectile
 # noinspection PyUnresolvedReferences
@@ -25,10 +25,10 @@ class Stock:
     @staticmethod
     def init():
         for i in Data.registry_list:
-            registry_items = Data.process_raw(Data.read('raw/' + i + '.txt'))
+            registry_items = Data.process_raw(Data.read('data/raw/' + i + '.txt'))
             for item in registry_items:
                 Stock.registry[item[0]] = item
-        for model in Data.get_line('raw/raw.txt', 'face')[1]:
+        for model in Data.get_line('raw.txt', 'face')[1]:
             face = []
             for image in model:
                 face.append(Data.get_cache(image))

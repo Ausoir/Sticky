@@ -1,10 +1,11 @@
 from src.map.Generator import Generator
 from src.tools import Direction
+from src.tools.Data import Data
 
 
 class BSPTree(Generator):
-    def __init__(self, x, y, seed=0):
-        super().__init__(x, y, seed=seed)
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
         self.background['!'] = '*'
         self.theme['1'] = 'Weed'
         self.theme['2'] = 'Dandelion'
@@ -15,18 +16,14 @@ class BSPTree(Generator):
         self.divide = 10
         self.thickness = 8
 
-    def run(self):
+    def process(self):
         estate, garden = self.iterate(0, 0, self.width, self.height)
         for rect in garden:
-            for y in range(rect[1], rect[3] - 1):
-                for x in range(rect[0], rect[2] - 1):
-                    self.str_map[y][x] = '*'
+            self.fill_rect('*', rect[0], rect[1], rect[2] - 1, rect[3] - 1)
             buildable = [rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1]
             self.build_on_garden(buildable)
         for rect in estate:
-            for y in range(rect[1] + 1, rect[3] - 1):
-                for x in range(rect[0] + 1, rect[2] - 1):
-                    self.str_map[y][x] = '*'
+            self.fill_rect('*', rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1)
             buildable = [rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1]
             self.build_on_estate(buildable)
         self.adapt_tiles()
@@ -61,9 +58,7 @@ class BSPTree(Generator):
         pass
 
     def build_on_estate(self, estate):
-        for y in range(estate[1] + 1, estate[3] - 1):
-            for x in range(estate[0] + 1, estate[2] - 1):
-                self.str_map[y][x] = 'w'
+        self.fill_rect('w', estate[0] + 1, estate[1] + 1, estate[2] - 1, estate[3] - 1)
         for x in range(estate[0] + 1, estate[2] - 1):
             self.str_map[estate[1] + 1][x] = 'X'
             self.str_map[estate[3] - 2][x] = 'X'
@@ -138,5 +133,72 @@ class BSPTree(Generator):
                 garden.append([int(x) for x in area2])
         return estate, garden
 
-    def get_volume(self, arg):
-        return (arg[2] - arg[0]) * (arg[3] - arg[1])
+
+class GenerateTown(BSPTree):
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
+        self.buildings = []
+        self.buildings_list = []
+        for i in ['house1', 'house2', 'house3', 'house4', 'house5', 'house6', 'warehouse']:
+            building = Data.process_raw(Data.read('data/map/building/' + i + '.map'))
+            tiles = building[1][0].split('%')
+            self.buildings_list.append([building, len(tiles[0]), len(tiles)])
+
+    def process(self):
+        margin_x = int(self.width / 10)
+        margin_y = int(self.height / 10)
+        estate, garden = self.iterate(0, 0, self.width, self.height)
+        for rect in garden + estate:
+            self.fill_rect('*', rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1)
+            buildable = [rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1]
+            if buildable[0] > margin_x and buildable[2] < self.width - margin_x\
+                    and buildable[1] > margin_y and buildable[3] < self.height - margin_y:
+                self.build_on_estate(buildable)
+        self.adapt_tiles()
+
+    def to_location(self, name):
+        location = super().to_location(name)
+        for i in self.buildings:
+            data = Data.process_raw(i[0].__str__())
+            location.load(data, offset=[i[1], i[2]], make=True)
+        num = int(len(self.buildings) * (self.random.rand_float() + .5))
+        self.place_mobs(location, [['Looter', num, 'w'], ['Tank', 1, '.']])
+        return location
+
+    def build_on_estate(self, estate):
+        for y in range(estate[1] + 1, estate[3] - 1):
+            for x in range(estate[0] + 1, estate[2] - 1):
+                self.str_map[y][x] = '*'
+        size_x = estate[2] - estate[0]
+        size_y = estate[3] - estate[1]
+        possible_buildings = []
+        for i in self.buildings_list:
+            align = 0
+            if size_x >= i[1] and size_y >= i[2]:
+                align = 2
+            if size_x >= i[2] and size_y >= i[1]:
+                align += 1
+            if align == 4:
+                possible_buildings.append([i, self.random.rand_bool()])
+            elif align == 3:
+                possible_buildings.append([i, True])
+            elif align == 2:
+                possible_buildings.append([i, False])
+        if possible_buildings:
+            building = self.random.rand_list(possible_buildings)
+            self.make_building(building[0], size_x, size_y, estate[0], estate[1], rotate=building[1])
+
+    def make_building(self, building, estate_x, estate_y, start_x, start_y, rotate=False):
+        from src.map.Location import Location
+        location = Location('building', building[0])
+        location.flip(self.random.rand_int(0, 1), self.random.rand_int(0, 1))
+        if rotate:
+            location.rotate()
+            offset_x = (estate_x - building[2])
+            offset_y = (estate_y - building[1])
+        else:
+            offset_x = (estate_x - building[1])
+            offset_y = (estate_y - building[2])
+        offset_x = self.random.rand_int(0, offset_x)
+        offset_y = self.random.rand_int(0, offset_y)
+        self.buildings.append([location, start_x + offset_x, start_y + offset_y])

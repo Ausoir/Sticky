@@ -231,8 +231,7 @@ class Spell:
 
     @staticmethod
     def evacuate(host):
-        from src.entity.Space import Space
-        host.travel('home', Space())
+        host.travel('worldmap')
 
     @staticmethod
     def banish(host):

@@ -62,7 +62,7 @@ class Actions:
 
     def idle(self):
         if self.last_action == 'idle':
-            if self.frame == 18:
+            if self.frame % 18 == 17:
                 self.make('standby', turn=0)
                 self.host.states.add('Concentration', -1)
         else:
@@ -114,7 +114,12 @@ class Actions:
     def walk(self):
         front = self.host.get_front_tile(self.host.direction)
         if not front:
-            self.idle()
+            on_edge = self.host.location.tags.get('edge')
+            if on_edge:
+                from src.game.Script import Script
+                Script.execute_code(on_edge, host=self.host)
+            else:
+                self.idle()
         elif front.is_land(self.host.collision_type):
             from src.game.Script import Script
             if self.host == Global.player.character:
@@ -124,30 +129,30 @@ class Actions:
                         self.make('interact', turn=3)
                         Script.execute_code(code, host=thing, var=self.host)
                         return
-                if self.host.get_skill('side step'):
-                    if front.is_land([Tile.COLLIDE_UNIT]):
-                        for thing in front.things:
-                            if isinstance(thing, Unit) and thing.action.delay == 0:
-                                concentration = self.host.states.get('Concentration')
-                                if concentration:
-                                    concentration.trigger(['spend'])
-                                    old = thing.pos
-                                    thing.relocate(self.host.pos.x, self.host.pos.y)
-                                    Actions.knockdown(thing, 10)
-                                    from src.tools import Direction
-                                    toward = Direction.get_direction_toward((old - self.host.pos).to_list())
-                                    self.host.move_toward(toward)
-                                    speed = self.host.tags.get('spd', 0)
-                                    if front.type > -10 and not self.host.tags.get('fly'):
-                                        speed += front.type
-                                    self.make('walk', turn=max(0, 4 - speed))
-                                    return
+            if self.host.get_skill('side step'):
+                if front.is_land([Tile.COLLIDE_UNIT]):
+                    for thing in front.things:
+                        if isinstance(thing, Unit) and thing.action.delay == 0:
+                            concentration = self.host.states.get('Concentration')
+                            if concentration:
+                                concentration.trigger(['spend'])
+                                old = thing.pos
+                                thing.relocate(self.host.pos.x, self.host.pos.y)
+                                Actions.knockdown(thing, 12)
+                                from src.tools import Direction
+                                toward = Direction.get_direction_toward((old - self.host.pos).to_list())
+                                self.host.move_toward(toward)
+                                speed = self.host.tags.get('spd', 0)
+                                if front.speed > -10 and not self.host.tags.get('fly'):
+                                    speed += front.speed
+                                self.make('walk', turn=max(0, 4 - speed))
+                                return
             self.idle()
         else:
             speed = self.host.tags.get('spd', 0)
             fly = self.host.tags.get('fly')
-            if front.type > -10 and not fly:
-                speed += front.type
+            if front.speed > -10 and not fly:
+                speed += front.get_speed()
             if speed > -10:
                 if self.host.move_toward(self.host.direction):
                     self.make('walk', turn=max(0, 2 - speed))
@@ -171,9 +176,10 @@ class Actions:
     def click(self):
         x_diff = Global.player.control.cursor_tile[0] - self.host.pos.x
         y_diff = Global.player.control.cursor_tile[1] - self.host.pos.y
+        front = self.host.get_front_tile(self.host.direction)
         if x_diff == y_diff == 0:
             Global.menu.toggle()
-        elif self.host.get_front_tile(self.host.direction).to_list() == Global.player.control.cursor_tile:
+        elif front and front.to_list() == Global.player.control.cursor_tile:
             self.host.use()
         elif abs(x_diff) > abs(y_diff):
             if x_diff < 0:
@@ -204,10 +210,22 @@ class Actions:
             if self.host.weapon:
                 self.host.inventory.attempt_add(target)
             else:
-                target.on_wield(self.host)
+                if self.host.inventory.is_vacant(target.get_weight()):
+                    target.on_wield(self.host)
+                else:
+                    from src.tools.Dialog import Dialog
+                    params = [self.host.inventory.get_weight(), self.host.inventory.get_capacity(), target.get_weight()]
+                    Global.main.monologue.set(Dialog.get('!heavy', params))
         else:
             self.make('grab', turn=1)
             self.host.drop()
+
+    def crush(self):
+        front = self.host.get_front_tile(self.host.direction)
+        if front.speed == -10:
+            self.host.location.sound.register(self.host.pos, 16, file='critical')
+            front.set_terrain('.')
+            front.update_update_shader()
 
     def attack(self):
         speed = self.host.tags.get('spd', 0) + self.host.get_attack_speed()
@@ -219,17 +237,14 @@ class Actions:
         self.host.location.field.register(dmg, front, hitter=hitter, delay=slow, sound=['swing', 0],
                                           callback=self.host.on_attack)
         self.host.form.timer.set(slow * 4 + 4)
+        if self.host.get_skill('crush') and dmg > 6:
+            self.on_finish = self.crush
 
     def kick(self):
-        speed = self.host.tags.get('spd', 0) + self.host.get_attack_speed()
-        self.make('kick', turn=max(6, 10 - speed))
-        slow = max(0, 1 - speed)
-        dmg = self.host.roll_damage()
-        front = self.host.get_front_tile(self.host.direction)
-        hitter = self.host.get_hitter()
-        self.host.location.field.register(dmg, front, hitter=hitter, delay=slow, sound=['swing', 0],
-                                          callback=self.host.on_attack)
-        self.host.form.timer.set(slow * 4 + 4)
+        self.attack()
+        time = self.host.form.timer.time
+        self.host.form.set_state('kick')
+        self.host.form.timer.set(time)
 
     def arch(self):
         def fin():

@@ -6,99 +6,55 @@ from src.tools.Dialog import Dialog
 
 
 class MenuAll(MenuPlayer):
-    # noinspection PyUnresolvedReferences
     def menu_shop(self):
-        # noinspection PyUnresolvedReferences
-        def buy(index):
-            appraise = host.inventory.items[index].get_value() + int(host.tags.get('seed', 0) % 2)
-            if Global.player.pay(appraise):
-                sold = host.inventory.get_item(index)
-                sold.relocate(Global.player.character.pos.x, Global.player.character.pos.y, force=1)
-                sold.add()
-            self.toggle()
-        host = self.var
-        if not host.inventory.items:
-            self.get_message(Dialog.get('soldout'))(None)
-        else:
-            from src.entity.Stock import Stock
-            count = 0
-            for item in host.inventory.items:
-                money = '$' + str(item.get_value() + int(host.tags.get('seed', 0) % 2))
-                lmb = self.get_prompt(item.describe(), Dialog.get('buy'), buy, count)
-                self.window.add(Menu.make(item.name, lmb))
-                self.sub_window.add(Menu.make(money, lmb, color=None))
-                count += 1
-            self.sub_window.display(1)
+        from src.entity.unit.Humanoid import Humanoid
+        if isinstance(self.var, Humanoid):
+            host = self.var
+
+            def buy(index):
+                appraise = host.inventory.items[index].get_value() + int(host.tags.get('seed', 0) % 2)
+                if Global.player.pay(appraise):
+                    sold = host.inventory.get_item(index)
+                    sold.relocate(Global.player.character.pos.x, Global.player.character.pos.y, force=1)
+                    sold.add()
+                self.toggle()
+            if not host.inventory.items:
+                self.get_message(Dialog.get('soldout'))(None)
+            else:
+                count = 0
+                for item in host.inventory.items:
+                    money = '$' + str(item.get_value() + int(host.tags.get('seed', 0) % 2))
+                    lmb = self.get_prompt(item.describe(), Dialog.get('buy'), buy, count)
+                    self.window.add(Menu.make(item.name, lmb))
+                    self.sub_window.add(Menu.make(money, lmb, color=None))
+                    count += 1
+                self.sub_window.display(1)
 
     def menu_pawn(self):
+        def buy(index):
+            Global.player.character.tags.increment('money', 1, add=True)
+            wpn.remove()
+            self.toggle()
+        from src.tools.Data import Data
+        data = Data.get_line('raw.txt', 'pawn')
+        if Global.player.character.weapon and Global.player.character.weapon.name in data[1]:
+            wpn = Global.player.character.weapon
+            self.get_prompt(Dialog.get('?pawn', [wpn.name]), Dialog.get('buy'), buy, 0)(None)
+        else:
+            self.get_message(Dialog.get('xpawn', [', '.join(data[1])]))(None)
+
+    def menu_provide(self):
         def buy(index):
             Global.player.character.tags['money'] += 1
             wpn.remove()
             self.toggle()
-        if Global.player.character.weapon:
+        from src.tools.Data import Data
+        data = Data.get_line('raw.txt', 'pawn')
+        if Global.player.character.weapon and Global.player.character.weapon.name in data[1]:
             wpn = Global.player.character.weapon
-            self.get_prompt(Dialog.get('?pawn', [wpn]), Dialog.get('buy'), buy, 0)
+            self.get_prompt(Dialog.get('?pawn', [wpn]), Dialog.get('buy'), buy, 0)()
         else:
-            self.get_message(Dialog.get('xpawn', [', '.join(self.var[1])]))
-
-    def menu_provide(self):
-        if Global.player.days >= self.var[0].var['due']:
-            from src.tools.Data import Data
-            from src.tools.Random import Random
-            from src.entity.Stock import Stock
-            data = Data.get_line('raw/trade.txt', self.var[0].tags['type'])
-            rng = Random(self.var[0].attributes.gene + Global.player.days)
-            due_date = Global.player.days + rng.rand_int(2, 5)
-            item = rng.rand_list(data[1])
-            value = Stock.get(item).get_value()
-            self.var[0].tags['due'] = due_date
-            self.var[0].tags['item'] = item
-            self.var[0].tags['amount'] = rng.rand_int(1, 7)
-            self.var[0].tags['value'] = rng.rand_int(1, 8) + int(value * self.var[0].tags['amount'] * .7)
-        self.state = self.menu_guild
-        self.display(1)
-
-    def menu_supply(self):
-        if Global.player.days >= self.var[0].tags['due']:
-            from src.entity.Stock import Stock
-            self.var[0].tags['due'] = Global.player.days + self.var[0].tags['time']
-            self.var[0].tags['amount'] = self.var[0].tags['need']
-        self.state = self.menu_guild
-        self.display(1)
-
-    def menu_guild(self):
-        if self.var[0].var['amount'] <= 0:
-            dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
-            self.get_message(Dialog.get('dealeroff', [dur]))(None)
-            return
-        else:
-            dur = Dialog.day(self.var[0].var['due'] - Global.player.days)
-            reward = self.var[0].var['value']
-            text = Dialog.get('dealerdeal', [self.var[0].var['amount'], self.var[0].var['item'], dur, reward])
-            panel = Menu.make(text, None, None, color=None, width=320, resize=True)
-            panel.redraw()
-            self.window.add(panel)
-
-            def sell(name):
-                items = Global.player.character.get_accessibles()
-                count = 0
-                for item in items:
-                    if item.name == self.var[0].var['item']:
-                        item.loot = None
-                        item.die()
-                        count += 1
-                self.var[0].var['amount'] -= count
-                if self.var[0].var['amount'] <= 0:
-                    Global.main.monologue.set(Dialog.get('dealcomplete'))
-                    Global.player.character.var['money'] += reward
-                elif count > 0:
-                    Global.main.monologue.set(Dialog.get('dealdelivery', [count, self.var[0].var['item']]))
-                else:
-                    Global.main.monologue.set('No ' + self.var[0].var['item'] + '...')
-            rmb = self.get_message([Dialog.get('provideitem', [self.var[0].var['item']])])
-            self.window.next_y = self.window.size.y + self.window.vec.y - 40 - self.window.margin.y
-            self.window.add(Menu.make(Dialog.get('provideitem', [self.var[0].var['item']]), sell, rmb, width=320))
-            self.sub_window.display(1)
+            self.get_message(Dialog.get('xpawn', [', '.join(data[1])]))()
 
     def menu_quest(self):
         def proceed(arg):

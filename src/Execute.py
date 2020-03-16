@@ -2,7 +2,7 @@ import pyglet
 from pyglet.gl import *
 
 from src.game import Global
-from src.entity.Space import Space
+from src.tools.Space import Space
 from src.game.Camera import Camera
 from src.map.MapView import MapView
 from src.game.Game import Game
@@ -17,11 +17,11 @@ from src.tools.Random import Random
 # noinspection PyAbstractClass
 class Execute(pyglet.window.Window):
     def __init__(self):
-        self.setting = Dialog.to_dict(Data.process_raw(Data.read('setting.txt')))
+        self.setting = Dialog.to_dict(Data.process_raw(Data.read('data/setting.txt')))
         super(Execute, self).__init__(self.setting['width'], self.setting['height'], 'Game Title',
                                       fullscreen=self.setting['fullscreen'] == 1, vsync=False, resizable=True)
         self.dt = 0
-        self.fps = 1 / 44.0
+        self.fps = 1 / 36.0
         self.set_location(self.setting['x'], self.setting['y'])
         self.init_other()
         self.monologue = Textbox(40, 40)
@@ -34,17 +34,19 @@ class Execute(pyglet.window.Window):
         Space.reusable = Space()
         from src.entity.Stock import Stock
         from src.interface.MenuAll import MenuAll
+        from src.map.Tile import Tile
         Data.init()
+        Turn.init()
+        Tile.init(Turn, Data.process_raw(Data.read('data/raw/tiles.txt')))
         Dialog.init()
         Stock.init()
         Global.draw_group = DrawGroup()
-        pyglet.font.add_file(Data.direct('Ubuntu-Regular.ttf'))
+        pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
         Global.font = pyglet.font.load('Default Font', 18)
         Global.main = self
         Global.blank_form = Data.get_form('none')
         Global.map_view = MapView()
         Global.menu = MenuAll()
-        Turn.init()
         Global.player = Game()
 
     def set_fullscreen(self, fullscreen=True, screen=None, mode=None,
@@ -52,6 +54,9 @@ class Execute(pyglet.window.Window):
         super().set_fullscreen(fullscreen, width=Global.main.setting['res_x'], height=Global.main.setting['res_y'])
         self.set_location(0, 0)
         self.clear()
+
+    def on_text(self, text):
+        Global.player.control.on_text(text)
 
     def on_key_press(self, symbol, modifiers):
         Global.player.control.input(symbol)
@@ -94,12 +99,11 @@ class Execute(pyglet.window.Window):
         vertical = int(Global.DISPLAY[1] / 2)
         glOrtho(-horizontal, horizontal, -vertical, vertical, -1000, 4)
         glMatrixMode(GL_MODELVIEW)
-        glTranslatef(-Global.OFFSET[0] - 1, -Global.OFFSET[1], 0)
+        glPushMatrix()
+        glTranslatef(Global.CURRENT_OFFSET[0] - Global.OFFSET[0], Global.CURRENT_OFFSET[1] - Global.OFFSET[1], 0)
+        Global.CURRENT_OFFSET = Global.OFFSET
         Global.player.set_darkness()
         self.monologue.on_resize()
-
-    def on_text(self, text):
-        Global.player.control.on_text(text)
 
     def on_activate(self):
         Global.player.control.clear_press()
@@ -107,7 +111,7 @@ class Execute(pyglet.window.Window):
     def on_close(self):
         self.setting['fullscreen'] = 1 if self.fullscreen else 0
         result = Dialog.dict(self.setting)
-        Data.write('setting.txt', result.replace(',', '\n').replace(':', ',')[1:][:-1])
+        Data.write('data/setting.txt', result.replace(',', '\n').replace(':', ',')[1:][:-1])
         import sys
         sys.exit()
 
@@ -126,7 +130,6 @@ class Execute(pyglet.window.Window):
         Global.draw_group.draw()
         Global.menu.draw()
         Global.player.draw()
-        self.batch.draw()
 
 
 if __name__ == '__main__':

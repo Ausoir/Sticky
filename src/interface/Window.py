@@ -1,7 +1,7 @@
 from pyglet.text.document import FormattedDocument
 from pyglet.text.layout import TextLayout
 
-from src.entity.Space import Space
+from src.tools.Space import Space
 from src.form.Shape import Shape
 from src.game import Global
 
@@ -26,7 +26,7 @@ class Window(Shape):
         self.normal_color = self.color
         self.next_y = self.y + self.margin.y
         self.document = FormattedDocument(' ')
-        self.document.set_style(0, 1, dict(font_name='Default Font', font_size=16, color=Window.font_color1))
+        self.document.set_style(0, 1, dict(font_name='Ubuntu', font_size=16, color=Window.font_color1))
         self.text = TextLayout(self.document, width, height, multiline=multi_line, group=Global.draw_group.group_gui)
         self.align = 'middle'
 

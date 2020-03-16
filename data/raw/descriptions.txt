@@ -34,7 +34,7 @@ Raise Dead,Turn corpses into zombies.
 Summon Weapon,Summon a random weapon.
 Summon Armor,Summon a random piece of armor or clothing.
 Summon Phantom,Summon a phantom to possess any item laying underneath the caster.
-Evacuate,Teleport to town.
+Evacuate,Teleport out safely to world map.
 Banish,Banish anything in front of the caster to the abyss.
 Slime Form,Turn into a slime that is immune to many status effects.
 Ghost Form,Turn into a ghost that can pass through walls but cannot interact with the world.
@@ -48,13 +48,14 @@ sk.block,Unique Passive: Reduce damage from front by 1.
 sk.constitution,Unique Passive: 1 second of invulnerability upon taking a hit.
 sk.parry,Unique Passive: Stand still to concentrate',' reflecting next hit damage plus maximum defense as true damage.
 sk.iron will,Unique Passive: Stand still to concentrate',' removing one harmful status effect every 4 seconds.
-sk.vengeance,Unique Passive: After receiving 4 continuous attacks',' push away and knockdown all adjacent units.
+sk.vengeance,Unique Passive: On taking 4 continuous hits',' push away and knockdown all adjacent units.
 sk.toughness,Unique Passive: Become immune to knockdown.
 sk.strength,Passive: Increase maximum damage by 1 per level.
 sk.fury,Unique Passive: Increase speed by 1 for 4 seconds after taking damage.
 sk.flurry,Passive: Stand still to concentrate',' attacking again on a successful hit. Attacks again up to flurry level.
 sk.cleave,Unique Passive: Successful attacks cleave to the sides at -1 damage penalty. Cleave attacks do not trigger skills.
-sk.frenzy,Unique Passive: Successful attacks increase maximum damage by 1 for 1 second. Stacks.
+sk.frenzy,Unique Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
+sk.crush,Unique Passive: Destroy walls if damage rolls 7 or higher.
 sk.execute,Unique Passive: Successful attacks instantly kill enemies with health lower than current maximum damage.
 sk.stealth,Passive: Reduce enemy sight range by 1 per level.
 sk.side step,Unique Passive: Stand still to concentrate',' move to swap places with and knockdown a unit in way.
@@ -67,5 +68,4 @@ sk.aura,Create aura manipulating scrolls.
 sk.enchant,Create scrolls that can inflict status effects.
 sk.summon,Create summoning scrolls.
 sk.ritual,Create rituals to aid other spells.
-sk.memorize,Cast spell from memory.
-sk.blood ink,Create spell ink from blood.
+sk.memorize,Memorize currently held spell and use it without requiring catalysts.

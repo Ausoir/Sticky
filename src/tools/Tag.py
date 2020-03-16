@@ -45,6 +45,10 @@ class Tag:
             self.attributes[param] = arg
             return True
 
+    def minmax(self, param, minimum, maximum):
+        if param in self.attributes:
+            self.attributes[param] = max(minimum, min(maximum, self.attributes[param]))
+
     def require(self, param, arg, cost=True):
         if param in self.attributes:
             if self.attributes[param] >= arg:

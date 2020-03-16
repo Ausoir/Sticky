@@ -117,16 +117,23 @@ class Health(Buff):
         else:
             return 'Constantly heal.'
 
+    def apply(self):
+        self.host.decay(-self.var)
+
+    def on_start(self):
+        self.apply()
+
     def on_stack(self, duration, var):
         if self.var > 0 == var > 0:
             self.duration = max(self.duration, duration)
         else:
             self.duration = duration
         self.var += var
+        self.apply()
 
     def on_update(self):
         if self.effect(10):
-            self.host.decay(-self.var)
+            self.apply()
 
 
 class Damage(Buff):
@@ -321,13 +328,16 @@ class Invisible(Buff):
     def __init__(self, host, name, duration, var):
         super().__init__(host, name, duration, var)
         self.orig = None
-        self.begin = True
 
     def get_tags(self):
         return [BuffTags.magic]
 
     def describe(self):
         return 'You are invisible.'
+
+    def is_valid(self):
+        if not self.host.states.get('Invisible'):
+            return super().is_valid()
 
     def on_start(self):
         Particle.make('mist', self.host.pos.get_center())
@@ -337,6 +347,12 @@ class Invisible(Buff):
             for unit in self.host.get_team(ally=False):
                 if unit.pilot.priority == 1:
                     unit.pilot.lose(self.host)
+
+    def on_stack(self, duration, var):
+        if self.var > 0 == var > 0:
+            self.duration = max(self.duration, duration)
+        else:
+            self.duration = duration
 
     def on_load(self):
         from src.entity.unit.Unit import Unit
@@ -350,25 +366,12 @@ class Invisible(Buff):
         self.host.show(True)
 
     def on_update(self):
-        if self.begin:
-            self.begin = False
-            self.host.show(False)
+        self.host.show(False)
 
     def trigger(self, arg):
         super().trigger(arg)
-        r = False
-        if arg[0] == 'move':
-            r = self.var == 1
-        elif arg[0] == 'act':
-            r = self.var != -1
-        elif arg[0] == 'attack':
-            r = self.var != -1
-        elif arg[0] == 'hit':
-            r = self.var != -1
-        elif arg[0] == 'time' and arg[1] > 0:
-            r = self.var != -1
-        if r:
-            self.end()
+        self.host.show(True)  # Show before dropping item
+        self.end()
 
 
 class Invulnerable(Buff):
@@ -410,7 +413,7 @@ class Concentration(Buff):
                     new.append(i)
             self.host.sight = new
         if self.host.get_skill('hide'):
-            self.host.states.add('Invisible', -1, var=1)
+            self.host.states.add('Invisible', 24)
 
     def effect_on_apply(self):
         if self.host.get_skill('iron will'):
@@ -418,6 +421,8 @@ class Concentration(Buff):
                 if BuffTags.harmful in i.get_tags():
                     i.end()
                     return
+        if self.host.get_skill('hide'):
+            self.host.states.add('Invisible', 24)
 
     def on_start(self):
         self.effect_on_load()
@@ -459,7 +464,7 @@ class Vengeance(Buff):
                 if tile:
                     for thing in tile.things:
                         thing.move(i[0], i[1])
-                        Actions.knockdown(thing)
+                        Actions.knockdown(thing, time=14)
                     Particle.make('batter', tile.get_center())
             self.host.location.sound.register(self.host.pos, 1, file='critical')
             self.end()

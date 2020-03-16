@@ -3,14 +3,14 @@
 block_cipher = None
 
 added_files = [
-    ('src', 'src'),
-    ('Data', 'Data'),
-    ('save', 'save')
+    ('..\\src', 'src'),
+    ('..\\Data', 'Data'),
+    ('..\\save', 'save')
 ]
 
-a = Analysis(['src\\Execute.py'],
+a = Analysis(['..\\src\\Execute.py'],
              pathex=['src'],
-             binaries=[('x64','x64')],
+             binaries=[],
              datas=added_files,
              hiddenimports=[],
              hookspath=[],

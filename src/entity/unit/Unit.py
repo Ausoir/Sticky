@@ -53,7 +53,7 @@ class Unit(Prop):
     def set_form(self, arg):
         self.form_name = arg
         from src.tools.Data import Data
-        line = Data.get_line('raw/model.txt', arg)
+        line = Data.get_line('model.txt', arg)
         self.form = Body(line[1])
         self.form.set_model(line[2])
 
@@ -92,7 +92,7 @@ class Unit(Prop):
                     hurt = hp / mhp
                     if hurt < 1 and self.bleed_frame <= 0:
                         from src.entity.Particle import Particle
-                        Particle.make('blood', self.vec)
+                        Particle.make('blood', self.vec, offset=8)
                         self.bleed_frame = hurt * hurt * 32
                     else:
                         self.bleed_frame -= 1
@@ -165,7 +165,8 @@ class Unit(Prop):
         if not backstab:
             damage -= self.roll_defense()
         if self.get_skill('vengeance'):
-            self.states.add('Vengeance', 20)
+            if self.states.add('Vengeance', 20).duration == 0:
+                damage = 0
         self.states.trigger(['hit', damage])
         if damage > 0:
             if self.get_skill('constitution'):
@@ -217,6 +218,7 @@ class Unit(Prop):
                 if concentration.var <= flurry:
                     self.tags.increment('spd', -self.get_attack_speed(), add=True)
                     self.action.attack()
+                    self.form.set_state('flurry')
                     self.tags.increment('spd', self.get_attack_speed(), remove=True)
                     concentration.duration = self.action.delay
         if self.get_skill('execute'):
@@ -277,3 +279,9 @@ class Unit(Prop):
             self.tags.set('bad', 1, add=True)
         elif self.tags.get('bad') == 1:
             self.tags.remove('bad')
+
+    def describe(self):
+        r = super().describe()
+        from src.tools.Dialog import Dialog
+        r += '\n' + Dialog.get('level') + ': ' + str(len(self.skills) + 1)
+        return r

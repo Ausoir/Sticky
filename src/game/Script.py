@@ -104,9 +104,9 @@ class Script:
             elif arg[1] == 'array':
                 self.var = arg[2][arg[3]]
             elif arg[1] == 'player':
-                self.host = Global.player.character
+                self.var = Global.player.character
             elif arg[1] == 'host':
-                self.host = self.var
+                self.var = self.host
             elif arg[1] == '?list':
                 self.var = self.rand.rand_list(arg[2])
             elif arg[1] == '?int':
@@ -116,6 +116,8 @@ class Script:
                     self.var = str(arg[2]) + str(arg[3])
                 else:
                     self.var = arg[2] + arg[3]
+            elif arg[1] == 'x':
+                self.var = arg[2] * arg[3]
             elif arg[1] == 'time':
                 self.var = Global.player.days
                 Global.player.set_darkness()
@@ -124,9 +126,9 @@ class Script:
             elif arg[1] == 'hosttag':
                 self.var = self.host.tags.get(arg[2])
             elif arg[1] == 'skill':
-                self.var = self.host.get_skill(arg[2])
-            elif arg[1] == 'gethost':
-                self.var = self.host
+                self.var = self.host.get_skill(arg[2], stacks=True)
+        elif arg[0] == 'host':
+            self.host = arg[1]
         elif arg[0] == 'v':
             if arg[1] == '=':
                 Global.land.tags.set(arg[2], arg[3], add=True)
@@ -291,11 +293,6 @@ class Script:
         elif arg[0] == 'script':
             from src.game.ScriptManual import ScriptManual
             ScriptManual.execute(arg[1], self.host, self.var)
-        elif arg[0] == 'flip':
-            Global.land.flip(arg[1], arg[2])
-        elif arg[0] == 'rotate':
-            Global.land.rotate()
-            Global.map_view.on_sight_change()
         elif arg[0] == 'load':
             building = Data.process_raw(Data.read(arg[2] + '.map'))
             from src.map.Location import Location

@@ -37,7 +37,7 @@ class Execute(pyglet.window.Window):
         from src.map.Tile import Tile
         Data.init()
         Turn.init()
-        Tile.init(Turn, Data.process_raw(Data.read('data/raw/tiles.txt')))
+        Tile.init(Data.process_raw(Data.read('data/raw/tiles.txt')))
         Dialog.init()
         Stock.init()
         Global.draw_group = DrawGroup()

@@ -1,3 +1,4 @@
+from src.tools import Direction
 from src.tools.Random import Random
 
 
@@ -9,10 +10,14 @@ class Generator:
         rand = Random()
         if terrain == 'woods':
             gen = Generator.get(terrain)(rand.rand_int(20, 60), rand.rand_int(20, 60), random=rand)
-        elif terrain == 'grass':
-            gen = Generator.get('field')(40, 40, random=rand)
         elif terrain == 'town':
             gen = Generator.get(terrain)(rand.rand_int(40, 80), rand.rand_int(40, 80), random=rand)
+        elif terrain == 'port town':
+            gen = Generator.get('porttown')(rand.rand_int(40, 80), rand.rand_int(40, 80), random=rand)
+        elif terrain == 'cove':
+            gen = Generator.get('cove')(rand.rand_int(20, 60), rand.rand_int(20, 60), random=rand)
+        elif terrain == 'cave':
+            gen = Generator.get('cave')(rand.rand_int(20, 60), rand.rand_int(20, 60), random=rand)
         else:
             gen = Generator.get('field')(40, 40, random=rand)
         r = gen.run(name)
@@ -21,15 +26,24 @@ class Generator:
 
     @staticmethod
     def get(generator):
-        if generator == 'town':
-            from src.map.GenerateBSPTree import GenerateTown
-            return GenerateTown
+        if generator == 'field':
+            from src.map.GeneratePerlin import GenerateField
+            return GenerateField
         elif generator == 'woods':
             from src.map.GeneratePerlin import GenerateWoods
             return GenerateWoods
-        elif generator == 'field':
-            from src.map.GeneratePerlin import GenerateField
-            return GenerateField
+        elif generator == 'town':
+            from src.map.GenerateBSPTree import GenerateTown
+            return GenerateTown
+        elif generator == 'porttown':
+            from src.map.GenerateBSPTree import GeneratePortTown
+            return GeneratePortTown
+        elif generator == 'cove':
+            from src.map.GeneratePerlin import GenerateCove
+            return GenerateCove
+        elif generator == 'cave':
+            from src.map.GenerateTunneler import GenerateCave
+            return GenerateCave
         elif generator == 'island':
             from src.map.GeneratePerlin import GenerateIsland
             return GenerateIsland
@@ -53,8 +67,6 @@ class Generator:
         self.random = random
         self.theme = {}
         self.background = {'!': '.'}
-        self.width = x
-        self.height = y
         self.str_map = Generator.make_map(x, y)
         self.fill_rect('.', 0, 0, x, y)
 
@@ -79,16 +91,16 @@ class Generator:
         location = Location(name, None)
         from src.map.Tile import Tile
         from src.entity.Stock import Stock
-        req_height = max(self.height, len(location.tiles))
+        req_height = max(self.get_height(), len(location.tiles))
         for y in range(req_height):
             if y >= len(location.tiles):
                 location.tiles.append([])
-            req_width = max(self.width, len(location.tiles[0]))
+            req_width = max(self.get_width(), len(location.tiles[0]))
             for x in range(req_width):
                 if x >= len(location.tiles[y]):
                     location.tiles[y].append(Tile(location, '?', x, y))
-        for self_y in range(self.height):
-            for self_x in range(self.width):
+        for self_y in range(self.get_height()):
+            for self_x in range(self.get_width()):
                 terrain = self.theme.get(self.str_map[self_y][self_x])
                 if not terrain:
                     terrain = self.str_map[self_y][self_x]
@@ -143,9 +155,31 @@ class Generator:
                     tries -= 1
 
     def outline(self, terrain):
-        for x in range(self.width):
+        for x in range(self.get_width()):
             self.str_map[0][x] = terrain
-            self.str_map[self.height - 1][x] = terrain
-        for y in range(self.height):
+            self.str_map[self.get_height() - 1][x] = terrain
+        for y in range(self.get_height()):
             self.str_map[y][0] = terrain
-            self.str_map[y][self.width - 1] = terrain
+            self.str_map[y][self.get_width() - 1] = terrain
+
+    def has_neighbor(self, x, y, fn):
+        for i in Direction.coord.values():
+            if fn(self.str_map[y + i[1]][x + i[0]]):
+                return True
+
+    def get_width(self):
+        return len(self.str_map[0])
+
+    def get_height(self):
+        return len(self.str_map)
+
+    def find_entrance(self, location, terrain='.'):
+        possibles = []
+        for x in range(location.get_width()):
+            possibles.append(location.get_tile(x, 0))
+            possibles.append(location.get_tile(x, location.get_height() - 1))
+        for y in range(location.get_height()):
+            possibles.append(location.get_tile(0, y))
+            possibles.append(location.get_tile(location.get_width() - 1, y))
+        possibles = list(filter(lambda tile: tile.terrain == terrain, possibles))
+        return self.random.rand_list(possibles)

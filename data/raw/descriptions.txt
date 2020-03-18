@@ -16,7 +16,6 @@ Gravity,Pull everything within 12 tiles toward the target.
 Glow,Makes target glow permanently.
 Scorch,Create a scorching flame on the target.
 Summon Bread,Summons bread.
-Darkness,Create darkness and reduce sight range to 4.
 Scry,Reveal sight of far away location.
 Vision,See through walls.
 Passwall,Pass through solid object.
@@ -42,7 +41,8 @@ Dog Form,Turn into a dog that can consume corpses and move faster than average.
 Barkskin,Turn flesh into wood',' becoming slowed and vulnerable to fire but reducing incoming damage by 2.
 Stone Form,Turn flesh into stone',' becoming immobile but reducing incoming damage by 5.
 sk.endurance,Passive: Increase carry weight by 1 per level.
-sk.asceticism,Passive: Foods provide 1 extra nutrition per level.
+sk.asceticism,Passive: Food provide 1 extra nutrition per level.
+sk.perseverance,Passive: Resting restores 1 extra health point every hour per level.
 sk.dodge,Passive: Increase maximum defense by 1 per level.
 sk.block,Unique Passive: Reduce damage from front by 1.
 sk.constitution,Unique Passive: 1 second of invulnerability upon taking a hit.

@@ -4,7 +4,6 @@ Glow,Focus,g_11x4,[p>:1,p:1],[],Potion,Glow
 Scorch,Focus,wand,[p>:1,p:1,w:2],[],Wand,Scorch
 Summon Bread,Focus,g_11x4,[p>:1,p:1],[],Potion,Bread
 Slime Form,Focus,g_11x4,[p>:1,p:1],[],Potion,Slime
-Darkness,Focus,g_11x4,[p>:1,p:1],[],Potion,Darkness
 Scry,Focus,g_11x4,[p>:1,p:1],[],Potion,Scry
 Vision,Focus,g_11x4,[p>:1,p:1],[],Potion,Vision
 Passwall,Focus,g_11x4,[p>:1,p:1],[],Potion,Passwall
@@ -20,9 +19,9 @@ Transience,Focus,g_11x4,[p>:1,p:1],[],Potion,Transience
 Stone Form,Focus,g_11x4,[p>:1,p:1],[],Potion,Stoneskin
 Disintegrate,Focus,g_11x4,[p>:1,p:1],[],Potion,Disintegrate
 Blizzard,Focus,g_11x4,[p>:1,p:1],[],Potion,Blizzard
-Spell Mine,Focus,g_11x4,[p>:1,p:1],[],Potion,Mine
 Summon Wall,Focus,g_11x4,[p>:1,p:1],[],Potion,Wall
 Raise Dead,Focus,g_11x4,[p>:1,p:1],[],Potion,Zombie
+Summon Fog,Focus,g_11x4,[p>:1,p:1],[],Potion,Fog
 Summon Weapon,Focus,g_11x4,[p>:1,p:1],[],Potion,Weapon
 Summon Armor,Focus,g_11x4,[p>:1,p:1],[],Potion,Armor
 Summon Phantom,Focus,g_11x4,[p>:1,p:1],[],Potion,Phantom

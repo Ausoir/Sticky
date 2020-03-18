@@ -121,7 +121,7 @@ class Wander(Task):
             self.state = 1
             self.reset()
             self.target = None
-        elif rand <= 3:
+        elif rand < 3:
             self.host.face(Global.r.rand_int(1, 4))
             self.state = 0
         else:
@@ -149,7 +149,7 @@ class Wander(Task):
                 self.next_reset = 1
             else:
                 self.next_reset += 1
-            for times in range(4):
+            for times in range(5):
                 if self.open:
                     self.iterate(self.open[0])
                 else:
@@ -180,7 +180,7 @@ class Wander(Task):
 
 
 class Path(Task):  # path finding A*
-    chase = 9
+    chase = 14
 
     class Node:
         def __init__(self, parent, node):
@@ -240,12 +240,12 @@ class Path(Task):  # path finding A*
             if conflict:
                 if node.g + 1 <= conflict.g:
                     conflict.parent = node
-                    conflict.g = node.g + 1 - node.node.speed
+                    conflict.g = node.g + 1 - node.node.speed + i[2]
                     conflict.set_h(self.target)
                     conflict.f = conflict.h + conflict.g
                 continue
             new = Path.Node(node, pos)
-            new.g = node.g + 1 - node.node.speed
+            new.g = node.g + 1 - node.node.speed + i[2]
             new.set_h(self.target)
             new.f = new.h + new.g
             if new.h < self.heuristic_threshold:
@@ -261,7 +261,7 @@ class Path(Task):  # path finding A*
         if self.result:
             self.host.face_toward(self.result[0])
             front = self.host.get_front_tile(self.host.direction)
-            if front.is_land(self.host.collision_type) and self.pilot.can_destroy(front):
+            if front.is_land(self.host.collision_type) and self.pilot.route.can_destroy(front) != -1:
                 self.host.input('attack')
             else:
                 self.host.input('walk')

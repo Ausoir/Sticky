@@ -13,12 +13,21 @@ class Inventory:
     def load(self, p):
         from src.entity.Stock import Stock
         self.items = []
+        seed = self.host.tags.get('seed', len(self.host.name) + len(self.host.location.name) + self.host.pos.sum())
+        count = 0
         for i in p:
+            count += 1
+            seed += int(self.host.id[1:], 16) * count
             if isinstance(i, str):
+                if i.startswith('?'):
+                    if seed % 2 == 1:
+                        continue
+                    else:
+                        i = i[1:]
                 item = Stock.get(self.host.location, i)
             else:
                 item = Stock.get(self.host.location, i[2], i)
-                item.show(False)
+            item.show(False)
             self.items.append(item)
 
     def get_weight(self):

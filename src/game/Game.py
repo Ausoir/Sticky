@@ -65,7 +65,7 @@ class Game:
         return player
 
     def is_daytime(self):
-        return 5 < self.days % 24 < 18
+        return 5 < self.days % 24 < 20
 
     def sleep(self, time, force=False, blackout=True):
         if time > 0:
@@ -88,14 +88,10 @@ class Game:
         return True
 
     def set_darkness(self):
-        if self.daytime:
-            Global.map_view.overlay.colorize(None)
-            Global.map_view.sight_range = 13
-            Global.map_view.view_range = 13
-        else:
-            Global.map_view.overlay.colorize([10, 0, 30, 160])
-            Global.map_view.sight_range = 13
-            Global.map_view.view_range = 3
+        time = self.days % 24
+        Global.map_view.overlay.set_time(time)
+        Global.map_view.sight_range = 13
+        Global.map_view.view_range = Global.map_view.overlay.SIGHT[time]
         Global.map_view.on_sight_change()
         
     def input(self, command):

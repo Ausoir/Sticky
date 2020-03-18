@@ -5,10 +5,11 @@ Scrap,Item,g_3x4,[p:1,mat:metal],[]
 Cloth,Item,g_4x4,[p:1],[]
 Paper,Item,g_5x4,[p:1],[]
 Rock,Item,g_6x4,[p:4,mat:metal],[]
-Cash,Credit,g_7x4,[p>:1,p:1],[],money,5
+Cash,Credit,g_7x4,[p>:1,p:1],[],money,1
+Cash Bundle,Credit,g_7x4,[p>:1,p:1],[],money,10
 Scaffold,Item,g_8x4,[p:4,mat:wood],[]
 Spell Pouch,Item,g_12x4,[p:1,#:artifact],[]
-Manual,Manual,g_13x4,[p>:1,p:1],[],0
+Manual,Manual,g_13x4,[p:4,price:8],[],0
 Tooth,Item,g_15x4,[p:1],[]
 Jelly,Item,g_16x4,[p:1],[]
 Chair,Item,g_18x4,[p:1,mat:wood,loot:Plank],[]

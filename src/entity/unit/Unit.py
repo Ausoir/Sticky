@@ -180,6 +180,7 @@ class Unit(Prop):
                     concentration.trigger(['spend'])
                     from src.entity.Particle import Particle
                     Particle.make('barrier', self.pos.get_center())
+                    self.location.sound.register(self.pos, 0, file='critical')
                     if isinstance(hitter, Prop):
                         from src.entity.unit.Actions import Actions
                         Actions.knockdown(hitter)

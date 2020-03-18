@@ -5,14 +5,13 @@ from src.tools import Direction
 class Tunneler(Generator):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
-        self.theme = {'.': 'w', 'o': '.', 'X': 'B', 'D': 'Door', 'W': 'Window'}
         self.activity_threshold = int(x * y * .1)
         self.tunneler = None
         self.blocked = False
         self.turning = 10
 
     def initialize_tunneler(self):
-        start_pos = [self.random.rand_int(1, self.width - 2), self.random.rand_int(1, self.height - 2)]
+        start_pos = [self.random.rand_int(1, self.get_width() - 2), self.random.rand_int(1, self.get_height() - 2)]
         return [self.random.rand_int(1, 4), start_pos]
 
     def color(self):
@@ -34,12 +33,6 @@ class Tunneler(Generator):
                     nodes.append(key)
                     self.fill_connect(nodes, x, y)
 
-    def run(self):
-        self.build_structure()
-        self.color()
-        self.adapt_tiles()
-        self.flip(self.random.rand_bool(), self.random.rand_bool())
-
     def build_structure(self):
         for i in range(12):
             self.tunneler = self.initialize_tunneler()
@@ -48,26 +41,6 @@ class Tunneler(Generator):
             self.tunneler[1] = start
             self.iterate()
             self.str_map[start[1]][start[0]] = 'D'
-
-    def adapt_tiles(self):
-        for y in range(1, self.height - 1):
-            for x in range(1, self.width - 1):
-                if self.str_map[y][x] == '*':
-                    if self.random.rand_int(1, 8) == 1:
-                        self.str_map[y][x] = 'o'
-                if self.str_map[y][x] in ['X', 'D']:
-                    blocked = []
-                    for i in Direction.coord.values():
-                        if self.str_map[y + i[1]][x + i[0]] in Generator.BLOCKED:
-                            blocked.append(1)
-                        else:
-                            blocked.append(0)
-                    if self.str_map[y][x] == 'X':
-                        if self.random.rand_int(1, 15) == 1 and (blocked == [1, 0, 1, 0] or blocked == [0, 1, 0, 1]):
-                            self.str_map[y][x] = 'W'
-                    if self.str_map[y][x] == 'D':
-                        if blocked != [1, 0, 1, 0] and blocked != [0, 1, 0, 1]:
-                            self.str_map[y][x] = 'X'
 
     def iterate(self):
         for i in range(self.activity_threshold * 5):
@@ -110,7 +83,7 @@ class Tunneler(Generator):
         return [x, y]
 
     def out_of_bound(self, x, y, margin=0):
-        return x < margin or x >= self.width - margin or y < margin or y >= self.height - margin
+        return x < margin or x >= self.get_width() - margin or y < margin or y >= self.get_height() - margin
 
     def change_direction(self, routes):
         if not routes:
@@ -143,3 +116,71 @@ class Tunneler(Generator):
             if self.tunneler[1][0] != tx and self.tunneler[1][1] != ty:
                 if self.is_blocked([tx, ty]):
                     return True
+
+
+class GenerateMansion(Tunneler):
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
+        self.theme = {'.': 'w', 'o': '.', 'X': 'B', 'D': 'Door', 'W': 'Window'}
+
+    def process(self):
+        self.build_structure()
+        self.color()
+        self.adapt_tiles()
+
+    def adapt_tiles(self):
+        for y in range(1, self.get_height() - 1):
+            for x in range(1, self.get_width() - 1):
+                if self.str_map[y][x] == '*':
+                    if self.random.rand_int(1, 8) == 1:
+                        self.str_map[y][x] = 'o'
+                if self.str_map[y][x] in ['X', 'D']:
+                    blocked = []
+                    for i in Direction.coord.values():
+                        if self.str_map[y + i[1]][x + i[0]] in Generator.BLOCKED:
+                            blocked.append(1)
+                        else:
+                            blocked.append(0)
+                    if self.str_map[y][x] == 'X':
+                        if self.random.rand_int(1, 15) == 1 and (blocked == [1, 0, 1, 0] or blocked == [0, 1, 0, 1]):
+                            self.str_map[y][x] = 'W'
+                    if self.str_map[y][x] == 'D':
+                        if blocked != [1, 0, 1, 0] and blocked != [0, 1, 0, 1]:
+                            self.str_map[y][x] = 'X'
+
+    def post_process(self, location):
+        location.rotate(self.random.rand_int(0, 3))
+        entrance = self.find_entrance(location)
+        location.tags.set('enterx', entrance.x, add=True)
+        location.tags.set('entery', entrance.y, add=True)
+        return location
+
+
+class GenerateCave(Tunneler):
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
+        self.theme = {'.': 'R', 'o': 'R', 'X': '.', 'D': '.', 'W': 'R'}
+
+    def process(self):
+        self.tunneler = self.initialize_tunneler()
+        self.iterate()
+
+    def initialize_tunneler(self):
+        start_pos = [self.random.rand_int(0, self.get_width() - 1), 0]
+        return [self.random.rand_int(1, 4), start_pos]
+
+    def step(self):
+        pos = self.get_front(self.tunneler[0])
+        if not pos or self.out_of_bound(pos[0], pos[1], margin=1):
+            self.tunneler[0] = self.random.rand_int(1, 4)
+        elif self.random.rand_int(1, self.turning) == 1:
+            self.tunneler[0] = self.random.rand_int(1, 4)
+        else:
+            self.tunneler[1] = [pos[0], pos[1]]
+
+    def post_process(self, location):
+        location.rotate(self.random.rand_int(0, 3))
+        entrance = self.find_entrance(location)
+        location.tags.set('enterx', entrance.x, add=True)
+        location.tags.set('entery', entrance.y, add=True)
+        return location

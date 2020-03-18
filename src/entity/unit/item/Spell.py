@@ -67,22 +67,6 @@ class Spell:
         host.states.add('Shapeshift', -1, 'Slime')
 
     @staticmethod
-    def darkness(host):
-        def casting():
-            if turnee.lifetime == 0:
-                Global.player.set_darkness()
-            elif turnee.lifetime % 2 == 0:
-                Global.map_view.overlay.weather = [50, 15, 15, 160]
-                new = max(4, Global.map_view.sight_range - 1)
-                if Global.map_view.sight_range != new:
-                    Global.map_view.sight_range = new
-                    Global.map_view.view_range = Global.map_view.sight_range + 4
-                    Global.map_view.on_sight_change()
-        host.location.sound.register(host.pos, 0, file='void')
-        from src.tools.Turnee import Turnee
-        turnee = Turnee(casting, 60)
-
-    @staticmethod
     def scry(host):
         host.states.add('Speed', 60, var=-12)
         if host == Global.player.character:
@@ -90,7 +74,9 @@ class Spell:
                 coord = Direction.coord[host.direction]
                 r.move(coord[0], coord[1], flag=[Tile.COLLIDE_MAGIC])
                 if turnee.lifetime == 1:
-                    Global.player.set_darkness()
+                    Global.map_view.overlay.weather = orig[0]
+                    Global.map_view.sight_range = orig[1]
+                    Global.map_view.view_range = orig[2]
                     Global.map_view.on_sight_change()
                     host.center_camera()
                     r.remove()
@@ -98,6 +84,7 @@ class Spell:
             from src.map.Tile import Tile
             from src.entity.Stock import Stock
             from src.tools.Turnee import Turnee
+            orig = [Global.map_view.overlay.weather, Global.map_view.sight_range, Global.map_view.view_range]
             Global.map_view.overlay.weather = [45, 25, 75, 160]
             Global.map_view.sight_range = 13
             Global.map_view.view_range = 13
@@ -108,7 +95,7 @@ class Spell:
 
     @staticmethod
     def vision(host):
-        host.states.add('Vision', 120)
+        host.states.add('Vision', -1)
 
     @staticmethod
     def passwall(host):
@@ -172,7 +159,7 @@ class Spell:
                 host.center_camera()
                 r.remove()
                 return
-            Stock.make('Window', r.pos)
+            Stock.make('Spell Wall', r.pos)
             if turnee.lifetime == 1:
                 host.center_camera()
                 r.remove()
@@ -198,10 +185,20 @@ class Spell:
                     i.remove()
 
     @staticmethod
+    def fog(host):
+        from src.entity.Stock import Stock
+        host.location.sound.register(host.pos, 3, file='spell')
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                tile = host.pos.get_neighbor(x, y)
+                if not tile.things:
+                    Stock.make('Fog', tile)
+
+    @staticmethod
     def weapon(host):
         from src.entity.Stock import Stock
         host.location.sound.register(host.pos, 3, file='spell')
-        weapon = Global.r.rand_list(['Stick', 'Bottle', 'Parasol', 'Club', 'Dagger', 'Hammer'])
+        weapon = Global.r.rand_list(['Stick', 'Bottle', 'Parasol', 'Club', 'Dagger', 'Hammer', 'Torch', 'Shortsword'])
         r = Stock.make(weapon, host.get_front_tile(host.direction))
         host.drop()
         r.on_wield(host)

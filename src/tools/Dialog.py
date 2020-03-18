@@ -68,7 +68,11 @@ class Dialog:
     def date(time):
         hour = time % 24
         day = str(int(time / 24))
-        hour_m = str(time % 12 + 1)
+        hour_m = time % 12
+        if hour_m == 0:
+            hour_m = '12'
+        else:
+            hour_m = str(hour_m)
         meridian = 'am'
         if hour + 1 >= 12:
             meridian = 'pm'

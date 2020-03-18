@@ -11,7 +11,7 @@ class Tile(Space):
     CHECK_ANY = [1, 2, 3, 4, 5, 6, 7]
     CHECK_SOLID = [1, 2, 3, 5, 7]
     CHECK_FIRM = [1, 2, 5, 7]
-    CHECK_SIGHT = [1, 2, 6]
+    CHECK_SIGHT = [1, 2, 6, 7]
     COLLIDE_TERRAIN = 1
     COLLIDE_OBJECT = 2
     COLLIDE_UNIT = 3
@@ -20,14 +20,11 @@ class Tile(Space):
     COLLIDE_FOG = 6
     COLLIDE_MAGIC = 7
     DICTIONARY = None
-    frame = 0
 
     @staticmethod
-    def turn():
-        if Tile.frame < 5:
-            Tile.frame += 1
-        else:
-            Tile.frame = 0
+    def init(data):
+        from src.tools.Dialog import Dialog
+        Tile.DICTIONARY = Dialog.to_dict(data)
 
     def __init__(self, location, terrain, x, y):
         super().__init__(x, y)
@@ -39,11 +36,13 @@ class Tile(Space):
             self.image = data[1]
             self.speed = data[2]
             self.extend = data[3]
+            self.shader = data[4]
         else:
             self.name = 'None'
             self.image = 'g_0x0'
             self.speed = 0
             self.extend = 0
+            self.shader = 0
         self.direction = 0
         self.sub_image = None
         self.things = List()
@@ -69,12 +68,6 @@ class Tile(Space):
         elif num == Tile.COLLIDE_MAGIC:
             return 'Magic'
 
-    @staticmethod
-    def init(turn, data):
-        from src.tools.Dialog import Dialog
-        Tile.DICTIONARY = Dialog.to_dict(data)
-        turn.add(Tile.turn)
-
     def set_terrain(self, terrain):
         data = Tile.DICTIONARY.get(terrain)
         if data:
@@ -84,16 +77,13 @@ class Tile(Space):
             self.speed = data[2]
             self.extend = data[3]
             self.direction = 0
-            if self.extend != 0:
+            if self.extend > 0:
                 self.sub_image = 0
             return True
 
     def get_image(self):
-        if self.extend != 0:
-            if self.extend == -1:
-                return self.image + str(Tile.frame)
-            else:
-                return self.image[self.sub_image]
+        if self.extend > 0:
+            return self.image[self.sub_image]
         return self.image
 
     def get_depth(self):
@@ -104,10 +94,10 @@ class Tile(Space):
         return 0
 
     def update_shader(self):
-        if self.speed == -10:
+        if self.shader == 1:
             for k, neighbors in Direction.coord.items():
                 tile = self.get_neighbor(neighbors[0], neighbors[1])
-                if tile and tile.speed != -10:
+                if tile and tile.shader == 0:
                     self.joint_neighbors[k - 1] = 1
                 else:
                     self.joint_neighbors[k - 1] = 0

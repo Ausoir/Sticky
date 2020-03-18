@@ -1,5 +1,4 @@
 from src.map.Generator import Generator
-from src.tools import Direction
 from src.tools.Data import Data
 
 
@@ -8,16 +7,14 @@ class BSPTree(Generator):
         super().__init__(x, y, random)
         self.background['!'] = '*'
         self.theme['1'] = 'Weed'
-        self.theme['2'] = 'Dandelion'
-        self.theme['3'] = 'Bush'
-        self.theme['4'] = 'Tree'
+        self.theme['2'] = 'Bush'
+        self.theme['3'] = 'Tree'
         self.background['Door'] = 'w'
         self.background['Lamp'] = '.'
-        self.divide = 10
-        self.thickness = 8
+        self.thickness = 10
 
     def process(self):
-        estate, garden = self.iterate(0, 0, self.width, self.height)
+        estate, garden = self.iterate(0, 0, self.get_width(), self.get_height())
         for rect in garden:
             self.fill_rect('*', rect[0], rect[1], rect[2] - 1, rect[3] - 1)
             buildable = [rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1]
@@ -29,30 +26,17 @@ class BSPTree(Generator):
         self.adapt_tiles()
 
     def adapt_tiles(self):
-        for y in range(1, self.height - 1):
-            for x in range(1, self.width - 1):
+        for y in range(1, self.get_height() - 1):
+            for x in range(1, self.get_width() - 1):
                 if self.str_map[y][x] == '*':
                     rand = self.random.rand_int(1, 24)
                     if rand == 1:
                         self.str_map[y][x] = '1'
                     elif rand == 2:
                         self.str_map[y][x] = '2'
-                    elif rand == 3:
-                        self.str_map[y][x] = '3'
                     elif rand == 4:
-                        self.str_map[y][x] = '4'
-                if self.str_map[y][x] == 'X':
-                    blocked = []
-                    for i in Direction.coord.values():
-                        if self.str_map[y + i[1]][x + i[0]] in Generator.BLOCKED:
-                            blocked.append(1)
-                        else:
-                            blocked.append(0)
-                    if self.str_map[y][x] == 'X':
-                        if blocked == [1, 0, 1, 0] or blocked == [0, 1, 0, 1]:
-                            rand = self.random.rand_int(1, 16)
-                            if rand == 1:
-                                self.str_map[y][x] = 'W'
+                        if not self.has_neighbor(x, y, lambda p: p in Generator.BLOCKED):
+                            self.str_map[y][x] = '3'
 
     def build_on_garden(self, estate):
         pass
@@ -139,22 +123,31 @@ class GenerateTown(BSPTree):
         super().__init__(x, y, random)
         self.buildings = []
         self.buildings_list = []
+        self.load_buildings()
+
+    def load_buildings(self):
         for i in ['house1', 'house2', 'house3', 'house4', 'house5', 'house6', 'warehouse']:
             building = Data.process_raw(Data.read('data/map/building/' + i + '.map'))
             tiles = building[1][0].split('%')
             self.buildings_list.append([building, len(tiles[0]), len(tiles)])
 
     def process(self):
-        margin_x = int(self.width / 10)
-        margin_y = int(self.height / 10)
-        estate, garden = self.iterate(0, 0, self.width, self.height)
+        margin_x = int(self.get_width() / 12)
+        margin_y = int(self.get_height() / 12)
+        estate, garden = self.iterate(-1, -1, self.get_width() + 1, self.get_height() + 1)
         for rect in garden + estate:
             self.fill_rect('*', rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1)
             buildable = [rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1]
-            if buildable[0] > margin_x and buildable[2] < self.width - margin_x\
-                    and buildable[1] > margin_y and buildable[3] < self.height - margin_y:
+            if buildable[0] > margin_x and buildable[2] < self.get_width() - margin_x\
+                    and buildable[1] > margin_y and buildable[3] < self.get_height() - margin_y:
                 self.build_on_estate(buildable)
         self.adapt_tiles()
+
+    def post_process(self, location):
+        entrance = self.find_entrance(location)
+        location.tags.set('enterx', entrance.x, add=True)
+        location.tags.set('entery', entrance.y, add=True)
+        return location
 
     def to_location(self, name):
         location = super().to_location(name)
@@ -162,7 +155,7 @@ class GenerateTown(BSPTree):
             data = Data.process_raw(i[0].__str__())
             location.load(data, offset=[i[1], i[2]], make=True)
         num = int(len(self.buildings) * (self.random.rand_float() + .5))
-        self.place_mobs(location, [['Looter', num, 'w'], ['Tank', 1, '.']])
+        self.place_mobs(location, [['Looter', num, '.'], ['Tank', 1, '.']])
         return location
 
     def build_on_estate(self, estate):
@@ -178,22 +171,22 @@ class GenerateTown(BSPTree):
                 align = 2
             if size_x >= i[2] and size_y >= i[1]:
                 align += 1
-            if align == 4:
-                possible_buildings.append([i, self.random.rand_bool()])
-            elif align == 3:
-                possible_buildings.append([i, True])
+            if align == 3:
+                possible_buildings.append([i, self.random.rand_int(0, 3)])
             elif align == 2:
-                possible_buildings.append([i, False])
+                possible_buildings.append([i, self.random.rand_list([0, 2])])
+            elif align == 1:
+                possible_buildings.append([i, self.random.rand_list([1, 3])])
         if possible_buildings:
             building = self.random.rand_list(possible_buildings)
             self.make_building(building[0], size_x, size_y, estate[0], estate[1], rotate=building[1])
 
-    def make_building(self, building, estate_x, estate_y, start_x, start_y, rotate=False):
+    def make_building(self, building, estate_x, estate_y, start_x, start_y, rotate=0):
         from src.map.Location import Location
         location = Location('building', building[0])
         location.flip(self.random.rand_int(0, 1), self.random.rand_int(0, 1))
-        if rotate:
-            location.rotate()
+        location.rotate(rotate)
+        if rotate in [1, 3]:
             offset_x = (estate_x - building[2])
             offset_y = (estate_y - building[1])
         else:
@@ -202,3 +195,34 @@ class GenerateTown(BSPTree):
         offset_x = self.random.rand_int(0, offset_x)
         offset_y = self.random.rand_int(0, offset_y)
         self.buildings.append([location, start_x + offset_x, start_y + offset_y])
+
+
+class GeneratePortTown(GenerateTown):
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
+        self.theme['3'] = 'Palm Tree'
+
+    def load_buildings(self):
+        for i in ['house1', 'house2', 'house3', 'house4', 'house5', 'house6', 'warehouse']:
+            building = Data.process_raw(Data.read('data/map/building/' + i + '.map'))
+            tiles = building[1][0].split('%')
+            self.buildings_list.append([building, len(tiles[0]), len(tiles)])
+
+    def process(self):
+        margin_x = int(self.get_width() / 12)
+        margin_y = int(self.get_height() / 12)
+        border = self.random.rand_int(int(self.get_width() / 8), int(self.get_width() / 4))
+        self.fill_rect('~', 0, 0, border - 4, self.get_height())
+        estate, garden = self.iterate(border, -1, self.get_width() + 1, self.get_height() + 1)
+        for rect in garden + estate:
+            self.fill_rect('*', rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1)
+            buildable = [rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1]
+            if buildable[0] > margin_x and buildable[2] < self.get_width() - margin_x\
+                    and buildable[1] > margin_y and buildable[3] < self.get_height() - margin_y:
+                self.build_on_estate(buildable)
+        self.adapt_tiles()
+
+    def post_process(self, location):
+        location.rotate(self.random.rand_int(0, 3))
+        location = super().post_process(location)
+        return location

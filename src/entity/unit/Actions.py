@@ -158,14 +158,16 @@ class Actions:
                     self.make('walk', turn=max(0, 2 - speed))
                     if not fly:
                         self.host.location.sound.register(self.host.pos, 0, file='step')
-                    invis = self.host.states.get('Invisible')
-                    if invis:
-                        invis.trigger(['move'])
+                self.host.states.trigger(['act', 'move'])
 
     def fall(self):
         def rise():
             self.host.obstruct_type = t
             self.host.collision_type = t2
+            for i in self.host.pos.things:
+                if i != self.host and i.obstruct_type in self.host.collision_type:
+                    i.move_toward(self.host.direction)
+                    Actions.knockdown(i, 8)
         t = self.host.obstruct_type
         t2 = self.host.collision_type
         self.host.obstruct_type = 4
@@ -200,7 +202,7 @@ class Actions:
         self.host.states.trigger(['act', 'grab'])
         from src.entity.unit.item.Item import Item
         target = None
-        for thing in reversed(self.host.pos.things):
+        for thing in self.host.pos.things:
             if isinstance(thing, Item):
                 if thing not in [self.host.weapon, self.host.headgear, self.host.armor]:
                     target = thing

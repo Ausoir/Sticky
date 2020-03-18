@@ -16,10 +16,11 @@ scorch,[gfx_2x4,gfx_2x5,gfx_2x6,gfx_2x7],0.1,1
 poison,[gfx_3x4,gfx_3x5,gfx_3x6,gfx_3x7],0.1,1
 disintegrate,[gfx_4x4,gfx_4x5,gfx_4x6,gfx_4x7],0.1,0
 sweat,[gfx_5x4,gfx_5x5,gfx_5x6,gfx_5x7],0.1,0
-fireball,[gfx_6x4,gfx_6x5,gfx_6x6,gfx_6x7],0.1,1
+wall,[gfx_6x4,gfx_6x5,gfx_6x6,gfx_6x7],0.1,1
 mist,[gfx_7x4,gfx_7x5,gfx_7x6,gfx_7x7],0.1,0
 slash,[gfx_8x4,gfx_8x5,gfx_8x6,gfx_8x7],0.1,0
 splat,[gfx_9x4,gfx_9x5,gfx_9x6,gfx_9x7],0.1,0
 heal,[gfx_10x4,gfx_10x5,gfx_10x6,gfx_10x7],0.1,0
 power,[gfx_11x4,gfx_11x5,gfx_11x6,gfx_11x7],0.1,0
 shout,[g_5x0],0.10,0
+fog,[gfx_7x4,gfx_7x5,gfx_7x6,gfx_7x7],0.5,1

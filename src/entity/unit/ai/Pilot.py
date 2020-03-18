@@ -1,5 +1,4 @@
 from src.entity.unit.ai.Task import *
-from src.map.Tile import Tile
 
 
 class Pilot:
@@ -25,23 +24,17 @@ class Pilot:
             self.default = Idle(self)
             self.move = Path(self)
             self.attack = Attack(self)
-            self.route = Routes(self.host.collision_type)
+            self.route = Routes(self.host, False)
         elif arg == 'wander':
             self.default = Wander(self)
             self.move = Path(self)
             self.attack = Attack(self)
-            self.route = Routes(self.host.collision_type)
+            self.route = Routes(self.host, True)
         elif arg == 'ally':
             self.default = Follow(self)
             self.move = Path(self)
             self.attack = Attack(self)
-            self.route = Routes(self.host.collision_type)
-        elif arg == 'crusher':
-            self.default = Follow(self)
-            self.move = Path(self)
-            self.attack = Attack(self)
-            cols = filter(lambda x: x != Tile.COLLIDE_TERRAIN, self.host.collision_type)
-            self.route = Routes(list(cols))
+            self.route = Routes(self.host, False)
         else:
             return
         tgt = self.host.tags.get('tgt')
@@ -145,21 +138,34 @@ class Pilot:
                     Particle.make('shout', self.host.vec)
                     self.host.location.sound.register(self.host.pos, 9)
 
+
+class Routes:
+    def __init__(self, host, destroy):
+        self.host = host
+        self.destroy = destroy
+
     def can_destroy(self, tile):
+        if not self.destroy:
+            return tile.is_land(self.host.collision_type)
+        weight = 0
         from src.entity.unit.Unit import Unit
         for i in tile.things:
             if isinstance(i, Unit) and self.host in i.get_team():
-                return False
-            elif i.obstruct_type in self.host.collision_type and self.host.get_damage() < i.tags.get_material_defense():
-                return False
-        if tile.is_land([Tile.COLLIDE_TERRAIN]):
-            return not self.host.get_skill('crush') or self.host.get_damage() < 7
-        return True
-
-
-class Routes:
-    def __init__(self, col):
-        self.collision = col
+                return -1
+            elif i.obstruct_type in self.host.collision_type:
+                hp = i.tags.get('p')
+                if not hp or self.host.get_damage() < i.tags.get_material_defense():
+                    return -1
+                else:
+                    weight += i.tags.get('p')
+        if tile.speed == -10:
+            if self.host.get_damage() >= 7 and self.host.get_skill('crush'):
+                weight += 3
+            else:
+                return -1
+        elif tile.speed == -11:
+            return -1
+        return weight
 
     def get(self, pos):
         options = []
@@ -167,12 +173,20 @@ class Routes:
         right = pos.get_neighbor(1, 0)
         down = pos.get_neighbor(0, 1)
         up = pos.get_neighbor(0, -1)
-        if up and not up.is_land(self.collision):
-            options.append((0, -1))
-        if right and not right.is_land(self.collision):
-            options.append((1, 0))
-        if left and not left.is_land(self.collision):
-            options.append((-1, 0))
-        if down and not down.is_land(self.collision):
-            options.append((0, 1))
+        if up:
+            weight = self.can_destroy(up)
+            if weight != -1:
+                options.append((0, -1, weight))
+        if right:
+            weight = self.can_destroy(right)
+            if weight != -1:
+                options.append((1, 0, weight))
+        if left:
+            weight = self.can_destroy(left)
+            if weight != -1:
+                options.append((-1, 0, weight))
+        if down:
+            weight = self.can_destroy(down)
+            if weight != -1:
+                options.append((0, 1, weight))
         return options

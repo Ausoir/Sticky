@@ -21,6 +21,7 @@ class Control:
         self.output = output
 
     def set_keymap(self, fdir):
+        self.keymap.clear()
         control = Data.process_raw(Data.read('data/' + fdir))
         for k, v in control:
             self.keymap[Control.get_key_code(k)] = v

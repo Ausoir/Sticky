@@ -104,16 +104,22 @@ class Location:
         self.identity += 1
         return '#' + str(format(self.identity, 'x'))
 
+    def get_width(self):
+        return len(self.tiles[0])
+
+    def get_height(self):
+        return len(self.tiles)
+
     def get_tile(self, x, y, limit=False):
         if self.is_inbound(x, y):
             return self.tiles[y][x]
         elif limit:
-            x = max(0, min(len(self.tiles[0]) - 1, x))
-            y = max(0, min(len(self.tiles) - 1, y))
+            x = max(0, min(self.get_width() - 1, x))
+            y = max(0, min(self.get_height() - 1, y))
             return self.tiles[y][x]
 
     def is_inbound(self, x, y):
-        return 0 <= x < len(self.tiles[0]) and 0 <= y < len(self.tiles)
+        return 0 <= x < self.get_width() and 0 <= y < self.get_height()
 
     def get_tile_from_vec(self, x, y):
         x = math.floor(x / Global.BLOCK)
@@ -163,33 +169,42 @@ class Location:
             for y in self.tiles:
                 r.append(y[::-1])
             self.tiles = r
-        for y in range(len(self.tiles)):
-            for x in range(len(self.tiles[0])):
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
                 self.tiles[y][x].x = x
                 self.tiles[y][x].y = y
                 for thing in self.tiles[y][x].things:
                     thing.update_vec()
         self.process_terrain()
 
-    def rotate(self):
+    def rotate_clockwise(self):
         copy = []
         for x in self.tiles[0]:
-            copy.append([None] * len(self.tiles))
-        for y in range(len(self.tiles)):
-            for x in range(len(self.tiles[0])):
+            copy.append([None] * self.get_height())
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
                 copy[x][y] = self.tiles[y][x]
         self.tiles = copy
-        for y in range(len(self.tiles)):
-            for x in range(len(self.tiles[0])):
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
                 self.tiles[y][x].x = x
                 self.tiles[y][x].y = y
                 for thing in self.tiles[y][x].things:
                     thing.update_vec()
         self.process_terrain()
+
+    def rotate(self, times):
+        if times == 1:
+            self.rotate_clockwise()
+        elif times == 2:
+            self.flip(0, 1)
+        elif times == 3:
+            self.flip(0, 1)
+            self.rotate_clockwise()
 
     def stretch(self, new_x, new_y):
         for y in range(new_y):
-            if y >= len(self.tiles):
+            if y >= self.get_height():
                 self.tiles.append([])
             for x in range(new_x):
                 if x >= len(self.tiles[y]):

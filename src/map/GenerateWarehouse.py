@@ -33,8 +33,8 @@ class GenerateWarehouse(Generator):
         return '\n'.join(r)
 
     def process(self):
-        estate, garden = self.iterate(6, 1, self.width - 7, 8)
-        estate2, garden2 = self.iterate(0, 10, self.width, self.height)
+        estate, garden = self.iterate(6, 1, self.get_width() - 7, 8)
+        estate2, garden2 = self.iterate(0, 10, self.get_width(), self.get_height())
         self.build_entrance()
         for rect in garden + estate + garden2 + estate2:
             width = rect[2] - rect[0]

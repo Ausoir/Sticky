@@ -59,13 +59,6 @@ class Force(Prop):
         self.update_vec()
 
 
-class Landscape(Prop):
-    def describe(self):
-        r = super().describe()
-        r += '\n' + Dialog.get('landscape', [self.pos.get_speed()])
-        return r
-
-
 class Door(Prop):
     def __init__(self, location):
         super().__init__(location)

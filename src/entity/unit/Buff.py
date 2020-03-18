@@ -1,5 +1,6 @@
 from src.entity.Particle import Particle
 from src.game import Global
+from src.tools.Dialog import Dialog
 
 
 class Buff:
@@ -20,7 +21,6 @@ class Buff:
         return self.name.title()
 
     def describe_duration(self):
-        from src.tools.Dialog import Dialog
         if self.duration == -1:
             return Dialog.get('persistent')
         elif self.duration < -1:
@@ -92,7 +92,6 @@ class Glow(Buff):
 
 class Revive(Buff):
     def describe(self):
-        from src.tools.Dialog import Dialog
         return Dialog.get('dsc_revive')
 
     def on_stack(self, duration, var):
@@ -464,7 +463,7 @@ class Vengeance(Buff):
                 if tile:
                     for thing in tile.things:
                         thing.move(i[0], i[1])
-                        Actions.knockdown(thing, time=14)
+                        Actions.knockdown(thing)
                     Particle.make('batter', tile.get_center())
             self.host.location.sound.register(self.host.pos, 1, file='critical')
             self.end()
@@ -518,7 +517,7 @@ class Petrified(Buff):
 
 class Vision(Buff):
     def __str__(self):
-        return '[' + self.name + ',' + str(self.duration) + ',\'' + str(self.var) + '\']'
+        return '[' + self.name + ',' + str(self.duration) + ',\'' + self.var + '\']'
 
     def get_tags(self):
         return [BuffTags.magic]
@@ -533,12 +532,21 @@ class Vision(Buff):
 
     def on_start(self):
         Particle.make('portal', self.host.vec)
-        self.var = self.host.sight
+        self.var = Dialog.nonstrlist(self.host.sight)
+        from src.map.Tile import Tile
+        self.host.sight = [Tile.COLLIDE_MAGIC]
+
+    def on_load(self):
         from src.map.Tile import Tile
         self.host.sight = [Tile.COLLIDE_MAGIC]
 
     def on_finish(self):
-        self.host.sight = self.var
+        from src.tools.Data import Data
+        self.host.sight = Data.parse(self.var)[0]
+
+    def trigger(self, arg):
+        super().trigger(arg)
+        self.end()
 
 
 class Levitate(Buff):

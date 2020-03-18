@@ -6,8 +6,8 @@ from src.map.Generator import Generator
 class GeneratePerlin(Generator):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
-        self.theme = {'M': 'Mountain'}
         self.background = {'!': '*'}
+        self.layers = 6
 
     @staticmethod
     def interpolate(arg1, arg2, alpha):
@@ -76,7 +76,7 @@ class GeneratePerlin(Generator):
     def make_perlin(self, width, height):
         r = Generator.make_map(width, height, arg=0)
         base = self.make_base(width, height)
-        for level in range(1, 6):
+        for level in range(1, self.layers):
             graph = self.make_smooth(base, level)
             for i in range(height):
                 for j in range(width):
@@ -85,43 +85,46 @@ class GeneratePerlin(Generator):
 
 
 class GenerateIsland(GeneratePerlin):
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
+        self.background = {'!': '*', 'Cove': '.', 'Port Town': '.'}
+
     def process(self):
-        r = self.make_perlin(self.width, self.height)
+        r = self.make_perlin(self.get_width(), self.get_height())
         r = self.radialize(r)
         r = self.normalize(r)
-        for y in range(self.height):
-            for x in range(self.width):
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
                 value = r[y][x]
                 if value > .8:
-                    self.str_map[y][x] = 'M'
+                    self.str_map[y][x] = 'Mountain'
                 elif value > .795:
                     self.str_map[y][x] = 'Cave'
                 elif value > .79:
-                    self.str_map[y][x] = 'Town'  # Mining Town
+                    self.str_map[y][x] = 'Mining Town'
                 elif value > .7:
                     self.str_map[y][x] = 'Woods'
                 elif value > .56:
                     self.str_map[y][x] = '*'
-                elif value > .555:
-                    self.str_map[y][x] = 'Town'  # Farm Town
-                elif value > .515:
+                elif value > .556:
+                    self.str_map[y][x] = 'Town'
+                elif value > .508:
                     self.str_map[y][x] = '.'
-                elif value > .51:
-                    self.str_map[y][x] = 'Cave'  # Sea Cave
-                elif value > .505:
-                    self.str_map[y][x] = 'Town'  # Port Town
+                elif value > .504:
+                    if self.has_neighbor(x, y, lambda p: p == '~'):
+                        self.str_map[y][x] = 'Port Town'
                 elif value > .5:
-                    self.str_map[y][x] = 'Swamp'
+                    self.str_map[y][x] = 'Cove'
                 else:
                     self.str_map[y][x] = '~'
 
 
 class GenerateWoods(GeneratePerlin):
     def process(self):
-        r = self.make_perlin(self.width, self.height)
+        r = self.make_perlin(self.get_width(), self.get_height())
         r = self.normalize(r)
-        for y in range(self.height):
-            for x in range(self.width):
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
                 value = r[y][x] + self.random.rand_float() * .2
                 if value > .75:
                     self.str_map[y][x] = 'Tree'
@@ -137,9 +140,9 @@ class GenerateWoods(GeneratePerlin):
                     self.str_map[y][x] = '.'
 
     def post_process(self, location):
-        rx = int(self.width / 2)
-        ry = int(self.height / 2)
-        while location.get_tile(ry, rx).terrain != '.':
+        rx = int(self.get_width() / 2)
+        ry = int(self.get_height() / 2)
+        while location.get_tile(rx, ry).terrain != '.':
             rx += self.random.rand_int(-1, 1)
             ry += self.random.rand_int(-1, 1)
         location.tags.set('enterx', rx, add=True)
@@ -153,10 +156,10 @@ class GenerateField(GeneratePerlin):
         self.background = {'!': '*', 'Rock': '.'}
 
     def process(self):
-        r = self.make_perlin(self.width, self.height)
+        r = self.make_perlin(self.get_width(), self.get_height())
         r = self.normalize(r)
-        for y in range(self.height):
-            for x in range(self.width):
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
                 value = r[y][x] + self.random.rand_float() * .2
                 if value > .95:
                     self.str_map[y][x] = 'Bush'
@@ -170,11 +173,45 @@ class GenerateField(GeneratePerlin):
                     self.str_map[y][x] = '.'
 
     def post_process(self, location):
-        rx = int(self.width / 2)
-        ry = int(self.height / 2)
-        while location.get_tile(ry, rx).terrain != '.':
+        rx = int(self.get_width() / 2)
+        ry = int(self.get_height() / 2)
+        while location.get_tile(rx, ry).terrain != '.':
             rx += self.random.rand_int(-1, 1)
             ry += self.random.rand_int(-1, 1)
         location.tags.set('enterx', rx, add=True)
         location.tags.set('entery', ry, add=True)
+        return location
+
+
+class GenerateCove(GeneratePerlin):
+    def __init__(self, x, y, random=None):
+        super().__init__(x, y, random)
+        self.background = {'!': '.'}
+        self.layers = 4
+
+    def process(self):
+        r = self.make_perlin(self.get_width(), self.get_height())
+        r = self.radialize(r)
+        r = self.normalize(r)
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
+                value = r[y][x]
+                if value > .72:
+                    self.str_map[y][x] = '~'
+                elif value > .7:
+                    self.str_map[y][x] = 'Rock'
+                elif value > .4:
+                    self.str_map[y][x] = '.'
+                else:
+                    self.str_map[y][x] = 'R'
+        rx = int(self.get_width() / 2)
+        self.outline('R')
+        self.fill_rect('.', rx - 4, 0, rx + 4, int(self.get_height() / 2))
+        self.fill_rect('~', rx - 2, 0, rx + 2, int(self.get_height() / 2))
+
+    def post_process(self, location):
+        location.rotate(self.random.rand_int(0, 3))
+        entrance = self.find_entrance(location)
+        location.tags.set('enterx', entrance.x, add=True)
+        location.tags.set('entery', entrance.y, add=True)
         return location

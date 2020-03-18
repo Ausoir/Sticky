@@ -17,6 +17,7 @@ class Prop(Object):
     def load(self, arg):
         index = super().load(arg)
         self.tags.load(arg[index])
+        self.update_tags()
         index += 1
         self.states.load(arg[index])
         return index + 1
@@ -25,7 +26,6 @@ class Prop(Object):
         r = super().add()
         if r:
             Turn.add(self.turn)
-            self.update_tags()
             self.states.on_load()
             return r
 
@@ -101,6 +101,9 @@ class Prop(Object):
         mat = Dialog.material(self.tags.attributes.get('mat'))
         if mat:
             r += '\n' + mat
+        hinder = self.tags.get('mvspd')
+        if hinder:
+            r += '\n' + Dialog.get('terrain speed', [hinder])
         return r
 
     def on_sleep(self, time):

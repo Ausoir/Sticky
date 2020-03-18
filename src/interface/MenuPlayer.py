@@ -24,10 +24,9 @@ class MenuPlayer(Menu):
     def menu_world(self):
         def enter(arg):
             if True:  # not Data.is_file('save/' + map_name + '.map'):
-                from src.entity.Other import Landscape
                 landscape = host.pos.name
                 for i in host.pos.things:
-                    if isinstance(i, Landscape):
+                    if i.tags.get('landscape'):
                         landscape = i.name.lower()
                         break
                 from src.map.Generator import Generator
@@ -49,9 +48,9 @@ class MenuPlayer(Menu):
         self.window.add(hp_display)
         datetime = Dialog.date(Global.player.days)
         hunger = host.tags.get('hunger', 0)
+        self.window.add(Menu.make(str(hunger) + '% ' + Dialog.get('hunger'), rmb, color=None))
         rmb = self.get_message(Dialog.get('dsc_date', [datetime, hunger]))
         self.window.add(Menu.make(datetime, rmb, color=None))
-        self.window.add(Menu.make(Dialog.get('hunger') + ': ' + str(hunger) + '%', rmb, color=None))
 
     def menu_main(self):
         def update():
@@ -147,12 +146,13 @@ class MenuPlayer(Menu):
             weapon_lmb = self.get_prompt(Global.player.character.weapon.describe(), Dialog.get('drop'),
                                          lambda l: Global.player.character.drop())
             self.sub_window.add(Menu.make(display, weapon_lmb))
+        self.window.add(Menu.make(Dialog.get('money'), None, color=None))
+        money = Menu.make('$' + str(Global.player.character.tags.get('money', 0)), None, color=None)
+        self.sub_window.add(money)
         attack = str(Global.player.character.get_damage())
         defense = str(Global.player.character.get_defense())
         self.sub_window.add(Menu.make(attack, None, color=None))
         self.sub_window.add(Menu.make(defense, None, color=None))
-        money = Menu.make('$' + str(Global.player.character.tags.get('money', 0)), None, color=None)
-        self.sub_window.add(money)
         self.sub_window.display(1)
 
     def menu_inventory(self):

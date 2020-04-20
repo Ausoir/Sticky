@@ -28,7 +28,7 @@ class Data:
             loop = bool(i[3])
             if not loop:
                 sequence.append(Data.get_cache('none'))
-            ani = pyglet.image.Animation.from_image_sequence(sequence, period=float(i[2]), loop=loop)
+            ani = pyglet.image.Animation.from_image_sequence(sequence, float(i[2]), loop=loop)
             Data.set_cache(i[0], ani)
 
     @staticmethod

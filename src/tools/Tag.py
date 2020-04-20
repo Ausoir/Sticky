@@ -17,41 +17,44 @@ class Tag:
                 else:
                     self.attributes[strings[0]] = strings[1]
 
-    def remove(self, param, default=None):
-        if param in self.attributes:
-            r = self.attributes[param]
-            del self.attributes[param]
+    def remove(self, tag, default=None):
+        if tag in self.attributes:
+            r = self.attributes[tag]
+            del self.attributes[tag]
             return r
         return default
 
-    def get(self, param, default=None):
-        if param in self.attributes:
-            return self.attributes[param]
+    def get(self, tag, default=None):
+        if tag in self.attributes:
+            return self.attributes[tag]
         return default
 
-    def set(self, param, arg, add=False):
-        if param in self.attributes or add:
-            self.attributes[param] = arg
+    def set(self, tag, arg, add=True):
+        if tag in self.attributes or add:
+            self.attributes[tag] = arg
             return True
 
-    def increment(self, param, arg, add=False, remove=False):
-        if param in self.attributes:
-            self.attributes[param] += arg
-            if remove:
-                if self.attributes[param] == 0:
-                    del self.attributes[param]
+    def increment(self, tag, arg, remove=None):
+        if tag in self.attributes:
+            self.attributes[tag] += arg
+            if remove is not None and self.attributes[tag] == remove:
+                del self.attributes[tag]
             return True
-        elif add:
-            self.attributes[param] = arg
+        elif arg != 0:
+            self.attributes[tag] = arg
             return True
 
-    def minmax(self, param, minimum, maximum):
-        if param in self.attributes:
-            self.attributes[param] = max(minimum, min(maximum, self.attributes[param]))
+    def sync(self, tag, target, ratio=1):
+        if target and target != 0:
+            self.increment(tag, target * ratio, remove=0)
 
-    def require(self, param, arg, cost=True):
-        if param in self.attributes:
-            if self.attributes[param] >= arg:
+    def minmax(self, tag, minimum, maximum):
+        if tag in self.attributes:
+            self.attributes[tag] = max(minimum, min(maximum, self.attributes[tag]))
+
+    def require(self, tag, arg, cost=True):
+        if tag in self.attributes:
+            if self.attributes[tag] >= arg:
                 if cost:
-                    self.attributes[param] -= arg
+                    self.attributes[tag] -= arg
                 return True

@@ -1,60 +1,22 @@
 from src.entity.unit.item.Item import Item
+from src.tools.Dialog import Dialog
 
 
 class Equipment(Item):
-    def get_enhance_chance(self):
-        return int(100 * (1 / max(1, self.get_level() + 1)))
-
-    def enhance(self, rng):
-        if rng <= self.get_enhance_chance():
-            self.tags.increment('mod', 1, add=True)
-            return True
-        else:
-            from src.entity.Particle import Particle
-            Particle.make('disintegrate', self.host.vec)
-            self.die()
-        return False
-
-    def modify(self, arg):
-        if arg == 'ascend':
-            self.tags.remove('mod')
-        elif arg == 'reinforce':
-            self.host.armor.attributes.hp += 1
-            self.host.armor.attributes.max_hp += 1
-        else:
-            return False
-        return True
-
-    def get_level(self):
-        return self.tags.get('mod', 0)
-
-    def get_display_name(self):
-        level = self.get_level()
-        if level > 0:
-            return self.name + ' +' + str(level)
-        else:
-            return self.name
-
     def describe(self):
         r = super().describe()
-        spd = self.tags.get('spd', 0)
-        from src.tools.Dialog import Dialog
-        if spd < 0:
-            r += '\n' + Dialog.get('equipment_slow')
-        elif spd > 0:
-            r += '\n' + Dialog.get('equipment_fast')
+        spd = self.tags.get('enc', 0)
+        if spd:
+            r += '\n' + Dialog.get('equipment_spd', [Dialog.sign(spd)])
+        space = self.tags.get('space', 0)
+        if space > 0:
+            r += '\n' + Dialog.get('equipment_inv', [Dialog.weight(space)])
+        defense = self.tags.get('DEF', 0)
+        if defense:
+            r += '\n' + Dialog.get('equipment_def', [Dialog.sign(defense)])
         skill = self.tags.get('skill')
         if skill:
-            r += '\n' + Dialog.get('equipment_skill', [skill])
-            from src.tools.Data import Data
-            data = Data.get_line('descriptions.txt', 'sk.' + skill)
-            if data:
-                r += '\n' + data[1]
-        return r
-
-    def get_value(self):
-        enc = 1 + (self.get_level() * self.get_level() * .05)
-        r = int(max(1, int(self.tags.get('p', 0) / 10) + super().get_value()) * enc)
+            r += '\n' + Dialog.get('equipment_skill', [skill.title()])
         return r
 
     def use(self):
@@ -88,21 +50,19 @@ class Equipment(Item):
         return self
 
     def on_wear(self):
+        self.host.update_skill(self.tags.get('skill'))
         self.location.sound.register(self.pos, 3, file='wear')
-        speed = self.tags.get('spd', 0)
-        if speed != 0:
-            self.host.tags.increment('spd', speed, add=True)
-        add_hp = self.tags.get('hp')
-        if add_hp:
-            self.host.tags.increment('p', add_hp)
-            self.host.tags.increment('p>', add_hp)
+        self.host.tags.sync('silver', self.tags.get('silver'))
+        self.host.tags.sync('DEF', self.tags.get('DEF'))
+        self.host.tags.sync('spd', self.tags.get('enc'))
+        self.host.tags.sync('p', self.tags.get('hp'))
+        self.host.tags.sync('P', self.tags.get('hp'))
 
     def on_unwear(self):
+        self.host.update_skill(self.tags.get('skill'), remove=True)
         self.location.sound.register(self.pos, 3, file='wear')
-        speed = self.tags.get('spd', 0)
-        if speed != 0:
-            self.host.tags.increment('spd', -speed, remove=True)
-        add_hp = self.tags.get('hp')
-        if add_hp:
-            self.host.tags.set('p', max(1, self.host.tags.get('p') - add_hp))
-            self.host.tags.set('p>', max(1, self.host.tags.get('p>') - add_hp))
+        self.host.tags.sync('silver', self.tags.get('silver'), ratio=-1)
+        self.host.tags.sync('DEF', self.tags.get('DEF'), ratio=-1)
+        self.host.tags.sync('spd', self.tags.get('enc'), ratio=-1)
+        self.host.tags.sync('p', self.tags.get('hp'), ratio=-1)
+        self.host.tags.sync('P', self.tags.get('hp'), ratio=-1)

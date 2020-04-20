@@ -1,8 +1,10 @@
 from src.game import Global
 from src.game.Editor import Editor
+from src.game.Script import Script
 from src.game.Traveller import Traveller
 from src.game.Turn import Turn
 from src.map.Location import Location
+from src.map.World import World
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
 from src.tools.Tag import Tag
@@ -10,9 +12,10 @@ from src.tools.Tag import Tag
 
 class Game:
     def __init__(self):
+        Turn.add(Global.map_view.update_region)
         Turn.add(Global.menu.turn)
         Turn.add(Global.map_view.turn)
-        Turn.add(Global.map_view.update_region)
+        Turn.fast_queue.append(Global.map_view.update)
         Turn.add(self.turn)
         from src.interface.Control import Control
         self.control = Control(self.input)
@@ -24,10 +27,13 @@ class Game:
         map_name = self.tags.get('map')
         map_data = list(Data.process_raw(Data.read('save/' + map_name + '.map')))
         Global.land = Location(map_name, map_data)
-        from src.entity.Stock import Stock
+        # map_data = Data.process_raw(Data.read('save/' + map_name + '.map'))
+        # Global.land = Location(map_name, None)
+        # self.world = World(Global.land, map_data)
         self.character = None
+        from src.entity.Stock import Stock
         self.set_player(Stock.get(Global.land, data[1][2], data=data[1]).add())
-        Global.map_view.old_camera = self.character.pos
+        # self.character.relocate(to=self.character.pos.get_neighbor(20, 20), force=True)
         self.dead = -1
         self.days = self.tags.get('time')
         Turn.frame = self.tags.get('frame')
@@ -51,17 +57,18 @@ class Game:
             x = Global.player.character.location.tags.get('enterx', 0)
         if y is None:
             y = Global.player.character.location.tags.get('entery', 0)
-        Global.player.character.relocate(x, y, force=1)
-        Global.map_view.on_sight_change()
+        Global.player.character.relocate(x=x, y=y, force=True)
 
     def set_player(self, player):
         if player.tags.get('hunger') is None:
-            player.tags.set('hunger', 0, add=True)
-        self.control.player = player
+            player.tags.set('hunger', 0)
         player.center_camera()
         player.action.delay = 4
         player.save = False
         self.character = player
+        self.player = player
+        Script.var['game'] = self
+        Script.var['player'] = player
         return player
 
     def is_daytime(self):
@@ -90,10 +97,9 @@ class Game:
     def set_darkness(self):
         time = self.days % 24
         Global.map_view.overlay.set_time(time)
-        Global.map_view.sight_range = 13
-        Global.map_view.view_range = Global.map_view.overlay.SIGHT[time]
-        Global.map_view.on_sight_change()
-        
+        Global.map_view.set_sight_range(13)
+        Global.map_view.set_view_range(Global.map_view.overlay.SIGHT[time])
+
     def input(self, command):
         if self.player:
             self.player.input(command)
@@ -119,7 +125,7 @@ class Game:
                 self.character.center_camera()
                 self.character.sight = self.temporary
             self.sleep(0)
-        Global.land.save()
+        Global.map_view.on_sight_change()
 
     def switch(self):
         if self.player_mode == 1:
@@ -135,34 +141,24 @@ class Game:
     def turn(self):
         if self.character.removed:
             if self.dead == 10:
-                self.death()
+                Script.execute_code('death')
             else:
                 self.dead += 1
         elif self.dead == -1:
             self.dead = 0
             on_load = self.character.location.tags.get('load')
             if on_load:
-                from src.game.Script import Script
                 Script.execute_code(on_load)
-
-    def death(self):
-        self.character.tags.set('money', 0)
-        self.character.tags.set('protein', 0)
-        self.character.tags.set('calories', 0)
-        insurance = self.character.states.get('Revive')
-        if insurance:
-            self.character.states.get('Revive').end()
-            coma = Global.r.rand_int(3, 60)
-            self.sleep(coma)
-            self.dead = 0
-            self.character.removed = 0
-            Global.map_view.overlay.blackout()
-            self.travel('home', 0, 0)
-            Global.menu.var = [1, coma]
-            text = Dialog.get('insurerevive', [Dialog.date(coma)])
-            Global.menu.get_message(text + '\n' + Dialog.get('sign', ['Death']))(None)
-        else:
-            Global.menu.get_message(Dialog.get('youdie') + '\n' + Dialog.get('sign', ['Death']))(None)
+        if self.player_mode == 1:
+            old_x = self.character.pos.x
+            old_y = self.character.pos.y
+            if Global.land.push_cell(self.character.pos):
+                from src.game.Camera import Camera
+                self.character.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
+                self.character.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
+                Global.map_view.update_fog()
+                Camera.update()
+                self.character.location.process_terrain()
 
     def save(self):
         self.tags.set('map', self.character.location.name)
@@ -174,12 +170,14 @@ class Game:
 
     def is_safe(self):
         for unit in self.character.get_team(ally=False):
-            if (unit.pos - self.character.pos).difference() < 8:
-                Global.main.monologue.set(Dialog.get('!safe'))
-                return False
-            if unit.pilot.task == unit.pilot.attack and unit.pilot.task.target == self.character:
-                Global.main.monologue.set(Dialog.get('!safe'))
-                return False
+            if unit.tags.get('ai'):
+                diff = (unit.pos - self.character.pos).difference()
+                if diff <= 3:
+                    Global.main.monologue.set(Dialog.get('!safe'))
+                    return False
+                elif diff <= 13 and unit.pilot.task == unit.pilot.attack and unit.pilot.task.target == self.character:
+                    Global.main.monologue.set(Dialog.get('!safe'))
+                    return False
         return True
 
     def eat(self):

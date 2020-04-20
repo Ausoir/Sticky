@@ -1,28 +1,28 @@
 import random
 
-from src.entity.Prop import Prop
+from src.entity.Image import Image
 from src.game.Camera import Camera
 from src.game.Turn import Turn
 
 
-class Particle(Prop):
+class Particle(Image):
     @classmethod
     def make(cls, arg, pos, glow=-1, lifetime=6, offset=16, direction=1):
-        from src.game import Global
-        r = cls(Global.land)
+        r = cls(pos.location)
         r.name = arg
         r.set_form(arg)
         r.lifetime = lifetime
-        r.pos = r.location.get_tile_from_vec(pos.x, pos.y)
-        r.vec = pos + 0
+        r.pos = pos
+        r.vec = pos.get_center()
         r.offset = [offset, offset]
-        r.form.face(direction)
+        r.form.face(direction % 4)
         if glow >= 0:
             r.pos.glow(glow)
         return r.add()
 
     def __init__(self, location):
         super().__init__(location)
+        self.pos = None
         self.lifetime = 4
         self.obstruct_type = 0
         self.offset = None
@@ -30,17 +30,15 @@ class Particle(Prop):
     def add(self):
         self.offset[0] = random.randint(-self.offset[0], self.offset[0])
         self.offset[1] = random.randint(-self.offset[1], self.offset[1])
-        self.removed = 0
         self.form.show(True)
         Turn.add(self.turn)
-        self.relocate(self.pos.x, self.pos.y, force=1)
+        self.pos.others.append(self)
         return self
 
     def remove(self):
-        self.removed = 1
         self.form.show(False)
         Turn.remove(self.turn)
-        self.pos.things.remove(self)
+        self.pos.others.remove(self)
 
     def turn(self):
         if self.lifetime == 0:
@@ -52,14 +50,6 @@ class Particle(Prop):
         super().set_form(arg)
         self.form.z = 800
 
-    def set_row(self, row):
-        pass
-
-    def hit(self, damage, accuracy=None, hitter=None):
-        return 0
-
     def update(self):
-        diff = self.pos.get_center() - self.vec
-        self.vec += diff * .07
         bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
         self.form.place(bound_x + self.offset[0], bound_y + self.offset[1])

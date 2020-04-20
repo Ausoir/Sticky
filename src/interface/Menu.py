@@ -56,9 +56,11 @@ class Menu:
                         index -= 1
             return 1
 
-    def toggle(self):
+    def wipe(self):
         self.history = []
         self.history_var = []
+
+    def toggle(self):
         self.visible *= -1
         self.display(self.visible)
 
@@ -66,13 +68,15 @@ class Menu:
         self.visible = visible
         self.sub_window.display(-1)
         self.window.display(-1)
-        if self.visible == 1:
-            self.update = None
-            self.window.flush()
-            self.sub_window.flush()
+        self.update = None
+        self.window.flush()
+        self.sub_window.flush()
+        if visible == 1:
             self.current_state = self.state
             self.state()
             self.window.display(1)
+        else:
+            self.wipe()
 
     def direct(self, page):
         self.history.append(page)
@@ -101,13 +105,13 @@ class Menu:
         self.sub_window.display(1)
 
     def get_message(self, msg):
-        def message(index):
+        def message(index=None):
             self.var = [msg]
             self.direct(self.menu_message)
         return message
 
     def get_prompt(self, msg, choice, cb, param=0):
-        def message(index):
+        def message(index=None):
             self.var = [msg, choice, cb, param]
             self.direct(self.menu_prompt)
         return message
@@ -120,9 +124,16 @@ class Menu:
             output.append(new)
         return output
 
+    def execute_code(self, arg):
+        self.display(-1)
+        Script.execute_code(arg)
+
     def menu_prompt(self):
+        def callback(arg):
+            self.display(-1)
+            self.var[2](arg)
         text = self.var[0]
-        button = Menu.make(self.var[1], self.var[2], name=self.var[3], width=320)
+        button = Menu.make(self.var[1], callback, name=self.var[3], width=320)
         height = self.window.height - (self.window.margin.y * 2 + button.height)
         textbox = Menu.make(text, None, color=Window.fore_color_transparent, height=height, width=320, resize=True)
         textbox.align = 'top'
@@ -131,42 +142,31 @@ class Menu:
         self.window.add(button, reverse=True, index=0)
         self.sub_window.display(1)
 
-    def menu_choice(self):
-        if self.var[0]:
-            text = self.var[0]
-            self.window.add(Menu.make(text, None, color=Window.fore_color_transparent, width=320, resize=True))
-            self.window.next_y = self.window.height + self.window.y
-            for i in self.var[1]:
-                button = Menu.make(i[0], Script.execute_code, name=i[1], width=320)
-                self.window.add(button, reverse=True, index=0)
-        else:
-            for i in self.var[1]:
-                button = Menu.make(i[0], Script.execute_code, name=i[1], width=320)
-                self.window.add(button)
-        self.sub_window.display(1)
-
     def menu_many_choice(self):
         wide = False
         for k, v in enumerate(self.var):
-            length = len(self.var[k])
-            if length == 0:
-                button = Menu.make('', None, color=None)
-            elif length > 1:
-                button = Menu.make(self.var[k][0], Script.execute_code, name=self.var[k][1])
+            length = len(v)
+            if length > 1:
+                if isinstance(v[1], str):
+                    button = Menu.make(v[0], self.execute_code, name=v[1])
+                else:
+                    button = Menu.make(v[0], v[1])
             else:
-                button = Menu.make(self.var[k][0], None, color=None)
+                button = Menu.make(v[0], None, color=None)
             if k < 6:
                 self.window.add(button)
             else:
                 wide = True
                 self.sub_window.add(button)
-        if wide:
-            self.sub_window.display(1)
+        if not wide:
+            for i in self.window.children:
+                i.width = 320
+        self.sub_window.display(1)
 
     def menu_conversation(self):
         self.window.add(Menu.make(self.var[0], None, color=None, resize=True))
         for option in self.var[1:]:
-            self.sub_window.add(Menu.make(option[0], Script.execute_code, width=160, name=option[1]))
+            self.sub_window.add(Menu.make(option[0], self.execute_code, width=160, name=option[1]))
         self.sub_window.display(1)
 
     def load(self, name):
@@ -177,14 +177,12 @@ class Menu:
     def topic(self, topic):
         self.var = topic[2:]
         if topic[1] == 1:
-            self.get_message(self.var[0])(None)
+            self.get_message(self.var[0])()
         elif topic[1] == 2:
             def confirm(index):
                 Script.execute_code(self.var[2])
-            self.get_prompt(self.var[0], self.var[1], confirm)(None)
+            self.get_prompt(self.var[0], self.var[1], confirm)()
         elif topic[1] == 3:
             self.direct(self.menu_conversation)
         elif topic[1] == 4:
-            self.direct(self.menu_choice)
-        elif topic[1] == 5:
             self.direct(self.menu_many_choice)

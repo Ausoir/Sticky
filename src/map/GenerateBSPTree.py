@@ -49,7 +49,7 @@ class BSPTree(Generator):
         for y in range(estate[1] + 1, estate[3] - 1):
             self.str_map[y][estate[0] + 1] = 'X'
             self.str_map[y][estate[2] - 2] = 'X'
-        door_pos = self.random.rand_int(1, 4)
+        door_pos = self.random.rand_int(0, 3)
         door_ry = self.random.rand_int(estate[1] + 3, estate[3] - 3)
         door_rx = self.random.rand_int(estate[0] + 3, estate[2] - 3)
         if door_pos == 1:
@@ -61,7 +61,7 @@ class BSPTree(Generator):
         elif door_pos == 3:
             self.str_map[door_ry][estate[2] - 2] = 'D'
             self.str_map[door_ry - 1][estate[2] - 1] = 'Lamp'
-        elif door_pos == 4:
+        elif door_pos == 0:
             self.str_map[estate[3] - 2][door_rx] = 'D'
             self.str_map[estate[3] - 1][door_rx - 1] = 'Lamp'
 
@@ -118,7 +118,7 @@ class BSPTree(Generator):
         return estate, garden
 
 
-class GenerateTown(BSPTree):
+class GenerateResidence(BSPTree):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
         self.buildings = []
@@ -126,8 +126,8 @@ class GenerateTown(BSPTree):
         self.load_buildings()
 
     def load_buildings(self):
-        for i in ['house1', 'house2', 'house3', 'house4', 'house5', 'house6', 'warehouse']:
-            building = Data.process_raw(Data.read('data/map/building/' + i + '.map'))
+        for i in ['1', '2', '3', '4', '5', '6', 'storage']:
+            building = Data.process_raw(Data.read('data/map/house/' + i + '.map'))
             tiles = building[1][0].split('%')
             self.buildings_list.append([building, len(tiles[0]), len(tiles)])
 
@@ -145,9 +145,9 @@ class GenerateTown(BSPTree):
 
     def post_process(self, location):
         entrance = self.find_entrance(location)
-        location.tags.set('enterx', entrance.x, add=True)
-        location.tags.set('entery', entrance.y, add=True)
-        return location
+        location.tags.set('enterx', entrance.x)
+        location.tags.set('entery', entrance.y)
+        return super().post_process(location)
 
     def to_location(self, name):
         location = super().to_location(name)
@@ -197,21 +197,21 @@ class GenerateTown(BSPTree):
         self.buildings.append([location, start_x + offset_x, start_y + offset_y])
 
 
-class GeneratePortTown(GenerateTown):
+class GenerateBeach(GenerateResidence):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
         self.theme['3'] = 'Palm Tree'
 
     def load_buildings(self):
-        for i in ['house1', 'house2', 'house3', 'house4', 'house5', 'house6', 'warehouse']:
-            building = Data.process_raw(Data.read('data/map/building/' + i + '.map'))
+        for i in ['1', '2', '3', '4', '5', '6', 'storage']:
+            building = Data.process_raw(Data.read('data/map/house/' + i + '.map'))
             tiles = building[1][0].split('%')
             self.buildings_list.append([building, len(tiles[0]), len(tiles)])
 
     def process(self):
         margin_x = int(self.get_width() / 12)
         margin_y = int(self.get_height() / 12)
-        border = self.random.rand_int(int(self.get_width() / 8), int(self.get_width() / 4))
+        border = self.random.rand_int(8, 18)
         self.fill_rect('~', 0, 0, border - 4, self.get_height())
         estate, garden = self.iterate(border, -1, self.get_width() + 1, self.get_height() + 1)
         for rect in garden + estate:
@@ -223,6 +223,6 @@ class GeneratePortTown(GenerateTown):
         self.adapt_tiles()
 
     def post_process(self, location):
-        location.rotate(self.random.rand_int(0, 3))
+        self.disorient(location, self.random)
         location = super().post_process(location)
         return location

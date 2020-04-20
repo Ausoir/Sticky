@@ -14,5 +14,7 @@ CURRENT_OFFSET = (0, 0)
 OFFSET = (10000, 10000)
 menu = None
 r = None
+r_t = None
 blank_form = None
 mask_color = (0, 0, 0, 0)
+cardinal_coord = [[0, 1], [-1, 0], [0, -1], [1, 0]]

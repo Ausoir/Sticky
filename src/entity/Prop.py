@@ -41,7 +41,7 @@ class Prop(Object):
 
     def die(self):
         from src.entity.Particle import Particle
-        Particle.make('disintegrate', self.pos.get_center(), offset=0)
+        Particle.make('disintegrate', self.pos, offset=0)
         loot = self.get_loot()
         if loot:
             from src.entity.Stock import Stock
@@ -62,14 +62,17 @@ class Prop(Object):
     def decay(self, damage):
         hp = self.tags.get('p')
         if hp is not None:
-            self.tags.set('p', min(max(0, hp - damage), self.tags.get('p>', 1000)))
+            self.tags.set('p', min(max(0, hp - damage), self.tags.get('P', 1000)))
             if self.tags.get('p') == 0:
                 self.die()
                 return 2
         return 1
 
+    def get_weight(self):
+        return self.tags.get('w', 1)
+
     def hit(self, damage, hitter=None):
-        damage = max(0, damage - self.tags.get_material_defense())
+        damage = max(0, damage - self.tags.get('def', 0))
         if damage > 0:
             if hitter:
                 if isinstance(hitter, Prop):
@@ -77,35 +80,44 @@ class Prop(Object):
                     if hitter.tags.get('sharp'):
                         if self.tags.get('mat') == 'flesh':
                             self.location.sound.register(self.pos, 7, file='hit_cut')
-                            Particle.make('splat', self.vec)
+                            Particle.make('splat', self.pos)
                         else:
                             self.location.sound.register(self.pos, 7, file='hit_bash')
-                            Particle.make('slash', self.vec)
+                            Particle.make('slash', self.pos)
                     else:
                         self.location.sound.register(self.pos, 7, file='hit_bash')
-                        Particle.make('batter', self.vec)
+                        Particle.make('batter', self.pos)
             return self.decay(damage)
         return 0
 
+    def get_display_name(self):
+        return self.name
+
+    def get_description(self):
+        from src.tools.Data import Data
+        return Data.get_line('descriptions.txt', self.name)
+
     def describe(self):
         r = self.name
-        from src.tools.Data import Data
         from src.tools.Dialog import Dialog
+        r += '   (' + Dialog.weight(self.tags.get('w', 1)) + ')'
+        from src.tools.Data import Data
         data = Data.get_line('descriptions.txt', r)
         if data:
             r += '\n' + data[1]
         hp = self.tags.get('p')
-        if hp:
-            max_hp = self.tags.get('p>')
-            r += '\n' + Dialog.durability(hp, max_hp)
-        mat = Dialog.material(self.tags.attributes.get('mat'))
-        if mat:
-            r += '\n' + mat
-        hinder = self.tags.get('mvspd')
+        max_hp = self.tags.get('P')
+        r += '\n' + Dialog.durability(hp, max_hp)
+        armor = self.tags.get('def')
+        if armor:
+            r += '\n' + Dialog.armor(armor)
+        hinder = self.tags.get('spd')
         if hinder:
             r += '\n' + Dialog.get('terrain speed', [hinder])
+        damage = self.tags.get('dmg')
+        if damage:
+            r += '\n' + Dialog.get('Damage') + ': ' + Dialog.sign(damage)
         return r
 
     def on_sleep(self, time):
-        for i in self.states.buffs:
-            i.trigger(['time', time])
+        self.states.trigger(['time', time])

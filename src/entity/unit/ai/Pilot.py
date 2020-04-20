@@ -14,9 +14,7 @@ class Pilot:
     def record(self):
         if self.host.tags.get('ai'):
             if self.task != self.default and self.task.__class__ != Return:
-                self.host.tags.set('task', self.task.__class__.__name__, add=True)
-            else:
-                self.host.tags.remove('task')
+                self.host.tags.set('task', self.task.__class__.__name__)
             self.task.record()
 
     def load(self, arg):
@@ -51,6 +49,14 @@ class Pilot:
     def set_task(self, task):
         task.on_set()
         self.task = task
+        if self.priority == 1:
+            interaction = self.host.tags.remove('#')
+            if interaction:
+                self.host.tags.set('!#', interaction)
+        else:
+            interaction = self.host.tags.remove('!#')
+            if interaction:
+                self.host.tags.set('#', interaction)
 
     def act(self):
         if self.priority > 2:
@@ -66,8 +72,11 @@ class Pilot:
             from src.entity.unit.item.Item import Item
             from src.entity.Prop import Prop
             if isinstance(hitter, Prop):
-                if isinstance(hitter, Item) and hitter.host:
-                    hitter = hitter.host
+                if isinstance(hitter, Item):
+                    if hitter.host:
+                        hitter = hitter.host
+                    else:
+                        return
                 if hitter != self.host:
                     self.set_task(self.attack)
                     self.task.target = hitter
@@ -113,7 +122,7 @@ class Pilot:
                 self.set_task(self.move)
 
     def prioritize(self, targets):
-        nearest_dist = 10
+        nearest_dist = 99
         nearest = None
         for i in targets:
             t = (i.pos - self.host.pos).distance()
@@ -125,7 +134,7 @@ class Pilot:
     def spot_enemy(self, targets):
         valids = []
         for thing in targets:
-            seen = self.host.location.collide_land(self.host.pos, thing.pos, self.host.sight)
+            seen = self.host.location.collide_land(self.host.pos, thing.pos, self.host.sight, distance=13)
             if seen == thing.pos:
                 valids.append(thing)
         if valids:
@@ -135,7 +144,7 @@ class Pilot:
                 self.task.target = var
                 if not self.host.tags.get('deaf'):
                     from src.entity.Particle import Particle
-                    Particle.make('shout', self.host.vec)
+                    Particle.make('shout', self.host.pos)
                     self.host.location.sound.register(self.host.pos, 9)
 
 
@@ -146,7 +155,10 @@ class Routes:
 
     def can_destroy(self, tile):
         if not self.destroy:
-            return tile.is_land(self.host.collision_type)
+            if tile.is_land(self.host.collision_type):
+                return -1
+            else:
+                return 0
         weight = 0
         from src.entity.unit.Unit import Unit
         for i in tile.things:
@@ -154,7 +166,7 @@ class Routes:
                 return -1
             elif i.obstruct_type in self.host.collision_type:
                 hp = i.tags.get('p')
-                if not hp or self.host.get_damage() < i.tags.get_material_defense():
+                if not hp or self.host.get_damage() <= i.tags.get('def', 0):
                     return -1
                 else:
                     weight += i.tags.get('p')

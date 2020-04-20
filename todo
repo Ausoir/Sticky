@@ -1,19 +1,9 @@
 group mobs (Follow)
-spell - soul stone - turn enemy into soul stone, containing enemy data
+spell - soul stone - __str__() data - clone
 buff 'Latent' trigger spell on_finish - use for clone spell
-Clone (summon 2) - clone item/unit/clone self (manual input all)
-minotaur form (strong, fast, uncontrollable, humanoid)
 door to portal pocket dimension
-summon wall is Collide_MAGIC
 brain feed - steal 1 skill
 spider - creates web (Tile.COLLIDE_WINDOW), walks through windows
-enemies use skill side step
+wand aim is ray - range limit and blocked by object
 
 4 clans - (weak teal robe clan w/ many minions, red robe clan using spells, etc) each hold manuals n stuff.
-
-1. Map
-    hunting, defense, survive, assault, timed assault
-
-2. Manual acquirement
-    Merchant (expensive)
-    Quest (defense/assault/survive)

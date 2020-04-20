@@ -22,8 +22,7 @@ class Glasses(Headgear):
             level = self.tags.get('level', 1)
             self.host.action.act('rest', 16)
             self.host.action.on_finish = done
-            from src.tools import Direction
-            coord = Direction.coord[self.host.direction]
+            coord = Global.cardinal_coord[self.host.direction]
             target = self.host.pos + [coord[0] * level, coord[1] * level]
             pos = self.host.location.collide_land(self.host.pos, target, distance=level, flag=self.collision_type)
             from src.game.TempObject import TempObject

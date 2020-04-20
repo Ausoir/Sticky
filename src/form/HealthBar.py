@@ -30,7 +30,7 @@ class HealthBar:
 
     def appear(self):
         hp = self.attribute.get('p')
-        mhp = self.attribute.get('p>')
+        mhp = self.attribute.get('P')
         if hp and mhp:
             width = int(Global.BLOCK * min(1, hp / mhp)) - 2
             self.foreground.width = width

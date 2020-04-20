@@ -7,6 +7,8 @@ from src.tools.Timer import Timer
 
 
 class Body:
+    TEXTURE_DIRECTION = [0, 1, 2, 1]
+
     def __init__(self, model_name):
         super().__init__()
         data = Data.get_cache_clip(model_name).copy()
@@ -14,7 +16,7 @@ class Body:
         self.texture_count = 0
         self.seed = 1
         self.side = 1
-        self.direction = 3
+        self.direction = 0
         self.row = 0
         self.model = data[0][0]
         self.order = data[0][1]
@@ -24,7 +26,7 @@ class Body:
         self.current_clip = 0
         self.timer = Timer(0, repeat=1)
         self.current_animation = None
-        self.state_name = 'idle'
+        self.state_name = 'default'
         self.animation_ended = 0
         self.root = None
 
@@ -45,7 +47,7 @@ class Body:
             else:
                 int_parent = int(parent[k][1])
                 x.set_parent(self.organs[int_parent], parent[k][0])
-        self.force_set_animation('idle')
+        self.force_set_animation('default')
 
     def show(self, visible):
         for i in self.organs:
@@ -79,18 +81,20 @@ class Body:
         if self.timer.update():
             self.update_clip()
         timer = self.timer.time + 1
+        root = self.current_animation[len(self.current_animation) - 2]
+        dx = (root[0] - self.root.upper_joint.x) / timer
+        dy = (root[1] - self.root.upper_joint.y) / timer
+        self.root.upper_joint += (dx, dy)
         for k, organ in enumerate(self.organs):
             diff = organ.upper_joint - organ.lower_joint
             dx = ((self.current_animation[k][0] * self.side) + diff.x) / timer
             dy = (self.current_animation[k][1] + diff.y) / timer
             organ.lower_joint += (dx, dy)
             organ.place(x, y)
-        root = self.current_animation[len(self.current_animation) - 2]
-        self.root.upper_joint.load(root[0] * self.side, root[1])
 
     def force_set_animation(self, motion):
         self.current_animation = self.animation[self.motion[motion][0]]
-        for k in self.order[self.direction - 1]:
+        for k in self.order[self.direction]:
             if k >= 0:
                 organ = self.organs[k]
                 x = self.current_animation[k][0]
@@ -131,32 +135,30 @@ class Body:
             state = self.state_name
         if self.direction == 2 and state + 'U' in self.motion:
             return state + 'U'
-        elif self.direction == 4 and state + 'D' in self.motion:
+        elif self.direction == 0 and state + 'D' in self.motion:
             return state + 'D'
         return state
 
     def face(self, direction):
         self.direction = direction
-        if self.direction <= 2:
+        if self.direction in [1, 2]:
             self.face_side(-1)
         else:
             self.face_side(1)
         self.update_perspective()
-        # self.force_set_animation(self.get_directional_state('idle'))
 
     def face_side(self, side):
         self.side = side
 
     def update_perspective(self):
-        from src.tools import Direction
-        numeral = Direction.numeral[self.direction] * self.texture_count
+        numeral = Body.TEXTURE_DIRECTION[self.direction] * self.texture_count
         t = self.row
-        for i in self.order[self.direction - 1]:
+        for i in self.order[self.direction]:
             if i >= 0:
                 t += 1
                 organ = self.organs[i]
                 if organ.texture_num == -1:
-                    organ.form.switch(Direction.numeral[self.direction])
+                    organ.form.switch(Body.TEXTURE_DIRECTION[self.direction])
                 else:
                     organ.form.switch(organ.texture_num + numeral)
                 organ.form.reset()

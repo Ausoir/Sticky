@@ -49,14 +49,16 @@ class Population:
                 r.append(i)
         return r
 
-    @staticmethod
-    def get_from_id(group, identification):
+    def get_from_id(self, identification, group=None):
+        if group is None:
+            group = self.get_all()
         for i in group:
             if i.id == identification:
                 return i
 
-    @staticmethod
-    def get_from_name(group, identification):
+    def get_from_name(self, identification, group=None):
+        if group is None:
+            group = self.get_all()
         for i in group:
             if i.name == identification:
                 return i

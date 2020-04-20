@@ -1,19 +1,21 @@
-Human,Humanoid,human,[p>:4,p:4,mat:flesh],[],[],0,0,0,[] //Name,class,form,tags,state,skill,armor,headgear,weapon,inventory
-Traveller,Unit,target,[spd:1],[],[]
-Slime,Unit,slime,[p>:8,p:8,mat:other,ai:wander,deaf:1,loot:Jelly,spd:-5],[],[]
-Rat,Unit,rat,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:1,sharp:1],[],[hide]
-Worm,Unit,worm,[p>:1,p:1,bad:1,mat:flesh,ai:wander,spd:-5],[],[]
-Dog,Unit,dog,[p>:4,p:4,bad:1,mat:flesh,ai:wander,spd:1,loot:Tooth,sharp:1],[[Speed,-1,1]],[strength,dodge]
-Zombie,Unit,zombie,[p>:7,p:7,bad:1,mat:flesh,ai:wander],[],[toughness],0,0,0
-Looter,Humanoid,human,[p>:7,p:7,bad:1,mat:flesh,ai:wander,seed:-1],[],[side step],Jumpsuit,0,Club,[?Cash]
-Tank,Humanoid,human,[p>:20,p:20,bad:1,mat:flesh,ai:wander,seed:-1,spd:-1],[],[vengeance,parry],Chainmail,0,Falchion,[]
-Destroyer,Humanoid,human,[p>:8,p:8,bad:1,mat:flesh,ai:wander,seed:-1],[],[frenzy,crush],Scalemail,0,Warhammer,[]
-Ghost,Ghost,ghost,[p:1,mat:fuel,fly:1,col:7,spd:-1],[],[]
-Phantom,Phantom,phantom,[p:7,mat:fuel,fly:1,ai:wander,col:7,seed:-1],[],[],0
-Mercenary,Humanoid,human,[p>:20,p:20,mat:flesh,ai:guard,seed:-1],[],[swing],Scalemail,0,Glaive,[]
-Merchant,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,seed:-1,#:merchant],[],[],Gold Robe,Top Hat,0,[?Manual,?Torch,?Spell Pouch,?Dagger,?Hat,?Casual Wear]
-Pawnbroker,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,seed:-1,#:pawn],[],[],Jumpsuit,Safety Helmet,0,[Box,Club,Torch]
-Contractor,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,seed:-1],[],[flurry,block,dodge],Tuxedo,0,0,[]
-Insurer,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,seed:-1],[],[],Silver Robe,Holy Hat,[]
-Doctor,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,seed:-1],[],[],Silver Robe,Glasses,[]
-Innkeep,Humanoid,human,[p>:4,p:4,mat:flesh,ai:guard,seed:-1],[],[],Green Robe,0,[]
+Human,Humanoid,human,[P:4,p:4],[],[],0,0,0,[] //Name,class,form,tags,state,skill,armor,headgear,weapon,inventory
+Slime,Unit,slime,[P:8,p:8,fuel:0,ai:wander,deaf:1,loot:Jelly,spd:-5,corpse:0],[[Brand,-1,>buff>Poison>-1>8]],[]
+Killer Ivy,Unit,ivy,[P:2,p:2,fuel:2,bad:1,def:3,ai:wander,deaf:1,spd:-20],[],[hide]
+Rat,Unit,rat,[P:4,p:4,bad:1,ai:wander,spd:1,sharp:1,aspd:3],[],[hide]
+Worm,Unit,worm,[P:1,p:1,bad:1,ai:wander,spd:-5],[],[]
+Dog,Unit,dog,[P:4,p:4,bad:1,ai:wander,spd:2,loot:Tooth,sharp:1,aspd:5],[[Speed,-1,1]],[strength,dodge]
+Zombie,Unit,zombie,[P:7,p:7,bad:1,ai:wander],[],[toughness],0,0,0
+Golem,Unit,golem,[P:40,p:40,bad:1,def:7,ai:wander,spd:-5,aspd:-20,dmg:8],[],[toughness,crush,cleave],0,0,0
+Looter,Humanoid,human,[P:7,p:7,bad:1,ai:wander,seed:-1],[],[side step],Jumpsuit,Bandana,Club,[?Cash]
+Tank,Humanoid,human,[P:20,p:20,bad:1,ai:wander,seed:-1,spd:-1],[],[vengeance,parry],Chainmail,Bandana,Falchion,[]
+Destroyer,Humanoid,human,[P:8,p:8,bad:1,ai:wander,seed:-1],[],[frenzy],Scalemail,0,Warhammer,[]
+Ghost,Ghost,ghost,[p:1,fuel:2,fly:1,col:7,spd:-1],[],[]
+Phantom,Phantom,phantom,[p:7,fuel:2,fly:1,ai:wander,col:7,seed:-1],[],[],0
+Mercenary,Humanoid,human,[P:20,p:20,ai:guard,seed:-1],[],[parry,frenzy,constitution],Scalemail,0,Glaive,[]
+Soldier,Humanoid,human,[P:20,p:20,ai:guard,seed:-1],[],[strength,dexterity,agility],Chainmail,Lace Helm,Longsword,[]
+Resident,Humanoid,human,[P:8,p:8,ai:wander,seed:-1],[],[dodge],Casual Wear,0,0,[]
+Merchant,Humanoid,human,[P:24,p:24,ai:guard,seed:-1,#:!trader],[],[],Gold Robe,Top Hat,0,[?Manual,?Torch,?Dispel Potion,?Jerky,?Water Bottle,?Cloth,?Fiber,?Plate,?Dagger,?Hat,?Casual Wear,?Traveller Gear]
+Blacksmith,Humanoid,human,[P:32,p:32,ai:guard,seed:-1,#:!trader],[],[endurance,endurance],Jumpsuit,Headband,Hammer,[?Plate,?Chainmail,?Mace,?Lace Helm,?Pickaxe]
+Supplier,Humanoid,human,[P:18,p:18,ai:guard,seed:-1,#:!supply],[],[],Tuxedo,Sunglasses,0,[?Raw Meat,?Silver,?Tooth,?Jelly,?Paper]
+Contractor,Humanoid,human,[P:40,p:40,ai:guard,seed:-1,#:!contract,quest:5],[],[block,flurry],Platemail,Full Helm,Mace,[?Shortsword,?Tough Wear,?Broadsword,?Restoration Potion]
+Innkeep,Humanoid,human,[P:18,p:18,ai:guard,seed:-1],[],[],Green Robe,Headband,0,[?Raw Meat,?Vegetable,?Bread,?Fruit,?Cheese,?Jerky]

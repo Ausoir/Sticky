@@ -36,5 +36,8 @@ class Overlay:
                 self.fade[3] = 0
             else:
                 self.fade = [self.fade[0], self.fade[1], self.fade[2], self.fade[3] - 8]
-            for i in range(4):
-                self.minimum[i] = max(self.weather[i], self.fade[i])
+            self.on_sight_change()
+
+    def on_sight_change(self):
+        for i in range(4):
+            self.minimum[i] = max(self.weather[i], self.fade[i])

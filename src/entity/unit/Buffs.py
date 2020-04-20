@@ -1,4 +1,4 @@
-from src.entity.unit.Buff import Buff, BuffTags
+from src.entity.unit.Buff import Buff
 
 
 class Buffs:
@@ -30,18 +30,23 @@ class Buffs:
                 return i
         return None
 
-    def add(self, buff, duration, var=0, load=False, stack=True):
-        preexisting = self.get(buff)
-        if not stack or not preexisting:
+    def add(self, buff_name, duration, var=0, load=False, stack=True):
+        preexisting = self.get(buff_name)
+        if not stack or not preexisting or 'stack' not in preexisting.get_tags():
+            buff = None
             for i in Buff.__subclasses__():
-                if i.__name__ == buff:
-                    buff = i(self.host, buff, duration, var)
+                if i.__name__ == buff_name:
+                    buff = i(self.host, buff_name, duration, var)
                     break
-            if buff.is_valid():
-                self.buffs.append(buff)
-                if not load:
+            if buff:
+                if load:
+                    self.buffs.append(buff)
+                elif buff.is_valid():
+                    self.buffs.append(buff)
                     buff.on_start()
-            return buff
+                return buff
+            else:
+                return None
         else:
             preexisting.on_stack(duration, var)
             return preexisting
@@ -51,7 +56,7 @@ class Buffs:
         for i in self.buffs:
             if fn(i):
                 i.end()
-                r = 1
+                r += 1
         return r
 
     def trigger(self, arg):
@@ -59,7 +64,7 @@ class Buffs:
             i.trigger(arg)
 
     def dispel(self):
-        self.clear(lambda x: BuffTags.magic in x.get_tags())
+        self.clear(lambda x: 'magic' in x.get_tags())
 
     def on_load(self):
         for i in self.buffs:

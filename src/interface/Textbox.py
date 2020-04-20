@@ -11,7 +11,7 @@ class Textbox:
         self.y = y
         self.display = 0
         self.document = FormattedDocument(' ')
-        properties = dict(font_name='Ubuntu', font_size=16, bold=True, color=(70, 70, 70, 240))
+        properties = dict(font_name='Ubuntu', font_size=16, bold=True, color=(120, 30, 30, 220))
         self.document.set_style(0, 1, properties)
         self.text = TextLayout(self.document, 120, 120, multiline=True, wrap_lines=True, group=Global.draw_group.group_gui)
 

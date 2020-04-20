@@ -2,7 +2,6 @@ from pyglet.image import Animation
 
 from src.form.Sprite import Sprite
 from src.game import Global
-from src.tools import Direction
 
 
 class Picture(Sprite):
@@ -57,7 +56,10 @@ class Picture(Sprite):
         self.rotation = 90 * direction
 
     def face_cardinal(self, direction):
-        self.face(x=Direction.side[direction])
+        if direction in [1, 2]:
+            self.face(-1)
+        else:
+            self.face(1)
 
     def resize(self, x=1, y=1):
         if x != 1 and self.width:

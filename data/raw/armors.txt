@@ -1,15 +1,16 @@
-Green Robe,Armor,wear_1x0,[skill:stealth,w:4],[],0 // Capacity, Armor
-Teal Robe,Armor,wear_2x0,[skill:stealth,w:6],[],0
-Red Robe,Armor,wear_3x0,[skill:stealth,w:8],[],0
-Gold Robe,Armor,wear_4x0,[skill:stealth,w:10],[],0
-Black Robe,Armor,wear_5x0,[skill:stealth,w:12],[],0
-Jumpsuit,Armor,wear_0x1,[skill:escape,w:6],[],0
-Leather Gear,Armor,wear_1x1,[w:8],[],1
-Tuxedo,Armor,wear_2x1,[w:10],[],0
-Casual Wear,Armor,wear_3x1,[w:4],[],0
-Traveller Gear,Armor,wear_4x1,[skill:asceticism,w:8],[],1
-Hard Armor,Armor,wear_0x2,[hp:8,w:2],[],3
-Ringmail,Armor,wear_1x2,[hp:8,w:2],[],3
-Chainmail,Armor,wear_2x2,[hp:12,spd:-1,skill:guard,w:5],[],4
-Scalemail,Armor,wear_3x2,[hp:14,spd:-1,skill:guard,w:5],[],5
-Platemail,Armor,wear_4x2,[hp:16,spd:-1,skill:sunder,w:5],[],6
+Casual Wear,Armor,wear_3x1,[p:20,w:2,space:3],[]
+Jumpsuit,Armor,wear_0x1,[P:40,p:40,def:1,w:2,space:5],[]
+Tuxedo,Armor,wear_2x1,[P:20,p:20,skill:assassinate,w:3,space:6],[]
+Green Robe,Armor,wear_1x0,[P:40,p:40,w:2,space:4],[]
+Teal Robe,Armor,wear_2x0,[P:60,p:60,skill:cantrips,w:2,space:5],[]
+Red Robe,Armor,wear_3x0,[P:80,p:80,skill:parry,w:2,space:6],[]
+Gold Robe,Armor,wear_4x0,[P:40,p:40,skill:organization,w:2,space:7],[]
+Black Robe,Armor,wear_5x0,[skill:stealth,space:8],[]
+Traveller Gear,Armor,wear_4x1,[skill:asceticism,w:2,space:5],[]
+Leather Gear,Armor,wear_1x1,[P:40,p:40,def:2,w:3,space:5],[]
+Tough Wear,Armor,wear_5x1,[P:40,p:40,def:3,w:4,space:6,DEF:2],[]
+Ringmail,Armor,wear_0x2,[P:40,p:40,def:4,hp:8,skill:spellcraft,w:5,space:6,DEF:3],[]
+Chainmail,Armor,wear_1x2,[P:40,p:40,def:7,hp:12,enc:-1,skill:guard,w:6,space:8,def:1,DEF:4],[]
+Scalemail,Armor,wear_2x2,[P:40,p:40,def:7,hp:14,enc:-1,skill:guard,w:7,space:9,def:1,DEF:5],[]
+Platemail,Armor,wear_3x2,[hp:16,enc:-1,skill:sunder,w:8,space:10,def:1,DEF:6],[]
+Night Wear,Armor,wear_4x2,[p:40,def:2,hp:10,enc:1,skill:assassinate,w:3,space:6,DEF:2],[]

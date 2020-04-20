@@ -20,29 +20,35 @@ class Traveller:
         Global.map_view.overlay.turn()
         self.control.turn()
         Global.player.turn()
+        Global.map_view.update_region()
+        Global.map_view.update_fog()
+        Global.map_view.update()
         if self.delay <= 0:
             if self.action():
                 self.delay = 8
                 self.next_action = None
-            if self.moving[0] != 0 or self.moving[1] != 0:
-                front = Camera.target.pos.get_neighbor(self.moving[0], self.moving[1])
-                if front and not front.is_land(Tile.CHECK_FIRM):
-                    time = max(0, -front.get_speed() + 1)
-                    if Global.player.sleep(time, blackout=False):
-                        Camera.target.move(self.moving[0], self.moving[1], 1, flag=[])
+            self.move()
+        else:
+            self.delay -= 1
+
+    def move(self):
+        if self.moving[0] != 0 or self.moving[1] != 0:
+            front = Camera.target.pos.get_neighbor(self.moving[0], self.moving[1])
+            if front and not front.is_land(Tile.CHECK_FIRM):
+                time = max(0, -front.get_speed() + 1)
+                if Global.player.sleep(time, blackout=False):
+                    Camera.target.relocate(to=front)
+                else:
+                    if Camera.target.tags.get('p') > time * 2:
+                        Global.menu.get_prompt(Dialog.get('starve'), Dialog.get('proceed'),
+                                               self.starve, param=[time, self.moving])(None)
                     else:
-                        if Camera.target.tags.get('p') > time * 2:
-                            Global.menu.get_prompt(Dialog.get('starve'), Dialog.get('proceed'),
-                                                   self.starve, param=[time, self.moving])(None)
-                        else:
-                            Global.menu.get_prompt(Dialog.get('succumb'), Dialog.get('proceed'), self.succumb)(None)
-                        self.moving = [0, 0]
-                        return
+                        Global.menu.get_prompt(Dialog.get('succumb'), Dialog.get('proceed'), self.succumb)(None)
+                    self.moving = [0, 0]
+                    return
             Global.map_view.update_region()
             Global.map_view.update_fog()
             self.moving = [0, 0]
-        else:
-            self.delay -= 1
 
     def succumb(self, arg):
         Global.menu.display(-1)
@@ -50,11 +56,12 @@ class Traveller:
 
     def starve(self, arg):
         Global.menu.display(-1)
-        Global.player.sleep(arg[0], force=True, blackout=False)
-        Camera.target.decay(arg[0] * 3)
-        Camera.target.move(arg[1][0], arg[1][1], 1, flag=[])
-        Global.map_view.update_region()
-        Global.map_view.update_fog()
+        hunger = Global.player.character.tags.get('hunger')
+        Global.player.character.tags.set('hunger', 0)
+        self.moving = arg[1]
+        self.move()
+        Global.player.character.tags.increment('hunger', hunger)
+        Global.player.character.decay(arg[0] * 3)
 
     def remove(self):
         Turn.update = self.backup

@@ -36,24 +36,23 @@ class TargetTask(Task):
 
     def record(self):
         if self.target:
-            self.host.tags.set('tgt', self.target.id, add=True)
+            self.host.tags.set('tgt', self.target.id)
 
     def load(self, arg):
-        group = self.host.get_team(ally=False)
-        self.target = self.host.location.population.get_from_id(group, arg)
+        self.target = self.host.location.population.get_from_id(arg)
 
 
 class Return(Task):
     def __init__(self, pilot, target):
         super().__init__(pilot)
         self.target = target
+        self.task = self.host.tags.remove('task')
 
     def update(self):
-        task = self.host.tags.get('task')
-        if task:
+        if self.task:
             # noinspection PyUnresolvedReferences
             import src.entity.unit.ai.Task as Behavior
-            self.pilot.set_task(getattr(Behavior, task)(self.pilot))
+            self.pilot.set_task(getattr(Behavior, self.task)(self.pilot))
         self.pilot.task.load(self.target)
 
 
@@ -122,7 +121,7 @@ class Wander(Task):
             self.reset()
             self.target = None
         elif rand < 3:
-            self.host.face(Global.r.rand_int(1, 4))
+            self.host.face(Global.r.rand_int(0, 3))
             self.state = 0
         else:
             self.state = 0
@@ -176,7 +175,7 @@ class Wander(Task):
     def debug_trace(self):
         for draw in self.open:
             from src.entity.Particle import Particle
-            Particle.make('blood', draw.node.get_center() + Global.r.rand_int(-15, 15))
+            Particle.make('blood', draw.node, offset=6)
 
 
 class Path(Task):  # path finding A*
@@ -212,7 +211,7 @@ class Path(Task):  # path finding A*
         self.target = self.host.location.get_tile(int(ints[0]), int(ints[1]))
 
     def record(self):
-        self.host.tags.set('tgt', 'x' + str(self.target.x) + 'y' + str(self.target.y), add=True)
+        self.host.tags.set('tgt', 'x' + str(self.target.x) + 'y' + str(self.target.y))
 
     def on_set(self):
         super().on_set()
@@ -260,7 +259,7 @@ class Path(Task):  # path finding A*
     def perform(self):
         if self.result:
             self.host.face_toward(self.result[0])
-            front = self.host.get_front_tile(self.host.direction)
+            front = self.host.pos.get_cardinal(self.host.direction, 1)
             if front.is_land(self.host.collision_type) and self.pilot.route.can_destroy(front) != -1:
                 self.host.input('attack')
             else:
@@ -307,7 +306,7 @@ class Path(Task):  # path finding A*
     def debug_trace(self):
         for draw in self.open:
             from src.entity.Particle import Particle
-            Particle.make('blood', draw.node.get_center() + Global.r.rand_int(-15, 15))
+            Particle.make('blood', draw.node, offset=6)
 
 
 class Attack(TargetTask):
@@ -317,7 +316,7 @@ class Attack(TargetTask):
 
     def update(self):
         super().update()
-        if self.target and self.target.removed == 0 and self.target.tags.get('p', 0) > 0:
+        if self.target and self.target.removed == 0 and self.target.tags.get('p', -1) >= 0:
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()
         else:
@@ -326,7 +325,11 @@ class Attack(TargetTask):
     def perform(self):
         if self.target:
             dist = self.target.pos - self.host.pos
-            if dist.difference() == 1:
+            diff = dist.difference()
+            if diff == 0:
+                self.host.face(self.target.direction + 2)
+                self.host.input('walk')
+            elif diff == 1:
                 self.host.face_toward(self.target.pos)
                 concentration = self.host.states.get('Concentration')
                 if concentration and self.host.get_skill('side step'):

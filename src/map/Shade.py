@@ -56,8 +56,8 @@ class Shade:
     def shade_walls(self, joint_neighbors):
         for k, v in enumerate(Shade.wall_shade_meta):
             if self.wall_shaders[k] == 0 and joint_neighbors[k] == 1:
-                self.shades[k].add_batch()
-                self.shades[k].set_gradient(v[0], v[1], v[2], v[3])
+                if self.shades[k].add_batch():
+                    self.shades[k].set_gradient(v[0], v[1], v[2], v[3])
             elif self.wall_shaders[k] == 1 and joint_neighbors[k] == 0:
                 self.shades[k].remove_batch()
             self.wall_shaders[k] = joint_neighbors[k]

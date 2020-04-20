@@ -10,12 +10,10 @@
 [-16,0],[24,-24],[0,0],6 //attack
 [-14,0],[14,0],[0,0],40 //dead
 
-idle,[0,-1]
-idleU,[1,-1]
-idleD,[1,-1]
-standby,[0]
-standbyU,[1]
-standbyD,[1]
+default,[0]
+idle,[0]
+idleU,[1]
+idleD,[1]
 walk,[2,3]
 walkU,[4,5]
 walkD,[4,5]

@@ -137,8 +137,7 @@ class Control:
 
     def quit(self):
         self.output('quit')
-        Global.land.delay = 0
-        Global.land.turn()
+        Global.land.save()
         Global.player.save()
         Global.main.on_close()
 
@@ -156,16 +155,16 @@ class Control:
                 if command.startswith('#'):
                     self.clear_press(code)
                     from src.game.Script import Script
+                    Script.var['host'] = Global.player.character
                     Script.execute_code(command[1:])
                 elif command == 'fullscreen':
                     if Global.main.fullscreen:
                         Global.main.set_fullscreen(False)
                     else:
                         Global.main.set_fullscreen(True)
-                elif command == 'previous':
+                elif Global.menu.visible == 1 and command == 'grab':
                     self.clear_press(code)
-                    if Global.menu.visible == 1:
-                        Global.menu.previous()
+                    Global.menu.previous()
                 elif command == 'switch':
                     self.clear_press(code)
                     Global.player.switch()

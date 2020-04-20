@@ -7,8 +7,6 @@ from src.entity.unit.item.Trinket import *
 # noinspection PyUnresolvedReferences
 from src.entity.unit.item.Focus import Focus
 # noinspection PyUnresolvedReferences
-from src.entity.unit.item.Weapon import Weapon
-# noinspection PyUnresolvedReferences
 from src.entity.unit.Unit import Unit
 # noinspection PyUnresolvedReferences
 from src.entity.Projectile import Projectile

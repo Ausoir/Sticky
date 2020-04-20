@@ -100,21 +100,21 @@ class Humanoid(Unit):
             self.headgear.turn()
 
     def use(self):
-        from src.game.Script import Script
         if self.weapon:
-            if not Script.execute_code(self.weapon.tags.get('#'), host=self):
+            self.states.trigger(['act', 'use'])
+            if not self.action.interact(self.weapon):
                 self.weapon.use()
         else:
-            self.action.kick()
+            self.action.attack()
 
-    def relocate(self, x, y, force=0):
-        super().relocate(x, y, force)
+    def relocate(self, to=None, x=None, y=None, force=False):
+        super().relocate(to, x, y, force)
         if self.weapon:
-            self.weapon.relocate(x, y, force=1)
+            self.weapon.relocate(to=to, x=x, y=y, force=force)
         if self.armor:
-            self.armor.relocate(x, y, force=1)
+            self.armor.relocate(to=to, x=x, y=y, force=force)
         if self.headgear:
-            self.headgear.relocate(x, y, force=1)
+            self.headgear.relocate(to=to, x=x, y=y, force=force)
 
     def remove(self):
         super().remove()
@@ -140,7 +140,7 @@ class Humanoid(Unit):
                 y = bound_y - self.form.organs[3].lower_joint.y
                 arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
                 self.weapon.form.rotation = arm - 15
-            elif self.direction == 4:
+            elif self.direction == 0:
                 x = bound_x + self.form.organs[3].lower_joint.x
                 y = bound_y - self.form.organs[3].lower_joint.y
                 arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
@@ -153,27 +153,18 @@ class Humanoid(Unit):
             self.weapon.form.place(x, y)
         if self.headgear:
             x = bound_x + self.form.organs[0].lower_joint.x
-            y = bound_y - self.form.organs[0].lower_joint.y - 2
+            y = bound_y - self.form.organs[0].lower_joint.y
             neck = (self.form.organs[0].lower_joint - self.form.organs[0].upper_joint).get_atan()
             self.headgear.form.rotation = neck + 90
             self.headgear.form.place(x, y)
         return bound_x, bound_y
 
     def face(self, direction):
-        if self.armor:
-            self.armor.face(direction)
         if self.headgear:
             self.headgear.face(direction)
         if self.weapon:
             self.weapon.face(direction)
         super().face(direction)
-
-    def get_defense(self):
-        max_d = super().get_defense()
-        if self.armor:
-            return max_d + self.armor.armor
-        else:
-            return max_d
 
     def get_hitter(self):
         if self.weapon:
@@ -183,7 +174,7 @@ class Humanoid(Unit):
     def get_damage(self):
         max_d = super().get_damage()
         if self.weapon:
-            return max_d + self.weapon.get_damage()
+            return max(0, max_d + self.weapon.tags.get('dmg', 0))
         else:
             return max_d
 
@@ -193,6 +184,11 @@ class Humanoid(Unit):
             self.weapon.on_attack(target)
 
     def get_possessions(self):
+        r = self.get_equipments()
+        r += self.inventory.items
+        return r
+
+    def get_equipments(self):
         r = []
         if self.weapon:
             r.append(self.weapon)
@@ -200,7 +196,6 @@ class Humanoid(Unit):
             r.append(self.armor)
         if self.headgear:
             r.append(self.headgear)
-        r += self.inventory.items
         return r
 
     def get_accessibles(self):
@@ -209,7 +204,7 @@ class Humanoid(Unit):
         for thing in self.pos.things:
             if isinstance(thing, Item):
                 r.append(thing)
-        r += self.get_possessions()
+        r += self.inventory.items
         return r
 
     def drop(self):
@@ -245,17 +240,35 @@ class Humanoid(Unit):
                     r += 1
         return r
 
-    def get_attack_speed(self):
+    def get_attack_motion(self):
         if not self.weapon:
-            return 0
-        return self.weapon.tags.get('spd', 0)
+            return 'kick'
+        return super().get_attack_motion()
+
+    def get_attack_speed(self):
+        r = super().get_attack_speed()
+        if self.weapon:
+            r -= self.weapon.get_weight() - 2
+        return r
 
     def get_capacity(self):
         r = 5
         r += self.get_skill('endurance', stacks=True)
         if self.armor:
-            r += self.armor.get_weight()
+            r += self.armor.tags.get('space', 0)
+        if self.headgear:
+            r += self.headgear.tags.get('space', 0)
         return r
 
     def on_sleep(self, time):
+        super().on_sleep(time)
         self.inventory.on_sleep(time)
+
+    def get_equipment_weight(self):
+        r = 0
+        for i in self.get_possessions():
+            r += i.get_weight()
+        return r
+
+    def get_weight(self):
+        return super().get_weight() + self.get_equipment_weight()

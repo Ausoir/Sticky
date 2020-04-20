@@ -155,7 +155,7 @@ class GenerateWarehouse(Generator):
             return
         for x in range(estate[0], estate[2]):
             wall = self.wall
-            if estate[0] < x < estate[2] - 1 and self.random.randint(1, 4) == 1:
+            if estate[0] < x < estate[2] - 1 and self.random.randint(0, 3) == 1:
                 wall = 'W'
             self.str_map[estate[1]][x] = wall
             self.str_map[estate[3] - 1][x] = wall
@@ -165,7 +165,7 @@ class GenerateWarehouse(Generator):
                 wall = 'W'
             self.str_map[y][estate[0]] = wall
             self.str_map[y][estate[2] - 1] = wall
-        door_pos = self.random.randint(1, 4)
+        door_pos = self.random.randint(0, 3)
         door_ry = self.random.randint(estate[1] + 2, estate[3] - 2)
         door_rx = self.random.randint(estate[0] + 2, estate[2] - 2)
         if door_pos == 1:
@@ -174,5 +174,5 @@ class GenerateWarehouse(Generator):
             self.str_map[estate[1]][door_rx] = 'D'
         elif door_pos == 3:
             self.str_map[door_ry][estate[2] - 1] = 'D'
-        elif door_pos == 4:
+        elif door_pos == 0:
             self.str_map[estate[3] - 1][door_rx] = 'D'

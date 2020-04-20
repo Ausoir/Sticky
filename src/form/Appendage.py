@@ -39,9 +39,9 @@ class Appendage(Limb):
         self.form.flip(self.flip_x, self.flip_y)
         self.form.image.anchor_x = self.form.width / 2
         if self.flip_y:
-            self.form.image.anchor_y = 2
+            self.form.image.anchor_y = 3
         else:
-            self.form.image.anchor_y = self.form.height - 2
+            self.form.image.anchor_y = self.form.height - 3
 
     def place(self, x, y):
         diff = self.lower_joint - self.upper_joint

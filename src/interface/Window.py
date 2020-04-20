@@ -39,12 +39,12 @@ class Window(Shape):
             elif visible == -1:
                 self.remove_batch()
                 self.text.batch = None
-                self.update_text()
         self.visible = visible
         for i in self.children:
             i.display(visible)
 
     def flush(self):
+        self.set_text('')
         self.next_y = self.y + self.margin.y
         for i in self.children:
             i.flush()

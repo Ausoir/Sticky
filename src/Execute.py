@@ -18,7 +18,7 @@ from src.tools.Random import Random
 class Execute(pyglet.window.Window):
     def __init__(self):
         self.setting = Dialog.to_dict(Data.process_raw(Data.read('data/setting.txt')))
-        super(Execute, self).__init__(self.setting['width'], self.setting['height'], 'Game Title',
+        super(Execute, self).__init__(self.setting['width'], self.setting['height'], ' ',
                                       fullscreen=self.setting['fullscreen'] == 1, vsync=False, resizable=True)
         self.dt = 0
         self.fps = 1 / 36.0
@@ -31,6 +31,7 @@ class Execute(pyglet.window.Window):
 
     def init_other(self):
         Global.r = Random()
+        Global.r_t = Random()
         Space.reusable = Space()
         from src.entity.Stock import Stock
         from src.interface.MenuAll import MenuAll
@@ -121,7 +122,6 @@ class Execute(pyglet.window.Window):
             self.dt = 0
             Camera.update()
             Turn.update()
-            Global.map_view.update()
             self.monologue.update()
         pyglet.clock.schedule_once(self.loop, self.fps - self.dt)
 

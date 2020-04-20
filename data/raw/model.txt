@@ -1,9 +1,11 @@
 target,data/unit/static,g_1x0
+ivy,data/unit/slime,unit/ivy
 human,data/unit/man,wear_0x0
 zombie,data/unit/man,wear_0x3
+golem,data/unit/golem,unit/golem
 worm,data/unit/worm,unit/worm
 slime,data/unit/slime,unit/slime
 rat,data/unit/rat,unit/rat
 dog,data/unit/dog,unit/dog
 ghost,data/unit/slime,g_8x0
-phantom,data/unit/slime,none
+phantom,data/unit/phantom,none

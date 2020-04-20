@@ -11,6 +11,12 @@ class Random:
             self.seed = seed
         self.random = random.Random(self.seed)
 
+    def reset(self, seed):
+        self.random = random.Random(seed)
+
+    def rand_rand(self):
+        return Random(self.rand_int(0, 999999))
+
     def rand_bool(self):
         return self.random.randint(0, 1)
 

@@ -1,5 +1,5 @@
+from src.game import Global
 from src.map.Generator import Generator
-from src.tools import Direction
 
 
 class Tunneler(Generator):
@@ -12,7 +12,7 @@ class Tunneler(Generator):
 
     def initialize_tunneler(self):
         start_pos = [self.random.rand_int(1, self.get_width() - 2), self.random.rand_int(1, self.get_height() - 2)]
-        return [self.random.rand_int(1, 4), start_pos]
+        return [self.random.rand_int(0, 3), start_pos]
 
     def color(self):
         nodes = []
@@ -24,7 +24,7 @@ class Tunneler(Generator):
             self.str_map[y][x] = '*'
 
     def fill_connect(self, nodes, pos_x, pos_y):
-        for i in Direction.coord.values():
+        for i in Global.cardinal_coord:
             x = pos_x + i[0]
             y = pos_y + i[1]
             if not self.out_of_bound(x, y):
@@ -77,7 +77,7 @@ class Tunneler(Generator):
         return self.str_map[pos[1]][pos[0]] in Generator.BLOCKED
 
     def get_front(self, direction, mag=1):
-        coord = Direction.coord[direction]
+        coord = Global.cardinal_coord[direction]
         x = self.tunneler[1][0] + coord[0] * mag
         y = self.tunneler[1][1] + coord[1] * mag
         return [x, y]
@@ -101,7 +101,7 @@ class Tunneler(Generator):
 
     def get_options(self, x, y):
         ways = []
-        for v in Direction.coord.values():
+        for v in Global.cardinal_coord:
             tx = x + v[0]
             ty = y + v[1]
             if not self.out_of_bound(tx, ty) and not self.is_blocked([tx, ty]):
@@ -136,7 +136,7 @@ class GenerateMansion(Tunneler):
                         self.str_map[y][x] = 'o'
                 if self.str_map[y][x] in ['X', 'D']:
                     blocked = []
-                    for i in Direction.coord.values():
+                    for i in Global.cardinal_coord:
                         if self.str_map[y + i[1]][x + i[0]] in Generator.BLOCKED:
                             blocked.append(1)
                         else:
@@ -149,17 +149,18 @@ class GenerateMansion(Tunneler):
                             self.str_map[y][x] = 'X'
 
     def post_process(self, location):
-        location.rotate(self.random.rand_int(0, 3))
+        self.disorient(location, self.random)
         entrance = self.find_entrance(location)
-        location.tags.set('enterx', entrance.x, add=True)
-        location.tags.set('entery', entrance.y, add=True)
-        return location
+        location.tags.set('enterx', entrance.x)
+        location.tags.set('entery', entrance.y)
+        return super().post_process(location)
 
 
 class GenerateCave(Tunneler):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
         self.theme = {'.': 'R', 'o': 'R', 'X': '.', 'D': '.', 'W': 'R'}
+        self.pivots = []
 
     def process(self):
         self.tunneler = self.initialize_tunneler()
@@ -167,20 +168,21 @@ class GenerateCave(Tunneler):
 
     def initialize_tunneler(self):
         start_pos = [self.random.rand_int(0, self.get_width() - 1), 0]
-        return [self.random.rand_int(1, 4), start_pos]
+        return [self.random.rand_int(0, 3), start_pos]
 
     def step(self):
         pos = self.get_front(self.tunneler[0])
         if not pos or self.out_of_bound(pos[0], pos[1], margin=1):
-            self.tunneler[0] = self.random.rand_int(1, 4)
+            self.tunneler[0] = self.random.rand_int(0, 3)
         elif self.random.rand_int(1, self.turning) == 1:
-            self.tunneler[0] = self.random.rand_int(1, 4)
+            self.tunneler[0] = self.random.rand_int(0, 3)
+            self.pivots.append(self.tunneler[1])
         else:
             self.tunneler[1] = [pos[0], pos[1]]
 
     def post_process(self, location):
         location.rotate(self.random.rand_int(0, 3))
         entrance = self.find_entrance(location)
-        location.tags.set('enterx', entrance.x, add=True)
-        location.tags.set('entery', entrance.y, add=True)
-        return location
+        location.tags.set('enterx', entrance.x)
+        location.tags.set('entery', entrance.y)
+        return super().post_process(location)

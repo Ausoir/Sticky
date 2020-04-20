@@ -12,6 +12,8 @@ class Item(Prop):
         if self.host:
             if self.host.weapon == self:
                 self.host.drop()
+            elif self in self.host.inventory.items:
+                self.host.inventory.items.remove(self)
         super().remove()
 
     def face(self, direction):
@@ -24,45 +26,18 @@ class Item(Prop):
         self.host.face(self.host.direction)
 
     def on_unwield(self):
+        self.update_vec()
         self.save = True
         self.host = None
 
     def get_value(self):
-        return self.tags.get('price', 1)
-
-    def get_display_name(self):
-        return self.name
-
-    def describe(self):
-        r = self.get_display_name()
-        from src.tools.Data import Data
-        from src.tools.Dialog import Dialog
-        data = Data.get_line('descriptions.txt', r)
-        if data:
-            r += '\n' + data[1]
-        hp = self.tags.get('p')
-        if hp:
-            max_hp = self.tags.get('p>')
-            r += '\n' + Dialog.durability(hp, max_hp)
-        r += '\nWeight: ' + str(self.get_weight())
-        mat = Dialog.material(self.tags.attributes.get('mat'))
-        if mat:
-            r += '\n' + mat
-        return r
+        return self.tags.get('$', 1)
 
     def use(self):
         self.host.action.attack()
 
-    def get_weight(self):
-        return self.tags.get('w', 1)
-
-    def get_damage(self):
-        return 0
-
     def on_attack(self, target):
         self.states.trigger(['attack', target])
-        for i in self.states.buffs:
-            target.states.add(i.name, 40, i.var)
 
     def update(self):
         if not self.host:
@@ -71,3 +46,27 @@ class Item(Prop):
     def set_row(self, row):
         if not self.host:
             super().set_row(row)
+
+    def enhance(self, rng):
+        if rng <= int(100 * (1 / max(1, self.tags.get('mod', 0) + 1))):
+            self.tags.increment('mod', 1)
+            return True
+        else:
+            self.die()
+        return False
+
+    def get_display_name(self):
+        r = super().get_display_name()
+        level = self.tags.get('mod', 0)
+        if level > 0:
+            return r + ' +' + str(level)
+        else:
+            return r
+
+    def on_sleep(self, time):
+        super().on_sleep(time)
+        if not self.host:
+            thief = self.location.tags.get('thief')
+            if thief:
+                if self.get_value() >= thief:
+                    self.remove()

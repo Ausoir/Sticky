@@ -1,3 +1,6 @@
+from src.game import Global
+
+
 class Inventory:
     def __init__(self, host):
         self.host = host
@@ -13,33 +16,21 @@ class Inventory:
     def load(self, p):
         from src.entity.Stock import Stock
         self.items = []
-        seed = self.host.tags.get('seed', len(self.host.name) + len(self.host.location.name) + self.host.pos.sum())
-        count = 0
+        Global.r_t.reset(self.host.tags.get('seed', 0) + 1234)
         for i in p:
-            count += 1
-            seed += int(self.host.id[1:], 16) * count
             if isinstance(i, str):
                 if i.startswith('?'):
-                    if seed % 2 == 1:
+                    if Global.r_t.rand_bool():
                         continue
                     else:
                         i = i[1:]
                 item = Stock.get(self.host.location, i)
+                if not self.is_vacant(item.get_weight()):
+                    continue
             else:
                 item = Stock.get(self.host.location, i[2], i)
-            item.show(False)
+            item.host = self.host
             self.items.append(item)
-
-    def get_weight(self):
-        total = 0
-        for i in self.items:
-            total += i.get_weight()
-        if self.host.weapon:
-            total += self.host.weapon.get_weight()
-        return total
-
-    def get_capacity(self):
-        return self.host.get_capacity()
 
     def attempt_add(self, item):
         if self.is_vacant(item.get_weight()):
@@ -47,27 +38,28 @@ class Inventory:
         else:
             from src.game import Global
             from src.tools.Dialog import Dialog
-            Global.main.monologue.set(Dialog.get('!heavy', [self.get_weight(), self.get_capacity(), item.get_weight()]))
+            params = [self.host.get_equipment_weight(), self.host.get_capacity(), item.get_weight()]
+            Global.main.monologue.set(Dialog.get('!heavy', params))
 
     def is_vacant(self, weight):
-        return self.get_capacity() >= self.get_weight() + weight and len(self.items) < 12
+        return self.host.get_capacity() >= self.host.get_equipment_weight() + weight and len(self.items) < 12
 
     def add_item(self, item):
-        if self.is_vacant(item.get_weight()):
-            item.remove()
-            item.host = self.host
-            self.items.append(item)
-            return len(self.items) - 1
+        item.remove()
+        item.host = self.host
+        self.items.append(item)
+        return len(self.items) - 1
 
     def get_item(self, item_index):
         if 0 <= item_index < len(self.items):
             item = self.items[item_index]
             self.items.remove(item)
             item.pos = self.host.pos
+            item.on_unwield()
             return item.add()
 
     def update_capacity(self):
-        while not self.is_vacant(0):
+        while not self.is_vacant(0) and len(self.items) > 0:
             item = self.get_item(0)
             item.host = self.host
             item.on_unwield()

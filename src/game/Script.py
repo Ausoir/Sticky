@@ -2,6 +2,7 @@ from src.entity.Particle import Particle
 from src.game import Global
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
+from src.tools.Random import Random
 
 
 class Script:
@@ -9,42 +10,67 @@ class Script:
     ONCE = 1
     MAKE = 2
     TURN = 3
+    var = {'1': None, 'fail': 0}
 
     @staticmethod
-    def execute_string(arg, host=None, var=None):
-        new = Script(host)
+    def execute_string(arg):
+        new = Script()
         new.load(arg)
-        new.var = var
         new.run()
 
     @staticmethod
-    def execute_line(arg, host=None, var=None):
+    def execute_line(arg):
         data = Data.get_line('script.txt', arg.lower())
         if data:
-            Script.execute_string(data[1:], host, var)
+            Script.execute_string(data[1:])
             return True
 
     @staticmethod
-    def execute_code(arg, host=None, var=None):
+    def execute_code(arg):
         if arg:
+            Global.player.control.clear_press()
             if arg.startswith('!'):
-                Global.menu.topic(arg[1:])
+                Global.menu.load(arg[1:])
                 return True
             elif arg.startswith('#'):
                 from src.game.ScriptManual import ScriptManual
-                ScriptManual.execute(arg[1:], host, var)
+                ScriptManual.execute(arg[1:], Script.var['host'], Script.var['1'])
                 return True
-            return Script.execute_line(arg, host, var)
+            elif arg.startswith('>'):
+                Script().run_mechanism(Data.parse(arg[1:].replace('>', ',')))
+                return True
+            return Script.execute_line(arg)
 
-    def __init__(self, host=None):
+    @staticmethod
+    def replace_variable(arg):
+        new = []
+        for i in arg:
+            if isinstance(i, str):
+                if i.startswith('*'):
+                    new.append(Script.var[i[1:]])
+                else:
+                    new.append(i)
+            elif isinstance(i, list):
+                nest = []
+                for ii in i:
+                    if isinstance(ii, str):
+                        if ii.startswith('*'):
+                            new.append(Script.var[i[1:]])
+                        else:
+                            nest.append(ii)
+                    else:
+                        nest.append(ii)
+                new.append(nest)
+            else:
+                new.append(i)
+        return new
+
+    def __init__(self):
         self.period = Script.NONE
         self.condition = None
         self.mechanism = None
         self.exception = None
-        from src.tools.Random import Random
-        self.rand = Random(0)
-        self.host = host or Global.player.character
-        self.var = None
+        self.rand = None
 
     def __str__(self):
         string = Dialog.deepnonstrlist
@@ -93,100 +119,60 @@ class Script:
         for i in self.exception:
             self.run_mechanism(i)
 
+    def get_rand(self):
+        if not self.rand:
+            self.rand = Random(Script.var['host'].tags.get('seed', Global.r.rand_int(0, 9999)))
+        return self.rand
+
     def run_preposition(self, arg):
         if arg[0] == '=':
-            if arg[1] == '=':
-                self.var = arg[2]
-            elif arg[1] == 'where':
-                self.var = [self.host.pos.x, self.host.pos.y]
-            elif arg[1] == 'raw':
-                self.var = Data.get_line(arg[2] + '.txt', arg[3].lower())
-            elif arg[1] == 'array':
-                self.var = arg[2][arg[3]]
-            elif arg[1] == 'player':
-                self.var = Global.player.character
-            elif arg[1] == 'host':
-                self.var = self.host
-            elif arg[1] == '?list':
-                self.var = self.rand.rand_list(arg[2])
-            elif arg[1] == '?int':
-                self.var = self.rand.rand_int(arg[2], arg[3])
-            elif arg[1] == '+':
-                if isinstance(arg[2], str) or isinstance(arg[3], str):
-                    self.var = str(arg[2]) + str(arg[3])
-                else:
-                    self.var = arg[2] + arg[3]
-            elif arg[1] == 'x':
-                self.var = arg[2] * arg[3]
-            elif arg[1] == 'time':
-                self.var = Global.player.days
-                Global.player.set_darkness()
-            elif arg[1] == 'maptag':
-                self.var = Global.land.tags.get(arg[2])
-            elif arg[1] == 'hosttag':
-                self.var = self.host.tags.get(arg[2])
-            elif arg[1] == 'skill':
-                self.var = self.host.get_skill(arg[2], stacks=True)
-        elif arg[0] == 'host':
-            self.host = arg[1]
+            Script.var[str(arg[1])] = arg[2]
         elif arg[0] == 'v':
-            if arg[1] == '=':
-                Global.land.tags.set(arg[2], arg[3], add=True)
-            elif arg[1] == '+':
-                Global.land.tags.increment(arg[2], arg[3])
-            elif arg[1] == 'remove':
-                Global.land.tags.remove(arg[2])
-        elif arg[0] == 'h':
-            if arg[1] == '=':
-                self.host.tags.set(arg[2], arg[3], add=True)
-            elif arg[1] == '+':
-                self.host.tags.increment(arg[2], arg[3])
-            elif arg[1] == 'remove':
-                self.host.tags.remove(arg[2])
+            if arg[2] == 'raw':
+                Script.var[str(arg[1])] = Data.get_line(arg[3] + '.txt', arg[4].lower())
+            elif arg[2] == 'array':
+                Script.var[str(arg[1])] = arg[3][arg[4]]
+            elif arg[2] == '?list':
+                Script.var[str(arg[1])] = self.get_rand().rand_list(arg[3])
+            elif arg[2] == '?int':
+                Script.var[str(arg[1])] = self.get_rand().rand_int(arg[3], arg[4])
+            elif arg[2] == '+':
+                if isinstance(arg[3], str) or isinstance(arg[4], str):
+                    Script.var[str(arg[1])] = str(arg[3]) + str(arg[4])
+                else:
+                    Script.var[str(arg[1])] = arg[3] + arg[4]
+            elif arg[2] == 'x':
+                Script.var[str(arg[1])] = int(float(arg[3]) * float(arg[4]))
+            elif arg[2] == 'time':
+                Script.var[str(arg[1])] = Global.player.days
+                Global.player.set_darkness()
+            elif arg[2] == 'map':
+                Script.var[str(arg[1])] = arg[3].location
+            elif arg[2] == 'tag':
+                Script.var[str(arg[1])] = arg[3].tags.get(arg[4], Script.var['fail'])
+            elif arg[2] == 'skill':
+                Script.var[str(arg[1])] = Script.var[str(arg[1])].get_skill(arg[3], stacks=True)
+            elif arg[2] == 'settag':
+                Script.var[str(arg[1])].tags.set(arg[3], arg[4])
+            elif arg[2] == 'addtag':
+                Script.var[str(arg[1])].tags.increment(arg[3], arg[4])
+            elif arg[2] == 'deltag':
+                Script.var[str(arg[1])].tags.remove(arg[3])
         else:
             return False
         return True
 
-    def replace_variable(self, arg):
-        new = []
-        for i in arg:
-            if isinstance(i, str):
-                if i == '*':
-                    new.append(self.var)
-                # elif i.startswith('#'):
-                #     new.append(self.var[int(i[1])])
-                else:
-                    new.append(i)
-            elif isinstance(i, list):
-                nest = []
-                for ii in i:
-                    if isinstance(ii, str):
-                        if i == '*':
-                            new.append(self.var)
-                        # elif ii.startswith('#'):
-                        #     nest.append(self.var[int(ii[1])])
-                        else:
-                            nest.append(ii)
-                    else:
-                        nest.append(ii)
-                new.append(nest)
-            else:
-                new.append(i)
-        return new
-
     def run_condition(self, condition):
-        condition = self.replace_variable(condition)
+        condition = Script.replace_variable(condition)
         if condition[0].startswith('!'):
             condition[0] = condition[0][1:]
             return not self.run_condition(condition)
         elif self.run_preposition(condition):
             return True
         elif condition[0] == 'equal':
-            if self.var == condition[1]:
-                return True
+            return Script.var['1'] == condition[1]
         elif condition[0] == 'greater':
-            if self.var > condition[1]:
-                return True
+            return Script.var['1'] > condition[1]
         elif condition[0] == 'date':
             if Global.player.days > condition[1]:
                 condition[1] = Global.player.days + condition[2]
@@ -200,83 +186,62 @@ class Script:
         elif condition[0] == 'bright':
             return Global.player.is_bright()
         elif condition[0] == 'delay':
-            return self.host.action.delay == 0
+            return Script.var[1].action.delay == 0
         elif condition[0] == 'inmenu':
             return Global.menu.visible == 1
         elif condition[0] == 'ask':
             def on_yes(name):
-                Global.menu.toggle()
                 for cnd in self.condition[self.condition.index(condition) + 1:]:
                     if not self.run_condition(cnd):
                         if len(condition) > 3:
                             Script.execute_code(condition[3])
                         return
                 self.run_mechanisms()
-            Global.menu.get_prompt(condition[1], condition[2], on_yes, 0)(None)
+            Global.menu.get_prompt(condition[1], condition[2], on_yes)()
             return False
 
     def run_mechanism(self, arg):
-        arg = self.replace_variable(arg)
+        arg = Script.replace_variable(arg)
         if self.run_preposition(arg):
             pass
         elif arg[0] == 'exit':
             Global.player.control.quit()
         elif arg[0] == 'script':
-            if len(arg) > 2:
-                Script.execute_line(arg[1], arg[2])
-            else:
-                Script.execute_line(arg[1])
+            Script.execute_code(arg[1])
         elif arg[0] == 'save':
             Data.write('data/raw/' + arg[1] + '.txt', arg[2])
         elif arg[0] == 'spawn':
             from src.entity.Stock import Stock
-            Stock.make(arg[1], self.host.pos)
+            Script.var['1'] = Stock.make(arg[1], Script.var['host'].pos)
         elif arg[0] == 'effect':
-            Particle.make(arg[1], self.host.pos.get_center(), offset=8)
-        elif arg[0] == 'toggle':
-            Global.menu.toggle()
+            Particle.make(arg[1], Script.var['host'].pos, offset=8)
+        elif arg[0] == 'sound':
+            Script.var['host'].location.sound.register(Script.var['host'].pos, arg[2], file=arg[1])
+        elif arg[0] == 'closemenu':
+            Global.menu.display(-1)
         elif arg[0] == 'message':
-            Global.menu.get_message(arg[1])(None)
+            Global.menu.get_message(arg[1])()
         elif arg[0] == 'dialog':
             Global.menu.topic(arg[1:])
         elif arg[0] == 'say':
             Global.main.monologue.set(arg[1])
         elif arg[0] == 'removeat':
-            for thing in self.host.pos.things.copy():
-                if thing != self.host:
+            for thing in Script.var['host'].pos.things.copy():
+                if thing != Script.var['host']:
                     thing.remove()
-        elif arg[0] == 'removeself':
+        elif arg[0] == 'remove':
             self.remove()
-            self.host.remove()
+            arg[1].remove()
         elif arg[0] == 'trigger':
-            self.var.trigger()
+            Script.var['1'].trigger()
         elif arg[0] == 'spell':
             from src.entity.unit.item.Spell import Spell
-            Spell.perform(self.host, arg[1])
-        elif arg[0] == 'hit':
-            for thing in self.var:
-                thing.hit(arg[2])
+            Spell.perform(Script.var['host'], arg[1])
         elif arg[0] == 'buff':
-            self.host.states.add(arg[1], arg[2], var=arg[3])
-        elif arg[0] == 'relocate':
-            for thing in self.var:
-                thing.relocate(arg[2], arg[3])
-        elif arg[0] == 'move':
-            for thing in self.var:
-                thing.move(arg[2], arg[3])
-        elif arg[0] == 'thief':
-            from src.entity.unit.item.Item import Item
-            for i in Global.land.population.other:
-                if isinstance(i, Item):
-                    if i.get_value() >= arg[1]:
-                        i.remove()
-        elif arg[0] == 'sepia':
-            Global.map_view.overlay.colorize([arg[1], arg[2], arg[3], arg[4]])
-        elif arg[0] == 'blackout':
-            Global.map_view.overlay.blackout()
+            Script.var['host'].states.add(arg[1], arg[2], var=arg[3])
         elif arg[0] == 'darkness':
-            Global.land.view_range = arg[1]
-            Global.land.sight_range = arg[2]
+            Global.land.set_view_range(arg[1])
+            Global.land.set_sight_range(arg[2])
             Global.player.set_darkness()
         elif arg[0] == 'time':
             Global.player.days = arg[1]
@@ -288,40 +253,60 @@ class Script:
             else:
                 Global.player.travel(arg[1], arg[2], arg[3])
         elif arg[0] == 'menu':
-            Global.menu.var = self.var
+            Global.menu.var = Script.var['1']
             Global.menu.direct(getattr(Global.menu, 'menu_' + arg[1].lower()))
         elif arg[0] == 'script':
-            from src.game.ScriptManual import ScriptManual
-            ScriptManual.execute(arg[1], self.host, self.var)
-        elif arg[0] == 'load':
+            Script.execute_code(arg[1])
+        elif arg[0] == 'new':
             building = Data.process_raw(Data.read(arg[2] + '.map'))
             from src.map.Location import Location
             location = Location(arg[1], building, make=True)
             location.save()
+        elif arg[0] == 'load':
+            building = Data.process_raw(Data.read(arg[1] + '.map'))
+            host = Script.var['host']
+            Global.land.load(building, offset=[arg[2], arg[3]], make=True)
+            Script.var['host'] = host
+        elif arg[0] == 'loadhere':
+            host = Script.var['host']
+            building = Data.process_raw(Data.read(arg[1] + '.map'))
+            from src.map.Location import Location
+            location = Location('', building, make=True)
+            location.rotate(self.get_rand().rand_int(0, 3))
+            data = Data.process_raw(location.__str__())
+            Script.var['host'] = host
+            offset = [Script.var['host'].pos.x, Script.var['host'].pos.y]
+            Script.var['host'].location.load(data, offset=offset, make=True)
         elif arg[0] == 'merge':
+            host = Script.var['host']
             building = Data.process_raw(Data.read(arg[2] + '.map'))
             from src.map.Location import Location
             location = Location(arg[1], building, make=True)
             building = Data.process_raw(Data.read(arg[3] + '.map'))
             location.load(building, offset=[arg[4], arg[5]], make=True)
             location.save()
+            Script.var['host'] = host
         elif arg[0] == 'generate':
             from src.map.Generator import Generator
             generator = Generator.get(arg[2])(arg[3], arg[4])
             location = generator.run(arg[1])
             location.save()
+        elif arg[0] == 'template':
+            from src.map.Generator import Generator
+            location = Generator.get_template(arg[1], arg[2], self.get_rand().rand_rand())
+            location.save()
         elif arg[0] == 'unwield':
             Global.player.character.weapon.remove()
         elif arg[0] == 'delay':
             from src.entity.unit.Unit import Unit
-            if isinstance(self.host, Unit):
-                self.host.action.delay = arg[1]
+            if isinstance(Script.var['host'], Unit):
+                Script.var['host'].action.delay = arg[1]
         elif arg[0] == 'act':
             from src.entity.unit.Unit import Unit
-            if isinstance(self.host, Unit) and self.host.action.delay == 0:
+            if isinstance(Script.var['host'], Unit) and Script.var['host'].action.delay == 0:
                 if arg[1] == 'act':
-                    self.host.action.act(arg[2], arg[3])
+                    Script.var['host'].action.act(arg[2], arg[3])
                 else:
-                    self.host.action.set(arg[1])
+                    Script.var['host'].action.set(arg[1])
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])

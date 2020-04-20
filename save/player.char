@@ -1,2 +1,2 @@
-[map:worldmap,time:17,frame:2]
-#9,[17,20],Human,Humanoid,human,[p>:100,p:50,mat:flesh,seed:9618,hunger:96,task:Attack,money:10],[],[gen,time,eat,aura,memorize,side step,dexterity,assassinate],[#7b,[17,20],Tuxedo,Armor,wear_2x1,[w:10],[],0],0,0,[]
+[map:instance,time:15,frame:2,quest:1]
+#4a,[10,10],Human,Humanoid,human,[P:100,p:42,mat:flesh,hunger:46,money:5,def:0,deaf:1,fly:1,spd:4],[[Concentration,-1,0],[Levitation,-1,[1,2,3,5,7]]],[gen,test,side step],0,0,0,[]

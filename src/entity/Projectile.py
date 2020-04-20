@@ -22,7 +22,7 @@ class Projectile(Prop):
 
     def add(self):
         self.removed = 0
-        self.relocate(self.pos.x, self.pos.y, force=1)
+        self.relocate(to=self.pos, force=True)
         from src.game.Turn import Turn
         Turn.fast_queue.append(self.turn)
 

@@ -1,9 +1,8 @@
-from src.entity.Particle import Particle
 from src.entity.Prop import Prop
 from src.entity.unit.Unit import Unit
 from src.entity.unit.item.Item import Item
-from src.entity.unit.item.Weapon import Weapon
 from src.game import Global
+from src.game.Script import Script
 from src.map.Tile import Tile
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
@@ -12,8 +11,7 @@ from src.tools.Dialog import Dialog
 class Scripter(Prop):
     def __init__(self, location):
         super().__init__(location)
-        from src.game.Script import Script
-        self.script = Script(self)
+        self.script = Script()
 
     def __str__(self):
         return super().__str__() + ',[' + self.script.__str__() + ']'
@@ -25,16 +23,18 @@ class Scripter(Prop):
 
     def add(self):
         super().add()
+        Script.var['host'] = self
         self.script.run()
 
     def set_row(self, row):
         self.form.z = 800
 
     def trigger(self):
+        Script.var['host'] = self
         self.script.run_script()
 
     def run_make(self):
-        from src.game.Script import Script
+        Script.var['host'] = self
         if self.script.period == Script.MAKE:
             self.script.run_script()
 
@@ -47,15 +47,17 @@ class Force(Prop):
 
     def add(self):
         self.removed = 0
-        self.relocate(self.pos.x, self.pos.y, force=1)
+        self.relocate(to=self.pos, force=True)
         return self
 
     def remove(self):
         self.removed = 1
         del self
 
-    def relocate(self, x, y, force=0):
-        self.pos = self.location.get_tile(x, y, limit=True)
+    def relocate(self, to=None, x=None, y=None, force=0):
+        if to is None:
+            to = self.location.get_tile(x, y, limit=True)
+        self.pos = to
         self.update_vec()
 
 
@@ -64,12 +66,14 @@ class Door(Prop):
         super().__init__(location)
         self.form1 = None
         self.form2 = None
+        self.orig_obstruct_type = None
 
     def load(self, arg):
         index = super().load(arg)
         self.form1 = self.form
         self.form2 = Data.get_form(self.tags.get('morph'))
         self.form2.show(True)
+        self.orig_obstruct_type = self.obstruct_type
         return index
 
     def set_row(self, row):
@@ -88,12 +92,12 @@ class Door(Prop):
                     self.form1.show(False)
                     self.obstruct_type = Tile.COLLIDE_ITEM
             else:
-                if self.obstruct_type != Tile.COLLIDE_FOG:
+                if self.obstruct_type != self.orig_obstruct_type:
                     self.form1.show(True)
                     self.form1.bound(True)
                     self.form = self.form1
                     self.form2.show(False)
-                    self.obstruct_type = Tile.COLLIDE_FOG
+                    self.obstruct_type = self.orig_obstruct_type
 
 
 class Credit(Item):
@@ -117,7 +121,7 @@ class Credit(Item):
 
     def use(self):
         self.host.action.act('grab', 8)
-        self.host.tags.increment(self.var, self.amount, add=True)
+        self.host.tags.increment(self.var, self.amount)
         self.die()
 
 
@@ -138,27 +142,16 @@ class Food(Item):
 
     def get_value(self):
         expire = self.get_expiration()
-        points = expire + self.nutrition[1]
-        if points > 8:
-            return 3
-        elif points > 3:
-            return 2
-        return 1
+        if expire <= 0:
+            return 0
+        return super().get_value()
 
     def describe(self):
         r = super().describe()
-        r += '\n' + Dialog.get('nutrition') + ': '
-        if self.nutrition[1] >= 15:
-            r += Dialog.get('great')
-        elif self.nutrition[1] >= 10:
-            r += Dialog.get('good')
-        elif self.nutrition[1] >= 5:
-            r += Dialog.get('basic')
-        elif self.nutrition[1] > 0:
-            r += Dialog.get('poor')
+        r += '\n' + Dialog.get('nutrition') + ': ' + str(self.nutrition[1]) + '%'
         expire = self.get_expiration()
         if expire:
-            r += '\n' + Dialog.get('food_expire', [Dialog.day(expire)])
+            r += '\n' + Dialog.get('food_expire', [Dialog.hours(expire)])
         else:
             r += '\n' + Dialog.get('food_expired')
         return r
@@ -170,7 +163,7 @@ class Food(Item):
     def use(self):
         if self.get_expiration():
             hunger = self.host.tags.get('hunger', 0)
-            if hunger > self.nutrition[0]:
+            if hunger >= self.nutrition[1]:
                 self.host.action.act('eat', 8)
                 self.host.action.on_finish = self.eat
             else:
@@ -216,7 +209,7 @@ class Corpse(Prop):
     def set(self, form):
         self.has_host = True
         self.form = form
-        dead = 'dead' + str(Global.r.rand_int(1, 2))
+        dead = 'dead'
         self.form.randomize_clip(dead, 8)
         self.form.set_state(dead)
         self.form.set_state = self.invalid
@@ -281,42 +274,22 @@ class Manual(Item):
             skill = self.skill.lower()
             if skill not in self.host.skills:
                 if Global.player.is_bright() and Global.player.sleep(1):
-                    Global.main.monologue.set(Dialog.get('monologue_learn', [self.skill]))
+                    Global.main.monologue.set(Dialog.get('learn', [self.skill]))
                     self.host.skills.append(skill)
                     self.die()
             elif self.host == Global.player.character:
-                Global.main.monologue.set(Dialog.get('!monologue_learn', [self.skill]))
+                Global.main.monologue.set(Dialog.get('!learn', [self.skill]))
 
 
-class Pickaxe(Weapon):
+class Pickaxe(Item):
     def use(self):
         self.host.action.attack()
         self.host.action.on_finish = self.destroy
 
     def destroy(self):
-        tile = self.host.get_front_tile(self.host.direction, mag=1)
+        tile = self.host.pos.get_cardinal(self.host.direction, 1)
         if tile and tile.terrain != '.':
             self.location.sound.register(self.pos, 16, file='critical')
-            if tile.things:
-                for thing in tile.things:
-                    if thing.name == 'Break':
-                        thing.remove()
-                        tile.set_terrain('.')
-                        return
-            else:
-                from src.entity.Stock import Stock
-                self.host.action.act('rest', 8)
-                Stock.make('Break', tile)
-
-
-class Bottle(Weapon):
-    def use(self):
-        self.host.action.attack()
-        self.host.action.on_finish = self.fill_water
-
-    def fill_water(self):
-        tile = self.host.get_front_tile(self.host.direction, mag=1)
-        if tile:
             if tile.things:
                 for thing in tile.things:
                     if thing.name == 'Break':
@@ -345,9 +318,9 @@ class Mine(Prop):
     def turn(self):
         super().turn()
         for thing in self.pos.things:
-            if thing != self and not isinstance(thing, Particle) and thing.tags.get('fly') != 1:
+            if thing != self and thing.tags.get('fly') != 1:
                 from src.entity.unit.item.Spell import Spell
-                Spell.perform(thing, self.spell)
+                Spell.perform(self.pos, self.spell)
                 self.remove()
                 return
 
@@ -370,12 +343,33 @@ class Phantom(Unit):
 
     def set_host(self, host):
         self.host = host
-        self.form.organs[0].set(self.host.form)
-        self.tags.set('mat', self.host.tags.get('mat'))
-        if isinstance(self.host, Weapon):
-            self.strength = self.host.damage
-        self.tags.set('p', self.host.tags.get('p'))
-        self.host.loot = []
+        self.tags.sync('spd', self.host.tags.get('spd'))
+        self.tags.sync('dmg', self.host.tags.get('dmg'))
+        self.tags.sync('def', self.host.tags.get('def'))
+        self.tags.sync('DEF', self.host.tags.get('DEF'))
+        self.tags.set('p', self.host.tags.get('p', 1))
+        self.tags.set('P', self.host.tags.get('P', 1))
+        loot = self.host.tags.remove('loot')
+        if loot:
+            self.tags.set('loot', loot)
+
+    def set_row(self, row):
+        if self.host:
+            self.host.form.z = row * 20 + 100
+
+    def update(self):
+        bound_x, bound_y = super().update()
+        if self.host:
+            x = bound_x + self.form.organs[0].lower_joint.x
+            y = bound_y - self.form.organs[0].lower_joint.y
+            self.host.form.rotation = self.form.organs[0].lower_joint.get_atan()
+            self.host.form.place(x, y)
+
+    def die(self):
+        super().die()
+        if self.host:
+            self.host.relqocate(self.pos.x, self.pos.y, force=True)
+            self.host.add()
 
 
 class Ghost(Unit):
@@ -387,8 +381,8 @@ class Ghost(Unit):
     def use(self):
         pass
 
-    def move_toward(self, direction, distance=1, flag=None):
-        pos = super().move_toward(direction, distance, flag)
+    def move_line(self, to, flag=None):
+        moved = super().move_line(to, flag)
         if self == Global.player.character:
             for i in self.pos.things:
                 if i != self and isinstance(i, Unit) and i.pilot.priority > 3:
@@ -396,4 +390,4 @@ class Ghost(Unit):
                     Global.player.set_player(i)
                     i.center_camera()
                     break
-        return pos
+        return moved

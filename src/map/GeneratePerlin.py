@@ -42,7 +42,7 @@ class GeneratePerlin(Generator):
         for i in range(height):
             for j in range(width):
                 val = math.sqrt(pow((i - center_y) / center_y, 2) + pow((j - center_x) / center_x, 2))
-                val *= .25
+                val *= .2
                 base[i][j] /= min(1.0, max(.1, val))
         return base
 
@@ -87,7 +87,9 @@ class GeneratePerlin(Generator):
 class GenerateIsland(GeneratePerlin):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
-        self.background = {'!': '*', 'Cove': '.', 'Port Town': '.'}
+        self.background = {'!': '*', 'Cove': '.', 'Beach Residence': '.'}
+        self.layers = 9
+        self.town_candidates = []
 
     def process(self):
         r = self.make_perlin(self.get_width(), self.get_height())
@@ -101,22 +103,34 @@ class GenerateIsland(GeneratePerlin):
                 elif value > .795:
                     self.str_map[y][x] = 'Cave'
                 elif value > .79:
-                    self.str_map[y][x] = 'Mining Town'
+                    self.str_map[y][x] = 'Hill Residence'
+                    self.town_candidates.append([x, y])
                 elif value > .7:
                     self.str_map[y][x] = 'Woods'
                 elif value > .56:
                     self.str_map[y][x] = '*'
+                elif value > .558:
+                    self.str_map[y][x] = 'Residence'
                 elif value > .556:
-                    self.str_map[y][x] = 'Town'
-                elif value > .508:
+                    self.str_map[y][x] = 'Village'
+                    self.town_candidates.append([x, y])
+                elif value > .507:
                     self.str_map[y][x] = '.'
-                elif value > .504:
+                elif value > .505:
+                    self.str_map[y][x] = 'Village'
+                    self.town_candidates.append([x, y])
+                elif value > .503:
                     if self.has_neighbor(x, y, lambda p: p == '~'):
-                        self.str_map[y][x] = 'Port Town'
+                        self.str_map[y][x] = 'Beach Residence'
                 elif value > .5:
                     self.str_map[y][x] = 'Cove'
-                else:
+                elif value > .3:
                     self.str_map[y][x] = '~'
+                else:
+                    self.str_map[y][x] = '='
+        for i in range(3):
+            coords = self.random.rand_list(self.town_candidates)
+            self.str_map[coords[1]][coords[0]] = 'Town'
 
 
 class GenerateWoods(GeneratePerlin):
@@ -131,9 +145,11 @@ class GenerateWoods(GeneratePerlin):
                 elif value > .65:
                     self.str_map[y][x] = 'Weed'
                 elif value > .64:
-                    self.str_map[y][x] = 'Dandelion'
+                    self.str_map[y][x] = 'Plant'
                 elif value > .6:
                     self.str_map[y][x] = 'Bush'
+                elif value > .59:
+                    self.str_map[y][x] = 'Killer Ivy'
                 elif value > .4:
                     self.str_map[y][x] = '*'
                 else:
@@ -145,9 +161,9 @@ class GenerateWoods(GeneratePerlin):
         while location.get_tile(rx, ry).terrain != '.':
             rx += self.random.rand_int(-1, 1)
             ry += self.random.rand_int(-1, 1)
-        location.tags.set('enterx', rx, add=True)
-        location.tags.set('entery', ry, add=True)
-        return location
+        location.tags.set('enterx', rx)
+        location.tags.set('entery', ry)
+        return super().post_process(location)
 
 
 class GenerateField(GeneratePerlin):
@@ -160,14 +176,18 @@ class GenerateField(GeneratePerlin):
         r = self.normalize(r)
         for y in range(self.get_height()):
             for x in range(self.get_width()):
-                value = r[y][x] + self.random.rand_float() * .2
+                value = r[y][x]
                 if value > .95:
+                    self.str_map[y][x] = 'Tree'
+                elif value > .85:
                     self.str_map[y][x] = 'Bush'
-                elif value > .9:
+                elif value > .8:
                     self.str_map[y][x] = 'Weed'
+                elif value > .78:
+                    self.str_map[y][x] = 'Plant'
                 elif value > .55:
                     self.str_map[y][x] = '*'
-                elif value > .53:
+                elif value > .54:
                     self.str_map[y][x] = 'Rock'
                 else:
                     self.str_map[y][x] = '.'
@@ -178,9 +198,9 @@ class GenerateField(GeneratePerlin):
         while location.get_tile(rx, ry).terrain != '.':
             rx += self.random.rand_int(-1, 1)
             ry += self.random.rand_int(-1, 1)
-        location.tags.set('enterx', rx, add=True)
-        location.tags.set('entery', ry, add=True)
-        return location
+        location.tags.set('enterx', rx)
+        location.tags.set('entery', ry)
+        return super().post_process(location)
 
 
 class GenerateCove(GeneratePerlin):
@@ -210,8 +230,8 @@ class GenerateCove(GeneratePerlin):
         self.fill_rect('~', rx - 2, 0, rx + 2, int(self.get_height() / 2))
 
     def post_process(self, location):
-        location.rotate(self.random.rand_int(0, 3))
+        self.disorient(location, self.random)
         entrance = self.find_entrance(location)
-        location.tags.set('enterx', entrance.x, add=True)
-        location.tags.set('entery', entrance.y, add=True)
-        return location
+        location.tags.set('enterx', entrance.x)
+        location.tags.set('entery', entrance.y)
+        return super().post_process(location)

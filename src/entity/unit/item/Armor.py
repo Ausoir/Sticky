@@ -3,20 +3,6 @@ from src.tools.Data import Data
 
 
 class Armor(Equipment):
-    def __init__(self, location):
-        super().__init__(location)
-        self.armor = 0
-
-    def __str__(self):
-        r = super().__str__()
-        r += ',' + str(self.armor)
-        return r
-
-    def load(self, p):
-        index = super().load(p)
-        self.armor = p[index]
-        return index + 1
-
     def set_form(self, arg):
         self.form_name = arg
         self.form = Data.get_form(arg, form='Armor')
@@ -27,28 +13,15 @@ class Armor(Equipment):
         super().die()
 
     def get_value(self):
-        return super().get_value() + self.armor + self.get_weight()
-
-    def describe(self):
-        r = super().describe()
-        r += '\nCan hold items up to ' + str(self.get_weight()) + 'kg'
-        r += '\nDefense: ' + str(self.armor)
-        return r
-
-    def modify(self, arg):
-        if super().modify(arg):
-            pass
-        elif arg == 'reinforce':
-            self.armor += 1
-        else:
-            return False
-        return True
+        return super().get_value() + self.tags.get('def', 0) + self.tags.get('space', 0)
 
     def wear(self, start=False):
-        self.host.unarmor()
-        self.host.armor = self
-        super().wear(start)
-        self.host.form.set_model(self.form_name)
+        if self.host.armor:
+            self.host.unarmor()
+        else:
+            self.host.armor = self
+            super().wear(start)
+            self.host.form.set_model(self.form_name)
 
     def unwear(self):
         from src.tools.Data import Data

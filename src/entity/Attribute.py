@@ -21,27 +21,12 @@ class Attribute(Tag):
         if 'pivx' in self.attributes:
             self.host.form.image.anchor_x = self.attributes['pivx']
         if 'pivy' in self.attributes:
-            self.host.form.image.anchor_y = self.host.form.image.height - self.attributes['pivy']
+            self.host.form.image.anchor_y = int(self.host.form.height / 2) + self.attributes['pivy']
         if 'seed' in self.attributes:
             if self.attributes['seed'] == -1:
                 from src.game import Global
                 self.attributes['seed'] = Global.r.rand_int(1, 9999)
 
-    def is_combustible(self):
-        return self.get('p') and self.get('mat') in ['wood', 'flesh', 'fuel']
-
     def get_carry_over(self):
         permanent = ['money', 'seed', 'full']
         return (lambda keys: {x: self.attributes[x] for x in keys})(permanent)
-
-    def get_material_defense(self):
-        material = self.get('mat')
-        if material == 'solid':
-            return 1
-        elif material == 'wood':
-            return 3
-        elif material == 'metal':
-            return 7
-        elif material == 'unnatural':
-            return 20
-        return 0

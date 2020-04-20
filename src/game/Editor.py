@@ -31,9 +31,10 @@ class Editor:
 
     def update(self):
         self.control.turn()
-        Camera.target.move(self.moving[0], self.moving[1], 1, flag=[])
+        Camera.target.relocate(to=Camera.target.pos.get_neighbor(self.moving[0], self.moving[1], limit=True))
         Global.map_view.update_region()
         Global.map_view.update_fog()
+        Global.map_view.update()
         self.moving = [0, 0]
 
     def remove(self):
@@ -102,7 +103,7 @@ class Editor:
                 self.tool.cancel()
                 self.tool.selection = objs[0]
         elif action == 'player':
-            Global.player.character.relocate(m[0], m[1])
+            Global.player.character.relocate(x=m[0], y=m[1])
         elif action == 'tiles':
             self.tool.cancel()
             self.tool = ToolTerrain()
@@ -165,106 +166,65 @@ class Editor:
             if isinstance(self.tool, ToolObject):
                 if self.tool.selection.name == 'Scripter':
                     script = Data.process_raw(params[1])
-                    self.tool.selection.condition = script[0]
-                    self.tool.selection.mechanism = script[1]
+                    self.tool.selection.load(script)
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
                 self.display_text = '[' + params[1] + '] Applied'
-        elif params[0] == 'setc':
-            from src.entity.Other import Scripter
+        elif params[0] == 'tag':
             if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Scripter):
-                    self.tool.selection.condition = Data.process_raw(arg1)
-                    self.display_text = self.tool.selection.__str__()
-                    self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = 'Applied condition'
-        elif params[0] == 'setm':
-            from src.entity.Other import Scripter
-            if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Scripter):
-                    self.tool.selection.mechanism = Data.process_raw(arg1)
-                    self.display_text = self.tool.selection.__str__()
-                    self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = 'Applied mechanics'
-        elif params[0] == 'setc@':
-            from src.entity.Other import Scripter
-            if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Scripter):
-                    self.tool.selection.condition[int(params[1])] = Data.process_raw(' '.join(params[2:]))
-                    self.display_text = self.tool.selection.__str__()
-                    self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = '[' + params[2] + '] Applied'
-        elif params[0] == 'setm@':
-            from src.entity.Other import Scripter
-            if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Scripter):
-                    self.tool.selection.mechanism[int(params[1])] = Data.process_raw(' '.join(params[2:]))
-                    self.display_text = self.tool.selection.__str__()
-                    self.tool.last_data = Data.process_raw(self.display_text)
-            self.display_text = '[' + params[2] + '] Applied'
-        elif params[0] == 'addc':
-            from src.entity.Other import Scripter
-            if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Scripter):
-                    self.tool.selection.condition.append(Data.process_raw(arg1))
-                    self.display_text = self.tool.selection.__str__()
-                    self.tool.last_data = Data.process_raw(self.display_text)
-        elif params[0] == 'addm':
-            from src.entity.Other import Scripter
-            if isinstance(self.tool, ToolObject):
-                if isinstance(self.tool.selection, Scripter):
-                    self.tool.selection.mechanism.append(Data.process_raw(arg1))
-                    self.display_text = self.tool.selection.__str__()
-                    self.tool.last_data = Data.process_raw(self.display_text)
-        elif params[0] == 'loot':
-            if isinstance(self.tool, ToolObject):
-                self.tool.selection.loot = arg1.split(',')
+                self.tool.selection.tags.set(params[1], params[2])
         elif params[0] == 'image':
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.set_form(arg1)
         elif params[0] == 'make':
             from src.map.Location import Location
-            from src.entity.Other import Scripter
             r = Location(params[2], list(Data.process_raw(Data.read('data/map/' + params[1] + '.map'))))
             r.save()
             Global.player.switch()
             Global.player.travel(params[2])
             Global.player.switch()
-        elif params[0] == 'create':
-            self.input('props')
-            self.tool.select('Force', data=Data.parse('#-1,[0,0],' + arg1))
-        elif params[0] == 'background':
-            Global.land.header[2] = arg1
         elif params[0] == 'camera':
             pos = params[1].split(',')
-            Camera.target.relocate(int(pos[0]), int(pos[1]), force=1)
-        elif params[0] == 'merchant':
-            r = Stock.make('Merchant', Global.land.get_tile(self.prev_mouse[0], self.prev_mouse[1]))
-            r.var = params[1].split(',')
-        elif params[0] == 'moveall':
-            pos = params[1].split(',')
-            Global.land.tiles = {}
-            Global.land.record.clear()
-            map_data = list(Data.process_raw(Data.read('data/save/' + Global.land.name + '.map')))
-            Global.land.load(map_data, offset=(int(pos[0]), int(pos[1])))
-        elif params[0] == 'moveobj':
-            pos = params[1].split(',')
-            for i in Global.land.record:
-                i.move(int(pos[0]), int(pos[1]), distance=9999, flag=[])
+            Camera.target.relocate(x=int(pos[0]), y=int(pos[1]), force=True)
+        elif params[0] == 'move':
+            map_data = list(Data.process_raw(Global.land.__str__()))
+            Global.land.load(map_data, make=False, offset=(int(params[1]), int(params[2])))
+        elif params[0] == 'fill':
+            for y in range(Global.land.get_height()):
+                for x in range(Global.land.get_width()):
+                    Global.land.get_tile(x, y).set_terrain(params[1])
+            Global.land.process_terrain()
+        elif params[0] == 'resize':
+            Global.land.resize(int(params[1]), int(params[2]))
         elif params[0] == 'new':
             from src.map.Location import Location
-            new = Location(params[1], Data.process_raw('0,[0,0,0,1],field\n\n'))
+            tiles = ''
+            for y in range(int(params[2])):
+                for x in range(int(params[3])):
+                    tiles += '.'
+                tiles += '%'
+            new = Location(params[1], Data.process_raw('[]\n' + tiles[:-1] + '\n'))
+            Global.land = new
             new.save()
             Global.player.switch()
             Global.player.travel(params[1])
             Global.player.switch()
         elif params[0] == 'load':
-            maps = Data.get_files('save', lambda x: x.endswith('.map'))
+            maps = Data.get_files('save', lambda l: l.endswith('.map'))
             if arg1 + '.map' in maps:
                 Global.player.switch()
                 Global.player.travel(arg1)
                 Global.player.switch()
+        elif params[0] == 'loadraw':
+            if Data.is_file('data/map/' + params[1] + '.map'):
+                Global.player.switch()
+                Global.player.travel('../data/map/' + params[1])
+                Global.player.switch()
         elif params[0] == 'script':
+            Global.player.switch()
+            from src.game.Script import Script
+            Script.execute_code(params[1])
+        elif params[0] == 'scriptraw':
             Global.player.switch()
             from src.game.Script import Script
             Script.execute_string(Data.process_raw('1,[],[' + params[1] + '],[]'))
@@ -303,19 +263,26 @@ class ToolTerrain:
         self.text = Tile.DICTIONARY[self.terrain][0]
 
     def input(self, button, tile):
-        if button == 2:
+        if button == 4:
+            for y in range(-2, 3):
+                for x in range(-2, 3):
+                    neighbor = tile.get_neighbor(x, y)
+                    if neighbor:
+                        self.input(1, neighbor)
+        elif button == 2:
             self.tile.set_terrain(self.prev_tile.terrain)
+            self.tile.update_update_shader()
         elif button == 1:
             if tile != self.tile:
                 self.tile = tile
                 self.prev_tile = self.tile
                 self.tile.set_terrain(self.terrain)
-                from src.tools import Direction
-                for i in Direction.coord.values():
+                for i in Global.cardinal_coord:
                     neighbor = self.tile.get_neighbor(i[0], i[1])
                     if neighbor:
                         neighbor.connect()
                 self.tile.connect()
+                self.tile.update_update_shader()
 
 
 class ToolObject:
@@ -347,14 +314,14 @@ class ToolObject:
         self.selection.remove()
         self.selection = Stock.get(Global.land, self.text, data=data)
         if self.selection:
-            self.selection.relocate(Global.player.control.cursor_tile[0], Global.player.control.cursor_tile[1])
+            self.selection.relocate(x=Global.player.control.cursor_tile[0], y=Global.player.control.cursor_tile[1])
             self.selection.add()
 
     def input(self, button, tile):
         if not button:
-            self.selection.relocate(tile.x, tile.y)
+            self.selection.relocate(to=tile)
         elif button == 1:
-            self.selection.relocate(tile.x, tile.y, force=1)
+            self.selection.relocate(to=tile, force=1)
             preexisting = 0
             for i in tile.things:
                 if i != self.selection and i.name == self.text and (not self.last_data or i.id == self.last_data[0]):
@@ -365,7 +332,7 @@ class ToolObject:
                 if not self.selection:
                     self.selection = Stock.get(Global.land, 'Crate')
                 self.selection.add()
-                self.selection.relocate(tile.x, tile.y, force=1)
+                self.selection.relocate(to=tile, force=1)
         else:
             if self.last != tile:
                 if tile.things:

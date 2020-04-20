@@ -23,7 +23,7 @@ class Dialog:
                 else:
                     r += c
             return r
-        return topic.title()
+        return topic
 
     @staticmethod
     def strlist(arg):
@@ -76,30 +76,28 @@ class Dialog:
         meridian = 'am'
         if hour + 1 >= 12:
             meridian = 'pm'
-        return Dialog.get('day') + ' ' + day + ' / ' + hour_m + ' ' + meridian
+        return Dialog.get('Day') + ' ' + day + ' / ' + hour_m + ' ' + meridian
 
     @staticmethod
     def hours(time):
-        if time == 1:
+        if time == 0:
+            return Dialog.get('Now')
+        elif time == 1:
             return '1 ' + Dialog.get('hour')
         else:
-            return str(time) + ' ' + Dialog.get('hours')
-
-    @staticmethod
-    def day(date):
-        if date == 0:
-            r = Dialog.get('anytime')
-        elif date == 1:
-            r = Dialog.get('half day')
-        elif date == 2:
-            r = Dialog.get('one day')
-        else:
-            word = Dialog.numeral(int(date / 2))
-            if date % 2 == 1:
-                r = Dialog.get('and half days', [word])
-            else:
-                r = Dialog.get('days', [word])
-        return r
+            r = ''
+            days = int(time / 24)
+            if days > 0:
+                if days == 1:
+                    r = str(days) + ' ' + Dialog.get('day')
+                else:
+                    r = str(days) + ' ' + Dialog.get('days')
+            hours = time % 24
+            if hours > 0:
+                if days > 0:
+                    r += ' ' + Dialog.get('and') + ' '
+                r += str(hours) + ' ' + Dialog.get('hours')
+            return r
 
     @staticmethod
     def numeral(number):
@@ -139,23 +137,26 @@ class Dialog:
         return r
 
     @staticmethod
+    def sign(measure):
+        if measure >= 0:
+            return '+' + str(measure)
+        else:
+            return '-' + str(measure)
+
+    @staticmethod
     def weight(measure):
-        return str(measure) + Dialog.get('weigh')
+        return str(measure) + Dialog.get('kg')
+
+    @staticmethod
+    def armor(measure):
+        return Dialog.get('Armor') + ': ' + str(measure)
 
     @staticmethod
     def durability(hp, max_hp):
-        if max_hp:
-            return Dialog.get('durability') + ': ' + str(hp) + '/' + str(max_hp)
+        if hp:
+            if max_hp:
+                return Dialog.get('Durability') + ': ' + str(hp) + '/' + str(max_hp)
+            else:
+                return Dialog.get('Durability') + ': ' + str(hp) + ' (' + Dialog.get('!repair') + ')'
         else:
-            return Dialog.get('durability') + ': ' + str(hp)
-
-    @staticmethod
-    def material(mat):
-        r = ''
-        if mat == 'flesh':
-            r = 'This object is organic.'
-        elif mat == 'metal':
-            r = 'This object is metallic.'
-        elif mat == 'wood':
-            r = 'This object is wooden.'
-        return r
+            return Dialog.get('!durability')

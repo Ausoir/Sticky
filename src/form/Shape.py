@@ -26,6 +26,7 @@ class Shape:
                                                           ('v3i', self.get_vertices()),
                                                           ('c4B', self.color)
                                                           )
+            return True
 
     def remove_batch(self):
         if self.submission:

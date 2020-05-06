@@ -263,3 +263,7 @@
 4/05 Tile movement no longer instant (1), Mapview update based on camera (3), removed Direction (1)
 4/12 Map cells (1), Seamless cell transition (1)
 ---- PUSH
+4/27 Cell transition objects (1), Oversize objects at top of screen leaking fix (1), removed Object.id (1)
+5/01 World dirty cells (1)
+5/04 Roof system (1), Cell lighting transition (1)
+---- PUSH

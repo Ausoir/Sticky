@@ -12,8 +12,10 @@ Manual,Manual,g_13x4,[p:4,$:24],[],0
 Package,Item,g_14x4,[p:4,#:questitem],[],0
 Tooth,Item,g_15x4,[p:1,$:2],[]
 Jelly,Item,g_16x4,[p:1,$:1],[]
-Chair,Item,g_18x4,[p:1,def:3,dmg:2,w:4,loot:Plank],[]
-Box,Item,g_19x4,[p:1,def:3,ob:6,w:3,loot:Plank],[]
+Bucket,Item,g_18x4,[p:3,w:2,loot:Plank],[]
+Box,Item,g_19x4,[p:1,def:1,ob:6,w:3,loot:Plank],[]
+Stool,Item,g_22x4,[p:4,w:2,loot:Plank],[]
+Seat,Item,g_23x4,[p:4,w:2,loot:Plank],[]
 Salt,Item,half_8x4,[p:1],[],[]
 Ink,Item,half_1x4,[p:1],[]
 Statue,Item,half_2x4,[p:1,def:7],[]

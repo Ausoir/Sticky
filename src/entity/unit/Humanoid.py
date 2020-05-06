@@ -55,8 +55,6 @@ class Humanoid(Unit):
             weapon.add()
         index += 1
         self.inventory.load(p[index])
-        for i in self.get_possessions():
-            i.id = self.location.get_id()
         return index + 1
 
     def update_tags(self):

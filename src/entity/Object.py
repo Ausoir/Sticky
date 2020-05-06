@@ -18,11 +18,10 @@ class Object(Image):
         self.removed = 1
 
     def __str__(self):
-        r = Dialog.space(self.pos)
-        return super().__str__() + ',' + r + ',' + self.name + ',' + self.class_name + ',' + self.form_name
+        return Dialog.space(self.pos) + ',' + self.name + ',' + self.class_name + ',' + self.form_name
 
     def load(self, p):
-        index = super().load(p)
+        index = 0
         if isinstance(p[index][0], list):
             p[index] = p[index][0]
         self.pos = self.location.get_tile(p[index][0], p[index][1], limit=True)
@@ -57,7 +56,7 @@ class Object(Image):
 
     def update(self):
         diff = self.destination.get_center() - self.vec
-        self.vec += diff * .08
+        self.vec += diff * .1
         super().update()
 
     def show(self, visible):

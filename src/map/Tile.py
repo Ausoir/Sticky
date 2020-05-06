@@ -64,6 +64,7 @@ class Tile(Space):
         self.sub_image = None
         self.things = List()
         self.others = List()
+        self.roof = '0'
         self.light = 0
         self.light_source = 0
         self.joint_neighbors = [0, 0, 0, 0]
@@ -128,7 +129,7 @@ class Tile(Space):
         self.light = max(mag * Turn.rounds, self.light)
         self.light_source = Turn.rounds
         diff = (Camera.target.pos - self).abs()
-        if diff.x > Global.map_view.sight_range and diff.y > Global.map_view.sight_range_y:
+        if diff.x > Global.map_view.sight_range or diff.y > Global.map_view.sight_range_y:
             self.glow_reach(mag * Turn.rounds)
 
     def glow_reach(self, prev_diff):
@@ -137,8 +138,8 @@ class Tile(Space):
             current_diff = diff.sum()
             if current_diff < prev_diff:
                 dist = int(self.light / Turn.rounds) - 1
-                in_x_range = Global.map_view.sight_range < diff.x < Global.map_view.sight_range + dist
-                in_y_range = Global.map_view.sight_range_y < diff.y < Global.map_view.sight_range_y + dist
+                in_x_range = diff.x < Global.map_view.sight_range + dist
+                in_y_range = diff.y < Global.map_view.sight_range_y + dist
                 if in_x_range or in_y_range:
                     for coord in Global.cardinal_coord:
                         tile = self.get_neighbor(coord[0], coord[1])
@@ -149,7 +150,7 @@ class Tile(Space):
     def get_neighbor(self, x, y, limit=False):
         return self.location.get_tile(self.x + x, self.y + y, limit=limit)
 
-    def get_cardinal(self, direction, distance=1, limit=False):
+    def get_cardinal(self, direction, distance=1, limit=True):
         coord = Global.cardinal_coord[direction]
         return self.location.get_tile(self.x + coord[0] * distance, self.y + coord[1] * distance, limit=limit)
 

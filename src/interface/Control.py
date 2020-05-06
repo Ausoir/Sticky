@@ -135,12 +135,6 @@ class Control:
             self.keyrelease.clear()
             self.keypress.clear()
 
-    def quit(self):
-        self.output('quit')
-        Global.land.save()
-        Global.player.save()
-        Global.main.on_close()
-
     def turn(self):
         self.target_mark_frame += 1
         self.target_mark.update()

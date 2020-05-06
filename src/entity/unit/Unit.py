@@ -65,8 +65,8 @@ class Unit(Prop):
         if Camera.target != self:
             self.draw_synchronize()
         diff = self.destination.get_center() - self.vec
-        self.vec.x += diff.x * .08
-        self.vec.y += diff.y * .08
+        self.vec.x += diff.x * .1
+        self.vec.y += diff.y * .1
         bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
         self.form.place(bound_x, bound_y)
         self.healthbar.place(bound_x, Global.DISPLAY[1] - bound_y)

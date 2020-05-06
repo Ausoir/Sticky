@@ -7,7 +7,7 @@ W,up
 S,down
 GRAVE,switch
 _1,tiles
-LS+_1,player
+LS+_1,roofs
 _2,props
 LS+_2,items
 _3,units
@@ -17,6 +17,7 @@ LS+_5,headgears
 _6,spells
 _7,miscellaneous
 M,command
+L,player
 ESCAPE,quit
 DRAG,use
 LMB,use

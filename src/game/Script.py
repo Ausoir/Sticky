@@ -205,7 +205,7 @@ class Script:
         if self.run_preposition(arg):
             pass
         elif arg[0] == 'exit':
-            Global.player.control.quit()
+            Global.main.quit()
         elif arg[0] == 'script':
             Script.execute_code(arg[1])
         elif arg[0] == 'save':

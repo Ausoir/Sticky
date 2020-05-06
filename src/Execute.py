@@ -113,8 +113,7 @@ class Execute(pyglet.window.Window):
         self.setting['fullscreen'] = 1 if self.fullscreen else 0
         result = Dialog.dict(self.setting)
         Data.write('data/setting.txt', result.replace(',', '\n').replace(':', ',')[1:][:-1])
-        import sys
-        sys.exit()
+        self.close()
 
     def loop(self, dt):
         self.dt += dt
@@ -130,6 +129,12 @@ class Execute(pyglet.window.Window):
         Global.draw_group.draw()
         Global.menu.draw()
         Global.player.draw()
+
+    def quit(self):
+        Global.player.control.output('quit')
+        Global.player.world.save()
+        Global.player.save()
+        self.on_close()
 
 
 if __name__ == '__main__':

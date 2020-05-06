@@ -1,9 +1,8 @@
 from src.game import Global
+from src.game.Camera import Camera
 from src.game.Editor import Editor
 from src.game.Script import Script
-from src.game.Traveller import Traveller
 from src.game.Turn import Turn
-from src.map.Location import Location
 from src.map.World import World
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
@@ -24,23 +23,20 @@ class Game:
             data = Data.process_raw(Data.read('data/map/template.char'))
         self.tags = Tag()
         self.tags.load(data[0][0])
-        map_name = self.tags.get('map')
-        map_data = list(Data.process_raw(Data.read('save/' + map_name + '.map')))
-        Global.land = Location(map_name, map_data)
-        # map_data = Data.process_raw(Data.read('save/' + map_name + '.map'))
-        # Global.land = Location(map_name, None)
-        # self.world = World(Global.land, map_data)
-        self.character = None
+        # map_data = list(Data.process_raw(Data.read('save/' + map_name + '.map')))
+        # Global.land = Location(map_name, map_data)
+        self.world = World(self.tags.get('map'), self.tags.get('coord_x'), self.tags.get('coord_y'))
+        Global.land = self.world.location
         from src.entity.Stock import Stock
-        self.set_player(Stock.get(Global.land, data[1][2], data=data[1]).add())
-        # self.character.relocate(to=self.character.pos.get_neighbor(20, 20), force=True)
+        self.character = Stock.get(Global.land, data[1][1], data=data[1]).add()
+        self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
+        self.player = None
+        self.set_player(self.character)
         self.dead = -1
         self.days = self.tags.get('time')
         Turn.frame = self.tags.get('frame')
         self.player_mode = 1
         self.temporary = self.character.sight
-        self.player = None
-        self.daytime = True
         self.initialize_mode()
 
     def travel(self, to_map, x=None, y=None):
@@ -86,7 +82,6 @@ class Game:
             self.character.decay(-time)
             self.days += time
             self.character.location.on_sleep(time)
-        self.daytime = self.is_daytime()
         if blackout:
             Global.map_view.overlay.blackout()
         else:
@@ -97,8 +92,8 @@ class Game:
     def set_darkness(self):
         time = self.days % 24
         Global.map_view.overlay.set_time(time)
-        Global.map_view.set_sight_range(13)
-        Global.map_view.set_view_range(Global.map_view.overlay.SIGHT[time])
+        Global.map_view.set_sight_range(Global.SIGHT)
+        Global.map_view.set_view_range(3)
 
     def input(self, command):
         if self.player:
@@ -112,18 +107,11 @@ class Game:
             self.temporary = self.character.sight
             self.character.sight = []
         else:
-            if self.character.location.name == 'worldmap':
-                self.player_mode = 2
-                self.control.set_keymap('travel_keymap.txt')
-                self.character.center_camera()
-                self.character.sight = self.temporary
-                self.player = Traveller(self)
-            else:
-                self.player_mode = 1
-                self.control.set_keymap('keymap.txt')
-                self.player = self.character
-                self.character.center_camera()
-                self.character.sight = self.temporary
+            self.player_mode = 1
+            self.control.set_keymap('keymap.txt')
+            self.player = self.character
+            self.character.center_camera()
+            self.character.sight = self.temporary
             self.sleep(0)
         Global.map_view.on_sight_change()
 
@@ -149,23 +137,33 @@ class Game:
             on_load = self.character.location.tags.get('load')
             if on_load:
                 Script.execute_code(on_load)
-        if self.player_mode == 1:
-            old_x = self.character.pos.x
-            old_y = self.character.pos.y
-            if Global.land.push_cell(self.character.pos):
-                from src.game.Camera import Camera
-                self.character.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
-                self.character.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
-                Global.map_view.update_fog()
-                Camera.update()
-                self.character.location.process_terrain()
+        # if self.player_mode == 1:
+        old_x = self.character.pos.x
+        old_y = self.character.pos.y
+        if self.world.recenter(self.character.pos.x, self.character.pos.y):
+            self.character.location.process_terrain()
+            self.character.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
+            self.character.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
+            Global.map_view.update_fog()
+            Camera.update()
+            Global.map_view.update_region()
 
     def save(self):
         self.tags.set('map', self.character.location.name)
         self.tags.set('time', self.days)
         self.tags.set('frame', Turn.frame)
-        r = self.tags.__str__() + '\n'
-        r += self.character.__str__() + '\n'
+        if self.tags.get('map') == 'world':
+            actual = self.world.get_camera_pos(self.character.pos.x, self.character.pos.y)
+            temp = self.character.pos
+            self.character.pos = self.character.pos - actual[1]
+            self.tags.set('coord_x', self.world.cells[actual[0]][0])
+            self.tags.set('coord_y', self.world.cells[actual[0]][1])
+            r = self.tags.__str__() + '\n'
+            r += self.character.__str__() + '\n'
+            self.character.pos = temp
+        else:
+            r = self.tags.__str__() + '\n'
+            r += self.character.__str__() + '\n'
         Data.write('save/player.char', r)
 
     def is_safe(self):
@@ -198,6 +196,9 @@ class Game:
         Global.main.monologue.set(Dialog.get('!pay'))
 
     def is_bright(self):
-        if self.daytime or self.character.pos.light > 1:
+        if self.is_daytime() or self.character.pos.light > 1:
             return True
         Global.main.monologue.set(Dialog.get('!bright'))
+
+    def get_brightness(self):
+        return Global.map_view.overlay.LIGHT[self.days % 24]

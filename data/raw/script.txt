@@ -33,7 +33,7 @@ sk.conjuration,1,[],[[=,1,[Summon Fog Wand,Summon Wall Wand,Summon Bread Wand,Su
 sk.fleshcraft,1,[],[[=,1,[Raise Dead Wand,Barkskin Potion,Passwall Potion,Stone Skin Potion]],[menu,craft]],[]
 sk.shapeshift,1,[],[[=,1,[Slime Form Potion,Dog Form Potion,Human Form Potion,Passwall Potion]],[menu,craft]],[]
 sk.divination,1,[],[[=,1,[Scry Potion,Vision Potion,Restoration Wand,Evacuate Potion]],[menu,craft]],[]
-sk.time,1,[[v,1,time],[greater,16]],[[time,1]],[[time,17]]
+sk.time,1,[],[[v,1,time],[v,1,+,*1,1],[time,*1]],[]
 sk.gen,1,[],[[generate,worldmap,island,80,80],[enter,worldmap,16,16]],[]
 sk.eat,1,[],[[=,1,*player],[v,1,settag,hunger,0]],[]
 sk.test,1,[],[[test]],[]

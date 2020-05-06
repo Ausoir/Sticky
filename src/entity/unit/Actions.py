@@ -128,14 +128,11 @@ class Actions:
             speed += front.get_speed()
         if speed > -10:
             if fly:
-                self.make('fly', turn=max(0, 3 - speed))
+                self.make('fly', turn=max(0, 2 - speed))
             else:
-                self.make('walk', turn=max(0, 3 - speed))
+                self.make('walk', turn=max(0, 1 - speed))
             self.host.destination = self.host.pos.get_cardinal(self.host.direction, 1)
             self.on_finish = lambda: self.host.move_line(self.host.pos.get_cardinal(self.host.direction))
-            if not fly:
-                radius = 2 if speed < 1 and not self.host.get_skill('silent moving') else 0
-                self.host.location.sound.register(self.host.pos, radius, file='step')
             self.host.states.trigger(['act', 'move'])
         else:
             self.idle()

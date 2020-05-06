@@ -16,7 +16,6 @@ class Location:
         self.name = name
         self.tags = Tag()
         self.tags.set('name', name)
-        self.identity = 0
         self.update_frame = 0
         self.field = Field(self)
         self.sound = Sound(self)
@@ -73,8 +72,6 @@ class Location:
         objects = []
         for i in arg[2]:
             obj = Stock.get(self, i[2], i)
-            if not make:
-                obj.id = self.get_id()
             obj.relocate(to=obj.pos.get_neighbor(offset[0], offset[1]), force=True)
             obj.add()
             objects.append(obj)
@@ -90,10 +87,6 @@ class Location:
             for x in y:
                 x.connect()
                 x.update_shader()
-
-    def get_id(self):
-        self.identity += 1
-        return '#' + str(format(self.identity, 'x'))
 
     def get_width(self):
         return len(self.tiles[0])
@@ -216,118 +209,3 @@ class Location:
     def on_sleep(self, time):
         for i in self.population.get_all():
             i.on_sleep(time)
-
-    def push_horizontal(self, left=0, right=0, offset=0):
-        new = []
-        for y in range(self.get_height()):
-            row = []
-            for x in range(left):
-                row.append(Tile(self, '.', x, y))
-            for x in range(20):
-                row.append(self.tiles[y][x + offset])
-            for x in range(right):
-                row.append(Tile(self, '.', x, y))
-            new.append(row)
-        self.tiles = new
-
-    def push_vertical(self, up=0, down=0, offset=0):
-        new = []
-        for y in range(up):
-            row = []
-            for x in range(self.get_width()):
-                row.append(Tile(self, '.', x, y))
-            new.append(row)
-        for y in range(20):
-            row = []
-            for x in range(self.get_width()):
-                row.append(self.tiles[y + offset][x])
-            new.append(row)
-        for y in range(down):
-            row = []
-            for x in range(self.get_width()):
-                row.append(Tile(self, '.', x, y))
-            new.append(row)
-        self.tiles = new
-
-    def push_cell(self, pos):
-        cell_x = self.tags.get('x', 0)
-        cell_y = self.tags.get('y', 0)
-        if pos.x <= 9:
-            self.push_horizontal(left=20)
-            if self.push_status[1] == -1:
-                topleft = Data.process_raw(Data.read('save/topleft.map'))
-                left = Data.process_raw(Data.read('save/left.map'))
-                self.update_objects()
-                self.load(topleft, make=True)
-                self.load(left, offset=[0, 20], make=True)
-            elif self.push_status[1] == 1:
-                botleft = Data.process_raw(Data.read('save/botleft.map'))
-                left = Data.process_raw(Data.read('save/left.map'))
-                self.update_objects()
-                self.load(left, make=True)
-                self.load(botleft, offset=[0, 20], make=True)
-            else:
-                data1 = Data.process_raw(Data.read('save/left.map'))
-                self.update_objects()
-                self.load(data1, make=True)
-            self.push_status[0] = -1
-        elif pos.y <= 9:
-            self.push_vertical(up=20)
-            if self.push_status[0] == -1:
-                data1 = Data.process_raw(Data.read('save/top.map'))
-                data2 = Data.process_raw(Data.read('save/topleft.map'))
-                self.update_objects()
-                self.load(data1, offset=[20, 0], make=True)
-                self.load(data2, make=True)
-            elif self.push_status[0] == 1:
-                data1 = Data.process_raw(Data.read('save/top.map'))
-                data2 = Data.process_raw(Data.read('save/topright.map'))
-                self.update_objects()
-                self.load(data1, make=True)
-                self.load(data2, offset=[-20, 0], make=True)
-            else:
-                data1 = Data.process_raw(Data.read('save/top.map'))
-                self.update_objects()
-                self.load(data1, make=True)
-            self.push_status[1] = -1
-        elif pos.x >= self.get_width() - 9:
-            self.push_horizontal(right=20, offset=-20)
-            if self.push_status[1] == -1:
-                topright = Data.process_raw(Data.read('save/topright.map'))
-                right = Data.process_raw(Data.read('save/right.map'))
-                self.update_objects()
-                self.load(topright, offset=[20, 0], make=True)
-                self.load(right, offset=[20, 20], make=True)
-            elif self.push_status[1] == 1:
-                botright = Data.process_raw(Data.read('save/botright.map'))
-                right = Data.process_raw(Data.read('save/right.map'))
-                self.update_objects()
-                self.load(botright, offset=[20, 20], make=True)
-                self.load(right, offset=[20, 0], make=True)
-            else:
-                right = Data.process_raw(Data.read('save/right.map'))
-                self.update_objects()
-                self.load(right, offset=[20, 0], make=True)
-            self.push_status[0] = 1
-        elif pos.y >= self.get_height() - 9:
-            self.push_vertical(down=20, offset=-20)
-            if self.push_status[0] == -1:
-                data1 = Data.process_raw(Data.read('save/bot.map'))
-                data2 = Data.process_raw(Data.read('save/botleft.map'))
-                self.update_objects()
-                self.load(data1, offset=[20, 20], make=True)
-                self.load(data2, offset=[0, 20], make=True)
-            elif self.push_status[0] == 1:
-                data1 = Data.process_raw(Data.read('save/bot.map'))
-                data2 = Data.process_raw(Data.read('save/botright.map'))
-                self.update_objects()
-                self.load(data1, offset=[0, 20], make=True)
-                self.load(data2, offset=[-20, 20], make=True)
-            else:
-                data1 = Data.process_raw(Data.read('save/bot.map'))
-                self.update_objects()
-                self.load(data1, offset=[0, 20], make=True)
-            self.push_status[1] = 1
-        else:
-            return False
-        return True

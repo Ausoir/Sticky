@@ -36,10 +36,12 @@ class TargetTask(Task):
 
     def record(self):
         if self.target:
-            self.host.tags.set('tgt', self.target.id)
+            target = 'x' + str(self.target.pos.x) + 'y' + str(self.target.pos.y)
+            self.host.tags.set('tgt', target)
 
     def load(self, arg):
-        self.target = self.host.location.population.get_from_id(arg)
+        pos = arg.split('y')
+        self.target = self.host.location.population.get_from_pos(int(pos[0][1:]), int(pos[1]))
 
 
 class Return(Task):

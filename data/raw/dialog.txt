@@ -11,7 +11,7 @@ dsc_date,Date and Time: #. Current Hunger: #%
 youdie,You die... Press ESC to exit.
 dsc_level,Your level is equal to how many skills you have.
 dsc_attack,Your attack is determined by your Strength skill plus your weapon damage. Your Dexterity skill increases minimum damage.
-dsc_defense,Your defense is determined by your Dodge skill plus armor rating. Incoming damage is decreased by defense roll unless hit from behind or knocked down. Defense is also affected by what material you are made of.
+dsc_defense,Your defense is determined by your Dodge skill plus armor rating. Incoming damage is decreased by defense roll unless hit from behind or knocked down. Some units and objects have Armor which provide minimum defense.
 dsc_reputation,Reputation is equal to the rank of the hardest mission you have cleared. Reputation is lost when people die in a safe location that you are also in.
 travelto?,Travel to <#>?
 travelto,Travel to <#>

@@ -281,27 +281,6 @@ class Manual(Item):
                 Global.main.monologue.set(Dialog.get('!learn', [self.skill]))
 
 
-class Pickaxe(Item):
-    def use(self):
-        self.host.action.attack()
-        self.host.action.on_finish = self.destroy
-
-    def destroy(self):
-        tile = self.host.pos.get_cardinal(self.host.direction, 1)
-        if tile and tile.terrain != '.':
-            self.location.sound.register(self.pos, 16, file='critical')
-            if tile.things:
-                for thing in tile.things:
-                    if thing.name == 'Break':
-                        thing.remove()
-                        tile.set_terrain('.')
-                        return
-            else:
-                from src.entity.Stock import Stock
-                self.host.action.act('rest', 8)
-                Stock.make('Break', tile)
-
-
 class Mine(Prop):
     def __init__(self, location):
         super().__init__(location)

@@ -1,21 +1,13 @@
-from src.tools.Space import Space
 from src.game.Camera import Camera
+from src.tools.Space import Space
 
 
 class Image:
     def __init__(self, vec=None):
-        self.id = '0'
         self.name = None
         self.form = None
         self.form_name = ''
         self.vec = vec or Space()
-
-    def __str__(self):
-        return str(self.id)
-
-    def load(self, p):
-        self.id = p[0]
-        return 1
 
     def set_form(self, arg):
         from src.tools.Data import Data

@@ -1,6 +1,6 @@
 gfx,_effect,[12,8],0
 g,_single,[36,6],0
-g2,_oversize,[16,1],[20,20]
+g2,_oversize,[12,1],[20,20]
 half,_half,[12,5],0
 wear,unit/armor,[8,4],0
 dog,unit/dog,[4,1],0

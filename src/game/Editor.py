@@ -1,5 +1,3 @@
-import sys
-
 from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Camera import Camera
@@ -23,23 +21,30 @@ class Editor:
         self.prev_action = None
         self.prev_command = None
         self.selection = None
-        center = Stock.make('Force', player.character.pos)
-        center.center_camera()
-        Global.land.population.remove(center)
-        Global.land.population.remove(Camera.target)
         Global.map_view.overlay.clear()
 
     def update(self):
         self.control.turn()
         Camera.target.relocate(to=Camera.target.pos.get_neighbor(self.moving[0], self.moving[1], limit=True))
+        Camera.target.pos.glow(24)
         Global.map_view.update_region()
         Global.map_view.update_fog()
-        Global.map_view.update()
+        Global.map_view.update(editor=True)
+        Global.map_view.update_region_editor()
         self.moving = [0, 0]
+        old_x = Camera.target.pos.x
+        old_y = Camera.target.pos.y
+        offset = Global.player.world.recenter(Camera.target.pos.x, Camera.target.pos.y)
+        if offset:
+            Camera.target.location.process_terrain()
+            Camera.target.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
+            Camera.target.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
+            Global.map_view.update_fog()
+            Camera.update()
+            Global.map_view.update_region()
 
     def remove(self):
         self.tool.cancel()
-        Camera.target.remove()
         Turn.update = self.backup
 
     def input(self, action):
@@ -108,6 +113,10 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolTerrain()
             self.display_text = 'Terrain Tool'
+        elif action == 'roofs':
+            self.tool.cancel()
+            self.tool = ToolRoof()
+            self.display_text = 'Roof Tool'
         elif action == 'props':
             self.tool.cancel()
             self.tool = ToolObject(action)
@@ -147,11 +156,14 @@ class Editor:
             self.command()
         elif action == 'save':
             self.tool.cancel()
-            Global.land.save()
+            if Global.player.tags.get('map') == 'world':
+                Global.player.world.save()
+            else:
+                Global.land.save()
             self.display_text = 'saved to ' + Global.land.name
         elif action == 'quit':
             self.tool.cancel()
-            sys.exit()
+            Global.main.quit()
         self.prev_action = action
         if self.display_text != '':
             Global.main.monologue.set(self.display_text + ' @ ' + self.display_subtext)
@@ -238,16 +250,21 @@ class Editor:
             Global.player.sleep(0)
 
 
-class ToolTerrain:
+class Tool:
+    def cancel(self):
+        pass
+
+    def cycle(self, inc):
+        pass
+
+
+class ToolTerrain(Tool):
     def __init__(self):
         self.terrain = '.'
         self.text = 'Dirt'
         self.tile = Global.land.get_tile(0, 0)
         self.prev_tile = self.tile
         self.current = 0
-
-    def cancel(self):
-        pass
 
     def cycle(self, inc):
         self.current += inc
@@ -264,16 +281,19 @@ class ToolTerrain:
 
     def input(self, button, tile):
         if button == 4:
+            Global.player.world.dirty_pos(self.tile.x, self.tile.y)
             for y in range(-2, 3):
                 for x in range(-2, 3):
                     neighbor = tile.get_neighbor(x, y)
                     if neighbor:
                         self.input(1, neighbor)
         elif button == 2:
+            Global.player.world.dirty_pos(self.tile.x, self.tile.y)
             self.tile.set_terrain(self.prev_tile.terrain)
             self.tile.update_update_shader()
         elif button == 1:
             if tile != self.tile:
+                Global.player.world.dirty_pos(self.tile.x, self.tile.y)
                 self.tile = tile
                 self.prev_tile = self.tile
                 self.tile.set_terrain(self.terrain)
@@ -285,7 +305,24 @@ class ToolTerrain:
                 self.tile.update_update_shader()
 
 
-class ToolObject:
+class ToolRoof(Tool):
+    def input(self, button, tile):
+        if button == 4:
+            Global.player.world.dirty_pos(tile.x, tile.y)
+            for y in range(-2, 3):
+                for x in range(-2, 3):
+                    neighbor = tile.get_neighbor(x, y)
+                    if neighbor:
+                        self.input(1, neighbor)
+        elif button == 1:
+            Global.player.world.dirty_pos(tile.x, tile.y)
+            tile.roof = 'x'
+        elif button == 2:
+            Global.player.world.dirty_pos(tile.x, tile.y)
+            tile.roof = '0'
+
+
+class ToolObject(Tool):
     def __init__(self, object_type):
         self.text = 'Door'
         self.selection = Stock.get(Global.land, 'Door').add()
@@ -324,7 +361,7 @@ class ToolObject:
             self.selection.relocate(to=tile, force=1)
             preexisting = 0
             for i in tile.things:
-                if i != self.selection and i.name == self.text and (not self.last_data or i.id == self.last_data[0]):
+                if i != self.selection and i.name == self.text:
                     preexisting = 1
                     break
             if not preexisting:

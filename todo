@@ -5,5 +5,6 @@ door to portal pocket dimension
 brain feed - steal 1 skill
 spider - creates web (Tile.COLLIDE_WINDOW), walks through windows
 wand aim is ray - range limit and blocked by object
-
 4 clans - (weak teal robe clan w/ many minions, red robe clan using spells, etc) each hold manuals n stuff.
+terrain changes should be saved to map for world cell push (disintegrate, burn)
+chance skills - on-hit/on-attack (10% ~ 20%), effect - concentration, crit (6, 12, 18), flurry (2, 3, 4), revenge knockdown (1s, 2s, 3s)

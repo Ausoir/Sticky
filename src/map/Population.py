@@ -49,11 +49,11 @@ class Population:
                 r.append(i)
         return r
 
-    def get_from_id(self, identification, group=None):
+    def get_from_pos(self, x, y, group=None):
         if group is None:
             group = self.get_all()
         for i in group:
-            if i.id == identification:
+            if i.pos.x == x and i.pos.y == y:
                 return i
 
     def get_from_name(self, identification, group=None):

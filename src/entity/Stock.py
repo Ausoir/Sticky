@@ -37,16 +37,14 @@ class Stock:
         if not data:
             if name in Stock.registry:
                 record = Stock.registry[name]
-                object_id = location.get_id()
-                pos = [0, 0]
-                data = [object_id, pos] + record
+                data = [[0, 0]] + record
                 r = globals()[record[1]](location)
             else:
                 name = name or 'UNDEFINED'
                 print("Cannot load Stock Object " + name)
                 return None
         else:
-            r = globals()[data[3]](location)
+            r = globals()[data[2]](location)
         r.load(data)
         return r
 

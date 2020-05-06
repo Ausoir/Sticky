@@ -56,7 +56,6 @@ sk.crush,Unique Passive: Destroy walls if damage rolls 7 or higher.
 sk.execute,Unique Passive: Successful attacks instantly kill enemies with health lower than current maximum damage.
 sk.stealth,Passive: Reduce enemy sight range by 1 per level.
 sk.assassinate,Passive: Attacks from behind silence target and deal 7 true damage per level.
-sk.silent moving,Unique Passive: Make no sound when moving regardless of terrain.
 sk.side step,Unique Passive: Stand still to concentrate',' move to swap places with and knockdown a unit in way.
 sk.hide,Unique Passive: Stand still to concentrate',' becoming invisible until moving.
 sk.heightened sense,Unique Passive: Stand still to concentrate. Gain vision through obstacles while concentrated.

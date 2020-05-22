@@ -86,8 +86,6 @@ class Menu:
 
     @staticmethod
     def make(text, callback, name=0, color=Window.fore_color2, width=160, height=40, resize=False):
-        if not color:
-            color = Window.fore_color_transparent
         button = Window(0, 0, width=width, height=height, name=name, color=color, multi_line=resize)
         button.set_text(text)
         button.on_click = callback
@@ -96,7 +94,7 @@ class Menu:
     def menu_message(self):
         x = self.window.width + self.sub_window.width - self.window.margin.x * 2
         height = 300 - (self.window.margin.y * 2)
-        textbox = Window(0, 0, width=x, height=height, color=Window.fore_color2, multi_line=True)
+        textbox = Window(0, 0, width=x, height=height, color=None, multi_line=True)
         textbox.align = 'top'
         textbox.text_spacing = Global.font.ascent - Global.font.descent + 2
         textbox.set_text(self.var[0])
@@ -179,9 +177,7 @@ class Menu:
         if topic[1] == 1:
             self.get_message(self.var[0])()
         elif topic[1] == 2:
-            def confirm(index):
-                Script.execute_code(self.var[2])
-            self.get_prompt(self.var[0], self.var[1], confirm)()
+            self.get_prompt(self.var[0], self.var[1], self.execute_code, self.var[2])()
         elif topic[1] == 3:
             self.direct(self.menu_conversation)
         elif topic[1] == 4:

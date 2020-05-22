@@ -6,7 +6,7 @@ class Image:
     def __init__(self, vec=None):
         self.name = None
         self.form = None
-        self.form_name = ''
+        self.form_name = None
         self.vec = vec or Space()
 
     def set_form(self, arg):

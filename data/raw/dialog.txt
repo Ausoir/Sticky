@@ -1,6 +1,6 @@
 none,None
 proceed,Proceed
-dsc_health,You die when your health reaches 0. Current health: # out of #
+dsc_health,You take health damage when your armor breaks. You die when your health reaches 0. Armor durability: # out of #.  Body health: # out of #
 any,Any #
 oos,Out of sight.
 noaccessory,No Headgear
@@ -8,6 +8,7 @@ noarmor,No Armor
 noweapon,No Weapon
 dsc_location,Your current location.
 dsc_date,Date and Time: #. Current Hunger: #%
+dsc_hunger,Date and Time: #. Current Hunger: #%. You are too hungry to progress in level or to perform any time consuming actions.
 youdie,You die... Press ESC to exit.
 dsc_level,Your level is equal to how many skills you have.
 dsc_attack,Your attack is determined by your Strength skill plus your weapon damage. Your Dexterity skill increases minimum damage.
@@ -27,7 +28,7 @@ contract8,A gang leader living in a mansion is in possession of a rare artifact.
 reqnotmet,Requirements not met.
 equipment_inv,Provides # inventory
 equipment_def,Provides # defense
-equipment_spd,Provides # speed
+equipment_sth,Provides # stealth
 equipment_skill,Grants skill <#>
 !repair,Cannot repair
 !durability,Does not break
@@ -57,6 +58,10 @@ artifact,Use to cast spell: #
 terrain wall,This terrain is impassible.
 terrain speed,Terrain speed modifier: #.
 terrain lit,This terrain is lit up.
+terrain roof,There terrain has a roof.
 starve,You are too hungry to travel. Force travel at 2 health cost per hour?
 succumb,You are starving. Give up?
 obtain,Obtained #.
+water_fill,Filled with water.
+water_drain,Liquid has been drained.
+req_skill,Requires <#> skill.

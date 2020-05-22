@@ -77,6 +77,36 @@ class Buff:
                     self.end()
 
 
+class StatBuff(Buff):
+    def get_stat(self):
+        return 'p', 'Durability'
+
+    def get_tags(self):
+        if self.var < 0:
+            return ['magic', 'harm']
+        return ['magic']
+
+    def get_display_name(self):
+        return 'Status' + ' (' + Dialog.sign(self.var) + ' ' + self.get_stat()[1] + ')'
+
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return super().is_valid()
+
+    def on_start(self):
+        Particle.make('wind', self.host.pos)
+        self.host.tags.increment(self.get_stat()[0], self.var)
+
+    def on_finish(self):
+        self.host.tags.increment(self.get_stat()[0], -self.var)
+
+    def trigger(self, arg):
+        super().trigger(arg)
+        if arg[0] == 'act' and arg[1] in ['hit', 'use', 'attack']:
+            self.end()
+
+
 class Glow(Buff):
     def get_tags(self):
         return ['magic', 'stack']
@@ -87,6 +117,9 @@ class Glow(Buff):
 
     def on_update(self):
         self.host.pos.glow(self.var)
+
+    def on_finish(self):
+        self.host.pos.glow_stop()
 
 
 class Revive(Buff):
@@ -121,17 +154,6 @@ class Health(Buff):
             self.apply()
 
 
-class Damage(Buff):
-    def on_start(self):
-        self.host.strength += self.var
-
-    def on_load(self):
-        self.host.strength += self.var
-
-    def on_finish(self):
-        self.host.strength -= self.var
-
-
 class Brand(Buff):
     def get_tags(self):
         return ['stack']
@@ -156,7 +178,7 @@ class Burn(Buff):
 
     def on_start(self):
         self.duration = self.host.tags.get('fuel', 1) * 12
-        if self.duration > 80:
+        if self.duration >= 96:
             self.host.location.sound.register(self.host.pos, 13, file='critical')
             for y in range(-1, 2):
                 for x in range(-1, 2):
@@ -172,7 +194,7 @@ class Burn(Buff):
     def on_update(self):
         self.var += 1
         if not self.var % 2:
-            self.host.pos.glow(12)
+            self.host.pos.glow(4)
             Particle.make('burn', self.host.pos, glow=1)
             if not self.var % 4:
                 self.var = 0
@@ -194,38 +216,22 @@ class Burn(Buff):
 
 
 class Effect(Buff):
+    def get_tags(self):
+        return ['magic']
+
     def on_update(self):
         if self.effect(6):
             Particle.make(self.var, self.host.pos)
 
 
-class Speed(Buff):
-    def get_tags(self):
-        if self.var < 0:
-            return ['magic', 'harm']
-        return ['magic']
+class Speed(StatBuff):
+    def get_stat(self):
+        return 'spd', 'Speed'
 
-    def get_display_name(self):
-        if self.var < 0:
-            return 'Slow' + ' (' + str(-self.var) + ')'
-        return 'Fast' + ' (' + str(self.var) + ')'
 
-    def is_valid(self):
-        from src.entity.unit.Unit import Unit
-        if isinstance(self.host, Unit):
-            return super().is_valid()
-
-    def on_start(self):
-        Particle.make('wind', self.host.pos)
-        self.host.tags.increment('spd', self.var)
-
-    def on_finish(self):
-        self.host.tags.increment('spd', -self.var, remove=0)
-
-    def trigger(self, arg):
-        super().trigger(arg)
-        if arg[0] == 'act' and arg[1] in ['hit', 'use', 'attack']:
-            self.end()
+class Damage(StatBuff):
+    def get_stat(self):
+        return 'DMG', 'Strength'
 
 
 class Invisible(Buff):
@@ -256,12 +262,12 @@ class Invisible(Buff):
     def on_load(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            self.host.stealth += 40
+            self.host.tags.increment('sth', 40)
 
     def on_finish(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            self.host.stealth -= 40
+            self.host.tags.increment('sth', -40)
         self.host.show(True)
 
     def on_update(self):
@@ -273,7 +279,7 @@ class Invisible(Buff):
         self.end()
 
 
-class Invulnerable(Buff):
+class Invulnerability(Buff):
     def is_valid(self):
         if not self.host.hittable:
             return super().is_valid()
@@ -290,7 +296,7 @@ class Immune(Buff):
         pass
 
 
-class Timer(Buff):
+class Script(Buff):
     def on_finish(self):
         from src.game.Script import Script
         Script.var['host'] = self.host
@@ -320,10 +326,18 @@ class Concentration(Buff):
         if self.host.get_skill('iron will'):
             for i in self.host.states.buffs:
                 if 'harm' in i.get_tags():
+                    Particle.make('barrier', self.host.pos, offset=4)
                     i.end()
+                    self.end()
                     return
         if self.host.get_skill('hide'):
             self.host.states.add('Invisible', -1)
+        if self.host.get_skill('weave'):
+            for i in self.host.pos.things:
+                if i.name == 'Web':
+                    return
+            from src.entity.Stock import Stock
+            Stock.make('Web', self.host.pos)
 
     def on_start(self):
         self.effect_on_load()
@@ -345,9 +359,10 @@ class Concentration(Buff):
     def trigger(self, arg):
         super().trigger(arg)
         if arg[0] == 'spend':
-            self.host.action.idle_frame = 0
-            Particle.make('sweat', self.host.pos)
-            self.duration = 1
+            if not self.host.get_skill('concentration') or Global.r.rand_int(0, 3) != 0:
+                self.host.action.idle_frame = 0
+                Particle.make('sweat', self.host.pos)
+                self.duration = 1
 
 
 class Vengeance(Buff):
@@ -509,3 +524,26 @@ class Poison(Buff):
         if arg[0] == 'time':
             self.host.decay(arg[1] * self.var)
             self.duration = max(0, self.duration - arg[1])
+
+
+class Knockout(Buff):
+    def get_tags(self):
+        return ['harm', 'stack']
+
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return super().is_valid()
+
+    def on_start(self):
+        self.host.action.set('fall')
+        self.host.action.delay = self.duration
+
+    def on_load(self):
+        self.on_start()
+
+    def trigger(self, arg):
+        if arg[0] == 'act' and arg[1] == 'hit':
+            self.end()
+            if self.host.action.current_action == 'fall':
+                self.host.action.delay = 1

@@ -235,8 +235,8 @@ class Script:
         elif arg[0] == 'trigger':
             Script.var['1'].trigger()
         elif arg[0] == 'spell':
-            from src.entity.unit.item.Spell import Spell
-            Spell.perform(Script.var['host'], arg[1])
+            from src.entity.unit.item.Alchemy import Alchemy
+            Alchemy.perform(Script.var['host'].pos, arg[1])
         elif arg[0] == 'buff':
             Script.var['host'].states.add(arg[1], arg[2], var=arg[3])
         elif arg[0] == 'darkness':
@@ -295,6 +295,8 @@ class Script:
             from src.map.Generator import Generator
             location = Generator.get_template(arg[1], arg[2], self.get_rand().rand_rand())
             location.save()
+        elif arg[0] == 'decay':
+            Script.var['1'].decay(arg[1])
         elif arg[0] == 'unwield':
             Global.player.character.weapon.remove()
         elif arg[0] == 'delay':

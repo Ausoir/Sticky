@@ -36,7 +36,10 @@ class Appendage(Limb):
 
     def set(self, sprite):
         self.form = sprite
-        self.form.flip(self.flip_x, self.flip_y)
+        if self.flip_x > 0:
+            self.form.scale_x *= -1
+        if self.flip_y > 0:
+            self.form.scale_y *= -1
         self.form.image.anchor_x = self.form.width / 2
         if self.flip_y:
             self.form.image.anchor_y = 3
@@ -52,8 +55,8 @@ class Appendage(Limb):
                 self.form.resize(y=length)
         self.form.place(x + self.upper_joint.x, y - self.upper_joint.y)
 
-    def face(self, side, direction):
-        self.form.face(x=side)
-        if direction == 1 or direction == 3:
-            if self.flip_x == 2:
-                self.form.scale_x *= -1
+    def flip(self, side, direction):
+        if side <= 0:
+            self.form.scale_x *= -1
+        if self.flip_x == -1 and direction % 2 == 0:
+            self.form.scale_x *= -1

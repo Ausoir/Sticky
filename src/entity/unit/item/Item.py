@@ -16,9 +16,6 @@ class Item(Prop):
                 self.host.inventory.items.remove(self)
         super().remove()
 
-    def face(self, direction):
-        self.form.face_cardinal(direction)
-
     def on_wield(self, host):
         self.save = False
         self.host = host

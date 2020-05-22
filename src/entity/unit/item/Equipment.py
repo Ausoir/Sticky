@@ -5,9 +5,9 @@ from src.tools.Dialog import Dialog
 class Equipment(Item):
     def describe(self):
         r = super().describe()
-        spd = self.tags.get('enc', 0)
-        if spd:
-            r += '\n' + Dialog.get('equipment_spd', [Dialog.sign(spd)])
+        stat = self.tags.get('sth')
+        if stat:
+            r += '\n' + Dialog.get('equipment_sth', [Dialog.sign(stat)])
         space = self.tags.get('space', 0)
         if space > 0:
             r += '\n' + Dialog.get('equipment_inv', [Dialog.weight(space)])
@@ -50,19 +50,11 @@ class Equipment(Item):
         return self
 
     def on_wear(self):
-        self.host.update_skill(self.tags.get('skill'))
         self.location.sound.register(self.pos, 3, file='wear')
-        self.host.tags.sync('silver', self.tags.get('silver'))
         self.host.tags.sync('DEF', self.tags.get('DEF'))
-        self.host.tags.sync('spd', self.tags.get('enc'))
-        self.host.tags.sync('p', self.tags.get('hp'))
-        self.host.tags.sync('P', self.tags.get('hp'))
+        self.host.tags.sync('sth', self.tags.get('sth'))
 
     def on_unwear(self):
-        self.host.update_skill(self.tags.get('skill'), remove=True)
         self.location.sound.register(self.pos, 3, file='wear')
-        self.host.tags.sync('silver', self.tags.get('silver'), ratio=-1)
         self.host.tags.sync('DEF', self.tags.get('DEF'), ratio=-1)
-        self.host.tags.sync('spd', self.tags.get('enc'), ratio=-1)
-        self.host.tags.sync('p', self.tags.get('hp'), ratio=-1)
-        self.host.tags.sync('P', self.tags.get('hp'), ratio=-1)
+        self.host.tags.sync('sth', self.tags.get('sth'), ratio=-1)

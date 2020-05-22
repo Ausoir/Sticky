@@ -1,3 +1,4 @@
+from src.entity.Particle import Particle
 from src.entity.Prop import Prop
 from src.entity.unit.Unit import Unit
 from src.entity.unit.item.Item import Item
@@ -71,7 +72,7 @@ class Door(Prop):
     def load(self, arg):
         index = super().load(arg)
         self.form1 = self.form
-        self.form2 = Data.get_form(self.tags.get('morph'))
+        self.form2 = Data.get_form(self.tags.get('alt'))
         self.form2.show(True)
         self.orig_obstruct_type = self.obstruct_type
         return index
@@ -87,42 +88,152 @@ class Door(Prop):
             if len(self.pos.things) > 1:
                 if self.obstruct_type != Tile.COLLIDE_ITEM:
                     self.form2.show(True)
-                    self.form2.bound(True)
                     self.form = self.form2
                     self.form1.show(False)
                     self.obstruct_type = Tile.COLLIDE_ITEM
             else:
                 if self.obstruct_type != self.orig_obstruct_type:
                     self.form1.show(True)
-                    self.form1.bound(True)
                     self.form = self.form1
                     self.form2.show(False)
                     self.obstruct_type = self.orig_obstruct_type
 
 
-class Credit(Item):
-    def __init__(self, location):
-        super().__init__(location)
-        self.var = None
-        self.amount = 0
-
-    def __str__(self):
-        return super().__str__() + ',' + self.var + ',' + str(self.amount)
-
+class Specie(Item):
     def load(self, arg):
-        index = super().load(arg)
-        self.var = arg[index]
-        index += 1
-        self.amount = arg[index]
-        return index + 1
+        r = super().load(arg)
+        if self.form_name is None:
+            seed = self.tags.get('seed', 0)
+            cue = Data.get_line('raw.txt', self.name.lower())[1]
+            arg = cue[seed % len(cue)]
+            self.set_form(arg)
+            luminance = seed % 240
+            if luminance < 3:
+                self.states.add('Glow', -1, luminance + 1)
+            fuel = seed % 64
+            if fuel <= 8:
+                self.tags.set('fuel', fuel)
+        return r
 
-    def describe(self):
-        return super().describe() + '\n' + Dialog.get(self.var.title()) + ': ' + str(self.amount)
+    def set_form(self, arg):
+        if arg != 0:
+            super().set_form(arg)
 
-    def use(self):
-        self.host.action.act('grab', 8)
-        self.host.tags.increment(self.var, self.amount)
-        self.die()
+    def get_display_name(self):
+        cue = Data.get_line('raw.txt', 'cue')[1]
+        return cue[self.tags.get('seed', 0) % len(cue)].title() + ' ' + self.name
+
+
+class Marker(Prop):
+    @staticmethod
+    def check_connection(marked_tile):
+        if marked_tile:
+            for tile_marker in marked_tile.things:
+                if tile_marker.name == 'Marker':
+                    return True
+        return False
+
+    def connect_connect(self):
+        for i in Global.cardinal_coord:
+            tile = self.pos.get_neighbor(i[0], i[1])
+            for thing in tile.things:
+                if isinstance(thing, Marker):
+                    thing.connect()
+        self.connect()
+
+    def connect(self):
+        r = False
+        connection, direction = self.pos.get_connection(self.pos, Marker.check_connection)
+        forms = self.tags.get('forms').split('&')
+        if connection > 1:
+            connection -= 2
+        elif connection == 1:
+            connection = 0
+        else:
+            connection = 3
+        if forms[connection] != self.form_name:
+            self.set_form(forms[connection])
+            self.form.show(True)
+            r = True
+        self.tags.set('dir', direction)
+        self.tags.set('way', connection)
+        world_seed = Global.player.tags.get('seed') + ord(self.pos.terrain)
+        one_way = int(connection <= 1)
+        if world_seed % 4 == connection:
+            self.tags.set('ohm', -1)
+        elif (world_seed + one_way) % 2:
+            self.tags.set('ohm', 1)
+        else:
+            self.tags.set('ohm', 0)
+        self.face(direction)
+        return r
+
+    def trigger(self):
+        signal = False
+        for i in self.pos.things.copy():
+            if isinstance(i, Marker) and i != self:
+                i.remove()
+                signal = True
+        if signal:
+            self.remove()
+        self.connect_connect()
+
+    def get_routes(self):
+        r = []
+        way = self.tags.get('way')
+        if way == 0:
+            r.append(self.pos.get_cardinal(self.direction))
+            r.append(self.pos.get_cardinal(self.direction + 2))
+        elif way == 1:
+            r.append(self.pos.get_cardinal(self.direction))
+            r.append(self.pos.get_cardinal(self.direction - 1))
+        elif way == 2:
+            r.append(self.pos.get_cardinal(self.direction + 2))
+            r.append(self.pos.get_cardinal(self.direction - 1))
+            r.append(self.pos.get_cardinal(self.direction + 1))
+        elif way == 3:
+            r.append(self.pos.get_cardinal(self.direction))
+            r.append(self.pos.get_cardinal(self.direction - 1))
+            r.append(self.pos.get_cardinal(self.direction + 1))
+            r.append(self.pos.get_cardinal(self.direction + 2))
+        return r
+
+    def turn(self):
+        glow = self.states.get('Glow')
+        if not glow:
+            if self.pos.light_source > 0:
+                self.states.add('Glow', 7, 4)
+        elif glow.duration == 1:
+            routes = self.get_routes()
+            for tile in routes:
+                interrupt = True
+                for thing in tile.things.copy():
+                    if isinstance(thing, Marker) and len(tile.things) == 1:
+                        if len(thing.states.buffs) == 0:
+                            Particle.make('fire', tile)
+                            thing.states.add('Glow', 1, glow.var - thing.tags.get('ohm', 0))
+                        elif glow.var >= 8:
+                            thing_glow = thing.states.get('Glow')
+                            if thing_glow:
+                                power = abs(thing_glow.var - glow.var)
+                                self.tags.set('fuel', power)
+                                self.states.add('Burn', 12)
+                                Particle.make('portal', self.pos)
+                                self.cast(glow.var, power + 1)
+                                thing.remove()
+                                self.remove()
+                        interrupt = False
+                if interrupt:
+                    self.states.add('Burn', 12)
+        super().turn()
+
+    def cast(self, intensity, collision):
+        data = Data.get_line('raw.txt', 'portals')[1]
+        from src.entity.unit.item.Alchemy import Alchemy
+        category = data[max(0, len(data) - collision)]
+        seed = self.tags.get('seed', 0) * self.tags.get('way', 0)
+        Alchemy.perform(self.pos, category[seed % len(category)], intensity * 6)
+        print('spell ' + category[seed % len(category)] + ' intensity ' + str(intensity * 6))
 
 
 class Food(Item):
@@ -179,6 +290,45 @@ class Food(Item):
         self.host.tags.increment('hunger', nutrition)
         self.decay(1)
         return nutrition
+
+
+class Potion(Food):
+    def __init__(self, location):
+        super().__init__(location)
+        self.nutrition = [-12, 0]
+
+    def on_create(self):
+        acidity = self.tags.get('acidity', 0)
+        self.nutrition[0] -= int(acidity / 10)
+
+    def eat(self):
+        r = super().eat()
+        spell, power = self.get_symptom()
+        if spell:
+            from src.entity.unit.item.Alchemy import Alchemy
+            Alchemy.perform(self.pos, self.tags.get('spell'), self.tags.get('power'))
+            print(spell + ' ' + str(power))
+        return r
+
+    def hit(self, damage, hitter=None):
+        if damage > 0:
+            spell, power = self.get_symptom()
+            if spell:
+                from src.entity.Stock import Stock
+                r = Stock.make('Mine', self.pos)
+                r.spell = spell
+        return super().hit(damage, hitter)
+
+    def get_symptom(self):
+        density = self.tags.get('density', 0) + 1
+        acidity = self.tags.get('acidity', 0) + 1
+        toxicity = self.tags.get('toxicity', 0) + 1
+        if density > 50:
+            data = Data.get_line('raw.txt', 'potions')[1]
+            effect_num = len(data)
+            effect = int(acidity / toxicity * effect_num)
+            return data[effect], min(100, density - 50)
+        return None, 0
 
 
 class Corpse(Prop):
@@ -246,16 +396,13 @@ class Manual(Item):
         index = super().load(arg)
         self.skill = arg[index]
         if not self.skill:
-            if Global.r.rand_bool():
-                data = Data.get_line('raw.txt', 'stacking skill')[1]
-                data = [x[0] for x in data]
-            else:
-                data = Data.get_line('raw.txt', 'unique skill')[1]
+            data = [x[0] for x in Data.get_line('raw.txt', 'stacking skill')[1]]
+            data += Data.get_line('raw.txt', 'unique skill')[1]
             self.skill = Global.r.rand_list(data)
         return index + 1
 
     def get_display_name(self):
-        return '<' + self.skill.title() + '> ' + Dialog.get('manual')
+        return '<' + self.skill.title() + '> ' + self.name
 
     def describe(self):
         r = super().describe() + '\n' + Dialog.get('manual_skill', [self.skill.title()])
@@ -282,24 +429,12 @@ class Manual(Item):
 
 
 class Mine(Prop):
-    def __init__(self, location):
-        super().__init__(location)
-        self.spell = None
-
-    def __str__(self):
-        return super().__str__() + ',' + str(self.spell)
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.spell = arg[index]
-        return index + 1
-
     def turn(self):
         super().turn()
         for thing in self.pos.things:
             if thing != self and thing.tags.get('fly') != 1:
-                from src.entity.unit.item.Spell import Spell
-                Spell.perform(self.pos, self.spell)
+                from src.entity.unit.item.Alchemy import Alchemy
+                Alchemy.perform(self.pos, self.tags.get('spell'), self.tags.get('power'))
                 self.remove()
                 return
 
@@ -324,6 +459,7 @@ class Phantom(Unit):
         self.host = host
         self.tags.sync('spd', self.host.tags.get('spd'))
         self.tags.sync('dmg', self.host.tags.get('dmg'))
+        self.tags.sync('DMG', self.host.tags.get('DMG'))
         self.tags.sync('def', self.host.tags.get('def'))
         self.tags.sync('DEF', self.host.tags.get('DEF'))
         self.tags.set('p', self.host.tags.get('p', 1))
@@ -352,11 +488,6 @@ class Phantom(Unit):
 
 
 class Ghost(Unit):
-    def __init__(self, location):
-        super().__init__(location)
-        self.obstruct_type = Tile.COLLIDE_ITEM
-        self.collision_type = [Tile.COLLIDE_UNIT, Tile.COLLIDE_MAGIC]
-
     def use(self):
         pass
 

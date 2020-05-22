@@ -74,7 +74,7 @@ class Dialog:
         else:
             hour_m = str(hour_m)
         meridian = 'am'
-        if hour + 1 >= 12:
+        if hour >= 12:
             meridian = 'pm'
         return Dialog.get('Day') + ' ' + day + ' / ' + hour_m + ' ' + meridian
 
@@ -134,6 +134,8 @@ class Dialog:
             r += '\n' + Dialog.get('terrain speed', [str(speed)])
         if tile.light > 0:
             r += '\n' + Dialog.get('terrain lit')
+        if tile.roof > 0:
+            r += '\n' + Dialog.get('terrain roof')
         return r
 
     @staticmethod
@@ -141,7 +143,7 @@ class Dialog:
         if measure >= 0:
             return '+' + str(measure)
         else:
-            return '-' + str(measure)
+            return str(measure)
 
     @staticmethod
     def weight(measure):

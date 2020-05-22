@@ -2,13 +2,22 @@ resident,3,Yes?,[Talk,character],[Hire,!hire],[Move,#push],[Ask,!ask]
 trader,3,Buy something!,[Introduce,!intro_trader],[Buy,>menu>shop],[Move,#push],[Help,!ask]
 supply,3,Are you here to sell?,[Introduce,!intro_supplier],[Sell,>menu>supply],[Move,#push],[Help,!ask]
 innkeep,3,How can I help you?,[Introduce,!intro_innkeep],[Buy Food,>menu>shop],[Store,>menu>storage],[Move,#push],[Help,!ask]
+alchemist,3,What do you want?,[Introduce,!intro_alchemist],[Buy,>menu>shop],[Alchemy,!alchemy],[Move,#push]
+intro_alchemist,1,I am an alchemist. Alchemists create magical potions that grant abnormal status. Potions can also be used as magical traps when shattered and spilled.
+alchemy,3,Learn alchemy?,[Learn Skill,#push],[Explain,!desc_alchemy]
+desc_alchemy,1,Basics of alchemy goes like this: Fill alchemy table with water',' dump in any suspicious plant',' and use an empty bottle on the table again to obtain your potion. I recommend testing your potion first on a captured animal.
+conjurer,3,What do you want?,[Introduce,!intro_conjurer],[Buy,>menu>shop],[Conjuration,!conjuration],[Move,#push]
+intro_conjurer,1,I am a conjurer. Conjuration is a branch of alchemy focused on creation of items and units using magic circles called polygrams. Mastery of conjuration require comprehensive research of polygram design.
+conjuration,3,Learn conjuration?,[Learn Skill,#push],[Explain,!desc_conjuration]
+desc_conjuration,1,Find a pre-made conjuration polygram if you are new. Start the ritual by shining candlelight on the polygram. Some polygrams work',' some do not. Imitate a working polygram or research your own. Once you light the polygram',' step off or you will burn.
+desc_conjuration2,1,Always be careful there is no object interfering the polygram. Results may vary on type of chalk used and terrain it is on. A well researched and designed polygram can conjure powerful things with long duration with minimum effort.
 contract,3,Need work?,[Introduce,!intro_contractor],[Buy,>menu>shop],[Jobs,>menu>contract],[About Missions,!ask_contract],[Move,#push],[Help,!ask]
+intro_contractor,1,I am a contractor. People come to me for jobs. If the current contract does not suit you',' come back in a day or two and I may have something more suitable for you.
 contract_success,1,You have successfully completed the contract. Here is your reward.
 contract_fail,1,You have abandoned your contract. Your reputation decreases.
 intro_trader,1,I can sell you things. What more can I say? Browse my wares!
 intro_supplier,1,I am a supplier. I buy things from the public and sell them to merchants. Prices vary from time to time and from supplier to supplier.
 intro_innkeep,1,I am an innkeep. I can store your items. I also sell food.
-intro_contractor,1,I am a contractor. People come to me for jobs. If the current contract does not suit you',' come back in a day or two and I may have something more suitable for you.
 ask_contract,1,Missions are ranked 1 ~ 9 stars. If you are unsure if you can take on a mission',' just make sure your level is higher than the mission rank. When you accept a mission you will be transported immediately',' unless you are too hungry to travel.
 ask,3,Ask what?,[Controls,!controls],[Purpose,!purpose],[Tips,!tips]
 tips,3,...,[Tip 1,!tip1],[Tip 2,!tip2],[Tip 3,!tip3],[Tip 4,!tip4],[Tip 5,!tip5],[Tip 6,!tip6]

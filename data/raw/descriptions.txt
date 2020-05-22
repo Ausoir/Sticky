@@ -2,6 +2,7 @@ Package,Use to complete quest
 Jelly,A blob of slime goo
 Fiber,Some fibrous material
 Blue Baton,Shocks on hit
+Marker,This is part of a conjuration polygram. Shine dim light here to begin. It will try to consume everything it reaches as part of its sacrifice.
 Pickaxe,Can be used to destroy walls and floors
 Amnesia Potion,Potion that makes the user forget few recipes
 Scorch,Create scorching ground that burns anything nearby
@@ -37,47 +38,30 @@ Ghost Form,Turn into a ghost that can pass through walls but cannot interact wit
 Dog Form,Turn into a dog that can consume corpses and move faster than average.
 Barkskin,Lignify target',' becoming slowed and vulnerable to fire but reducing incoming damage by 3.
 Stone Form,Turn flesh into stone',' becoming immobile but reducing incoming damage by 7.
-sk.endurance,Passive: Increase carry weight by 1 per level.
 sk.asceticism,Passive: Food provide 1 extra nutrition per level.
-sk.perseverance,Passive: Resting restores an additional 10% maximum health per level.
-sk.dodge,Passive: Increase maximum defense by 1 per level.
-sk.block,Unique Passive: Reduce damage from front by 1.
+sk.perseverance,Passive: Resting restores an additional 20% maximum health per level.
+sk.block,Unique Passive: Stand still to concentrate. Reduce damage from the front by 1 while concentrated.
 sk.constitution,Unique Passive: 1 second of invulnerability upon taking a hit.
-sk.parry,Unique Passive: Stand still to concentrate',' reflecting next hit damage plus maximum defense as true damage.
-sk.iron will,Unique Passive: Stand still to concentrate',' removing one harmful status effect every 4 seconds.
+sk.parry,Unique Passive: On taking a hit',' reflect damage 20% of the time.
+sk.iron will,Unique Passive: Stand still to concentrate',' removing one harmful status effect.
 sk.vengeance,Unique Passive: On taking 4 continuous hits',' push away and knockdown all adjacent units.
-sk.strength,Passive: Increase maximum damage by 1 per level.
-sk.agility,Passive: Increase attack speed by 1 per level. Maximum attack speed is 5.
-sk.dexterity,Passive: Increases minimum damage by 1 per level. Cannot exceed maximum damage.
 sk.flurry,Passive: Stand still to concentrate',' attacking again on a successful hit. Attacks again up to flurry level.
 sk.cleave,Unique Passive: Successful attacks cleave to the sides at -1 damage penalty. Cleave attacks do not trigger skills.
 sk.frenzy,Unique Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
 sk.crush,Unique Passive: Destroy walls if damage rolls 7 or higher.
 sk.execute,Unique Passive: Successful attacks instantly kill enemies with health lower than current maximum damage.
-sk.stealth,Passive: Reduce enemy sight range by 1 per level.
-sk.assassinate,Passive: Attacks from behind silence target and deal 7 true damage per level.
-sk.side step,Unique Passive: Stand still to concentrate',' move to swap places with and knockdown a unit in way.
+sk.knockout,Unique Passive: Successful attacks cause knockout 20% of the time.
+sk.concentration,Unique Passive: Concentration have 25% chance not to end on use.
+sk.assassination,Passive: Attacks from behind silence target and deal 7 true damage per level.
+sk.side step,Unique Passive: Stand still to concentrate',' then move towards a unit to knockout and swap places.
 sk.hide,Unique Passive: Stand still to concentrate',' becoming invisible until moving.
 sk.heightened sense,Unique Passive: Stand still to concentrate. Gain vision through obstacles while concentrated.
-sk.cantrips,Create easy yet useful spells.
-sk.alchemy,Create potions with spell effects using water bottles.
-sk.spellcraft,Create spell wands with wood.
-sk.runescribing,Create spell scrolls with paper.
-sk.spellmolding,Create spell talismans.
-sk.cantrips,Create easy yet useful spells.
-sk.alchemy,Create spell potions.
-sk.spellcraft,Create spellcasting wands.
-sk.runescribe,Create spell scrolls that casts powerful area of effect spells.
-sk.spellmold,Create talismans or artifacts from existing spell artifacts.
-sk.auracraft,Create aura manipulating spells.
-sk.destruction,Create destructive spells.
-sk.enchantment,Create spells that can improve or alter status.
-sk.alteration,Create spells that can permanently improve items and equipment.
-sk.witchcraft,Create hexes that can inflict terrible curses on the victim.
-sk.conjuration,Create spells that can summon items or units.
-sk.fleshcraft,Create spells that changes the flesh.
-sk.shapeshift,Create spells that can cause shape shifting.
-sk.divination,Create spells that can provide knowledge to the caster.
+sk.alchemy,Prepare a potion. Requires alchemy table.
+sk.spellcraft,Create wands for ranged spell application. Requires alchemy knowledge. Requires a workbench.
+sk.botany,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time.
+sk.conjuration,Draw conjuration polygrams using chalk.
+sk.scribing,Draw conjuration polygrams on paper to create spell scrolls. Requires conjuration knowledge.
+sk.carpentry,Construct buildings using wooden planks.
 Glow,You emit light.
 Revive,Revive on death.
 Health,Health is rapidly changing.
@@ -87,7 +71,7 @@ Burn,Constantly take damage and spread to nearby flammables.
 Effect,Produces visual effect.
 Speed,Movement speed is altered.
 Invisible,Become invisible.
-Invulnerable,Immune to physical damage.
+Invulnerability,Immune to physical damage.
 Immune,Immune to status effects.
 Concentration,Ready for special actions.
 Vengeance,At 4 stacks nearby enemies will be pushed away and knocked down.

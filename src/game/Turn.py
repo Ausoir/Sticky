@@ -1,12 +1,15 @@
 class Turn:
+    HOUR_FRAME = 800
     queue = None
     fast_queue = None
+    hour_change = None
     frame = 0
     queue_turn = 0
     rounds = 1
 
     @staticmethod
     def init():
+        Turn.hour_change = []
         Turn.queue = [[], [], [], []]
         Turn.rounds = len(Turn.queue)
         Turn.fast_queue = []
@@ -15,12 +18,14 @@ class Turn:
 
     @staticmethod
     def update():
-        for i in Turn.queue[Turn.frame]:
+        for i in Turn.queue[Turn.frame % Turn.rounds]:
             i()
         for i in Turn.fast_queue:
             i()
         Turn.frame += 1
-        if Turn.frame >= Turn.rounds:
+        if Turn.frame >= Turn.HOUR_FRAME:
+            for i in Turn.hour_change:
+                i()
             Turn.frame = 0
 
     @staticmethod

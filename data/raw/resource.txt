@@ -1,7 +1,7 @@
 gfx,_effect,[12,8],0
-g,_single,[36,6],0
+g,_single,[36,8],0
 g2,_oversize,[12,1],[20,20]
-half,_half,[12,5],0
+half,_half,[14,6],0
 wear,unit/armor,[8,4],0
 dog,unit/dog,[4,1],0
 rat,unit/rat,[3,3],0

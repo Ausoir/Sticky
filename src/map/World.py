@@ -41,7 +41,7 @@ class World:
                 for x, col in enumerate(range(start_coord[0], start_coord[0] + World.CHUNK)):
                     tile = self.location.tiles[row][col]
                     tile_row += tile.terrain
-                    roof_row += tile.roof
+                    roof_row += str(tile.roof)
                     for thing in tile.things:
                         if thing.save:
                             temp = thing.pos
@@ -57,7 +57,7 @@ class World:
             line_3 = '%'.join(cell_tiles)
             line_4 = '%'.join(cell_roofs)
             write = '\n'.join([line_1, line_2, line_3, line_4])
-            print('saving ' + str(cell_num))
+            # print('saving ' + str(cell_num))
             map_name = World.coord_to_map_name(self.cells[cell_num])
             Data.write('save/' + map_name + '.map', write)
 
@@ -89,7 +89,7 @@ class World:
                     for x, col in enumerate(range(start_coord[0], start_coord[0] + World.CHUNK)):
                         tile = self.location.tiles[row][col]
                         tile.set_terrain(terrains[y][x])
-                        tile.roof = roofs[y][x]
+                        tile.roof = int(roofs[y][x])
                         tile.light_source = 0
                         tile.light = 0
                         obj += tile.things

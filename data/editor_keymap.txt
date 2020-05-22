@@ -1,11 +1,13 @@
+ESCAPE,#exit
 RETURN,text
 TAB,save
+GRAVE,switch
 N,load
 A,left
 D,right
 W,up
 S,down
-GRAVE,switch
+F,fill
 _1,tiles
 LS+_1,roofs
 _2,props
@@ -14,11 +16,9 @@ _3,units
 _4,weapons
 _5,armors
 LS+_5,headgears
-_6,spells
-_7,miscellaneous
+_6,miscellaneous
 M,command
 L,player
-ESCAPE,quit
 DRAG,use
 LMB,use
 LS+LMB,special

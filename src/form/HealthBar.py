@@ -8,13 +8,12 @@ class HealthBar:
     color_back = (0, 0, 0, 200)
     color_front = (0, 250, 0, 200)
 
-    def __init__(self, target):
+    def __init__(self):
         self.background = Shape(0, 0, 600, Global.draw_group.group_gui,
                                 width=Global.BLOCK, height=8, color=HealthBar.color_back)
         self.foreground = Shape(0, 0, 600, Global.draw_group.group_gui,
                                 width=Global.BLOCK - 2, height=6, color=HealthBar.color_front)
         self.timer = Timer(0)
-        self.attribute = target
         self.inbound = False
         self.display = False
         self.visible = False
@@ -28,9 +27,7 @@ class HealthBar:
         self.inbound = visible
         self.visible = self.inbound and self.display
 
-    def appear(self):
-        hp = self.attribute.get('p')
-        mhp = self.attribute.get('P')
+    def appear(self, hp, mhp):
         if hp and mhp:
             width = int(Global.BLOCK * min(1, hp / mhp)) - 2
             self.foreground.width = width

@@ -7,8 +7,6 @@ from src.game import Global
 class Picture(Sprite):
     def __init__(self, texture, z=0, group=None):
         super().__init__(texture, z=z, group=group or Global.draw_group.group_object, batch=Global.draw_group.batch)
-        self.side = 1
-        self.side_y = 1
         self.inbound = False
         self.display = False
 
@@ -17,8 +15,6 @@ class Picture(Sprite):
 
     def reset(self):
         self.set_anchor(self.width / 2, self.height / 2)
-        self.side = 1
-        self.side_y = 1
         self.scale = 1
         self.scale_x = 1
         self.scale_y = 1
@@ -44,22 +40,8 @@ class Picture(Sprite):
         r = Picture(self.image)
         return r
 
-    def face(self, x=0, y=0):
-        if x and self.side != x:
-            self.side = x
-            self.flip(x=1)
-        if y and self.side_y != y:
-            self.side_y = y
-            self.flip(y=1)
-
-    def face_direction(self, direction):
+    def face(self, direction):
         self.rotation = 90 * direction
-
-    def face_cardinal(self, direction):
-        if direction in [1, 2]:
-            self.face(-1)
-        else:
-            self.face(1)
 
     def resize(self, x=1, y=1):
         if x != 1 and self.width:
@@ -69,12 +51,6 @@ class Picture(Sprite):
 
     def place(self, x, y):
         self.update(x=Global.OFFSET[0] + x, y=Global.OFFSET[1] + y)
-
-    def flip(self, x=0, y=0):
-        if x:
-            self.scale_x *= -1
-        if y:
-            self.scale_y *= -1
 
     def switch(self, index):
         pass

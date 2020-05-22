@@ -1,4 +1,4 @@
-from src.entity.unit.Buff import Buff
+from src.entity.unit.Buff import Buff, StatBuff
 
 
 class Buffs:
@@ -34,7 +34,7 @@ class Buffs:
         preexisting = self.get(buff_name)
         if not stack or not preexisting or 'stack' not in preexisting.get_tags():
             buff = None
-            for i in Buff.__subclasses__():
+            for i in Buff.__subclasses__() + StatBuff.__subclasses__():
                 if i.__name__ == buff_name:
                     buff = i(self.host, buff_name, duration, var)
                     break
@@ -44,6 +44,8 @@ class Buffs:
                 elif buff.is_valid():
                     self.buffs.append(buff)
                     buff.on_start()
+                else:
+                    return None
                 return buff
             else:
                 return None

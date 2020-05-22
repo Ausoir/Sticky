@@ -163,7 +163,7 @@ class Body:
                     organ.form.switch(organ.texture_num + numeral)
                 organ.form.reset()
                 organ.set(organ.form)
-                organ.face(self.side, self.direction)
+                organ.flip(self.side, self.direction)
                 organ.form.z = t
 
     def randomize(self, seed):

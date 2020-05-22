@@ -13,17 +13,14 @@ class Unit(Prop):
         self.action = Actions(self)
         self.skills = []
         self.next_action = 'idle'
-        self.direction = 3
         self.obstruct_type = Tile.COLLIDE_UNIT
         self.pilot = None
         from src.form.HealthBar import HealthBar
-        self.healthbar = HealthBar(self.tags)
+        self.healthbar = HealthBar()
         self.sight = Tile.CHECK_SIGHT
-        self.dodge = 0
-        self.strength = 0
-        self.stealth = 0
 
     def __str__(self):
+        self.tags.set('dir', self.direction)
         self.pilot.record()
         att = '[' + ','.join(self.skills) + ']'
         return super().__str__() + ',' + att
@@ -41,12 +38,6 @@ class Unit(Prop):
     def update_tags(self):
         super().update_tags()
         self.form.randomize(self.tags.get('seed', 0))
-
-    def add(self):
-        r = super().add()
-        self.update_skill()
-        self.face(self.tags.get('dir', 0))
-        return r
 
     def set_form(self, arg):
         self.form_name = arg
@@ -100,13 +91,6 @@ class Unit(Prop):
     def use(self):
         self.action.attack()
 
-    def face(self, direction):
-        direction = direction % 4
-        if direction != self.direction:
-            self.direction = direction
-            self.form.face(direction)
-            return True
-
     def face_toward(self, pos):
         diff = pos - self.pos
         horizontal = abs(diff.x) >= abs(diff.y)
@@ -129,35 +113,13 @@ class Unit(Prop):
             diff.x >= 0 and self.direction == 3 or\
             diff.y >= 0 and self.direction == 0
 
-    def update_skill(self, skill=None, remove=False):
-        if not skill:
-            self.dodge = self.get_skill('dodge', stacks=True)
-            self.strength = self.get_skill('strength', stacks=True)
-            self.stealth = self.get_skill('stealth', stacks=True)
-        else:
-            if skill == 'dodge':
-                if remove:
-                    self.dodge -= 1
-                else:
-                    self.dodge += 1
-            elif skill == 'strength':
-                if remove:
-                    self.strength -= 1
-                else:
-                    self.strength += 1
-            elif skill == 'stealth':
-                if remove:
-                    self.stealth -= 1
-                else:
-                    self.stealth += 1
-
     def get_defense(self):
         if self.action.current_action == 'fall':
             return 0
-        return self.dodge + self.tags.get('DEF', 0)
+        return self.tags.get('DEF', 0)
 
     def get_damage(self):
-        return self.strength + self.tags.get('dmg', 0) + 1
+        return self.tags.get('DMG', 0) + 1
 
     def roll_defense(self):
         defense = self.get_defense()
@@ -165,7 +127,7 @@ class Unit(Prop):
 
     def roll_damage(self):
         damage = self.get_damage()
-        dex = min(self.get_skill('dexterity', stacks=True), damage)
+        dex = min(self.tags.get('dmg', 0), damage)
         return Global.r.rand_int(dex, damage)
 
     def hit(self, damage, hitter=None):
@@ -173,11 +135,13 @@ class Unit(Prop):
         backstab = False
         if isinstance(hitter, Prop):
             if self.is_facing(hitter.pos):
-                if hitter.pos == self.pos.get_cardinal(self.direction, 1):
-                    damage -= self.get_skill('block')
+                block = self.get_skill('block')
+                if block and hitter.pos == self.pos.get_cardinal(self.direction, 1):
+                    if self.states.get('Concentration'):
+                        damage -= block
             else:
                 backstab = True
-        if not backstab:
+        if not backstab and self.action.current_action != 'fall':
             damage -= self.roll_defense()
         if self.get_skill('vengeance'):
             if self.states.add('Vengeance', 20).duration == 0:
@@ -186,18 +150,15 @@ class Unit(Prop):
         if damage > 0:
             self.action.idle_frame = 0
             if self.get_skill('constitution'):
-                self.states.add('Invulnerable', 40)
+                self.states.add('Invulnerability', 40)
             self.pilot.hit(hitter)
-            if self.get_skill('parry'):
-                concentration = self.states.get('Concentration')
-                if concentration:
-                    concentration.trigger(['spend'])
-                    from src.entity.Particle import Particle
-                    Particle.make('barrier', self.pos)
-                    self.location.sound.register(self.pos, 0, file='critical')
-                    if isinstance(hitter, Prop):
-                        hitter.decay(damage + self.get_defense())
-                    return 0
+            if self.get_skill('parry') and Global.r.rand_int(0, 4) == 0:
+                from src.entity.Particle import Particle
+                Particle.make('barrier', self.pos)
+                self.location.sound.register(self.pos, 0, file='critical')
+                if isinstance(hitter, Prop):
+                    hitter.decay(damage + self.get_defense())
+                return 0
             self.form.randomize_once(4)
             r = super().hit(damage, hitter)
         return r
@@ -218,9 +179,19 @@ class Unit(Prop):
             if self.get_skill('frenzy'):
                 self.states.add('Damage', 40, 1)
             if not target.is_facing(self.pos):
-                if self.get_skill('assassinate'):
+                if self.get_skill('assassination'):
                     target.tags.set('deaf', 1)
                     self.critical_attack(target)
+            if self.get_skill('knockout') and Global.r.rand_int(0, 4) == 0:
+                target.states.add('Knockout', 20)
+            if self.get_skill('feed'):
+                for i in target.skills:
+                    if i not in self.skills:
+                        self.skills.append(i)
+                        from src.entity.Particle import Particle
+                        Particle.make('spin', target.pos)
+                        self.location.sound.register(target.pos, 2, file='drain', priority=2)
+                        break
         flurry = self.get_skill('flurry', stacks=True)
         if flurry:
             concentration = self.states.get('Concentration')
@@ -229,16 +200,24 @@ class Unit(Prop):
                 concentration.var += 1
                 if concentration.var <= flurry:
                     self.action.attack()
-                    self.form.set_state('attack')
                     concentration.duration = self.action.delay
+                self.form.set_state('flurry')
+                self.form.timer.set(4)
         if self.get_skill('execute'):
             if target.tags.get('p', 20) <= self.get_damage():
                 target.die()
 
     def decay(self, damage):
         r = super().decay(damage)
-        self.healthbar.appear()
+        self.display_hp()
         return r
+
+    def display_hp(self):
+        hp = self.tags.get('p')
+        if hp is not None:
+            m_hp = self.tags.get('P', -1)
+            if m_hp > 0:
+                self.healthbar.appear(hp, m_hp)
 
     def die(self):
         pos = self.pos
@@ -265,7 +244,7 @@ class Unit(Prop):
         return r
 
     def critical_attack(self, target):
-        critical = self.get_skill('assassinate', stacks=True)
+        critical = self.get_skill('assassination', stacks=True)
         target.decay(max(7, critical * 7))
         from src.entity.Particle import Particle
         Particle.make('power', target.pos)
@@ -278,13 +257,13 @@ class Unit(Prop):
         return 'attack'
 
     def get_attack_speed(self):
-        return self.tags.get('aspd', 0) + self.get_skill('agility', stacks=True)
+        return self.tags.get('aspd', 0)
 
     def get_team(self, ally=True):
-        if bool(self.tags.get('bad') == 1) == ally:
-            return self.location.population.bad
+        if ally:
+            return self.location.population.get_team(self.tags.get('team', 0))
         else:
-            return self.location.population.good
+            return self.location.population.get_foe(self.tags.get('team', 0))
 
     def set_team(self, target):
         bad = target.tags.get('bad')

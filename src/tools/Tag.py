@@ -39,10 +39,12 @@ class Tag:
             self.attributes[tag] += arg
             if remove is not None and self.attributes[tag] == remove:
                 del self.attributes[tag]
-            return True
+                return remove
+            else:
+                return self.attributes[tag]
         elif arg != 0:
             self.attributes[tag] = arg
-            return True
+            return self.attributes[tag]
 
     def sync(self, tag, target, ratio=1):
         if target and target != 0:

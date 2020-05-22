@@ -1,7 +1,6 @@
 from src.form.Picture import Picture
 from src.game import Global
 from src.game.Camera import Camera
-from src.game.Turn import Turn
 from src.map.Overlay import Overlay
 from src.map.Shade import Shade
 from src.tools.Data import Data
@@ -18,12 +17,12 @@ class MapView:
         self.draw_tiles = []
         self.tiles = {}
         self.shadows = []
-        self.objects = []
-        self.others = []
+        self.in_bounds = []
         self.sight_range = 0
         self.sight_range_y = 0
         self.view_range = 0
         self.view_range_y = 0
+        self.brightness = 0
         self.new_start = None
         self.old_camera = None
         self.overlay = Overlay()
@@ -64,6 +63,7 @@ class MapView:
         self.old_camera = Camera.target.pos
 
     def turn(self):
+        self.brightness = Global.player.get_brightness()
         self.update_frame += 1
         self.update_fog()
         self.overlay.turn()
@@ -77,7 +77,7 @@ class MapView:
                 key = str(pos_x) + ',' + str(pos_y)
                 tile = self.tiles.get(key)
                 if tile:
-                    if tile.roof == '0':
+                    if tile.roof == 0:
                         self.shadows[index].set_color([120, 0, 0, 40])
                     else:
                         self.shadows[index].show(True)
@@ -87,76 +87,72 @@ class MapView:
     def update(self, editor=False):
         self.draw_frame += 1
         index = 0
-        light_period2 = Turn.rounds * 5
-        light_period = Turn.rounds * 2
         cam_x = self.old_camera.x
         cam_y = self.old_camera.y
-        dim_light = self.overlay.minimum[:3] + [int(self.overlay.minimum[3] / 2)]
-        for pos_y in range(cam_y-self.sight_range_y, cam_y+self.sight_range_y + 1):
-            for pos_x in range(cam_x-self.sight_range, cam_x+self.sight_range + 1):
+        dim_light = self.overlay.minimum[:3] + [int(self.overlay.minimum[3] * .7)]
+        col_range = [cam_x-self.sight_range, cam_x+self.sight_range]
+        row_range = [cam_y-self.sight_range_y, cam_y+self.sight_range_y]
+        for pos_y in range(row_range[0] - 5, row_range[1] + 6):
+            for pos_x in range(col_range[0] - 5, col_range[1] + 6):
                 this_tile = Global.land.get_tile(pos_x, pos_y)
                 if this_tile:
                     this_tile.update_light()
-                    if not editor and self.draw_tiles[index].visible:
-                        if this_tile.light > light_period2:
-                            self.shadows[index].set_color(self.overlay.fade)
-                        elif this_tile.light > light_period:
-                            self.shadows[index].set_color(dim_light)
-                        else:
-                            self.shadows[index].set_color(self.overlay.minimum)
-                vec_x, vec_y = Camera.get_relative_pos(pos_x * Global.BLOCK,
-                                                       pos_y * Global.BLOCK)
-                self.draw_tiles[index].place(vec_x + Global.HALF_BLOCK, vec_y - Global.HALF_BLOCK)
-                self.shadows[index].update(x=vec_x, y=Global.DISPLAY[1] - vec_y)
-                index += 1
+                    if this_tile.roof == 0:
+                        this_tile.light = max(this_tile.light, self.brightness)
+                    in_screen = row_range[0] <= pos_y <= row_range[1] and col_range[0] <= pos_x <= col_range[1]
+                    if in_screen:
+                        if not editor and self.draw_tiles[index].visible:
+                            if this_tile.light > 7:
+                                self.shadows[index].set_color(self.overlay.fade)
+                            elif this_tile.light > 4:
+                                self.shadows[index].set_color(dim_light)
+                            else:
+                                self.shadows[index].set_color(self.overlay.minimum)
+                        vec_x, vec_y = Camera.get_relative_pos(pos_x * Global.BLOCK,
+                                                               pos_y * Global.BLOCK)
+                        self.draw_tiles[index].place(vec_x + Global.HALF_BLOCK, vec_y - Global.HALF_BLOCK)
+                        self.shadows[index].update(x=vec_x, y=Global.DISPLAY[1] - vec_y)
+                        index += 1
+                    for thing in this_tile.things:
+                        thing.update()
+                    for thing in this_tile.others:
+                        thing.update()
         tx = self.draw_tiles[0].x - Global.OFFSET[0] - Global.BLOCK
         ty = Global.DISPLAY[1] - (self.draw_tiles[0].y - Global.OFFSET[1]) - Global.HALF_BLOCK - Global.BLOCK
         self.tape.update(x=tx, y=ty)
-        for v in self.objects:
-            v.update()
-        for v in self.others:
-            v.update()
 
     def update_region(self):
-        for i in self.objects:
-            if not i.removed:
-                i.bound(False)
-        for i in self.others:
-            i.form.bound(False)
-        self.objects = []
-        self.others = []
+        for i in self.in_bounds:
+            for thing in i.things:
+                thing.bound(False)
+            for thing in i.others:
+                thing.form.bound(False)
+        self.in_bounds = []
         cam_x = Camera.target.pos.x
         cam_y = Camera.target.pos.y
         index = 0
-        daylight = Global.player.get_brightness()
-        for pos_y in range(cam_y-self.sight_range_y, cam_y+self.sight_range_y + 1):
-            for pos_x in range(cam_x-self.sight_range, cam_x+self.sight_range + 1):
+        col_range = [cam_x-self.sight_range, cam_x+self.sight_range]
+        row_range = [cam_y-self.sight_range_y, cam_y+self.sight_range_y]
+        for pos_y in range(row_range[0], row_range[1] + 1):
+            for pos_x in range(col_range[0], col_range[1] + 1):
                 key = str(pos_x) + ',' + str(pos_y)
-                tile = self.tiles.get(key)
-                tile_x = pos_x - cam_x
-                tile_y = pos_y - cam_y
-                in_view_range = abs(tile_x) <= self.view_range and abs(tile_y) <= self.view_range_y
-                if tile:
-                    if tile.roof == '0':
-                        tile.light_source = max(tile.light_source, daylight)
-                        tile.light = max(tile.light, daylight)
-                    if in_view_range or tile.light:
-                        if tile.shader == 1:
-                            self.shadows[index].shade_walls(tile.joint_neighbors)
+                this_tile = self.tiles.get(key)
+                if this_tile:
+                    if this_tile.in_sight:
+                        if this_tile.shader == 1:
+                            self.shadows[index].shade_walls(this_tile.joint_neighbors)
                         else:
                             self.shadows[index].remove_shades()
-                        self.draw_tiles[index].set(Data.get_cache(tile.get_image()))
-                        self.draw_tiles[index].face_direction(tile.direction)
+                        self.draw_tiles[index].set(Data.get_cache(this_tile.get_image()))
+                        self.draw_tiles[index].face(this_tile.direction)
                         self.draw_tiles[index].show(True)
-                        row = tile.y - cam_y + self.sight_range_y
-                        for thing in tile.things:
-                            if not thing.removed:
-                                thing.bound(True)
-                                thing.set_row(row)
-                                self.objects.append(thing)
-                        for thing in tile.others:
+                        row = this_tile.y - cam_y + self.sight_range_y
+                        self.in_bounds.append(this_tile)
+                        for thing in this_tile.things:
+                            thing.bound(True)
+                            thing.set_row(row)
+                        for thing in this_tile.others:
                             thing.form.bound(True)
-                            self.others.append(thing)
                     else:  # tile is dark
                         self.shadows[index].set_color([0, 0, 0, 255])
                         self.shadows[index].remove_shades()
@@ -173,6 +169,7 @@ class MapView:
         self.tiles = {str(Camera.target.pos.x) + ',' + str(Camera.target.pos.y): center}
         for i in range(8):
             self.shadow_cast(Camera.target.pos, 1, 1.0, 0.0, self.octant_flip[i], 0)
+        center.in_sight = True
 
     def shadow_cast(self, camera, row, start, end, flips, depth):
         if start < end:
@@ -195,9 +192,12 @@ class MapView:
                     tile = Global.land.get_tile(map_x, map_y)
                     if tile:
                         if abs(dx) < self.sight_range + 1 and abs(dy) < self.sight_range + 1:
-                            # in_view_range = abs(tile_x) <= self.view_range and abs(tile_y) <= self.view_range_y
-                            # if in_view_range or (tile.light and abs(tile_x) <= self.sight_range
-                            #                      and abs(tile_y) <= self.sight_range_y):
+                            in_view_range = abs(tile_x) <= self.view_range and abs(tile_y) <= self.view_range_y
+                            if in_view_range or (tile.light and abs(tile_x) <= self.sight_range
+                                                 and abs(tile_y) <= self.sight_range_y):
+                                tile.in_sight = True
+                            else:
+                                tile.in_sight = False
                             self.tiles[str(map_x) + ',' + str(map_y)] = tile
                         if blocked:
                             if tile.is_land(Global.player.character.sight):

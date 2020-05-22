@@ -16,6 +16,7 @@ ENTER,#>menu>examine
 SPACE,use
 Q,grab
 E,trinket
+R,sheathe
 Z,#equipment
 X,#inventory
 C,#skill

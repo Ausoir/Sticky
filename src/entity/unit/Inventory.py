@@ -50,6 +50,11 @@ class Inventory:
         self.items.append(item)
         return len(self.items) - 1
 
+    def get_item_index(self, item_name):
+        for k, i in enumerate(self.items):
+            if i.name == item_name:
+                return k
+
     def get_item(self, item_index):
         if 0 <= item_index < len(self.items):
             item = self.items[item_index]
@@ -57,6 +62,11 @@ class Inventory:
             item.pos = self.host.pos
             item.on_unwield()
             return item.add()
+
+    def find_weapon(self):
+        for k, i in enumerate(self.items):
+            if i.tags.get('dmg', 0) > 0 or i.tags.get('DMG', 0) > 0:
+                return k
 
     def update_capacity(self):
         while not self.is_vacant(0) and len(self.items) > 0:

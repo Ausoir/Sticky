@@ -10,13 +10,14 @@ from src.form.Picture import Picture
 
 class Data:
     cache = {}
-    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'spells', 'miscellaneous']
+    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'miscellaneous']
     atlas = None
 
     @staticmethod
     def init():
         Data.atlas = TextureAtlas()
         Data.set_cache('none', Texture.create(1, 1))
+        Data.set_cache('attributes.txt', Data.process_raw(Data.read('data/raw/attributes.txt')))
         res = Data.process_raw(Data.read('data/raw/resource.txt'))
         for i in res:
             Data.initialize_image(i[0], i[1], i[2], i[3])

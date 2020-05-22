@@ -7,6 +7,7 @@ class Prop(Object):
     def __init__(self, location):
         super().__init__(location)
         from src.entity.unit.Buffs import Buffs
+        self.direction = 0
         self.hittable = 1
         self.states = Buffs(self)
         self.tags = Attribute(self)
@@ -35,6 +36,20 @@ class Prop(Object):
 
     def update_tags(self):
         self.tags.update()
+        direction = self.tags.get('dir')
+        if direction:
+            self.face(direction)
+
+    def face(self, direction):
+        direction = direction % 4
+        if direction != self.direction:
+            self.direction = direction
+            self.form.face(direction)
+            return True
+
+    def set_form(self, arg):
+        super().set_form(arg)
+        self.form.face(self.direction)
 
     def turn(self):
         self.states.update()
@@ -98,11 +113,11 @@ class Prop(Object):
         return Data.get_line('descriptions.txt', self.name)
 
     def describe(self):
-        r = self.name
         from src.tools.Dialog import Dialog
-        r += '   (' + Dialog.weight(self.tags.get('w', 1)) + ')'
         from src.tools.Data import Data
+        r = self.name
         data = Data.get_line('descriptions.txt', r)
+        r += '   (' + Dialog.weight(self.tags.get('w', 1)) + ')'
         if data:
             r += '\n' + data[1]
         hp = self.tags.get('p')
@@ -114,10 +129,19 @@ class Prop(Object):
         hinder = self.tags.get('spd')
         if hinder:
             r += '\n' + Dialog.get('terrain speed', [hinder])
-        damage = self.tags.get('dmg')
+        damage = self.tags.get('DMG')
         if damage:
-            r += '\n' + Dialog.get('Damage') + ': ' + Dialog.sign(damage)
+            damage_min = self.tags.get('dmg', 0)
+            r += '\n' + Dialog.get('Damage') + ': ' + str(damage_min) + ' ~ ' + str(damage)
         return r
 
     def on_sleep(self, time):
         self.states.trigger(['time', time])
+
+    def switch_form(self):
+        alt = self.tags.get('alt')
+        if alt:
+            original = self.form_name
+            self.set_form(alt)
+            self.form.show(True)
+            self.tags.set('alt', original)

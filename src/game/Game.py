@@ -16,6 +16,7 @@ class Game:
         Turn.add(Global.map_view.turn)
         Turn.fast_queue.append(Global.map_view.update)
         Turn.add(self.turn)
+        Turn.hour_change.append(self.on_hour_change)
         from src.interface.Control import Control
         self.control = Control(self.input)
         data = Data.process_raw(Data.read('save/player.char'))
@@ -70,15 +71,10 @@ class Game:
     def is_daytime(self):
         return 5 < self.days % 24 < 20
 
-    def sleep(self, time, force=False, blackout=True):
+    def sleep(self, time, blackout=True):
         if time > 0:
-            if not force:
-                hunger = self.character.tags.get('hunger')
-                if hunger + (time * 4) > 100:
-                    nutrition = self.eat()
-                    if not nutrition:
-                        return False
             self.character.tags.increment('hunger', time * 4)
+            self.character.tags.minmax('hunger', 0, 100)
             self.character.decay(-time)
             self.days += time
             self.character.location.on_sleep(time)
@@ -148,6 +144,9 @@ class Game:
             Camera.update()
             Global.map_view.update_region()
 
+    def on_hour_change(self):
+        self.sleep(1, blackout=False)
+
     def save(self):
         self.tags.set('map', self.character.location.name)
         self.tags.set('time', self.days)
@@ -196,7 +195,7 @@ class Game:
         Global.main.monologue.set(Dialog.get('!pay'))
 
     def is_bright(self):
-        if self.is_daytime() or self.character.pos.light > 1:
+        if self.is_daytime() or self.character.pos.light >= Turn.rounds:
             return True
         Global.main.monologue.set(Dialog.get('!bright'))
 

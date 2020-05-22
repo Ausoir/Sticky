@@ -7,5 +7,8 @@ worm,data/unit/worm,unit/worm
 slime,data/unit/slime,unit/slime
 rat,data/unit/rat,unit/rat
 dog,data/unit/dog,unit/dog
+spider,data/unit/spider,unit/spider
+spider2,data/unit/spider,unit/spider2
+spider3,data/unit/spider,unit/spider3
 ghost,data/unit/slime,g_8x0
 phantom,data/unit/phantom,none

@@ -57,6 +57,6 @@ class Talisman(Headgear):
         if self.host:
             spell = self.tags.get('spell')
             if spell:
-                from src.entity.unit.item.Spell import Spell
-                Spell.perform(self.host, spell)
+                from src.entity.unit.item.Alchemy import Alchemy
+                Alchemy.perform(self.host, spell)
         super().die()

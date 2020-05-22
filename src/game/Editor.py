@@ -26,7 +26,8 @@ class Editor:
     def update(self):
         self.control.turn()
         Camera.target.relocate(to=Camera.target.pos.get_neighbor(self.moving[0], self.moving[1], limit=True))
-        Camera.target.pos.glow(24)
+        for tile in Camera.target.pos.get_area(8, 6):
+            tile.light = 4
         Global.map_view.update_region()
         Global.map_view.update_fog()
         Global.map_view.update(editor=True)
@@ -80,6 +81,9 @@ class Editor:
             self.moving = [-1, 0]
         elif action == 'right':
             self.moving = [1, 0]
+        elif action == 'fill':
+            tile = Global.land.get_tile(m[0], m[1], limit=True)
+            self.tool.fill(tile)
         elif action == 'sample':
             if action != self.prev_action:
                 self.tool.cancel()
@@ -141,10 +145,6 @@ class Editor:
             self.tool.cancel()
             self.tool = ToolObject(action)
             self.display_text = 'Headgears Tool'
-        elif action == 'spells':
-            self.tool.cancel()
-            self.tool = ToolObject(action)
-            self.display_text = 'Spells Tool'
         elif action == 'miscellaneous':
             self.tool.cancel()
             self.tool = ToolObject(action)
@@ -161,9 +161,6 @@ class Editor:
             else:
                 Global.land.save()
             self.display_text = 'saved to ' + Global.land.name
-        elif action == 'quit':
-            self.tool.cancel()
-            Global.main.quit()
         self.prev_action = action
         if self.display_text != '':
             Global.main.monologue.set(self.display_text + ' @ ' + self.display_subtext)
@@ -257,6 +254,9 @@ class Tool:
     def cycle(self, inc):
         pass
 
+    def fill(self, tile):
+        pass
+
 
 class ToolTerrain(Tool):
     def __init__(self):
@@ -304,6 +304,19 @@ class ToolTerrain(Tool):
                 self.tile.connect()
                 self.tile.update_update_shader()
 
+    def fill(self, tile):
+        self.fill_recurse(tile, tile.terrain)
+        Global.player.world.dirty_pos(self.tile.x, self.tile.y)
+        Global.land.process_terrain()
+
+    def fill_recurse(self, tile, target):
+        if tile and tile.terrain == target and tile.in_sight and tile.terrain != self.terrain:
+            tile.set_terrain(self.terrain)
+            self.fill_recurse(tile.get_neighbor(1, 0), target)
+            self.fill_recurse(tile.get_neighbor(-1, 0), target)
+            self.fill_recurse(tile.get_neighbor(0, 1), target)
+            self.fill_recurse(tile.get_neighbor(0, -1), target)
+
 
 class ToolRoof(Tool):
     def input(self, button, tile):
@@ -316,10 +329,10 @@ class ToolRoof(Tool):
                         self.input(1, neighbor)
         elif button == 1:
             Global.player.world.dirty_pos(tile.x, tile.y)
-            tile.roof = 'x'
+            tile.roof = 1
         elif button == 2:
             Global.player.world.dirty_pos(tile.x, tile.y)
-            tile.roof = '0'
+            tile.roof = 0
 
 
 class ToolObject(Tool):

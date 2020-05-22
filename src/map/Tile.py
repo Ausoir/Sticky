@@ -64,10 +64,11 @@ class Tile(Space):
         self.sub_image = None
         self.things = List()
         self.others = List()
-        self.roof = '0'
+        self.roof = 0
         self.light = 0
         self.light_source = 0
         self.joint_neighbors = [0, 0, 0, 0]
+        self.in_sight = False
 
     def set_terrain(self, terrain):
         data = Tile.DICTIONARY.get(terrain)
@@ -115,18 +116,18 @@ class Tile(Space):
         if self.light_source > 0:
             self.light_source -= 1
         else:
+            if self.light > 0:
+                self.light -= 1
             for coord in Global.cardinal_coord:
                 tile = self.get_neighbor(coord[0], coord[1])
                 if tile:
-                    diminish = tile.light - Turn.rounds
+                    diminish = tile.light - 1
                     if diminish > self.light:
                         if not tile.is_land(Tile.CHECK_SIGHT):
                             self.light = diminish
-            if self.light > 0:
-                self.light -= 1
 
     def glow(self, mag):
-        self.light = max(mag * Turn.rounds, self.light)
+        self.light = min(18, max(mag, self.light))
         self.light_source = Turn.rounds
         diff = (Camera.target.pos - self).abs()
         if diff.x > Global.map_view.sight_range or diff.y > Global.map_view.sight_range_y:
@@ -147,12 +148,30 @@ class Tile(Space):
                             tile.update_light()
                             tile.glow_reach(current_diff)
 
+    def glow_stop(self):
+        if self.light > 7:
+            radius = min(7, self.light - 7)
+            for neighbor in self.get_area(radius, radius):
+                neighbor.light = 0
+                neighbor.light_source = 0
+        self.light_source = 0
+        self.light = 0
+
     def get_neighbor(self, x, y, limit=False):
         return self.location.get_tile(self.x + x, self.y + y, limit=limit)
 
     def get_cardinal(self, direction, distance=1, limit=True):
-        coord = Global.cardinal_coord[direction]
+        coord = Global.cardinal_coord[direction % 4]
         return self.location.get_tile(self.x + coord[0] * distance, self.y + coord[1] * distance, limit=limit)
+
+    def get_area(self, range_x, range_y):
+        tiles = []
+        for x in range(-range_x, range_x+1):
+            for y in range(-range_y, range_y+1):
+                tile = self.location.get_tile(self.x + x, self.y + y)
+                if tile:
+                    tiles.append(tile)
+        return tiles
 
     def get_vec(self):
         return self * Global.BLOCK
@@ -166,9 +185,9 @@ class Tile(Space):
     def is_land(self, check):
         if self.speed == -10 and Tile.COLLIDE_TERRAIN in check:
             return 1
-        elif self.speed == -11 and Tile.COLLIDE_WINDOW in check:
+        elif self.speed == -9 and Tile.COLLIDE_WINDOW in check:
             return 1
-        elif self.speed == -12 and Tile.COLLIDE_FOG in check:
+        elif self.speed == -8 and Tile.COLLIDE_FOG in check:
             return 1
         for i in self.things:
             if i.obstruct_type in check:
@@ -185,56 +204,62 @@ class Tile(Space):
 
     def connect(self):
         if self.extend != 0:
-            grid = []
-            for coord in Global.cardinal_coord:
-                tile = self.get_neighbor(coord[0], coord[1])
-                grid.append(tile is None or tile.extend == self.extend)
-            if grid == [True, True, True, True]:
-                self.sub_image = 5
-            elif grid == [False, False, False, False]:
-                self.sub_image = 0
-            elif grid == [True, False, True, True]:
-                self.direction = 1
-                self.sub_image = 4
-            elif grid == [True, True, False, True]:
-                self.direction = 2
-                self.sub_image = 4
-            elif grid == [True, True, True, False]:
-                self.direction = 3
-                self.sub_image = 4
-            elif grid == [False, True, True, True]:
-                self.direction = 0
-                self.sub_image = 4
-            elif grid == [False, True, False, True]:
-                self.direction = 1
-                self.sub_image = 3
-            elif grid == [True, False, True, False]:
-                self.direction = 2
-                self.sub_image = 3
-            elif grid == [True, True, False, False]:
-                self.direction = 1
-                self.sub_image = 2
-            elif grid == [False, True, True, False]:
-                self.direction = 2
-                self.sub_image = 2
-            elif grid == [False, False, True, True]:
-                self.direction = 3
-                self.sub_image = 2
-            elif grid == [True, False, False, True]:
-                self.direction = 0
-                self.sub_image = 2
-            elif grid == [False, True, False, False]:
-                self.direction = 1
-                self.sub_image = 1
-            elif grid == [False, False, True, False]:
-                self.direction = 2
-                self.sub_image = 1
-            elif grid == [False, False, False, True]:
-                self.direction = 3
-                self.sub_image = 1
-            elif grid == [True, False, False, False]:
-                self.direction = 0
-                self.sub_image = 1
-            else:
-                print(str(grid) + ' error')
-                assert False
+            def fn(tile):
+                return tile is None or tile.extend == self.extend
+            connection, direction = Tile.get_connection(self, fn)
+            if connection:
+                self.sub_image = connection
+            self.direction = direction
+
+    @staticmethod
+    def get_connection(self, fn):
+        grid = []
+        for coord in Global.cardinal_coord:
+            tile = self.get_neighbor(coord[0], coord[1])
+            grid.append(fn(tile))
+        connection, direction = 0, 0
+        if grid == [True, True, True, True]:
+            connection = 5
+        elif grid == [True, False, True, True]:
+            direction = 1
+            connection = 4
+        elif grid == [True, True, False, True]:
+            direction = 2
+            connection = 4
+        elif grid == [True, True, True, False]:
+            direction = 3
+            connection = 4
+        elif grid == [False, True, True, True]:
+            direction = 0
+            connection = 4
+        elif grid == [False, True, False, True]:
+            direction = 1
+            connection = 2
+        elif grid == [True, False, True, False]:
+            direction = 2
+            connection = 2
+        elif grid == [True, True, False, False]:
+            direction = 1
+            connection = 3
+        elif grid == [False, True, True, False]:
+            direction = 2
+            connection = 3
+        elif grid == [False, False, True, True]:
+            direction = 3
+            connection = 3
+        elif grid == [True, False, False, True]:
+            direction = 0
+            connection = 3
+        elif grid == [False, True, False, False]:
+            direction = 1
+            connection = 1
+        elif grid == [False, False, True, False]:
+            direction = 2
+            connection = 1
+        elif grid == [False, False, False, True]:
+            direction = 3
+            connection = 1
+        elif grid == [True, False, False, False]:
+            direction = 0
+            connection = 1
+        return connection, direction

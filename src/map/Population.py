@@ -3,8 +3,7 @@ from src.entity.unit.Unit import Unit
 
 class Population:
     def __init__(self):
-        self.good = []
-        self.bad = []
+        self.teams = [[], [], [], []]
         self.other = []
 
     def __str__(self):
@@ -12,35 +11,50 @@ class Population:
         for i in self.other:
             if i.save:
                 r.append('['+i.__str__()+']')
-        for i in self.bad:
-            if i.save:
-                r.append('['+i.__str__()+']')
-        for i in self.good:
-            if i.save:
-                r.append('['+i.__str__()+']')
+        for team in self.teams:
+            for i in team:
+                if i.save:
+                    r.append('['+i.__str__()+']')
         return ','.join(r)
 
     def add(self, unit):
         if not isinstance(unit, Unit):
             self.other.append(unit)
-        elif unit.tags.get('bad'):
-            self.bad.append(unit)
         else:
-            self.good.append(unit)
+            team = unit.tags.get('team', 0)
+            self.teams[team].append(unit)
 
     def remove(self, unit):
-        if unit in self.other:
+        if not isinstance(unit, Unit):
             self.other.remove(unit)
-        elif unit in self.bad:
-            self.bad.remove(unit)
-        elif unit in self.good:
-            self.good.remove(unit)
+        else:
+            team = unit.tags.get('team', 0)
+            self.teams[team].remove(unit)
 
     def get_units(self):
-        return self.good + self.bad
+        r = []
+        for i in self.teams:
+            r += i
+        return r
+
+    def get_team(self, team):
+        if team == 0:
+            return []
+        else:
+            return self.teams[team]
+
+    def get_foe(self, team):
+        if team == 0:
+            return []
+        else:
+            r = []
+            for k, i in enumerate(self.teams):
+                if k != 0 and k != team:
+                    r += i
+            return r
 
     def get_all(self):
-        return self.good + self.bad + self.other
+        return self.get_units() + self.other
 
     def get_close(self, pos, mag):
         r = []

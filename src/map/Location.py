@@ -136,15 +136,6 @@ class Location:
                     return tile
         return self.collide_line(pos1.x, pos1.y, pos2.x, pos2.y, fn, distance)
 
-    def get_area(self, center_tile, range_x, range_y):
-        tiles = []
-        for x in range(-range_x, range_x+1):
-            for y in range(-range_y, range_y+1):
-                tile = self.get_tile(center_tile.x + x, center_tile.y + y)
-                if tile:
-                    tiles.append(tile)
-        return tiles
-
     def flip(self, flip_x, flip_y):
         if flip_y:
             self.tiles.reverse()

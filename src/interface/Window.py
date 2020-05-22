@@ -17,6 +17,8 @@ class Window(Shape):
     font_color3 = (60, 80, 80, 220)
 
     def __init__(self, x, y, width, height, name=0, color=fore_color1, multi_line=False):
+        if not color:
+            color = Window.fore_color_transparent
         super().__init__(x, y, 900, width=width, height=height, color=color, group=Global.draw_group.group_gui)
         self.name = name
         self.children = []

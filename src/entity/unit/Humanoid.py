@@ -25,6 +25,7 @@ class Humanoid(Unit):
 
     def load(self, p):
         index = super().load(p)
+        self.pilot.is_humanoid = True
         from src.entity.Stock import Stock
         if p[index]:
             if isinstance(p[index], str):
@@ -90,6 +91,82 @@ class Humanoid(Unit):
         if self.headgear:
             self.headgear.bound(visible)
 
+    def get_hitter(self):
+        if self.weapon:
+            return self.weapon
+        return self
+
+    def get_damage(self):
+        max_d = super().get_damage()
+        if self.weapon:
+            return max(self.weapon.tags.get('dmg', 0), max_d + self.weapon.tags.get('DMG', 0))
+        else:
+            return max_d
+
+    def get_possessions(self):
+        r = self.get_equipments()
+        r += self.inventory.items
+        return r
+
+    def get_equipments(self):
+        r = []
+        if self.weapon:
+            r.append(self.weapon)
+        if self.armor:
+            r.append(self.armor)
+        if self.headgear:
+            r.append(self.headgear)
+        return r
+
+    def get_accessibles(self):
+        r = []
+        from src.entity.unit.item.Item import Item
+        for thing in self.pos.things:
+            if isinstance(thing, Item):
+                r.append(thing)
+        r += self.inventory.items
+        return r
+
+    def get_skill(self, skill, stacks=False):
+        r = super().get_skill(skill, stacks)
+        if self.armor:
+            if stacks or r == 0:
+                if self.armor.tags.get('skill') == skill:
+                    r += 1
+        if self.headgear:
+            if stacks or r == 0:
+                if self.headgear.tags.get('skill') == skill:
+                    r += 1
+        return r
+
+    def get_attack_motion(self):
+        if not self.weapon:
+            return 'kick'
+        return super().get_attack_motion()
+
+    def get_attack_speed(self):
+        r = super().get_attack_speed()
+        if self.weapon:
+            r -= self.weapon.get_weight() - 2
+        return r
+
+    def get_capacity(self):
+        r = 5 + self.tags.get('space', 0)
+        if self.armor:
+            r += self.armor.tags.get('space', 0)
+        if self.headgear:
+            r += self.headgear.tags.get('space', 0)
+        return r
+
+    def get_equipment_weight(self):
+        r = 0
+        for i in self.get_possessions():
+            r += i.get_weight()
+        return r
+
+    def get_weight(self):
+        return super().get_weight() + self.get_equipment_weight()
+
     def turn(self):
         super().turn()
         if self.weapon:
@@ -148,6 +225,7 @@ class Humanoid(Unit):
                 y = bound_y - self.form.organs[2].lower_joint.y
                 arm = (self.form.organs[2].lower_joint - self.form.organs[2].upper_joint).get_atan()
                 self.weapon.form.rotation = arm - 90 + (15 * self.form.side)
+            self.weapon.form.scale_x = self.form.side
             self.weapon.form.place(x, y)
         if self.headgear:
             x = bound_x + self.form.organs[0].lower_joint.x
@@ -160,50 +238,34 @@ class Humanoid(Unit):
     def face(self, direction):
         if self.headgear:
             self.headgear.face(direction)
-        if self.weapon:
-            self.weapon.face(direction)
         super().face(direction)
 
-    def get_hitter(self):
-        if self.weapon:
-            return self.weapon
-        return self
+    def decay(self, damage):
+        if not self.armor:
+            return super().decay(damage)
+        self.display_hp()
+        return 1
 
-    def get_damage(self):
-        max_d = super().get_damage()
-        if self.weapon:
-            return max(0, max_d + self.weapon.tags.get('dmg', 0))
+    def get_durability(self):
+        hp = self.tags.get('p')
+        mhp = self.tags.get('P')
+        if self.armor:
+            a_hp = self.armor.tags.get('p')
+            a_mhp = self.armor.tags.get('P')
         else:
-            return max_d
+            a_hp = 0
+            a_mhp = 0
+        return a_hp, a_mhp, hp, mhp
+
+    def display_hp(self):
+        a_hp, a_mhp, hp, mhp = self.get_durability()
+        if a_hp + hp >= 0 and a_mhp + mhp > 0:
+            self.healthbar.appear(a_hp + hp, a_mhp + mhp)
 
     def on_attack(self, target):
         super().on_attack(target)
         if self.weapon:
             self.weapon.on_attack(target)
-
-    def get_possessions(self):
-        r = self.get_equipments()
-        r += self.inventory.items
-        return r
-
-    def get_equipments(self):
-        r = []
-        if self.weapon:
-            r.append(self.weapon)
-        if self.armor:
-            r.append(self.armor)
-        if self.headgear:
-            r.append(self.headgear)
-        return r
-
-    def get_accessibles(self):
-        r = []
-        from src.entity.unit.item.Item import Item
-        for thing in self.pos.things:
-            if isinstance(thing, Item):
-                r.append(thing)
-        r += self.inventory.items
-        return r
 
     def drop(self):
         if self.weapon:
@@ -226,47 +288,16 @@ class Humanoid(Unit):
         model = Model(face)
         return model
 
-    def get_skill(self, skill, stacks=False):
-        r = super().get_skill(skill, stacks)
-        if self.armor:
-            if stacks or r == 0:
-                if self.armor.tags.get('skill') == skill:
-                    r += 1
-        if self.headgear:
-            if stacks or r == 0:
-                if self.headgear.tags.get('skill') == skill:
-                    r += 1
-        return r
-
-    def get_attack_motion(self):
-        if not self.weapon:
-            return 'kick'
-        return super().get_attack_motion()
-
-    def get_attack_speed(self):
-        r = super().get_attack_speed()
-        if self.weapon:
-            r -= self.weapon.get_weight() - 2
-        return r
-
-    def get_capacity(self):
-        r = 5
-        r += self.get_skill('endurance', stacks=True)
-        if self.armor:
-            r += self.armor.tags.get('space', 0)
-        if self.headgear:
-            r += self.headgear.tags.get('space', 0)
-        return r
+    def unsheathe(self, index):
+        item = self.inventory.get_item(index)
+        if item:
+            def change():
+                self.drop()
+                item.on_wield(self)
+            self.action.act('grab', 8)
+            self.action.on_finish = change
+            self.action.delay = 4
 
     def on_sleep(self, time):
         super().on_sleep(time)
         self.inventory.on_sleep(time)
-
-    def get_equipment_weight(self):
-        r = 0
-        for i in self.get_possessions():
-            r += i.get_weight()
-        return r
-
-    def get_weight(self):
-        return super().get_weight() + self.get_equipment_weight()

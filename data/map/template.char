@@ -1,3 +1,2 @@
-instance
-17,0,instance
-#48,[1,1],Human,Character,human,[P:114,p:114,mat:flesh,money:9,talent:None,seed:8140,full:10],[[Health,-1,1],[Concentration,-1,0]],[time,gen1],[#31,[1,1],Jumpsuit,Armor,image/unit/scalemail,[P:100,p:20,skill:escape],[],1,0,0],0,0,[]
+[map:world,time:17,frame:759,coord_x:0,coord_y:0,seed:1233]
+[6,10],Human,Humanoid,human,[P:5,p:0,seed:318,team:1,hunger:100,money:5,def:0,deaf:1,dir:2,DMG:0,DEF:-1,sth:1],[[Concentration,-1,0]],[time,feed,flurry,weave],[[26,30],Tuxedo,Armor,wear_2x1,[seed:8870,P:10,p:10,DEF:-1,sth:1],[]],0,[[26,30],Katana,Item,katana,[$:11,P:8,p:8,def:7,fuel:0,pivx:6,sharp:1,w:2,DMG:3],[]],[]

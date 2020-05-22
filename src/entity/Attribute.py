@@ -23,9 +23,26 @@ class Attribute(Tag):
         if 'pivy' in self.attributes:
             self.host.form.image.anchor_y = int(self.host.form.height / 2) + self.attributes['pivy']
         if 'seed' in self.attributes:
+            from src.game import Global
             if self.attributes['seed'] == -1:
-                from src.game import Global
-                self.attributes['seed'] = Global.r.rand_int(1, 9999)
+                seed = Global.r.rand_int(1, 9999)
+                self.attributes['seed'] = seed
+                Global.r_t.reset(seed)
+            add_tag = self.remove('+')
+            if add_tag:
+                new_tags = add_tag.split('&')
+                from src.tools.Data import Data
+                for line in new_tags:
+                    data = Data.get_line('attributes.txt', line)[1]
+                    tag = Global.r_t.rand_list(data)
+                    if tag:
+                        if isinstance(tag, list):
+                            for one_tag in tag:
+                                tag_parts = one_tag.split(':')
+                                self.increment(tag_parts[0], Data.parse(tag_parts[1])[0])
+                        else:
+                            tag_parts = tag.split(':')
+                            self.increment(tag_parts[0], Data.parse(tag_parts[1])[0])
 
     def get_carry_over(self):
         permanent = ['money', 'seed', 'full']

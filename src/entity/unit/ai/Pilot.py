@@ -10,6 +10,7 @@ class Pilot:
         self.route = None
         self.task = None
         self.priority = 5
+        self.is_humanoid = False
 
     def record(self):
         if self.host.tags.get('ai'):
@@ -30,6 +31,11 @@ class Pilot:
             self.route = Routes(self.host, True)
         elif arg == 'ally':
             self.default = Follow(self)
+            self.move = Path(self)
+            self.attack = Attack(self)
+            self.route = Routes(self.host, False)
+        elif arg == 'roam':
+            self.default = Wander(self)
             self.move = Path(self)
             self.attack = Attack(self)
             self.route = Routes(self.host, False)
@@ -87,7 +93,7 @@ class Pilot:
             diff_x = abs(thing.pos.x - self.host.pos.x)
             diff_y = abs(thing.pos.y - self.host.pos.y)
             if self.host.is_facing(thing.pos):
-                s = thing.stealth
+                s = thing.tags.get('sth', 0)
                 if thing.pos.light:
                     in_range = diff_x <= Global.map_view.sight_range - s and diff_y <= Global.map_view.sight_range_y - s
                 else:
@@ -160,11 +166,8 @@ class Routes:
             else:
                 return 0
         weight = 0
-        from src.entity.unit.Unit import Unit
         for i in tile.things:
-            if isinstance(i, Unit) and self.host in i.get_team():
-                return -1
-            elif i.obstruct_type in self.host.collision_type:
+            if i.obstruct_type in self.host.collision_type:
                 hp = i.tags.get('p')
                 if not hp or self.host.get_damage() <= i.tags.get('def', 0):
                     return -1
@@ -175,7 +178,7 @@ class Routes:
                 weight += 3
             else:
                 return -1
-        elif tile.speed == -11:
+        elif tile.speed == -9:
             return -1
         return weight
 

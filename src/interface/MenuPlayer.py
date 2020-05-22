@@ -40,10 +40,9 @@ class MenuPlayer(Menu):
         map_name = 'instance'
         # map_name = 'x' + str(host.pos.x) + 'y' + str(host.pos.y)
         self.window.add(Menu.make(Dialog.get('Enter map'), enter))
-        hp = host.tags.get('p')
-        mhp = host.tags.get('P')
-        rmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
-        text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('health')
+        a_hp, a_mhp, hp, mhp = host.get_durability()
+        rmb = self.get_message(Dialog.get('dsc_health', [a_hp, a_mhp, hp, mhp]))
+        text = str(int((hp + a_hp) / (mhp + a_mhp) * 100)) + '% ' + Dialog.get('Health')
         hp_display = Menu.make(text, rmb, color=None)
         self.window.add(hp_display)
         datetime = Dialog.date(Global.player.days)
@@ -59,7 +58,9 @@ class MenuPlayer(Menu):
         defense = str(mat_def) + ' ~ ' + str(host.get_defense() + mat_def)
         rmb = self.get_message(Dialog.get('dsc_level'))
         self.window.add(Menu.make(Dialog.get('Level'), rmb, color=None))
-        self.sub_window.add(Menu.make(str(len(host.skills)), None, color=None))
+        tag_level = host.tags.get('level', 0)
+        level = str(int(tag_level / 100)) + ' (' + str(tag_level % 100) + '%)'
+        self.sub_window.add(Menu.make(level, None, color=None))
         rmb = self.get_message(Dialog.get('dsc_attack'))
         self.window.add(Menu.make(Dialog.get('Attack'), rmb, color=None))
         self.sub_window.add(Menu.make(attack, None, color=None))
@@ -75,12 +76,22 @@ class MenuPlayer(Menu):
 
     def menu_main(self):
         def update():
-            hp = host.tags.get('p')
-            mhp = host.tags.get('P')
-            trmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
-            text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('health')
+            a_hp, a_mhp, hp, mhp = host.get_durability()
+            rmb = self.get_message(Dialog.get('dsc_health', [a_hp, a_mhp, hp, mhp]))
+            text = str(int((hp + a_hp) / (mhp + a_mhp) * 100)) + '% ' + Dialog.get('Health')
             hp_display.set_text(text)
-            hp_display.on_click = trmb
+            hp_display.on_click = rmb
+
+            hunger = host.tags.get('hunger', 0)
+            datetime = Dialog.date(Global.player.days)
+            if Global.player.is_hungry():
+                text = Dialog.get('Hungry')
+                rmb = self.get_message(Dialog.get('dsc_hunger', [datetime, hunger]))
+            else:
+                text = datetime
+                rmb = self.get_message(Dialog.get('dsc_date', [datetime, hunger]))
+            button_date.set_text(text)
+            button_date.on_click = rmb
         host = Global.player.character
         self.update = update
         self.window.add(Menu.make(Dialog.get('Character'), lambda x: self.direct(self.menu_character)))
@@ -89,19 +100,10 @@ class MenuPlayer(Menu):
             self.window.add(Menu.make(Dialog.get('Equipment'), lambda x: self.direct(self.menu_equipment)))
             self.window.add(Menu.make(Dialog.get('Inventory'), lambda x: self.direct(self.menu_inventory)))
         self.window.add(Menu.make(Dialog.get('Skills'), lambda x: self.direct(self.menu_skill)))
-        hp = host.tags.get('p')
-        mhp = host.tags.get('P')
-        rmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
-        text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('health')
-        hp_display = Menu.make(text, rmb, color=None)
+        hp_display = Menu.make('', None, color=None)
         self.window.add(hp_display)
-        datetime = Dialog.date(Global.player.days)
-        hunger = host.tags.get('hunger', 0)
-        rmb = self.get_message(Dialog.get('dsc_date', [datetime, hunger]))
-        if Global.player.is_hungry():
-            self.window.add(Menu.make(Dialog.get('Hungry'), rmb, color=None))
-        else:
-            self.window.add(Menu.make(datetime, rmb, color=None))
+        button_date = Menu.make('', None, color=None)
+        self.window.add(button_date)
 
     def menu_skill(self):
         skills = {}
@@ -127,7 +129,7 @@ class MenuPlayer(Menu):
             elif desc:
                 button = Menu.make(title, self.get_message(desc[1]))
             else:
-                button = Menu.make(title, Dialog.get('!dsc_skill'))
+                button = Menu.make(title, self.get_message(Dialog.get('!dsc_skill')))
             if index < 6:
                 self.window.add(button)
             else:
@@ -178,14 +180,7 @@ class MenuPlayer(Menu):
         def click(index):
             if Global.player.character.weapon:
                 index -= 1
-            item = Global.player.character.inventory.get_item(index)
-            if item:
-                def change():
-                    Global.player.character.drop()
-                    item.on_wield(Global.player.character)
-                Global.player.character.action.act('grab', 8)
-                Global.player.character.action.on_finish = change
-                Global.player.character.action.delay = 4
+            Global.player.character.unsheathe(index)
 
         def sheathe(arg):
             dropped = Global.player.character.drop()

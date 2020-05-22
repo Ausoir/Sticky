@@ -5,8 +5,9 @@ class Sound:
     def __init__(self, location):
         self.location = location
         self.play = Player()
+        self.priority = 3
 
-    def register(self, pos, magnitude, file=None):
+    def register(self, pos, magnitude, file=None, priority=3):
         if magnitude > 0:
             units = self.location.population.get_units()
             for unit in units:
@@ -18,7 +19,10 @@ class Sound:
                 from src.tools.Data import Data
                 self.play.queue(Data.get_track(file))
                 if self.play.playing:
-                    self.play.next_source()
+                    if priority <= self.priority:
+                        self.play.next_source()
+                        self.play.play()
                 else:
                     self.play.pause()
-                self.play.play()
+                    self.play.play()
+                self.priority = priority

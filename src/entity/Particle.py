@@ -7,7 +7,7 @@ from src.game.Turn import Turn
 
 class Particle(Image):
     @classmethod
-    def make(cls, arg, pos, glow=-1, lifetime=6, offset=16, direction=1):
+    def make(cls, arg, pos, glow=-1, lifetime=6, offset=16, direction=4):
         r = cls(pos.location)
         r.name = arg
         r.set_form(arg)

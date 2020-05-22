@@ -1,2 +1,2 @@
-[map:world,time:7,frame:2,coord_x:0,coord_y:0]
-[9,12],Human,Humanoid,human,[P:100,p:100,seed:318,mat:flesh,hunger:46,money:5,def:0,deaf:1,DEF:2],[[Concentration,-1,0]],[time,side step],[[29,32],Tough Wear,Armor,wear_5x1,[P:40,p:39,def:3,w:4,space:6,DEF:2],[]],0,[[29,32],Trident,Item,trident,[$:8,p:24,def:7,pivx:22,w:5,dmg:4],[]],[]
+[map:world,time:7,frame:544,coord_x:1,coord_y:0,seed:1233]
+[19,7],Human,Humanoid,human,[P:5,p:5,seed:318,team:1,hunger:4,money:5,def:0,deaf:1,dir:3,DMG:0,DEF:-1,sth:1],[[Concentration,-1,0]],[time,feed,flurry],[[19,27],Tuxedo,Armor,wear_2x1,[seed:8870,P:10,p:10,DEF:-1,sth:1],[]],0,[[19,27],Katana,Item,katana,[$:11,P:8,p:8,def:7,fuel:0,pivx:6,sharp:1,w:2,DMG:3],[]],[]

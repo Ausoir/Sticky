@@ -55,6 +55,8 @@ class Return(Task):
             # noinspection PyUnresolvedReferences
             import src.entity.unit.ai.Task as Behavior
             self.pilot.set_task(getattr(Behavior, self.task)(self.pilot))
+        else:
+            self.pilot.set_task(self.pilot.default)
         self.pilot.task.load(self.target)
 
 
@@ -64,7 +66,7 @@ class Idle(Task):
         self.pilot.priority = 5
 
 
-class Wander(Task):
+class Wander(Idle):
     class Node:
         def __init__(self, parent, node):
             self.parent = parent
@@ -117,8 +119,9 @@ class Wander(Task):
                 return i
 
     def random_state(self):
-        rand = Global.r.rand_int(0, 10)
+        rand = Global.r.rand_int(0, 5)
         if rand == 0:
+            self.lifetime = 400
             self.state = 1
             self.reset()
             self.target = None
@@ -157,9 +160,11 @@ class Wander(Task):
                     self.next_reset = 0
                     return
             # self.debug_trace()
-            if self.next_reset > 9:
+            if self.next_reset > 13:
                 if not self.target:
                     self.target = Global.r.rand_list(self.open)
+                elif self.host.pos == self.target.node:
+                    self.state = 0
                 self.next_reset = 0
                 self.result = [self.target.node]
                 done = self.target
@@ -178,6 +183,9 @@ class Wander(Task):
         for draw in self.open:
             from src.entity.Particle import Particle
             Particle.make('blood', draw.node, offset=6)
+        if self.target:
+            from src.entity.Particle import Particle
+            Particle.make('barrier', self.target.node, offset=6)
 
 
 class Path(Task):  # path finding A*
@@ -315,6 +323,10 @@ class Attack(TargetTask):
     def on_set(self):
         super().on_set()
         self.pilot.priority = 1
+        if self.pilot.is_humanoid:
+            weapon = self.pilot.host.inventory.find_weapon()
+            if weapon is not None:
+                self.pilot.host.unsheathe(weapon)
 
     def update(self):
         super().update()
@@ -355,10 +367,22 @@ class Follow(TargetTask):
     def update(self):
         super().update()
         if not self.target:
-            tgt = self.host.tags.get('ally')
-            if tgt:
-                self.load(tgt)
-        if self.target and self.target.tags.get('p', 0) > 0:
+            target = self.host.tags.get('tgt')
+            if target is None:
+                team = self.host.get_team()
+                done = False
+                for i in self.host.pos.get_area(3, 3):
+                    if i != self.host.pos:
+                        for thing in i.things:
+                            if thing in team and thing.tags.get('ai') != 'ally':
+                                target = 'x' + str(i.x) + 'y' + str(i.y)
+                                done = True
+                                break
+                    if done:
+                        break
+            if target is not None:
+                self.load(target)
+        if self.target and self.target.removed == 0:
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()
         else:

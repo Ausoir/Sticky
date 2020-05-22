@@ -22,16 +22,22 @@ class Headgear(Equipment):
         super().die()
 
     def face(self, direction):
-        from src.form.Body import Body
-        self.form.switch(Body.TEXTURE_DIRECTION[direction])
-        self.form.reset()
-        super().face(direction)
+        if super().face(direction):
+            from src.form.Body import Body
+            self.form.switch(Body.TEXTURE_DIRECTION[self.direction])
+            self.form.reset()
+            if self.direction == 1:
+                self.form.scale_x *= -1
 
     def wear(self, start=False):
-        self.host.unheadgear()
-        self.host.headgear = self
-        super().wear(start)
-        self.show(True)
+        if self.host.headgear:
+            self.host.unheadgear()
+        else:
+            self.host.headgear = self
+            super().wear(start)
+            self.show(True)
+            self.direction = self.host.direction + 1  # force face
+            self.face(self.host.direction)
 
     def unwear(self):
         self.host.headgear = None
@@ -49,10 +55,10 @@ class Headgear(Equipment):
             if charge > 0:
                 self.tags.increment('charge', -1)
                 self.host.action.act('grab', 8)
-                from src.entity.unit.item.Spell import Spell
+                from src.entity.unit.item.Alchemy import Alchemy
                 from src.game import Global
                 if self.host == Global.player.character:
-                    Spell.cast(self.host, 'Wand', spell)
+                    Alchemy.cast(self.host, 'Wand', spell)
 
     def on_sleep(self, time):
         if time > 0:

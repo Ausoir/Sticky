@@ -4,8 +4,7 @@ import pyglet
 from pyglet.image import Texture, Animation
 from pyglet.image.atlas import TextureAtlas
 
-from src.form.Model import Model
-from src.form.Picture import Picture
+from src.form.Picture import Picture, Model
 
 
 class Data:
@@ -15,9 +14,9 @@ class Data:
 
     @staticmethod
     def init():
+        os.chdir('../')
         Data.atlas = TextureAtlas()
         Data.set_cache('none', Texture.create(1, 1))
-        Data.set_cache('attributes.txt', Data.process_raw(Data.read('data/raw/attributes.txt')))
         res = Data.process_raw(Data.read('data/raw/resource.txt'))
         for i in res:
             Data.initialize_image(i[0], i[1], i[2], i[3])
@@ -33,7 +32,7 @@ class Data:
             Data.set_cache(i[0], ani)
 
     @staticmethod
-    def direct(fdir, path='../'):
+    def direct(fdir, path=''):
         return os.path.join(path + fdir)
 
     @staticmethod
@@ -90,7 +89,7 @@ class Data:
     def get_form(fdir, form=None, **kwargs):
         cache = Data.get_cache(fdir)
         if not cache:
-            cache = Data.get_image(fdir, False)
+            cache = Data.get_image(fdir, True)
         if not form:
             if cache:
                 if isinstance(cache, Texture) or isinstance(cache, Animation):
@@ -208,3 +207,8 @@ class Data:
         r.append(Data.process_raw(lines[1]))
         r.append(Data.process_raw(lines[2]))
         return r
+
+    @staticmethod
+    def delete_all():
+        for f in os.listdir('save/'):
+            os.remove(Data.direct(f, 'save/'))

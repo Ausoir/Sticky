@@ -56,12 +56,15 @@ sk.assassination,Passive: Attacks from behind silence target and deal 7 true dam
 sk.side step,Unique Passive: Stand still to concentrate',' then move towards a unit to knockout and swap places.
 sk.hide,Unique Passive: Stand still to concentrate',' becoming invisible until moving.
 sk.heightened sense,Unique Passive: Stand still to concentrate. Gain vision through obstacles while concentrated.
-sk.alchemy,Prepare a potion. Requires alchemy table.
-sk.spellcraft,Create wands for ranged spell application. Requires alchemy knowledge. Requires a workbench.
-sk.botany,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time.
+sk.alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers. Pour in water then use the empty bottle to extract a potion.
+sk.carving,Carve wands on a spellcraft table using an alchemical potion',' shiny metal',' and a stick.
+sk.herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time. They continue to spread as long as you come check them.
 sk.conjuration,Draw conjuration polygrams using chalk.
+sk.willpower,Allows control of more powerful or larger number of conjured creatures.
 sk.scribing,Draw conjuration polygrams on paper to create spell scrolls. Requires conjuration knowledge.
 sk.carpentry,Construct buildings using wooden planks.
+sk.steal,Passive: Stand still to concentrate',' next bare handed damage steals weapon from target. Steals from inventory if not concentrated.
+sk.feed,Passive: When damaging any unit',' this skill is replaced by one skill that the victim knew.
 Glow,You emit light.
 Revive,Revive on death.
 Health,Health is rapidly changing.

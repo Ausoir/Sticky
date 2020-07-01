@@ -1,39 +1,38 @@
-from src.game import Global
-
-
 class Inventory:
     def __init__(self, host):
         self.host = host
-        self.items = []
+        self.items = None
 
     def __str__(self):
         items = []
         for i in self.items:
-            items.append('[' + i.__str__() + ']')
+            if isinstance(i, str):
+                items.append(i)
+            else:
+                items.append('[' + i.__str__() + ']')
         items = ','.join(items)
         return '[' + items + ']'
 
     def load(self, p):
-        from src.entity.Stock import Stock
         self.items = []
-        Global.r_t.reset(self.host.tags.get('seed', 0) + 1234)
-        for i in p:
+        seed = None
+        for k, i in enumerate(p):
             if isinstance(i, str):
                 if i.startswith('?'):
-                    if Global.r_t.rand_bool():
-                        continue
-                    else:
-                        i = i[1:]
-                item = Stock.get(self.host.location, i)
-                if not self.is_vacant(item.get_weight()):
-                    continue
+                    if seed is None:
+                        seed = bin(self.host.tags.get('seed', 0) % (2 ** len(p)))[2:]
+                        while len(seed) < len(p):
+                            seed = '0' + seed
+                    if seed[k] == '1':
+                        self.items.append(i[1:])
             else:
+                from src.entity.Stock import Stock
                 item = Stock.get(self.host.location, i[2], i)
-            item.host = self.host
-            self.items.append(item)
+                item.host = self.host
+                self.items.append(item)
 
     def attempt_add(self, item):
-        if self.is_vacant(item.get_weight()):
+        if self.host.is_vacant(item.get_weight()):
             self.add_item(item)
         else:
             from src.game import Global
@@ -41,45 +40,62 @@ class Inventory:
             params = [self.host.get_equipment_weight(), self.host.get_capacity(), item.get_weight()]
             Global.main.monologue.set(Dialog.get('!heavy', params))
 
-    def is_vacant(self, weight):
-        return self.host.get_capacity() >= self.host.get_equipment_weight() + weight and len(self.items) < 12
-
     def add_item(self, item):
         item.remove()
         item.host = self.host
         self.items.append(item)
         return len(self.items) - 1
 
+    def get_weight(self):
+        r = 0
+        for i in self.get_range():
+            r += self.get_item(i).get_weight()
+        return r
+
+    def get_range(self):
+        return range(len(self.items))
+
+    def get_all_items(self):
+        r = []
+        for i in self.get_range():
+            r.append(self.get_item(i))
+        return r
+
     def get_item_index(self, item_name):
         for k, i in enumerate(self.items):
             if i.name == item_name:
                 return k
 
-    def get_item(self, item_index):
+    def get_item(self, index):
+        from src.entity.Stock import Stock
+        item = self.items[index]
+        if isinstance(item, str):
+            item = Stock.get(self.host.location, item)
+            self.items[index] = item
+        return item
+
+    def take_item(self, item_index):
         if 0 <= item_index < len(self.items):
-            item = self.items[item_index]
+            item = self.get_item(item_index)
             self.items.remove(item)
             item.pos = self.host.pos
             item.on_unwield()
             return item.add()
 
     def find_weapon(self):
-        for k, i in enumerate(self.items):
-            if i.tags.get('dmg', 0) > 0 or i.tags.get('DMG', 0) > 0:
-                return k
+        for i in self.get_range():
+            item = self.get_item(i)
+            if item.tags.get('dmg', 0) > 0 or item.tags.get('DMG', 0) > 0:
+                return i
 
     def update_capacity(self):
-        while not self.is_vacant(0) and len(self.items) > 0:
-            item = self.get_item(0)
+        while not self.host.is_vacant(0) and len(self.items) > 0:
+            item = self.take_item(0)
             item.host = self.host
             item.on_unwield()
 
     def drop_all(self):
         while self.items:
-            item = self.get_item(0)
+            item = self.take_item(0)
             item.host = self.host
             item.on_unwield()
-
-    def on_sleep(self, time):
-        for i in self.items.copy():
-            i.on_sleep(time)

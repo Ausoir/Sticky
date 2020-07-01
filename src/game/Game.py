@@ -11,33 +11,31 @@ from src.tools.Tag import Tag
 
 class Game:
     def __init__(self):
-        Turn.add(Global.map_view.update_region)
         Turn.add(Global.menu.turn)
-        Turn.add(Global.map_view.turn)
         Turn.fast_queue.append(Global.map_view.update)
         Turn.add(self.turn)
         Turn.hour_change.append(self.on_hour_change)
         from src.interface.Control import Control
         self.control = Control(self.input)
-        data = Data.process_raw(Data.read('save/player.char'))
-        if not data:
+        if Data.is_file('save/player.char'):
+            data = Data.process_raw(Data.read('save/player.char'))
+        else:
             data = Data.process_raw(Data.read('data/map/template.char'))
         self.tags = Tag()
         self.tags.load(data[0][0])
-        # map_data = list(Data.process_raw(Data.read('save/' + map_name + '.map')))
-        # Global.land = Location(map_name, map_data)
-        self.world = World(self.tags.get('map'), self.tags.get('coord_x'), self.tags.get('coord_y'))
-        Global.land = self.world.location
-        from src.entity.Stock import Stock
-        self.character = Stock.get(Global.land, data[1][1], data=data[1]).add()
-        self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
         self.player = None
-        self.set_player(self.character)
         self.dead = -1
         self.days = self.tags.get('time')
         Turn.frame = self.tags.get('frame')
         self.player_mode = 1
+        from src.entity.Stock import Stock
+        self.character = Stock.get(Global.world.location, data[1][1], data=data[1]).add()
         self.temporary = self.character.sight
+
+    def initialize(self):
+        Global.world.initialize(self.tags.get('seed'), self.tags.get('coord_x'), self.tags.get('coord_y'))
+        self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
+        self.set_player(self.character)
         self.initialize_mode()
 
     def travel(self, to_map, x=None, y=None):
@@ -57,10 +55,8 @@ class Game:
         Global.player.character.relocate(x=x, y=y, force=True)
 
     def set_player(self, player):
-        if player.tags.get('hunger') is None:
-            player.tags.set('hunger', 0)
+        player.tags.set('hunger', player.tags.get('hunger', 0))
         player.center_camera()
-        player.action.delay = 4
         player.save = False
         self.character = player
         self.player = player
@@ -73,9 +69,9 @@ class Game:
 
     def sleep(self, time, blackout=True):
         if time > 0:
-            self.character.tags.increment('hunger', time * 4)
-            self.character.tags.minmax('hunger', 0, 100)
-            self.character.decay(-time)
+            self.character.tags.increment('hunger', 100 * time)
+            if self.is_hungry() == 2:
+                self.character.decay(time)
             self.days += time
             self.character.location.on_sleep(time)
         if blackout:
@@ -114,9 +110,6 @@ class Game:
     def switch(self):
         if self.player_mode == 1:
             self.player_mode = 0
-        elif self.player_mode == 2:
-            self.player.remove()
-            self.player_mode = 0
         elif self.player_mode == 0:
             self.player.remove()
             self.player_mode = 1
@@ -133,37 +126,39 @@ class Game:
             on_load = self.character.location.tags.get('load')
             if on_load:
                 Script.execute_code(on_load)
-        # if self.player_mode == 1:
+        elif self.character.action.delay > 0:
+            self.character.tags.increment('hunger', 1)
         old_x = self.character.pos.x
         old_y = self.character.pos.y
-        if self.world.recenter(self.character.pos.x, self.character.pos.y):
+        if Global.world.recenter(self.character.pos.x, self.character.pos.y):
             self.character.location.process_terrain()
             self.character.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
             self.character.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
-            Global.map_view.update_fog()
+            Global.map_view.turn()
             Camera.update()
             Global.map_view.update_region()
+        else:
+            Global.map_view.update_region()
+            Global.map_view.turn()
 
     def on_hour_change(self):
         self.sleep(1, blackout=False)
 
     def save(self):
-        self.tags.set('map', self.character.location.name)
-        self.tags.set('time', self.days)
-        self.tags.set('frame', Turn.frame)
-        if self.tags.get('map') == 'world':
-            actual = self.world.get_camera_pos(self.character.pos.x, self.character.pos.y)
+        if not self.character.removed:
+            Global.world.save()
+            self.tags.set('time', self.days)
+            self.tags.set('frame', Turn.frame)
+            chunk = Global.world.get_camera_pos(self.character.pos.x, self.character.pos.y)
+            start_coord = World.get_chunk_coord(chunk)
             temp = self.character.pos
-            self.character.pos = self.character.pos - actual[1]
-            self.tags.set('coord_x', self.world.cells[actual[0]][0])
-            self.tags.set('coord_y', self.world.cells[actual[0]][1])
+            self.character.pos = self.character.pos - start_coord
+            self.tags.set('coord_x', Global.world.cells[chunk][0])
+            self.tags.set('coord_y', Global.world.cells[chunk][1])
             r = self.tags.__str__() + '\n'
             r += self.character.__str__() + '\n'
             self.character.pos = temp
-        else:
-            r = self.tags.__str__() + '\n'
-            r += self.character.__str__() + '\n'
-        Data.write('save/player.char', r)
+            Data.write('save/player.char', r)
 
     def is_safe(self):
         for unit in self.character.get_team(ally=False):
@@ -178,7 +173,7 @@ class Game:
         return True
 
     def eat(self):
-        items = self.character.get_accessibles()
+        items = self.character.get_possessions()
         from src.entity.Other import Food
         for i in items:
             if isinstance(i, Food):
@@ -187,7 +182,12 @@ class Game:
         Global.main.monologue.set(Dialog.get('!eat'))
 
     def is_hungry(self):
-        return self.character.tags.get('hunger') >= 100
+        hunger = self.character.tags.get('hunger')
+        if hunger >= 20000:
+            return 2
+        elif hunger >= 10000:
+            return 1
+        return 0
 
     def pay(self, amount):
         if self.character.tags.require('money', amount):
@@ -198,6 +198,3 @@ class Game:
         if self.is_daytime() or self.character.pos.light >= Turn.rounds:
             return True
         Global.main.monologue.set(Dialog.get('!bright'))
-
-    def get_brightness(self):
-        return Global.map_view.overlay.LIGHT[self.days % 24]

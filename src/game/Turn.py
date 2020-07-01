@@ -1,5 +1,5 @@
 class Turn:
-    HOUR_FRAME = 800
+    HOUR_FRAME = 3600
     queue = None
     fast_queue = None
     hour_change = None

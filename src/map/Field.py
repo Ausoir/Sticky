@@ -17,7 +17,7 @@ class Field:
                 self.registry.pop(count)
                 count -= 1
 
-    def register(self, damage, pos, delay=1, hitter=None, sound=None, callback=None):
+    def register(self, damage, pos, delay=0, hitter=None, sound=None, callback=None):
         data = [hitter, delay, pos, damage, sound, callback]
         if delay <= 0:
             self.perform(data)

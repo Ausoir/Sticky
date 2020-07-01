@@ -274,3 +274,9 @@
 5/19 Light and object updates further and daylight dimmer (1)
 5/20 Task.Follow (1), brain feed (1), spider (1), Editor.fill terrain (1)
 ---- PUSH
+5/25 Tiles local vars to static (1)
+5/27 Automatic mob biome creation (1), Armor coverage (1), Trim light on nightfall (1)
+5/29 Container (1), Wand carving (1)
+6/04 Tile obstruct checks integers (1), Container lazy load (1), bridge (1)
+6/24 Biome spawn overhaul (2), Death reset (1)
+---- PUSH

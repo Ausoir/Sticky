@@ -126,9 +126,9 @@ class Dialog:
 
     @staticmethod
     def describe_terrain(tile):
-        r = tile.name.title()
-        speed = tile.get_speed()
-        if tile.speed <= -10:
+        r = tile.get_name().title()
+        speed = tile.get_move_speed()
+        if tile.get_yield() <= -10:
             r += '\n' + Dialog.get('terrain wall')
         elif speed != 0:
             r += '\n' + Dialog.get('terrain speed', [str(speed)])

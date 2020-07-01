@@ -18,6 +18,10 @@ class Unit(Prop):
         from src.form.HealthBar import HealthBar
         self.healthbar = HealthBar()
         self.sight = Tile.CHECK_SIGHT
+        self.target = None
+        from src.tools.Data import Data
+        self.shadow = Data.get_form('g_7x0')
+        self.shadow.bound(True)
 
     def __str__(self):
         self.tags.set('dir', self.direction)
@@ -38,6 +42,11 @@ class Unit(Prop):
     def update_tags(self):
         super().update_tags()
         self.form.randomize(self.tags.get('seed', 0))
+        rare = self.tags.get('rare', 0)
+        if rare > 0:
+            from src.tools.Data import Data
+            line = Data.get_line('model.txt', self.form_name)
+            self.form.set_model(line[3])
 
     def set_form(self, arg):
         self.form_name = arg
@@ -56,11 +65,11 @@ class Unit(Prop):
         if Camera.target != self:
             self.draw_synchronize()
         diff = self.destination.get_center() - self.vec
-        self.vec.x += diff.x * .1
-        self.vec.y += diff.y * .1
+        self.vec += diff * .1
         bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
         self.form.place(bound_x, bound_y)
         self.healthbar.place(bound_x, Global.DISPLAY[1] - bound_y)
+        self.shadow.place(bound_x, bound_y)
         return bound_x, bound_y
 
     def turn(self):
@@ -75,15 +84,23 @@ class Unit(Prop):
             self.next_action = 'idle'
 
     def set_row(self, row):
-        self.form.set_row(row * 20 + 100)
+        diff = self.destination.y - self.pos.y
+        if diff > 0:
+            self.form.set_row((row + diff) * 20 + 100)
+            self.shadow.z = (row + diff) * 20 + 101
+        else:
+            self.form.set_row(row * 20 + 100)
+            self.shadow.z = row * 20 + 101
 
     def show(self, visible):
         self.healthbar.show(visible)
         super().show(visible)
+        self.shadow.show(visible)
 
     def bound(self, visible):
         self.healthbar.bound(visible)
         super().bound(visible)
+        self.shadow.bound(visible)
 
     def input(self, action):
         self.next_action = action
@@ -92,19 +109,7 @@ class Unit(Prop):
         self.action.attack()
 
     def face_toward(self, pos):
-        diff = pos - self.pos
-        horizontal = abs(diff.x) >= abs(diff.y)
-        if horizontal:
-            if diff.x < 0:
-                direction = 1
-            else:
-                direction = 3
-        else:
-            if diff.y < 0:
-                direction = 2
-            else:
-                direction = 0
-        self.face(direction)
+        self.face(self.pos.get_face(pos))
 
     def is_facing(self, pos):
         diff = pos - self.pos
@@ -130,8 +135,8 @@ class Unit(Prop):
         dex = min(self.tags.get('dmg', 0), damage)
         return Global.r.rand_int(dex, damage)
 
-    def hit(self, damage, hitter=None):
-        r = 0
+    def calculate_hit(self, damage, hitter=None):
+        self.action.idle_frame = 0
         backstab = False
         if isinstance(hitter, Prop):
             if self.is_facing(hitter.pos):
@@ -148,7 +153,6 @@ class Unit(Prop):
                 damage = 0
         self.states.trigger(['act', 'hit', damage])
         if damage > 0:
-            self.action.idle_frame = 0
             if self.get_skill('constitution'):
                 self.states.add('Invulnerability', 40)
             self.pilot.hit(hitter)
@@ -158,10 +162,24 @@ class Unit(Prop):
                 self.location.sound.register(self.pos, 0, file='critical')
                 if isinstance(hitter, Prop):
                     hitter.decay(damage + self.get_defense())
-                return 0
+                return False
             self.form.randomize_once(4)
+            return True
+
+    def hit(self, damage, hitter=None):
+        r = 0
+        if self.calculate_hit(damage, hitter):
             r = super().hit(damage, hitter)
         return r
+
+    def on_hit(self, hitter=None):
+        from src.entity.Particle import Particle
+        if hitter.tags.get('sharp'):
+            self.location.sound.register(self.pos, 7, file='hit_cut')
+            Particle.make('splat', self.pos)
+        else:
+            self.location.sound.register(self.pos, 7, file='hit_bash')
+            Particle.make('batter', self.pos)
 
     def get_hitter(self):
         return self
@@ -174,8 +192,8 @@ class Unit(Prop):
                 right = self.pos.get_cardinal((self.direction + 1) % 4, 1)
                 dmg = self.roll_damage() - 1
                 hitter = self.get_hitter()
-                self.location.field.register(dmg, left, hitter=hitter, delay=0)
-                self.location.field.register(dmg, right, hitter=hitter, delay=0)
+                self.location.field.register(dmg, left, hitter=hitter)
+                self.location.field.register(dmg, right, hitter=hitter)
             if self.get_skill('frenzy'):
                 self.states.add('Damage', 40, 1)
             if not target.is_facing(self.pos):
@@ -187,6 +205,7 @@ class Unit(Prop):
             if self.get_skill('feed'):
                 for i in target.skills:
                     if i not in self.skills:
+                        self.skills.remove('feed')
                         self.skills.append(i)
                         from src.entity.Particle import Particle
                         Particle.make('spin', target.pos)
@@ -212,6 +231,11 @@ class Unit(Prop):
         self.display_hp()
         return r
 
+    def get_durability(self):
+        hp = self.tags.get('p')
+        mhp = self.tags.get('P')
+        return 0, 0, hp, mhp
+
     def display_hp(self):
         hp = self.tags.get('p')
         if hp is not None:
@@ -233,6 +257,14 @@ class Unit(Prop):
     def remove(self):
         self.healthbar.remove()
         super().remove()
+
+    def get_accessibles(self):
+        r = []
+        from src.entity.unit.item.Item import Item
+        for thing in self.pos.things:
+            if isinstance(thing, Item):
+                r.append(thing)
+        return r
 
     def get_skill(self, skill, stacks=False):
         r = 0
@@ -280,3 +312,10 @@ class Unit(Prop):
 
     def get_weight(self):
         return super().get_weight() + self.tags.get('seed', 0) % 4 + 4
+
+    def get_value(self):
+        return 2
+
+    def progress_level(self, exp):
+        multiplier = 10000 - self.tags.get('hunger', 0)
+        self.tags.increment('level', int(exp * multiplier))

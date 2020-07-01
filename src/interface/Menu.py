@@ -162,7 +162,9 @@ class Menu:
         self.sub_window.display(1)
 
     def menu_conversation(self):
-        self.window.add(Menu.make(self.var[0], None, color=None, resize=True))
+        dialogue = Menu.make(self.var[0], None, color=None, resize=True)
+        dialogue.align = 'top'
+        self.window.add(dialogue)
         for option in self.var[1:]:
             self.sub_window.add(Menu.make(option[0], self.execute_code, width=160, name=option[1]))
         self.sub_window.display(1)

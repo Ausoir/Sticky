@@ -201,6 +201,10 @@ class Control:
                 self.target_mark.vec.x += Global.BLOCK
             elif self.next_action == 4:
                 self.target_mark.vec.y += Global.BLOCK
+            vec = self.target_mark.vec
+            tile = Global.player.character.location.get_tile_from_vec(vec.x, vec.y)
+            if str(tile.x) + ',' + str(tile.y) in Global.map_view.tiles:
+                Global.player.character.target = tile
             self.target_mark_frame = 0
             self.next_action = 0
 
@@ -211,9 +215,3 @@ class Control:
             self.target_mark.vec.load(x, y)
             self.target_mark.form.show(True)
             self.target_mark.update()
-
-    def get_mark(self):
-        vec = self.target_mark.vec
-        tile = Global.player.character.location.get_tile_from_vec(vec.x, vec.y)
-        if str(tile.x) + ',' + str(tile.y) in Global.map_view.tiles:
-            return tile

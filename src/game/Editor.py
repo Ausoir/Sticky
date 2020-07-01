@@ -13,7 +13,7 @@ class Editor:
         self.control = player.control
         self.visible = 1
         self.tool = ToolTerrain()
-        self.display_text = Global.land.name
+        self.display_text = 'Map'
         self.display_subtext = ''
         self.enter = 0
         self.moving = [0, 0]
@@ -22,27 +22,30 @@ class Editor:
         self.prev_command = None
         self.selection = None
         Global.map_view.overlay.clear()
+        for i in Global.world.location.population.get_all():
+            i.show(True)
 
     def update(self):
         self.control.turn()
         Camera.target.relocate(to=Camera.target.pos.get_neighbor(self.moving[0], self.moving[1], limit=True))
         for tile in Camera.target.pos.get_area(8, 6):
             tile.light = 4
-        Global.map_view.update_region()
-        Global.map_view.update_fog()
-        Global.map_view.update(editor=True)
-        Global.map_view.update_region_editor()
         self.moving = [0, 0]
         old_x = Camera.target.pos.x
         old_y = Camera.target.pos.y
-        offset = Global.player.world.recenter(Camera.target.pos.x, Camera.target.pos.y)
+        time = Global.player.days
+        Global.player.days = 0
+        offset = Global.world.recenter(Camera.target.pos.x, Camera.target.pos.y)
+        Global.player.days = time
         if offset:
             Camera.target.location.process_terrain()
             Camera.target.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
             Camera.target.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
-            Global.map_view.update_fog()
-            Camera.update()
+        else:
             Global.map_view.update_region()
+            Global.map_view.update_fog()
+            Global.map_view.update()
+            Global.map_view.update_region_editor()
 
     def remove(self):
         self.tool.cancel()
@@ -53,14 +56,14 @@ class Editor:
         self.prev_mouse = m
         self.display_subtext = 'X:' + str(m[0]) + ' Y:' + str(m[1])
         if action == 'idle':
-            self.tool.input(0, Global.land.get_tile(m[0], m[1], limit=True))
+            self.tool.input(0, Global.world.location.get_tile(m[0], m[1], limit=True))
             self.tool.last = None
         elif action == 'use':
-            self.tool.input(1, Global.land.get_tile(m[0], m[1], limit=True))
+            self.tool.input(1, Global.world.location.get_tile(m[0], m[1], limit=True))
         elif action == 'special':
-            self.tool.input(4, Global.land.get_tile(m[0], m[1], limit=True))
+            self.tool.input(4, Global.world.location.get_tile(m[0], m[1], limit=True))
         elif action == 'delete':
-            self.tool.input(2, Global.land.get_tile(m[0], m[1], limit=True))
+            self.tool.input(2, Global.world.location.get_tile(m[0], m[1], limit=True))
         elif action == 'prev':
             if action != self.prev_action:
                 self.display_text = self.tool.cycle(-1)
@@ -82,16 +85,17 @@ class Editor:
         elif action == 'right':
             self.moving = [1, 0]
         elif action == 'fill':
-            tile = Global.land.get_tile(m[0], m[1], limit=True)
+            tile = Global.world.location.get_tile(m[0], m[1], limit=True)
             self.tool.fill(tile)
+            self.control.clear_press()
         elif action == 'sample':
             if action != self.prev_action:
                 self.tool.cancel()
-                objs = Global.land.get_tile(m[0], m[1], limit=True).things.copy()
+                objs = Global.world.location.get_tile(m[0], m[1], limit=True).things.copy()
                 if objs:
                     self.tool = ToolObject('props')
                     obj = objs.pop()
-                    while obj not in Global.land.population.get_all():
+                    while obj not in Global.world.location.population.get_all():
                         if objs:
                             obj = objs.pop()
                         else:
@@ -100,12 +104,12 @@ class Editor:
                     self.tool.select(obj.name, data=Data.process_raw(self.display_text))
                 else:
                     self.tool = ToolTerrain()
-                    tile = Global.land.get_tile(m[0], m[1], limit=True)
+                    tile = Global.world.location.get_tile(m[0], m[1], limit=True)
                     if tile:
-                        self.tool.select(tile.terrain)
+                        self.tool.select(tile.index)
                         self.display_text = self.tool.text
         elif action == 'select':
-            objs = Global.land.get_tile(m[0], m[1], limit=True).things
+            objs = Global.world.location.get_tile(m[0], m[1], limit=True).things
             if objs:
                 self.display_text = 'Selected ID ' + str(objs[0].id)
                 self.tool = ToolObject('props')
@@ -157,10 +161,10 @@ class Editor:
         elif action == 'save':
             self.tool.cancel()
             if Global.player.tags.get('map') == 'world':
-                Global.player.world.save()
+                Global.world.save()
             else:
-                Global.land.save()
-            self.display_text = 'saved to ' + Global.land.name
+                Global.world.location.save()
+            self.display_text = 'saved map'
         self.prev_action = action
         if self.display_text != '':
             Global.main.monologue.set(self.display_text + ' @ ' + self.display_subtext)
@@ -169,7 +173,7 @@ class Editor:
 
     def command(self):
         self.prev_command = Global.main.monologue.document.text
-        params = Global.main.monologue.document.text.split(' ')
+        params = Global.main.monologue.document.text.split(',')
         arg1 = ' '.join(params[1:])
         if params[0] == 'set':
             if isinstance(self.tool, ToolObject):
@@ -185,26 +189,19 @@ class Editor:
         elif params[0] == 'image':
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.set_form(arg1)
-        elif params[0] == 'make':
-            from src.map.Location import Location
-            r = Location(params[2], list(Data.process_raw(Data.read('data/map/' + params[1] + '.map'))))
-            r.save()
-            Global.player.switch()
-            Global.player.travel(params[2])
-            Global.player.switch()
         elif params[0] == 'camera':
             pos = params[1].split(',')
             Camera.target.relocate(x=int(pos[0]), y=int(pos[1]), force=True)
         elif params[0] == 'move':
-            map_data = list(Data.process_raw(Global.land.__str__()))
-            Global.land.load(map_data, make=False, offset=(int(params[1]), int(params[2])))
+            map_data = list(Data.process_raw(Global.world.location.__str__()))
+            Global.world.location.load(map_data, make=False, offset=(int(params[1]), int(params[2])))
         elif params[0] == 'fill':
-            for y in range(Global.land.get_height()):
-                for x in range(Global.land.get_width()):
-                    Global.land.get_tile(x, y).set_terrain(params[1])
-            Global.land.process_terrain()
+            for y in range(Global.world.location.get_height()):
+                for x in range(Global.world.location.get_width()):
+                    Global.world.location.get_tile(x, y).set_terrain(params[1])
+            Global.world.location.process_terrain()
         elif params[0] == 'resize':
-            Global.land.resize(int(params[1]), int(params[2]))
+            Global.world.location.resize(int(params[1]), int(params[2]))
         elif params[0] == 'new':
             from src.map.Location import Location
             tiles = ''
@@ -213,8 +210,8 @@ class Editor:
                     tiles += '.'
                 tiles += '%'
             new = Location(params[1], Data.process_raw('[]\n' + tiles[:-1] + '\n'))
-            Global.land = new
-            new.save()
+            Global.world.location = new
+            Global.player.save()
             Global.player.switch()
             Global.player.travel(params[1])
             Global.player.switch()
@@ -239,8 +236,7 @@ class Editor:
             Script.execute_string(Data.process_raw('1,[],[' + params[1] + '],[]'))
         elif params[0] == 'save':
             self.tool.cancel()
-            Global.land.name = arg1
-            Global.land.save()
+            Global.player.save()
             self.display_text = 'saved to ' + arg1
         elif params[0] == 'time':
             Global.player.days = int(params[1])
@@ -260,58 +256,53 @@ class Tool:
 
 class ToolTerrain(Tool):
     def __init__(self):
-        self.terrain = '.'
+        self.terrain = 0
         self.text = 'Dirt'
-        self.tile = Global.land.get_tile(0, 0)
+        self.tile = Global.world.location.get_tile(0, 0)
         self.prev_tile = self.tile
-        self.current = 0
 
     def cycle(self, inc):
-        self.current += inc
-        if self.current >= Tile.DICTIONARY.__len__():
-            self.current = 0
-        elif self.current < 0:
-            self.current = Tile.DICTIONARY.__len__() - 1
-        self.select(list(Tile.DICTIONARY)[self.current])
+        self.terrain += inc
+        if self.terrain >= Tile.DATA.__len__():
+            self.terrain = 0
+        elif self.terrain < 0:
+            self.terrain = Tile.DATA.__len__() - 1
+        self.select(self.terrain)
         return self.text
 
     def select(self, terrain, data=None):
         self.terrain = terrain
-        self.text = Tile.DICTIONARY[self.terrain][0]
+        self.text = Tile.DATA[self.terrain][1]
 
     def input(self, button, tile):
         if button == 4:
-            Global.player.world.dirty_pos(self.tile.x, self.tile.y)
+            Global.world.dirty_pos(self.tile.x, self.tile.y)
             for y in range(-2, 3):
                 for x in range(-2, 3):
                     neighbor = tile.get_neighbor(x, y)
                     if neighbor:
                         self.input(1, neighbor)
         elif button == 2:
-            Global.player.world.dirty_pos(self.tile.x, self.tile.y)
-            self.tile.set_terrain(self.prev_tile.terrain)
+            Global.world.dirty_pos(self.tile.x, self.tile.y)
+            self.tile.set_terrain(self.prev_tile.get_icon())
             self.tile.update_update_shader()
         elif button == 1:
             if tile != self.tile:
-                Global.player.world.dirty_pos(self.tile.x, self.tile.y)
+                Global.world.dirty_pos(tile.x, tile.y)
                 self.tile = tile
                 self.prev_tile = self.tile
-                self.tile.set_terrain(self.terrain)
-                for i in Global.cardinal_coord:
-                    neighbor = self.tile.get_neighbor(i[0], i[1])
-                    if neighbor:
-                        neighbor.connect()
-                self.tile.connect()
+                self.tile.set_index(self.terrain)
+                self.tile.connect_connect()
                 self.tile.update_update_shader()
 
     def fill(self, tile):
-        self.fill_recurse(tile, tile.terrain)
-        Global.player.world.dirty_pos(self.tile.x, self.tile.y)
-        Global.land.process_terrain()
+        self.fill_recurse(tile, tile.index)
+        Global.world.dirty_pos(tile.x, tile.y)
+        Global.world.location.process_terrain()
 
     def fill_recurse(self, tile, target):
-        if tile and tile.terrain == target and tile.in_sight and tile.terrain != self.terrain:
-            tile.set_terrain(self.terrain)
+        if tile and tile.index != self.terrain and tile.index == target and tile.in_sight:
+            tile.set_index(self.terrain)
             self.fill_recurse(tile.get_neighbor(1, 0), target)
             self.fill_recurse(tile.get_neighbor(-1, 0), target)
             self.fill_recurse(tile.get_neighbor(0, 1), target)
@@ -320,26 +311,40 @@ class ToolTerrain(Tool):
 
 class ToolRoof(Tool):
     def input(self, button, tile):
+        Global.world.dirty_pos()
         if button == 4:
-            Global.player.world.dirty_pos(tile.x, tile.y)
             for y in range(-2, 3):
                 for x in range(-2, 3):
                     neighbor = tile.get_neighbor(x, y)
                     if neighbor:
                         self.input(1, neighbor)
         elif button == 1:
-            Global.player.world.dirty_pos(tile.x, tile.y)
             tile.roof = 1
         elif button == 2:
-            Global.player.world.dirty_pos(tile.x, tile.y)
             tile.roof = 0
+
+    def fill(self, tile):
+        self.fill_recurse(tile, tile.roof)
+        Global.world.dirty_pos()
+        Global.world.location.process_terrain()
+
+    def fill_recurse(self, tile, target):
+        if tile and tile.roof == target and tile.in_sight:
+            if tile.roof == 1:
+                tile.roof = 0
+            else:
+                tile.roof = 1
+            self.fill_recurse(tile.get_neighbor(1, 0), target)
+            self.fill_recurse(tile.get_neighbor(-1, 0), target)
+            self.fill_recurse(tile.get_neighbor(0, 1), target)
+            self.fill_recurse(tile.get_neighbor(0, -1), target)
 
 
 class ToolObject(Tool):
     def __init__(self, object_type):
         self.text = 'Door'
-        self.selection = Stock.get(Global.land, 'Door').add()
-        self.tile = Global.land.get_tile(0, 0)
+        self.selection = Stock.get(Global.world.location, 'Door').add()
+        self.tile = Global.world.location.get_tile(0, 0)
         self.object_list = list(Data.process_raw(Data.read('data/raw/' + object_type + '.txt')))
         self.current = 0
         self.last_data = None
@@ -362,7 +367,7 @@ class ToolObject(Tool):
         self.text = text
         self.last_data = data
         self.selection.remove()
-        self.selection = Stock.get(Global.land, self.text, data=data)
+        self.selection = Stock.get(Global.world.location, self.text, data=data)
         if self.selection:
             self.selection.relocate(x=Global.player.control.cursor_tile[0], y=Global.player.control.cursor_tile[1])
             self.selection.add()
@@ -378,9 +383,9 @@ class ToolObject(Tool):
                     preexisting = 1
                     break
             if not preexisting:
-                self.selection = Stock.get(Global.land, self.text, self.last_data)
+                self.selection = Stock.get(Global.world.location, self.text, self.last_data)
                 if not self.selection:
-                    self.selection = Stock.get(Global.land, 'Crate')
+                    self.selection = Stock.get(Global.world.location, 'Crate')
                 self.selection.add()
                 self.selection.relocate(to=tile, force=1)
         else:

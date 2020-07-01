@@ -249,12 +249,12 @@ class Path(Task):  # path finding A*
             if conflict:
                 if node.g + 1 <= conflict.g:
                     conflict.parent = node
-                    conflict.g = node.g + 1 - node.node.speed + i[2]
+                    conflict.g = node.g + 1 - node.node.get_yield() + i[2]
                     conflict.set_h(self.target)
                     conflict.f = conflict.h + conflict.g
                 continue
             new = Path.Node(node, pos)
-            new.g = node.g + 1 - node.node.speed + i[2]
+            new.g = node.g + 1 - node.node.get_yield() + i[2]
             new.set_h(self.target)
             new.f = new.h + new.g
             if new.h < self.heuristic_threshold:
@@ -270,7 +270,7 @@ class Path(Task):  # path finding A*
         if self.result:
             self.host.face_toward(self.result[0])
             front = self.host.pos.get_cardinal(self.host.direction, 1)
-            if front.is_land(self.host.collision_type) and self.pilot.route.can_destroy(front) != -1:
+            if front.get_solidity() >= self.host.collision_type and self.pilot.route.can_destroy(front) != -1:
                 self.host.input('attack')
             else:
                 self.host.input('walk')
@@ -331,6 +331,7 @@ class Attack(TargetTask):
     def update(self):
         super().update()
         if self.target and self.target.removed == 0 and self.target.tags.get('p', -1) >= 0:
+            self.host.target = self.target.pos
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()
         else:
@@ -355,8 +356,12 @@ class Attack(TargetTask):
                 self.pilot.priority = 3
                 self.pilot.move.target = self.target.pos
             else:
-                self.pilot.move.target = self.target.pos
-                self.pilot.move.perform()
+                ability = self.host.tags.get('abi')
+                if ability and Global.r.rand_int(0, 8) == 0:
+                    self.host.action.set('ability')
+                else:
+                    self.pilot.move.target = self.target.pos
+                    self.pilot.move.perform()
 
 
 class Follow(TargetTask):

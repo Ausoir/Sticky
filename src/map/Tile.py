@@ -8,23 +8,23 @@ from src.tools.Space import Space
 class Tile(Space):
     CHECK_NONE = []
     CHECK_ANY = [1, 2, 3, 4, 5, 6, 7]
-    CHECK_SOLID = [1, 2, 3, 5, 7]
-    CHECK_FIRM = [1, 2, 5, 7]
-    CHECK_SIGHT = [1, 2, 6, 7]
-    CHECK_SPAWN = [2, 5, 7]
-    COLLIDE_TERRAIN = 1
-    COLLIDE_OBJECT = 2
-    COLLIDE_UNIT = 3
-    COLLIDE_ITEM = 4
-    COLLIDE_WINDOW = 5
-    COLLIDE_FOG = 6
+    CHECK_FIRM = [3, 5, 6, 7]
+    CHECK_SIGHT = [2, 5, 6, 7]
     COLLIDE_MAGIC = 7
-    DICTIONARY = None
+    COLLIDE_TERRAIN = 6
+    COLLIDE_OBJECT = 5
+    COLLIDE_WINDOW = 4
+    COLLIDE_UNIT = 3
+    COLLIDE_FOG = 2
+    COLLIDE_ITEM = 1
+    DATA = None
+    DICTIONARY = {}
 
     @staticmethod
     def init(data):
-        from src.tools.Dialog import Dialog
-        Tile.DICTIONARY = Dialog.to_dict(data)
+        Tile.DATA = data
+        for count, line in enumerate(data):
+            Tile.DICTIONARY[line[0]] = count
 
     @staticmethod
     def get_collision_by_name(num):
@@ -46,20 +46,8 @@ class Tile(Space):
     def __init__(self, location, terrain, x, y):
         super().__init__(x, y)
         self.location = location
-        self.terrain = terrain
-        data = Tile.DICTIONARY.get(terrain)
-        if data:
-            self.name = data[0]
-            self.image = data[1]
-            self.speed = data[2]
-            self.extend = data[3]
-            self.shader = data[4]
-        else:
-            self.name = 'None'
-            self.image = 'g_0x0'
-            self.speed = 0
-            self.extend = 0
-            self.shader = 0
+        self.index = 0
+        self.set_terrain(terrain)
         self.direction = 0
         self.sub_image = None
         self.things = List()
@@ -72,35 +60,59 @@ class Tile(Space):
 
     def set_terrain(self, terrain):
         data = Tile.DICTIONARY.get(terrain)
-        if data:
-            self.terrain = terrain
-            self.name = data[0]
-            self.image = data[1]
-            self.speed = data[2]
-            self.extend = data[3]
-            self.shader = data[4]
-            self.direction = 0
-            if self.extend > 0:
-                self.sub_image = 0
+        if data is not None:
+            self.set_index(data)
             return True
 
-    def get_image(self):
-        if self.extend > 0:
-            return self.image[self.sub_image]
-        return self.image
+    def set_index(self, index):
+        self.index = index
+        self.direction = 0
+        if self.get_extend() > 0:
+            self.sub_image = 0
 
-    def get_depth(self):
-        if self.terrain:
-            if self.speed == -10:
-                return 2
-            return 1
-        return 0
+    def get_face(self, pos):
+        diff = pos - self
+        horizontal = abs(diff.x) >= abs(diff.y)
+        if horizontal:
+            if diff.x < 0:
+                direction = 1
+            else:
+                direction = 3
+        else:
+            if diff.y < 0:
+                direction = 2
+            else:
+                direction = 0
+        return direction
+
+    def get_icon(self):
+        return Tile.DATA[self.index][0]
+
+    def get_name(self):
+        return Tile.DATA[self.index][1]
+
+    def get_image_set(self):
+        return Tile.DATA[self.index][2]
+
+    def get_yield(self):
+        return Tile.DATA[self.index][3]
+
+    def get_extend(self):
+        return Tile.DATA[self.index][4]
+
+    def get_shader(self):
+        return Tile.DATA[self.index][5]
+
+    def get_image(self):
+        if self.get_extend() > 0:
+            return self.get_image_set()[self.sub_image]
+        return self.get_image_set()
 
     def update_shader(self):
-        if self.shader == 1:
+        if self.get_shader() == 1:
             for k, c in enumerate(Global.cardinal_coord):
                 tile = self.get_neighbor(c[0], c[1])
-                if tile and tile.shader == 0:
+                if tile and tile.get_shader() == 0:
                     self.joint_neighbors[k - 1] = 1
                 else:
                     self.joint_neighbors[k - 1] = 0
@@ -183,19 +195,48 @@ class Tile(Space):
         return self.get_vec() + (Global.HALF_BLOCK, Global.BLOCK)
 
     def is_land(self, check):
-        if self.speed == -10 and Tile.COLLIDE_TERRAIN in check:
+        if self.get_yield() == -10 and Tile.COLLIDE_TERRAIN in check:
             return 1
-        elif self.speed == -9 and Tile.COLLIDE_WINDOW in check:
+        elif self.get_yield() == -9 and Tile.COLLIDE_WINDOW in check:
             return 1
-        elif self.speed == -8 and Tile.COLLIDE_FOG in check:
+        elif self.get_yield() == -8 and Tile.COLLIDE_FOG in check:
             return 1
         for i in self.things:
             if i.obstruct_type in check:
                 return 1
         return 0
 
-    def get_speed(self):
-        total = self.speed
+    def get_landscapes(self):
+        lands = []
+        yld = self.get_yield()
+        if yld == -10:
+            lands.append(Tile.COLLIDE_TERRAIN)
+        elif yld == -9:
+            lands.append(Tile.COLLIDE_WINDOW)
+        elif yld == -8:
+            lands.append(Tile.COLLIDE_FOG)
+        for i in self.things:
+            if i.obstruct_type not in lands:
+                lands.append(i.obstruct_type)
+        return lands
+
+    def get_solidity(self):
+        yld = self.get_yield()
+        most = 0
+        for i in self.things:
+            if i.obstruct_type == -1:
+                return -1
+            most = max(most, i.obstruct_type)
+        if yld == -10:
+            most = max(most, Tile.COLLIDE_TERRAIN)
+        elif yld == -9:
+            most = max(most, Tile.COLLIDE_WINDOW)
+        elif yld == -8:
+            most = max(most, Tile.COLLIDE_FOG)
+        return most
+
+    def get_move_speed(self):
+        total = self.get_yield()
         for i in self.things:
             move = i.tags.get('spd')
             if move:
@@ -203,13 +244,19 @@ class Tile(Space):
         return total
 
     def connect(self):
-        if self.extend != 0:
+        if self.get_extend() != 0:
             def fn(tile):
-                return tile is None or tile.extend == self.extend
+                return tile is None or tile.get_extend() == self.get_extend()
             connection, direction = Tile.get_connection(self, fn)
-            if connection:
-                self.sub_image = connection
+            self.sub_image = connection
             self.direction = direction
+
+    def connect_connect(self):
+        for i in Global.cardinal_coord:
+            neighbor = self.get_neighbor(i[0], i[1])
+            if neighbor:
+                neighbor.connect()
+        self.connect()
 
     @staticmethod
     def get_connection(self, fn):

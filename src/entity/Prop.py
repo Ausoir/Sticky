@@ -67,10 +67,10 @@ class Prop(Object):
         loot = self.tags.get('loot')
         if loot:
             if loot.startswith('#'):
-                seed = self.tags.get('seed', 0)
-                from src.tools.Data import Data
-                spawn_list = Data.get_line('raw.txt', loot[1:])[1]
-                return spawn_list[seed % len(spawn_list)]
+                from src.game import Global
+                cell_coord = Global.world.get_current_chunk(self.pos.x, self.pos.y)
+                spawn = Global.world.get_spawn(loot[1:], cell_coord[0], cell_coord[1])
+                return spawn
             else:
                 return loot
 
@@ -86,24 +86,25 @@ class Prop(Object):
     def get_weight(self):
         return self.tags.get('w', 1)
 
+    def get_value(self):
+        return self.tags.get('$', 1)
+
     def hit(self, damage, hitter=None):
         damage = max(0, damage - self.tags.get('def', 0))
         if damage > 0:
             if hitter:
-                if isinstance(hitter, Prop):
-                    from src.entity.Particle import Particle
-                    if hitter.tags.get('sharp'):
-                        if self.tags.get('mat') == 'flesh':
-                            self.location.sound.register(self.pos, 7, file='hit_cut')
-                            Particle.make('splat', self.pos)
-                        else:
-                            self.location.sound.register(self.pos, 7, file='hit_bash')
-                            Particle.make('slash', self.pos)
-                    else:
-                        self.location.sound.register(self.pos, 7, file='hit_bash')
-                        Particle.make('batter', self.pos)
+                self.on_hit(hitter)
             return self.decay(damage)
         return 0
+
+    def on_hit(self, hitter=None):
+        from src.entity.Particle import Particle
+        if hitter.tags.get('sharp'):
+            self.location.sound.register(self.pos, 7, file='hit_bash')
+            Particle.make('slash', self.pos)
+        else:
+            self.location.sound.register(self.pos, 7, file='hit_bash')
+            Particle.make('batter', self.pos)
 
     def get_display_name(self):
         return self.name
@@ -136,7 +137,7 @@ class Prop(Object):
         return r
 
     def on_sleep(self, time):
-        self.states.trigger(['time', time])
+        self.states.on_sleep(time)
 
     def switch_form(self):
         alt = self.tags.get('alt')

@@ -1,7 +1,7 @@
 main = None
 draw_group = None
 map_view = None
-land = None
+world = None
 player = None
 overlay = None
 font = None

@@ -1,7 +1,6 @@
-from src.entity.Stock import Stock, Global
+from src.entity.Stock import Global
 from src.entity.unit.Unit import Unit
 from src.game.Script import Script
-from src.map.Tile import Tile
 
 
 class Actions:
@@ -50,7 +49,7 @@ class Actions:
                     victim.action.delay = time
 
     def idle(self):
-        if self.idle_frame >= 20:
+        if self.idle_frame >= 12:
             self.idle_frame = 0
             self.host.states.add('Concentration', -1)
         else:
@@ -109,29 +108,34 @@ class Actions:
                 Script.execute_code(on_edge)
             else:
                 self.idle()
-        elif front.is_land(self.host.collision_type):
-            if self.interact_on(front):
-                return
-            if front.is_land([Tile.COLLIDE_UNIT]):
-                if self.host.get_skill('side step'):
-                    self.side_step(front)
-                    return
-                else:
+        else:
+            grounded = self.host.tags.get('fly', 0) == 0
+            if grounded:
+                solid = front.get_solidity()
+                if solid >= self.host.collision_type:
+                    if self.interact_on(front):
+                        return
+                    team = self.host.get_team()
                     for thing in front.things:
-                        if thing in self.host.get_team():
+                        if thing in team:
                             Script.var['host'] = thing
                             Script.var['1'] = self.host
                             Script.execute_code('#push')
                             return
-            self.idle()
-        else:
-            self.move(front)
+                    if self.host.get_skill('side step'):
+                        if self.side_step(front):
+                            return
+                    self.idle()
+                else:
+                    self.move(front)
+            else:
+                self.move(front)
 
     def move(self, front):
         speed = self.host.tags.get('spd', 0)
-        fly = self.host.tags.get('fly')
-        if front.speed > -10 and not fly:
-            speed += front.get_speed()
+        fly = self.host.tags.get('fly', 0)
+        if front.get_yield() > -10 and fly == 0:
+            speed += front.get_move_speed()
         if speed > -10:
             if fly:
                 self.make('fly', turn=max(0, 2 - speed))
@@ -142,18 +146,20 @@ class Actions:
             self.host.destination = self.host.pos.get_cardinal(self.host.direction, 1)
             self.on_finish = lambda: self.host.move_line(self.host.pos.get_cardinal(self.host.direction))
             self.host.states.trigger(['act', 'move'])
+            return True
         else:
             self.idle()
 
     def interact_on(self, tile):
-        if tile.terrain == '~':
-            Script.var['host'] = self.host
-            Script.var['1'] = None
-            Script.execute_code('#water')
-        elif self.host == Global.player.character:
-            for thing in tile.things:
-                if self.interact(thing):
-                    return True
+        if self.host == Global.player.character:
+            if tile.get_icon() == '~':
+                Script.var['host'] = self.host
+                Script.var['1'] = None
+                Script.execute_code('#water')
+            else:
+                for thing in tile.things:
+                    if self.interact(thing):
+                        return True
 
     def interact(self, target):
         code = target.tags.get('#')
@@ -174,7 +180,7 @@ class Actions:
                     thing.relocate(to=self.host.pos)
                     thing.states.add('Knockout', 20)
                     self.move(old)
-                    return
+                    return True
 
     def fall(self):
         self.make('fall', turn=18)
@@ -213,15 +219,7 @@ class Actions:
                         break
             if target:
                 self.make('grab', turn=3)
-                if self.host.weapon:
-                    self.host.inventory.attempt_add(target)
-                else:
-                    if self.host.inventory.is_vacant(target.get_weight()):
-                        target.on_wield(self.host)
-                    else:
-                        from src.tools.Dialog import Dialog
-                        params = [self.host.get_equipment_weight(), self.host.get_capacity(), target.get_weight()]
-                        Global.main.monologue.set(Dialog.get('!heavy', params))
+                self.host.pick_up(target)
             elif not self.host.tags.get('fly') or not self.interact_on(self.host.pos):
                 self.make('grab', turn=1)
                 self.host.drop()
@@ -242,48 +240,31 @@ class Actions:
 
     def crush(self):
         front = self.host.pos.get_cardinal(self.host.direction, 1)
-        if front.speed == -10:
+        if front.get_yield() == -10:
             self.host.location.sound.register(self.host.pos, 16, file='critical')
             front.set_terrain('.')
+            front.connect_connect()
             front.update_update_shader()
 
     def attack(self):
         self.host.states.trigger(['act', 'attack'])
-        speed = min(5, self.host.get_attack_speed())
-        self.make(self.host.get_attack_motion(), turn=10 - speed)
-        slow = max(0, 2 - speed)
+        self.make(self.host.get_attack_motion(), turn=4 + max(0, 2 + self.host.get_attack_speed()))
         dmg = self.host.roll_damage()
         front = self.host.pos.get_cardinal(self.host.direction, 1)
         hitter = self.host.get_hitter()
-        self.host.location.field.register(dmg, front, hitter=hitter, delay=slow, sound=['swing', 0],
-                                          callback=self.host.on_attack)
-        self.host.form.timer.set(slow * 4 + 4)
+        self.host.location.field.register(dmg, front, delay=1, hitter=hitter,
+                                          sound=['swing', 0], callback=self.host.on_attack)
         if self.host.get_skill('crush') and dmg > 6:
             self.on_finish = self.crush
 
-    def arch(self):
-        def fin():
-            def check_collision():
-                ob = r.pos.is_land(Tile.CHECK_SOLID)
-                if not ob:
-                    for i in r.pos.things:
-                        if isinstance(i, Unit):
-                            return True
-                return ob
+    def ability(self):
+        from src.entity.unit.item.Spell import Spell
+        Spell.get(self.host.tags.get('abi'), power=100).cast(self.host)
+        self.make('cast', turn=12)
 
-            def collision():
-                r.remove()
-                r.location.field.register(rating, r.pos, delay=0, hitter=self.host, faction=r.faction)
-            r = Stock.make('Arrow', self.host.get_front_tile())
-            r.faction = self.host.faction
-            r.shoot(dest.x, dest.y)
-            r.is_collide = check_collision
-            r.on_collide = collision
-            self.host.weapon.rotation = orig_rot
-        self.make('arch', turn=9)
-        rating = 1 + self.host.get_skill('bow')
-        orig_rot = self.host.weapon.rotation
-        self.host.weapon.rotation = 0
-        self.host.attributes.exert(0, self.host.weapon.get_weight())
-        dest = self.host.next_target
-        self.on_finish = fin
+    def pocket(self):
+        if self.humanoid:
+            def fin():
+                self.host.unsheathe(len(self.host.inventory.items) - 1)
+            self.make('grab', turn=4)
+            self.on_finish = fin

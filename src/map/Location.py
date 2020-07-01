@@ -7,16 +7,12 @@ from src.map.Field import Field
 from src.map.Population import Population
 from src.map.Sound import Sound
 from src.map.Tile import Tile
-from src.tools.Data import Data
 from src.tools.Tag import Tag
 
 
 class Location:
-    def __init__(self, name, data, make=False):
-        self.name = name
+    def __init__(self, data, make=False):
         self.tags = Tag()
-        self.tags.set('name', name)
-        self.update_frame = 0
         self.field = Field(self)
         self.sound = Sound(self)
         self.population = Population()
@@ -37,14 +33,11 @@ class Location:
         for y in self.tiles:
             row = ''
             for x in y:
-                row += x.terrain
+                row += x.get_icon()
             rt.append(row)
         tiles = '%'.join(rt)
         objects = self.population.__str__()
         return self.tags.__str__() + '\n' + tiles + '\n' + objects + '\n'
-
-    def save(self):
-        Data.write('save/' + self.name + '.map', self.__str__())
 
     def load(self, arg, make=True, offset=(0, 0)):
         while len(arg) < 3:
@@ -75,11 +68,6 @@ class Location:
             obj.relocate(to=obj.pos.get_neighbor(offset[0], offset[1]), force=True)
             obj.add()
             objects.append(obj)
-        if make:
-            from src.entity.Other import Scripter
-            for i in objects:
-                if isinstance(i, Scripter):
-                    i.run_make()
         return objects
 
     def process_terrain(self):
@@ -129,11 +117,13 @@ class Location:
 
     def collide_land(self, pos1, pos2, flag, distance=10, return_prev=True):
         def fn(prev, tile):
-            if tile and tile.is_land(flag):
-                if return_prev:
-                    return prev
-                else:
-                    return tile
+            if tile:
+                is_int = isinstance(flag, int)
+                if (is_int and tile.get_solidity() >= flag) or (not is_int and tile.is_land(flag)):
+                    if return_prev:
+                        return prev
+                    else:
+                        return tile
         return self.collide_line(pos1.x, pos1.y, pos2.x, pos2.y, fn, distance)
 
     def flip(self, flip_x, flip_y):

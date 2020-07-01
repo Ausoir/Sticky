@@ -9,7 +9,7 @@ class Glasses(Headgear):
         r += '\n' + Dialog.get('sight_range', [self.tags.get('level', 1)])
         sight_type = []
         from src.map.Tile import Tile
-        for i in self.collision_type:
+        for i in str(self.tags.get('see', 0)):
             sight_type.append(Tile.get_collision_by_name(i))
         r += '\n' + Dialog.get('sight_type', [', '.join(sight_type)])
         return r
@@ -24,7 +24,8 @@ class Glasses(Headgear):
             self.host.action.on_finish = done
             coord = Global.cardinal_coord[self.host.direction]
             target = self.host.pos + [coord[0] * level, coord[1] * level]
-            pos = self.host.location.collide_land(self.host.pos, target, distance=level, flag=self.collision_type)
+            sights = str(self.tags.get('see', 0))
+            pos = self.host.location.collide_land(self.host.pos, target, distance=level, flag=sights)
             from src.game.TempObject import TempObject
             viewer = TempObject(pos)
             from src.game.Camera import Camera
@@ -57,6 +58,6 @@ class Talisman(Headgear):
         if self.host:
             spell = self.tags.get('spell')
             if spell:
-                from src.entity.unit.item.Alchemy import Alchemy
-                Alchemy.perform(self.host, spell)
+                from src.entity.unit.item.Spell import Spell
+                Spell.perform(self.host, spell)
         super().die()

@@ -1,4 +1,5 @@
 from src.entity.unit.Buff import Buff, StatBuff
+from src.game.Turn import Turn
 
 
 class Buffs:
@@ -71,3 +72,9 @@ class Buffs:
     def on_load(self):
         for i in self.buffs:
             i.on_load()
+
+    def on_sleep(self, time):
+        for i in self.buffs:
+            if i.duration > 0:
+                i.duration = max(0, i.duration - (time * Turn.HOUR_FRAME))
+                i.trigger(['time', time])

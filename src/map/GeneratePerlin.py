@@ -158,7 +158,7 @@ class GenerateWoods(GeneratePerlin):
     def post_process(self, location):
         rx = int(self.get_width() / 2)
         ry = int(self.get_height() / 2)
-        while location.get_tile(rx, ry).terrain != '.':
+        while location.get_tile(rx, ry).get_icon() != '.':
             rx += self.random.rand_int(-1, 1)
             ry += self.random.rand_int(-1, 1)
         location.tags.set('enterx', rx)
@@ -195,7 +195,7 @@ class GenerateField(GeneratePerlin):
     def post_process(self, location):
         rx = int(self.get_width() / 2)
         ry = int(self.get_height() / 2)
-        while location.get_tile(rx, ry).terrain != '.':
+        while location.get_tile(rx, ry).get_icon() != '.':
             rx += self.random.rand_int(-1, 1)
             ry += self.random.rand_int(-1, 1)
         location.tags.set('enterx', rx)

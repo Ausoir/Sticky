@@ -17,6 +17,7 @@ from src.tools.Random import Random
 # noinspection PyAbstractClass
 class Execute(pyglet.window.Window):
     def __init__(self):
+        Data.init()
         self.setting = Dialog.to_dict(Data.process_raw(Data.read('data/setting.txt')))
         super(Execute, self).__init__(self.setting['width'], self.setting['height'], ' ',
                                       fullscreen=self.setting['fullscreen'] == 1, vsync=False, resizable=True)
@@ -36,9 +37,12 @@ class Execute(pyglet.window.Window):
         from src.entity.Stock import Stock
         from src.interface.MenuAll import MenuAll
         from src.map.Tile import Tile
-        Data.init()
+        from src.entity.Attribute import Attribute
+        from src.map.World import World
         Turn.init()
         Tile.init(Data.process_raw(Data.read('data/raw/tiles.txt')))
+        Attribute.ADD_ON = Dialog.to_dict(Data.process_raw(Data.read('data/raw/attributes.txt')))
+        World.BIOME = Dialog.to_dict(Data.process_raw(Data.read('data/raw/habitat.txt')))
         Dialog.init()
         Stock.init()
         Global.draw_group = DrawGroup()
@@ -48,7 +52,9 @@ class Execute(pyglet.window.Window):
         Global.blank_form = Data.get_form('none')
         Global.map_view = MapView()
         Global.menu = MenuAll()
+        Global.world = World()
         Global.player = Game()
+        Global.player.initialize()
 
     def set_fullscreen(self, fullscreen=True, screen=None, mode=None,
                        width=None, height=None):
@@ -132,7 +138,6 @@ class Execute(pyglet.window.Window):
 
     def quit(self):
         Global.player.control.output('quit')
-        Global.player.world.save()
         Global.player.save()
         self.on_close()
 

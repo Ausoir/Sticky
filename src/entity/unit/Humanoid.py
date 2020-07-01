@@ -1,5 +1,6 @@
 from src.entity.unit.Inventory import Inventory
 from src.entity.unit.Unit import Unit
+from src.game import Global
 
 
 class Humanoid(Unit):
@@ -12,9 +13,6 @@ class Humanoid(Unit):
         self.headgear = None
         self.weapon = None
         self.action.humanoid = True
-        from src.tools.Data import Data
-        self.shadow = Data.get_form('g_7x0')
-        self.shadow.bound(True)
 
     def __str__(self):
         armor = '['+self.armor.__str__()+']' if self.armor else '0'
@@ -71,13 +69,8 @@ class Humanoid(Unit):
         self.form = BodyHumanoid(line[1], self)
         self.form.set_model(line[2])
 
-    def set_row(self, row):
-        super().set_row(row)
-        self.shadow.z = row * 20 + 100
-
     def show(self, visible):
         super().show(visible)
-        self.shadow.show(visible)
         if self.weapon:
             self.weapon.show(visible)
         if self.headgear:
@@ -85,7 +78,6 @@ class Humanoid(Unit):
 
     def bound(self, visible):
         super().bound(visible)
-        self.shadow.bound(visible)
         if self.weapon:
             self.weapon.bound(visible)
         if self.headgear:
@@ -105,7 +97,7 @@ class Humanoid(Unit):
 
     def get_possessions(self):
         r = self.get_equipments()
-        r += self.inventory.items
+        r += self.inventory.get_all_items()
         return r
 
     def get_equipments(self):
@@ -119,12 +111,8 @@ class Humanoid(Unit):
         return r
 
     def get_accessibles(self):
-        r = []
-        from src.entity.unit.item.Item import Item
-        for thing in self.pos.things:
-            if isinstance(thing, Item):
-                r.append(thing)
-        r += self.inventory.items
+        r = super().get_accessibles()
+        r += self.inventory.get_all_items()
         return r
 
     def get_skill(self, skill, stacks=False):
@@ -147,7 +135,7 @@ class Humanoid(Unit):
     def get_attack_speed(self):
         r = super().get_attack_speed()
         if self.weapon:
-            r -= self.weapon.get_weight() - 2
+            r += self.weapon.tags.get('aspd', 0)
         return r
 
     def get_capacity(self):
@@ -166,6 +154,9 @@ class Humanoid(Unit):
 
     def get_weight(self):
         return super().get_weight() + self.get_equipment_weight()
+
+    def is_vacant(self, weight):
+        return self.get_capacity() >= self.get_equipment_weight() + weight
 
     def turn(self):
         super().turn()
@@ -208,7 +199,6 @@ class Humanoid(Unit):
 
     def update(self):
         bound_x, bound_y = super().update()
-        self.shadow.place(bound_x, bound_y)
         if self.weapon:
             if self.direction == 2:
                 x = bound_x + self.form.organs[3].lower_joint.x
@@ -238,13 +228,16 @@ class Humanoid(Unit):
     def face(self, direction):
         if self.headgear:
             self.headgear.face(direction)
-        super().face(direction)
+        return super().face(direction)
 
-    def decay(self, damage):
-        if not self.armor:
-            return super().decay(damage)
-        self.display_hp()
-        return 1
+    def hit(self, damage, hitter=None):
+        r = 0
+        if self.calculate_hit(damage, hitter):
+            if self.armor and Global.r.rand_float() * 100 < self.armor.tags.get('cov', 0):
+                self.display_hp()
+            else:
+                r = super().hit(damage, hitter)
+        return r
 
     def get_durability(self):
         hp = self.tags.get('p')
@@ -259,13 +252,31 @@ class Humanoid(Unit):
 
     def display_hp(self):
         a_hp, a_mhp, hp, mhp = self.get_durability()
-        if a_hp + hp >= 0 and a_mhp + mhp > 0:
-            self.healthbar.appear(a_hp + hp, a_mhp + mhp)
+        if a_mhp > 0:
+            self.healthbar.colorize(a_hp / a_mhp)
+        else:
+            self.healthbar.colorize(0)
+        if mhp > 0:
+            self.healthbar.appear(hp, mhp)
 
     def on_attack(self, target):
         super().on_attack(target)
         if self.weapon:
             self.weapon.on_attack(target)
+        else:
+            if isinstance(target, Humanoid):
+                if self.get_skill('steal'):
+                    concentration = self.states.get('Concentration')
+                    if concentration:
+                        concentration.trigger(['spend'])
+                        weapon = target.drop()
+                        if weapon:
+                            self.pick_up(weapon)
+                    else:
+                        self.location.sound.register(self.pos, 0, file='wear', priority=2)
+                        item = target.inventory.take_item(0)
+                        if item:
+                            self.pick_up(item)
 
     def drop(self):
         if self.weapon:
@@ -283,13 +294,13 @@ class Humanoid(Unit):
             return self.headgear.unwear()
 
     def make_face(self):
-        from src.form.Model import Model
+        from src.form.Picture import Model
         face = Humanoid.faces[self.tags.get('seed', 0) % len(Humanoid.faces)]
         model = Model(face)
         return model
 
     def unsheathe(self, index):
-        item = self.inventory.get_item(index)
+        item = self.inventory.take_item(index)
         if item:
             def change():
                 self.drop()
@@ -298,6 +309,23 @@ class Humanoid(Unit):
             self.action.on_finish = change
             self.action.delay = 4
 
+    def pick_up(self, item):
+        if self.weapon:
+            self.inventory.attempt_add(item)
+        else:
+            if self.is_vacant(item.get_weight()):
+                item.on_wield(self)
+            else:
+                from src.tools.Dialog import Dialog
+                params = [self.get_equipment_weight(), self.get_capacity(), item.get_weight()]
+                if self == Global.player.character:
+                    Global.main.monologue.set(Dialog.get('!heavy', params))
+
     def on_sleep(self, time):
         super().on_sleep(time)
-        self.inventory.on_sleep(time)
+        if self.weapon:
+            self.weapon.on_sleep(time)
+        if self.armor:
+            self.armor.on_sleep(time)
+        if self.headgear:
+            self.headgear.on_sleep(time)

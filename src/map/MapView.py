@@ -12,7 +12,6 @@ class MapView:
     display_ratio = .7
 
     def __init__(self):
-        self.update_frame = 0
         self.draw_frame = 0
         self.draw_tiles = []
         self.tiles = {}
@@ -50,7 +49,7 @@ class MapView:
         while self.shadows:
             item = self.shadows.pop()
             item.remove()
-        Global.land.process_terrain()
+        Global.world.location.process_terrain()
         self.draw_tiles.clear()
         for y in range(-self.sight_range_y, self.sight_range_y + 1):
             for x in range(-self.sight_range, self.sight_range + 1):
@@ -63,8 +62,21 @@ class MapView:
         self.old_camera = Camera.target.pos
 
     def turn(self):
-        self.brightness = Global.player.get_brightness()
-        self.update_frame += 1
+        brightness = Global.map_view.overlay.LIGHT[Global.player.days % 24]
+        if self.brightness != brightness:
+            self.brightness = brightness
+            col_range = [Camera.target.pos.x - self.sight_range, Camera.target.pos.x + self.sight_range]
+            row_range = [Camera.target.pos.y - self.sight_range_y, Camera.target.pos.y + self.sight_range_y]
+            edge_lights = []
+            for pos_x in range(col_range[0] - 6, col_range[1] + 7):
+                edge_lights.append(Global.world.location.get_tile(pos_x, row_range[0] - 6))
+                edge_lights.append(Global.world.location.get_tile(pos_x, row_range[1] + 6))
+            for pos_y in range(row_range[0] - 6, row_range[1] + 7):
+                edge_lights.append(Global.world.location.get_tile(col_range[0] - 6, pos_y))
+                edge_lights.append(Global.world.location.get_tile(col_range[1] + 6, pos_y))
+            for i in edge_lights:
+                if i:
+                    i.light = 0
         self.update_fog()
         self.overlay.turn()
 
@@ -80,11 +92,11 @@ class MapView:
                     if tile.roof == 0:
                         self.shadows[index].set_color([120, 0, 0, 40])
                     else:
-                        self.shadows[index].show(True)
                         self.shadows[index].set_color([250, 250, 0, 40])
+                    self.shadows[index].overlay.update()
                 index += 1
 
-    def update(self, editor=False):
+    def update(self):
         self.draw_frame += 1
         index = 0
         cam_x = self.old_camera.x
@@ -94,14 +106,14 @@ class MapView:
         row_range = [cam_y-self.sight_range_y, cam_y+self.sight_range_y]
         for pos_y in range(row_range[0] - 5, row_range[1] + 6):
             for pos_x in range(col_range[0] - 5, col_range[1] + 6):
-                this_tile = Global.land.get_tile(pos_x, pos_y)
+                this_tile = Global.world.location.get_tile(pos_x, pos_y)
                 if this_tile:
                     this_tile.update_light()
                     if this_tile.roof == 0:
                         this_tile.light = max(this_tile.light, self.brightness)
                     in_screen = row_range[0] <= pos_y <= row_range[1] and col_range[0] <= pos_x <= col_range[1]
                     if in_screen:
-                        if not editor and self.draw_tiles[index].visible:
+                        if self.draw_tiles[index].visible:
                             if this_tile.light > 7:
                                 self.shadows[index].set_color(self.overlay.fade)
                             elif this_tile.light > 4:
@@ -139,7 +151,7 @@ class MapView:
                 this_tile = self.tiles.get(key)
                 if this_tile:
                     if this_tile.in_sight:
-                        if this_tile.shader == 1:
+                        if this_tile.get_shader() == 1:
                             self.shadows[index].shade_walls(this_tile.joint_neighbors)
                         else:
                             self.shadows[index].remove_shades()
@@ -165,7 +177,7 @@ class MapView:
         self.old_camera = Camera.target.pos
 
     def update_fog(self):
-        center = Global.land.get_tile(Camera.target.pos.x, Camera.target.pos.y)
+        center = Global.world.location.get_tile(Camera.target.pos.x, Camera.target.pos.y)
         self.tiles = {str(Camera.target.pos.x) + ',' + str(Camera.target.pos.y): center}
         for i in range(8):
             self.shadow_cast(Camera.target.pos, 1, 1.0, 0.0, self.octant_flip[i], 0)
@@ -189,7 +201,7 @@ class MapView:
                     tile_y = dx * flips[2] + dy * flips[3]
                     map_x = camera.x + tile_x
                     map_y = camera.y + tile_y
-                    tile = Global.land.get_tile(map_x, map_y)
+                    tile = Global.world.location.get_tile(map_x, map_y)
                     if tile:
                         if abs(dx) < self.sight_range + 1 and abs(dy) < self.sight_range + 1:
                             in_view_range = abs(tile_x) <= self.view_range and abs(tile_y) <= self.view_range_y

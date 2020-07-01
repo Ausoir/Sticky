@@ -30,15 +30,6 @@ class Scripter(Prop):
     def set_row(self, row):
         self.form.z = 800
 
-    def trigger(self):
-        Script.var['host'] = self
-        self.script.run_script()
-
-    def run_make(self):
-        Script.var['host'] = self
-        if self.script.period == Script.MAKE:
-            self.script.run_script()
-
 
 class Force(Prop):
     def __init__(self, location):
@@ -99,11 +90,31 @@ class Door(Prop):
                     self.obstruct_type = self.orig_obstruct_type
 
 
+class Container(Prop):
+    def __init__(self, location):
+        super().__init__(location)
+        from src.entity.unit.Inventory import Inventory
+        self.inventory = Inventory(self)
+
+    def __str__(self):
+        return super().__str__() + ',' + self.inventory.__str__()
+
+    def load(self, arg):
+        index = super().load(arg)
+        self.inventory.load(arg[index])
+        return index + 1
+
+    def is_vacant(self, weight):
+        return self.tags.get('space', 0) >= self.inventory.get_weight() + weight
+
+
 class Specie(Item):
     def load(self, arg):
         r = super().load(arg)
         if self.form_name is None:
-            seed = self.tags.get('seed', 0)
+            cell_coord = Global.world.get_current_chunk(self.pos.x, self.pos.y)
+            seed = int(Global.world.map_biome.get_noise(cell_coord[0], cell_coord[1]) * 12500)
+            self.tags.set('seed', seed)
             cue = Data.get_line('raw.txt', self.name.lower())[1]
             arg = cue[seed % len(cue)]
             self.set_form(arg)
@@ -122,6 +133,28 @@ class Specie(Item):
     def get_display_name(self):
         cue = Data.get_line('raw.txt', 'cue')[1]
         return cue[self.tags.get('seed', 0) % len(cue)].title() + ' ' + self.name
+
+    def get_description(self):
+        r = super().get_description()
+        if Global.player.character.get_skill('alchemy'):
+            r += '\n' + Dialog.get('Density') + ': ' + str(self.tags.get('seed', 0) % 100)
+        return r
+
+    def on_unwield(self):
+        super().on_unwield()
+        if Global.player.character.get_skill('herbalism'):
+            self.tags.set('$', 1)
+
+    def on_sleep(self, time):
+        if time >= 12:
+            if self.pos.get_icon() == '*':
+                from src.entity.Stock import Stock
+                for i in Global.cardinal_coord:
+                    tile = self.pos.get_neighbor(i[0], i[1])
+                    if tile.get_icon() == '*' and not tile.things:
+                        clone = Stock.get(self.location, self.name, data=Data.parse(self.__str__()))
+                        clone.pos = tile
+                        clone.add()
 
 
 class Marker(Prop):
@@ -157,7 +190,7 @@ class Marker(Prop):
             r = True
         self.tags.set('dir', direction)
         self.tags.set('way', connection)
-        world_seed = Global.player.tags.get('seed') + ord(self.pos.terrain)
+        world_seed = Global.player.tags.get('seed') + ord(self.pos.get_icon())
         one_way = int(connection <= 1)
         if world_seed % 4 == connection:
             self.tags.set('ohm', -1)
@@ -229,10 +262,10 @@ class Marker(Prop):
 
     def cast(self, intensity, collision):
         data = Data.get_line('raw.txt', 'portals')[1]
-        from src.entity.unit.item.Alchemy import Alchemy
+        from src.entity.unit.item.Spell import Spell
         category = data[max(0, len(data) - collision)]
         seed = self.tags.get('seed', 0) * self.tags.get('way', 0)
-        Alchemy.perform(self.pos, category[seed % len(category)], intensity * 6)
+        Spell.get(category[seed % len(category)], power=intensity * 6).cast_on(self.pos)
         print('spell ' + category[seed % len(category)] + ' intensity ' + str(intensity * 6))
 
 
@@ -292,45 +325,6 @@ class Food(Item):
         return nutrition
 
 
-class Potion(Food):
-    def __init__(self, location):
-        super().__init__(location)
-        self.nutrition = [-12, 0]
-
-    def on_create(self):
-        acidity = self.tags.get('acidity', 0)
-        self.nutrition[0] -= int(acidity / 10)
-
-    def eat(self):
-        r = super().eat()
-        spell, power = self.get_symptom()
-        if spell:
-            from src.entity.unit.item.Alchemy import Alchemy
-            Alchemy.perform(self.pos, self.tags.get('spell'), self.tags.get('power'))
-            print(spell + ' ' + str(power))
-        return r
-
-    def hit(self, damage, hitter=None):
-        if damage > 0:
-            spell, power = self.get_symptom()
-            if spell:
-                from src.entity.Stock import Stock
-                r = Stock.make('Mine', self.pos)
-                r.spell = spell
-        return super().hit(damage, hitter)
-
-    def get_symptom(self):
-        density = self.tags.get('density', 0) + 1
-        acidity = self.tags.get('acidity', 0) + 1
-        toxicity = self.tags.get('toxicity', 0) + 1
-        if density > 50:
-            data = Data.get_line('raw.txt', 'potions')[1]
-            effect_num = len(data)
-            effect = int(acidity / toxicity * effect_num)
-            return data[effect], min(100, density - 50)
-        return None, 0
-
-
 class Corpse(Prop):
     def __init__(self, location):
         super().__init__(location)
@@ -377,7 +371,7 @@ class Corpse(Prop):
         r = super().hit(damage, hitter)
         if r != 2:
             if self.has_host:
-                self.form.randomize_once(6)
+                self.form.randomize_once(4)
         return r
 
     def die(self):
@@ -433,8 +427,8 @@ class Mine(Prop):
         super().turn()
         for thing in self.pos.things:
             if thing != self and thing.tags.get('fly') != 1:
-                from src.entity.unit.item.Alchemy import Alchemy
-                Alchemy.perform(self.pos, self.tags.get('spell'), self.tags.get('power'))
+                from src.entity.unit.item.Spell import Spell
+                Spell.get(self.tags.get('spell'), self.tags.get('power', 0)).cast_on(self.pos)
                 self.remove()
                 return
 
@@ -501,3 +495,26 @@ class Ghost(Unit):
                     i.center_camera()
                     break
         return moved
+
+
+class Pickaxe(Item):
+    def use(self):
+        self.host.action.attack()
+        self.host.action.on_finish = self.destroy
+
+    def destroy(self):
+        tile = self.host.pos.get_cardinal(self.host.direction, 1)
+        if tile and tile.terrain != '.':
+            self.location.sound.register(self.pos, 16, file='critical')
+            if tile.things:
+                for thing in tile.things:
+                    if thing.name == 'Break':
+                        thing.remove()
+                        tile.set_terrain('.')
+                        self.decay(1)
+                        return
+            else:
+                from src.entity.Stock import Stock
+                self.host.action.act('rest', 8)
+                Stock.make('Break', tile)
+                self.decay(1)

@@ -1,6 +1,5 @@
 from src.form.Shape import Shape
 from src.game import Global
-from src.game.Camera import Camera
 from src.tools.Timer import Timer
 
 
@@ -36,6 +35,10 @@ class HealthBar:
                 self.background.add_batch()
                 self.foreground.add_batch()
                 self.timer.set(80)
+
+    def colorize(self, percent):
+        val = int(250 * percent)
+        self.foreground.set_solid_color((250 - val, val, 0, 200))
 
     def turn(self):
         if self.displaying_health:

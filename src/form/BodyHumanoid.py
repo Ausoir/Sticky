@@ -8,7 +8,7 @@ class BodyHumanoid(Body):
 
     def set_row(self, row):
         self.row = row
-        t = row
+        t = row + 1
         for i in self.order[self.direction - 1]:
             t += 1
             if i >= 0:

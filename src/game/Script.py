@@ -6,10 +6,6 @@ from src.tools.Random import Random
 
 
 class Script:
-    NONE = 0
-    ONCE = 1
-    MAKE = 2
-    TURN = 3
     var = {'1': None, 'fail': 0}
 
     @staticmethod
@@ -66,7 +62,6 @@ class Script:
         return new
 
     def __init__(self):
-        self.period = Script.NONE
         self.condition = None
         self.mechanism = None
         self.exception = None
@@ -74,13 +69,10 @@ class Script:
 
     def __str__(self):
         string = Dialog.deepnonstrlist
-        cnm = string(self.condition, 2) + ',' + string(self.mechanism, 2) + ',' + string(self.exception, 2)
-        return str(self.period) + ',' + cnm
+        return string(self.condition, 2) + ',' + string(self.mechanism, 2) + ',' + string(self.exception, 2)
 
     def load(self, arg):
         index = 0
-        self.period = arg[index]
-        index += 1
         self.condition = arg[index]
         index += 1
         self.mechanism = arg[index]
@@ -88,23 +80,7 @@ class Script:
         self.exception = arg[index]
         return index + 1
 
-    def turn(self):
-        self.run_script()
-
     def run(self):
-        if self.period == Script.ONCE:
-            self.run_script()
-            self.period = Script.NONE
-        elif self.period == Script.TURN:
-            from src.game.Turn import Turn
-            Turn.add(self.turn)
-
-    def remove(self):
-        from src.game.Turn import Turn
-        Turn.remove(self)
-        del self
-
-    def run_script(self):
         for i in self.condition:
             if not self.run_condition(i):
                 self.run_exceptions()
@@ -225,47 +201,26 @@ class Script:
             Global.menu.topic(arg[1:])
         elif arg[0] == 'say':
             Global.main.monologue.set(arg[1])
-        elif arg[0] == 'removeat':
-            for thing in Script.var['host'].pos.things.copy():
-                if thing != Script.var['host']:
-                    thing.remove()
         elif arg[0] == 'remove':
-            self.remove()
             arg[1].remove()
-        elif arg[0] == 'trigger':
-            Script.var['1'].trigger()
         elif arg[0] == 'spell':
-            from src.entity.unit.item.Alchemy import Alchemy
-            Alchemy.perform(Script.var['host'].pos, arg[1])
+            from src.entity.unit.item.Spell import Spell
+            Spell.perform(Script.var['host'].pos, arg[1])
         elif arg[0] == 'buff':
             Script.var['host'].states.add(arg[1], arg[2], var=arg[3])
-        elif arg[0] == 'darkness':
-            Global.land.set_view_range(arg[1])
-            Global.land.set_sight_range(arg[2])
-            Global.player.set_darkness()
         elif arg[0] == 'time':
             Global.player.days = arg[1]
             Global.map_view.overlay.blackout()
             Global.player.sleep(0)
-        elif arg[0] == 'enter':
-            if len(arg) == 2:
-                Global.player.travel(arg[1])
-            else:
-                Global.player.travel(arg[1], arg[2], arg[3])
         elif arg[0] == 'menu':
             Global.menu.var = Script.var['1']
             Global.menu.direct(getattr(Global.menu, 'menu_' + arg[1].lower()))
         elif arg[0] == 'script':
             Script.execute_code(arg[1])
-        elif arg[0] == 'new':
-            building = Data.process_raw(Data.read(arg[2] + '.map'))
-            from src.map.Location import Location
-            location = Location(arg[1], building, make=True)
-            location.save()
         elif arg[0] == 'load':
             building = Data.process_raw(Data.read(arg[1] + '.map'))
             host = Script.var['host']
-            Global.land.load(building, offset=[arg[2], arg[3]], make=True)
+            Global.world.location.load(building, offset=[arg[2], arg[3]], make=True)
             Script.var['host'] = host
         elif arg[0] == 'loadhere':
             host = Script.var['host']
@@ -286,19 +241,8 @@ class Script:
             location.load(building, offset=[arg[4], arg[5]], make=True)
             location.save()
             Script.var['host'] = host
-        elif arg[0] == 'generate':
-            from src.map.Generator import Generator
-            generator = Generator.get(arg[2])(arg[3], arg[4])
-            location = generator.run(arg[1])
-            location.save()
-        elif arg[0] == 'template':
-            from src.map.Generator import Generator
-            location = Generator.get_template(arg[1], arg[2], self.get_rand().rand_rand())
-            location.save()
         elif arg[0] == 'decay':
             Script.var['1'].decay(arg[1])
-        elif arg[0] == 'unwield':
-            Global.player.character.weapon.remove()
         elif arg[0] == 'delay':
             from src.entity.unit.Unit import Unit
             if isinstance(Script.var['host'], Unit):
@@ -312,3 +256,5 @@ class Script:
                     Script.var['host'].action.set(arg[1])
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])
+        elif arg[0] == 'deletefiles':
+            Data.delete_all()

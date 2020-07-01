@@ -33,9 +33,8 @@ class Generator:
     def get_template(name, directory, rand):
         from src.tools.Data import Data
         building = Data.process_raw(Data.read(directory + '.map'))
-        r = Location(name, building, make=True)
+        r = Location(name, building)
         Generator.disorient(r, rand)
-        r.tags.set('thief', 2)
         r.tags.set('edge', 'travel')
         return r
 
@@ -184,7 +183,7 @@ class Generator:
         for y in range(location.get_height()):
             possibles.append(location.get_tile(0, y))
             possibles.append(location.get_tile(location.get_width() - 1, y))
-        possibles = list(filter(lambda tile: tile.terrain == terrain, possibles))
+        possibles = list(filter(lambda tile: tile.get_icon() == terrain, possibles))
         return self.random.rand_list(possibles)
 
     def place_mobs(self, location, mobs):
@@ -195,10 +194,10 @@ class Generator:
         for y in range(location.get_height()):
             for x in range(location.get_width()):
                 tile = location.get_tile(x, y)
-                if tile.terrain in terrains and not tile.is_land(Tile.CHECK_SPAWN):
-                    if tile.terrain not in possibles:
-                        possibles[tile.terrain] = []
-                    possibles[tile.terrain].append(tile)
+                if tile.get_icon() in terrains and not tile.is_land(Tile.COLLIDE_UNIT):
+                    if tile.get_icon() not in possibles:
+                        possibles[tile.get_icon()] = []
+                    possibles[tile.get_icon()].append(tile)
         for mob_data in mobs:
             if len(possibles[mob_data[2]]) > mob_data[1]:
                 for i in range(mob_data[1]):

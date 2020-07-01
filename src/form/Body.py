@@ -67,7 +67,7 @@ class Body:
 
     def set_row(self, row):
         self.row = row
-        t = row
+        t = row + 1
         for i in self.order[self.direction - 1]:
             if i >= 0:
                 self.organs[i].form.z = t
@@ -82,7 +82,7 @@ class Body:
             self.update_clip()
         timer = self.timer.time + 1
         root = self.current_animation[len(self.current_animation) - 2]
-        dx = (root[0] - self.root.upper_joint.x) / timer
+        dx = (root[0] * self.side - self.root.upper_joint.x) / timer
         dy = (root[1] - self.root.upper_joint.y) / timer
         self.root.upper_joint += (dx, dy)
         for k, organ in enumerate(self.organs):

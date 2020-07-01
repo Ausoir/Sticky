@@ -1,3 +1,0 @@
-[name:instance]
-WWWW%...W%...W%WWWW
-[#2b,[2,2],Bed,Prop,g_13x3,[p:4,def:3,ob:5,loot:Cloth,#:rest],[]],[#61,[2,2],Remove,Scripter,g_6x0,[seed:-1],[],[2,[[v,1,?int,1,2],[equal,1]],[[removeat],[remove,*host]],[[remove,*host]]]],[#86,[1,1],Campfire,Prop,g_8x3,[p:4,ob:0,#:cook],[[Glow,-1,6],[Effect,-1,fire]]],[#8d,[2,1],Target,Prop,g_12x3,[p:200,def:-1,ob:5],[]],[#98,[2,1],Remove,Scripter,g_6x0,[seed:-1],[],[2,[[v,1,?int,1,2],[equal,1]],[[removeat],[remove,*host]],[[remove,*host]]]],[#99,[1,1],Remove,Scripter,g_6x0,[seed:-1],[],[2,[[v,1,?int,1,2],[equal,1]],[[removeat],[remove,*host]],[[remove,*host]]]]

@@ -14,7 +14,7 @@ class Object(Image):
         self.pos = None
         self.save = True
         self.obstruct_type = Tile.COLLIDE_OBJECT
-        self.collision_type = Tile.CHECK_SOLID
+        self.collision_type = Tile.COLLIDE_UNIT
         self.removed = 1
 
     def __str__(self):
@@ -56,7 +56,7 @@ class Object(Image):
 
     def update(self):
         diff = self.destination.get_center() - self.vec
-        self.vec += diff * .1
+        self.vec += diff * .2
         super().update()
 
     def show(self, visible):

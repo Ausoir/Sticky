@@ -5,6 +5,9 @@ from src.tools.Dialog import Dialog
 class Equipment(Item):
     def describe(self):
         r = super().describe()
+        stat = self.tags.get('cov')
+        if stat:
+            r += '\n' + Dialog.get('equipment_cov', [min(100, stat)])
         stat = self.tags.get('sth')
         if stat:
             r += '\n' + Dialog.get('equipment_sth', [Dialog.sign(stat)])

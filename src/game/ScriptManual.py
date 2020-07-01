@@ -21,8 +21,19 @@ class ScriptManual:
         host.action.act('grab', 8)
 
     @staticmethod
+    def replenish(host, var):
+        def confirm(index):
+            from src.entity.Stock import Stock
+            Stock.make(item, host.pos)
+        item = var.get_loot()
+        if item:
+            Global.menu.get_prompt(Dialog.get('pickup', [item]), Dialog.get('proceed'), confirm)(None)
+        host.action.act('grab', 8)
+
+    @staticmethod
     def water(host, var):
-        if host.weapon and host.weapon.tags.get('water') == 0:
+        from src.entity.unit.Humanoid import Humanoid
+        if isinstance(host, Humanoid) and host.weapon and host.weapon.tags.get('water') == 0:
             host.location.sound.register(host.pos, 0, file='drain')
             host.weapon.switch_form()
             host.weapon.tags.set('water', 1)
@@ -73,19 +84,86 @@ class ScriptManual:
                     density = var.tags.get('density', 0) / table_water  # how effective potion is
                     acidity = var.tags.get('acidity', 0) / table_water  # how long before expiry
                     toxicity = var.tags.get('toxicity', 0) / table_water  # side effects
-                    potion.tags.set('density', int(density))
-                    potion.tags.set('acidity', int(acidity))
-                    potion.tags.set('toxicity', int(toxicity))
+                    if density >= 50:
+                        from src.tools.Data import Data
+                        data = Data.get_line('raw.txt', 'potions')[1]
+                        effect_num = len(data) - 1
+                        if acidity < toxicity:
+                            effect = acidity / toxicity
+                        else:
+                            effect = toxicity / acidity
+                        effect = int(effect * effect_num)
+                        potion.tags.set('p', table_water)
+                        potion.tags.set('P', table_water)
+                        potion.tags.set('spell', data[effect])
+                        potion.tags.set('power', min(100, density - 50))
                     var.tags.increment('density', int(-density))
-                    if host.inventory.is_vacant(potion.get_weight()):
+                    if host.is_vacant(potion.get_weight()):
                         potion.on_wield(host)
-                    if table_water == 1:
-                        var.tags.remove('density')
-                        var.tags.remove('acidity')
-                        var.tags.remove('toxicity')
-                    var.tags.increment('water', -1)
+                    var.tags.remove('density')
+                    var.tags.remove('acidity')
+                    var.tags.remove('toxicity')
+                    var.tags.set('water', 0)
+            else:
+                require = []
+                water = var.tags.get('water')
+                ingredient = var.tags.get('density')
+                if water and ingredient:
+                    require.append('<' + Dialog.get('Bottle') + '>')
+                else:
+                    if not water:
+                        require.append('<' + Dialog.get('Water') + '>')
+                    if not ingredient:
+                        require.append('<' + Dialog.get('Ingredients') + '>')
+                Global.menu.get_message(Dialog.get('req_item', [','.join(require)]))()
         else:
-            Global.main.monologue.set(Dialog.get('req_skill', [Dialog.get('Alchemy')]))
+            Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Alchemy')]))()
+
+    @staticmethod
+    def carve(host, var):
+        if host.get_skill('carving'):
+            if host.weapon:
+                if host.weapon.tags.get('wood') == 1:
+                    host.location.sound.register(host.pos, 0, file='mix')
+                    host.drop().remove()
+                    var.tags.set('stick', 1)
+                elif host.weapon.tags.get('jewel'):
+                    host.location.sound.register(host.pos, 0, file='mix')
+                    jewel = host.weapon.tags.get('jewel')
+                    host.drop().remove()
+                    var.tags.set('jewel', jewel)
+                else:
+                    spell = host.weapon.tags.get('spell')
+                    if spell:
+                        power = host.weapon.tags.get('power', 0)
+                        host.drop().remove()
+                        host.location.sound.register(host.pos, 0, file='mix')
+                        var.tags.set('spell', spell)
+                        var.tags.set('power', power)
+                if var.tags.get('stick') and var.tags.get('jewel') and var.tags.get('spell'):
+                    var.tags.remove('stick')
+                    jewel = var.tags.remove('jewel')
+                    spell = var.tags.remove('spell')
+                    power = var.tags.remove('power')
+                    from src.entity.Stock import Stock
+                    wand = Stock.make('Wand', host.pos)
+                    wand.tags.set('P', jewel)
+                    wand.tags.set('p', jewel)
+                    wand.tags.set('spell', spell)
+                    wand.tags.set('power', power)
+                    if host.is_vacant(wand.get_weight()):
+                        wand.on_wield(host)
+            else:
+                require = []
+                if not var.tags.get('stick'):
+                    require.append('<' + Dialog.get('Stick') + '>')
+                if not var.tags.get('jewel'):
+                    require.append('<' + Dialog.get('Jewel') + '>')
+                if not var.tags.get('spell'):
+                    require.append('<' + Dialog.get('Potion') + '>')
+                Global.menu.get_message(Dialog.get('req_item', [','.join(require)]))()
+        else:
+            Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Carving')]))()
 
     @staticmethod
     def draw(host, var):
@@ -95,4 +173,36 @@ class ScriptManual:
             marker.tags.set('seed', var.tags.get('seed', 0))
             marker.trigger()
         else:
-            Global.main.monologue.set(Dialog.get('req_skill', [Dialog.get('Conjuration')]))
+            Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Conjuration')]))()
+
+    @staticmethod
+    def shapeshift(host, var):
+        if not host.tags.get('silver'):
+            from src.entity.unit.Humanoid import Humanoid
+            if isinstance(host, Humanoid):
+                host.drop()
+                host.unarmor()
+                host.unheadgear()
+                host.inventory.drop_all()
+            from src.entity.Stock import Stock
+            unit = Stock.make(var, host.pos)
+            unit.tags.remove('ai')
+            from src.entity.unit.Unit import Unit
+            if isinstance(host, Unit):
+                old_host = host
+                for i in host.states.buffs:
+                    i.host = unit
+                unit.states = old_host.states
+                unit.skills = old_host.skills
+                unit.face(old_host.direction)
+                from src.entity.unit.Buffs import Buffs
+                old_host.states = Buffs(old_host)
+                old_host.remove()
+                if old_host == Global.player.character:
+                    Global.player.set_player(unit)
+                host.location.sound.register(host.pos, 8, file='void')
+            else:
+                host.remove()
+        else:
+            from src.entity.Particle import Particle
+            Particle.make('sonic', host.pos)

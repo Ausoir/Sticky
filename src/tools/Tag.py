@@ -35,16 +35,19 @@ class Tag:
             return True
 
     def increment(self, tag, arg, remove=None):
-        if tag in self.attributes:
-            self.attributes[tag] += arg
-            if remove is not None and self.attributes[tag] == remove:
-                del self.attributes[tag]
-                return remove
-            else:
+        if isinstance(arg, int):
+            if tag in self.attributes:
+                self.attributes[tag] += arg
+                if remove is not None and self.attributes[tag] == remove:
+                    del self.attributes[tag]
+                    return remove
+                else:
+                    return self.attributes[tag]
+            elif arg != 0:
+                self.attributes[tag] = arg
                 return self.attributes[tag]
-        elif arg != 0:
-            self.attributes[tag] = arg
-            return self.attributes[tag]
+        else:
+            self.set(tag, arg)
 
     def sync(self, tag, target, ratio=1):
         if target and target != 0:

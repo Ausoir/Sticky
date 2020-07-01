@@ -24,8 +24,6 @@ class Buff:
     def describe_duration(self):
         if self.duration == -1:
             return Dialog.get('persistent')
-        elif self.duration < -1:
-            return Dialog.hours(-self.duration - 1)
         else:
             return str(self.duration)
 
@@ -70,11 +68,7 @@ class Buff:
         pass
 
     def trigger(self, arg):
-        if arg[0] == 'time':
-            if self.duration < -1:
-                self.duration += arg[1]
-                if self.duration >= -1:
-                    self.end()
+        pass
 
 
 class StatBuff(Buff):
@@ -103,7 +97,7 @@ class StatBuff(Buff):
 
     def trigger(self, arg):
         super().trigger(arg)
-        if arg[0] == 'act' and arg[1] in ['hit', 'use', 'attack']:
+        if arg[0] == 'act' and arg[1] in ['hit']:
             self.end()
 
 
@@ -177,8 +171,8 @@ class Burn(Buff):
             return super().is_valid()
 
     def on_start(self):
-        self.duration = self.host.tags.get('fuel', 1) * 12
-        if self.duration >= 96:
+        self.duration += self.host.tags.get('fuel', 1) * 10
+        if self.duration >= 90:
             self.host.location.sound.register(self.host.pos, 13, file='critical')
             for y in range(-1, 2):
                 for x in range(-1, 2):
@@ -186,21 +180,18 @@ class Burn(Buff):
                     if tile:
                         Particle.make('explode', tile, glow=1)
                         for i in tile.things:
-                            i.decay(10)
-
-    def on_stack(self, duration, var):
-        self.duration = max(self.duration, duration)
+                            i.hit(int(self.duration / 10), hitter=None)
 
     def on_update(self):
         self.var += 1
         if not self.var % 2:
             self.host.pos.glow(4)
             Particle.make('burn', self.host.pos, glow=1)
-            if not self.var % 4:
+            if not self.var % 8:
                 self.var = 0
                 self.host.decay(1)
                 from src.entity.Stock import Stock
-                if self.host.pos.name.startswith('wood') and Global.r.rand_int(1, 8) == 1:
+                if self.host.pos.get_name().startswith('wood') and Global.r.rand_int(1, 8) == 1:
                     Stock.make('Plank', self.host.pos)
                     self.host.pos.set_terrain('.')
                 else:
@@ -208,7 +199,7 @@ class Burn(Buff):
                     y = Global.r.rand_int(-1, 1)
                     neighbor = self.host.pos.get_neighbor(x, y)
                     if neighbor:
-                        if not neighbor.things and neighbor.name.startswith('wood'):
+                        if not neighbor.things and neighbor.get_name().startswith('wood'):
                             Stock.make('Flame', neighbor)
                         else:
                             for thing in neighbor.things:
@@ -217,7 +208,7 @@ class Burn(Buff):
 
 class Effect(Buff):
     def get_tags(self):
-        return ['magic']
+        return ['magic', 'hide']
 
     def on_update(self):
         if self.effect(6):
@@ -227,6 +218,11 @@ class Effect(Buff):
 class Speed(StatBuff):
     def get_stat(self):
         return 'spd', 'Speed'
+
+
+class Fatigue(StatBuff):
+    def get_stat(self):
+        return 'aspd', 'Fatigue'
 
 
 class Damage(StatBuff):
@@ -271,7 +267,8 @@ class Invisible(Buff):
         self.host.show(True)
 
     def on_update(self):
-        self.host.show(False)
+        if Global.player.player_mode == 1:
+            self.host.show(False)
 
     def trigger(self, arg):
         super().trigger(arg)
@@ -305,7 +302,7 @@ class Script(Buff):
 
 class Concentration(Buff):
     def get_tags(self):
-        return ['stack']
+        return ['hide', 'stack']
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -322,7 +319,9 @@ class Concentration(Buff):
                     new.append(i)
             self.host.sight = new
 
-    def effect_on_apply(self):
+    def on_start(self):
+        Particle.make('sweat', self.host.pos, offset=4)
+        self.effect_on_load()
         if self.host.get_skill('iron will'):
             for i in self.host.states.buffs:
                 if 'harm' in i.get_tags():
@@ -339,17 +338,8 @@ class Concentration(Buff):
             from src.entity.Stock import Stock
             Stock.make('Web', self.host.pos)
 
-    def on_start(self):
-        self.effect_on_load()
-        Particle.make('sweat', self.host.pos, offset=4)
-        self.effect_on_apply()
-
     def on_load(self):
         self.effect_on_load()
-
-    def on_stack(self, duration, var):
-        self.effect_on_apply()
-        self.duration = duration
 
     def on_finish(self):
         if self.host.get_skill('heightened sense'):
@@ -475,27 +465,20 @@ class Levitation(Buff):
         self.on_load()
 
     def on_load(self):
-        self.var = Dialog.nonstrlist(self.host.collision_type)
+        self.var = str(self.host.collision_type)
         from src.map.Tile import Tile
-        new_type = []
-        for i in self.host.collision_type:
-            if i not in [Tile.COLLIDE_WINDOW, Tile.COLLIDE_UNIT]:
-                new_type.append(i)
-        self.host.collision_type = new_type
+        self.host.collision_type = Tile.COLLIDE_TERRAIN
 
     def on_stack(self, duration, var):
         self.duration = duration
         self.var = var
 
     def on_finish(self):
-        self.host.collision_type = Data.parse(self.var)[0]
+        self.host.collision_type = int(self.var)
         self.host.tags.remove('fly')
 
     def trigger(self, arg):
-        if arg[0] == 'time':
-            if arg[1] > 0:
-                self.end()
-        elif arg[0] == 'act' and arg[1] == 'hit':
+        if arg[0] == 'act' and arg[1] == 'hit':
             self.end()
             from src.entity.unit.Actions import Actions
             Actions.knockdown(self.host)

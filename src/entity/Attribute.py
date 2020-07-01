@@ -1,7 +1,10 @@
+from src.tools.Data import Data
 from src.tools.Tag import Tag
 
 
 class Attribute(Tag):
+    ADD_ON = None
+
     def __init__(self, host):
         super().__init__()
         self.host = host
@@ -12,10 +15,7 @@ class Attribute(Tag):
         else:
             self.host.hittable = 0
         if 'col' in self.attributes:
-            cols = []
-            for i in str(self.attributes['col']):
-                cols.append(int(i))
-            self.host.collision_type = cols
+            self.host.collision_type = self.attributes['col']
         if 'ob' in self.attributes:
             self.host.obstruct_type = self.attributes['ob']
         if 'pivx' in self.attributes:
@@ -28,21 +28,25 @@ class Attribute(Tag):
                 seed = Global.r.rand_int(1, 9999)
                 self.attributes['seed'] = seed
                 Global.r_t.reset(seed)
-            add_tag = self.remove('+')
-            if add_tag:
-                new_tags = add_tag.split('&')
-                from src.tools.Data import Data
-                for line in new_tags:
-                    data = Data.get_line('attributes.txt', line)[1]
-                    tag = Global.r_t.rand_list(data)
-                    if tag:
-                        if isinstance(tag, list):
-                            for one_tag in tag:
-                                tag_parts = one_tag.split(':')
-                                self.increment(tag_parts[0], Data.parse(tag_parts[1])[0])
-                        else:
-                            tag_parts = tag.split(':')
+            self.add_tag()
+
+    def add_tag(self):
+        add_tag = self.remove('+')
+        if add_tag:
+            from src.game import Global
+            new_tags = add_tag.split('&')
+            for line in new_tags:
+                data = Attribute.ADD_ON[line]
+                tag = Global.r_t.rand_list(data)
+                if tag:
+                    if isinstance(tag, list):
+                        for one_tag in tag:
+                            tag_parts = one_tag.split(':')
                             self.increment(tag_parts[0], Data.parse(tag_parts[1])[0])
+                    else:
+                        tag_parts = tag.split(':')
+                        self.increment(tag_parts[0], Data.parse(tag_parts[1])[0])
+            self.add_tag()
 
     def get_carry_over(self):
         permanent = ['money', 'seed', 'full']

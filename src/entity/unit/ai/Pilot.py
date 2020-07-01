@@ -161,24 +161,24 @@ class Routes:
 
     def can_destroy(self, tile):
         if not self.destroy:
-            if tile.is_land(self.host.collision_type):
+            if tile.get_solidity() >= self.host.collision_type:
                 return -1
             else:
                 return 0
         weight = 0
         for i in tile.things:
-            if i.obstruct_type in self.host.collision_type:
+            if i.obstruct_type >= self.host.collision_type:
                 hp = i.tags.get('p')
                 if not hp or self.host.get_damage() <= i.tags.get('def', 0):
                     return -1
                 else:
                     weight += i.tags.get('p')
-        if tile.speed == -10:
+        if tile.get_yield() == -10:
             if self.host.get_damage() >= 7 and self.host.get_skill('crush'):
                 weight += 3
             else:
                 return -1
-        elif tile.speed == -9:
+        elif tile.get_yield() == -9:
             return -1
         return weight
 

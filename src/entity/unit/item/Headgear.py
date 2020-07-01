@@ -55,10 +55,11 @@ class Headgear(Equipment):
             if charge > 0:
                 self.tags.increment('charge', -1)
                 self.host.action.act('grab', 8)
-                from src.entity.unit.item.Alchemy import Alchemy
+                from src.entity.unit.item.Spell import Spell
                 from src.game import Global
                 if self.host == Global.player.character:
-                    Alchemy.cast(self.host, 'Wand', spell)
+                    power = self.tags.get('power', 0)
+                    Spell.get(spell, power=power).cast(self.host)
 
     def on_sleep(self, time):
         if time > 0:

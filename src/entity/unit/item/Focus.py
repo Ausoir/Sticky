@@ -23,7 +23,7 @@ class Focus(Item):
         return super().get_value() + ingreds + 1
 
     def hit(self, damage, hitter=None):
-        if damage > 0 and self.tags.get('catalyst') == 'Potion' and self.pos.speed > -9:
+        if damage > 0 and self.tags.get('catalyst') == 'Potion' and self.pos.get_yield() > -9:
             from src.entity.Stock import Stock
             r = Stock.make('Mine', self.pos)
             r.spell = self.tags.get('spell')
@@ -31,11 +31,15 @@ class Focus(Item):
 
     def use(self):
         if self.host:
-            power = self.tags.get('power', 50)
-            spell = self.tags.get('spell')
             catalyst = self.tags.get('catalyst')
-            from src.entity.unit.item.Alchemy import Alchemy
-            Alchemy.cast(self.host, catalyst, spell, power, callback=self.consume)
+            power = self.tags.get('power', 0)
+            spell = self.tags.get('spell')
+            from src.entity.unit.item.Spell import Spell
+            if catalyst == 'potion':
+                Spell.get(spell, power=power, on_self=True).cast(self.host, motion='eat')
+            else:
+                Spell.get(spell, power=power).cast(self.host, delay=12)
+            self.decay(1)
 
     def consume(self):
         self.decay(1)

@@ -7,6 +7,8 @@ golem,data/unit/golem,unit/golem
 worm,data/unit/worm,unit/worm
 slime,data/unit/slime,unit/slime
 rat,data/unit/dog,unit/rat
+cat,data/unit/dog,unit/cat
+tiger,data/unit/dog,unit/tiger
 snake,data/unit/worm,unit/snake
 boar,data/unit/dog,unit/boar
 dog,data/unit/dog,unit/dog

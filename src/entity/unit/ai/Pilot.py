@@ -43,9 +43,12 @@ class Pilot:
             return
         tgt = self.host.tags.get('tgt')
         if tgt:
-            self.set_task(Return(self, tgt))
+            self.retarget(tgt)
         else:
             self.set_task(self.default)
+
+    def retarget(self, target):
+        self.set_task(Return(self, target))
 
     def update(self):
         self.task.update()
@@ -84,6 +87,13 @@ class Pilot:
                     else:
                         return
                 if hitter != self.host:
+                    if self.host.get_skill('rally'):
+                        allies = self.host.get_team(ally=True)
+                        for ally in allies:
+                            if (ally.pos - self.host.pos).difference() <= 10:
+                                if ally.tags.get('ai') and ally.pilot.priority > 3:
+                                    ally.pilot.set_task(ally.pilot.attack)
+                                    ally.pilot.task.target = hitter
                     self.set_task(self.attack)
                     self.task.target = hitter
 
@@ -106,7 +116,7 @@ class Pilot:
         if self.host.tags.get('ai'):
             if self.priority > 3:
                 if not self.host.tags.get('deaf'):
-                    if (pos - self.host.pos).difference() > 1:
+                    if (pos - self.host.pos).difference() >= 1:
                         self.host.face_toward(pos)
                         seen = self.host.location.collide_land(self.host.pos, pos, self.host.sight)
                         if seen == pos:
@@ -174,7 +184,7 @@ class Routes:
                 else:
                     weight += i.tags.get('p')
         if tile.get_yield() == -10:
-            if self.host.get_damage() >= 7 and self.host.get_skill('crush'):
+            if self.host.get_damage() >= tile.get_hardness() and self.host.get_skill('crush'):
                 weight += 3
             else:
                 return -1

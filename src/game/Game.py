@@ -28,12 +28,25 @@ class Game:
         self.days = self.tags.get('time')
         Turn.frame = self.tags.get('frame')
         self.player_mode = 1
-        from src.entity.Stock import Stock
-        self.character = Stock.get(Global.world.location, data[1][1], data=data[1]).add()
-        self.temporary = self.character.sight
+        self.character = None
+        self.temporary = data[1]
 
     def initialize(self):
-        Global.world.initialize(self.tags.get('seed'), self.tags.get('coord_x'), self.tags.get('coord_y'))
+        if not self.tags.get('seed'):
+            self.tags.set('seed', Global.r.rand_int(0, 99999))
+        if not self.tags.get('coord_x') or not self.tags.get('coord_y'):
+            data2 = Global.r.rand_list(Data.get_line('raw.txt', 'spawn')[1])
+            self.tags.set('coord_x', data2[0])
+            self.tags.set('coord_y', data2[1])
+            Global.world.initialize(self.tags.get('seed'), data2[0], data2[1])
+            from src.entity.Stock import Stock
+            self.character = Stock.get(Global.world.location, self.temporary[1], data=self.temporary).add()
+            self.character.pos.load(data2[2], data2[3])
+        else:
+            Global.world.initialize(self.tags.get('seed'), self.tags.get('coord_x'), self.tags.get('coord_y'))
+            from src.entity.Stock import Stock
+            self.character = Stock.get(Global.world.location, self.temporary[1], data=self.temporary).add()
+        self.temporary = self.character.sight
         self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
         self.set_player(self.character)
         self.initialize_mode()
@@ -70,7 +83,7 @@ class Game:
     def sleep(self, time, blackout=True):
         if time > 0:
             self.character.tags.increment('hunger', 100 * time)
-            if self.is_hungry() == 2:
+            if self.is_hungry():
                 self.character.decay(time)
             self.days += time
             self.character.location.on_sleep(time)
@@ -121,17 +134,11 @@ class Game:
                 Script.execute_code('death')
             else:
                 self.dead += 1
-        elif self.dead == -1:
-            self.dead = 0
-            on_load = self.character.location.tags.get('load')
-            if on_load:
-                Script.execute_code(on_load)
         elif self.character.action.delay > 0:
-            self.character.tags.increment('hunger', 1)
+            self.character.tags.increment('hunger', 3)
         old_x = self.character.pos.x
         old_y = self.character.pos.y
         if Global.world.recenter(self.character.pos.x, self.character.pos.y):
-            self.character.location.process_terrain()
             self.character.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
             self.character.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
             Global.map_view.turn()
@@ -177,22 +184,17 @@ class Game:
         from src.entity.Other import Food
         for i in items:
             if isinstance(i, Food):
-                if i.nutrition[1] > 0:
+                if i.tags.get('hunger') > 0:
                     return i.eat()
         Global.main.monologue.set(Dialog.get('!eat'))
 
     def is_hungry(self):
-        hunger = self.character.tags.get('hunger')
-        if hunger >= 20000:
-            return 2
-        elif hunger >= 10000:
-            return 1
-        return 0
+        return self.character.tags.get('hunger') >= 10000
 
     def pay(self, amount):
         if self.character.tags.require('money', amount):
             return True
-        Global.main.monologue.set(Dialog.get('!pay'))
+        Global.main.monologue.set(Dialog.get('!pay', [amount]))
 
     def is_bright(self):
         if self.is_daytime() or self.character.pos.light >= Turn.rounds:

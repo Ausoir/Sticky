@@ -1,9 +1,6 @@
-import time
-import timeit
-
 from src.map.Biome import Biome
 
-seed = 77644
+seed = 5243
 biome = Biome(seed)
 
 
@@ -31,7 +28,11 @@ def draw():
 
 
 # draw()
-print(time.perf_counter())
-for i in range(100):
-    biome.get_level(i, i)
-print(time.perf_counter())
+# count = biome.get_level(14, 12)
+level = 1
+count = 0
+while level != 0:
+    count += 1
+    biome = Biome(count)
+    level = biome.get_level(14, 12)
+print(str(count))

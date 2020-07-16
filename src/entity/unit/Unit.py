@@ -18,7 +18,6 @@ class Unit(Prop):
         from src.form.HealthBar import HealthBar
         self.healthbar = HealthBar()
         self.sight = Tile.CHECK_SIGHT
-        self.target = None
         from src.tools.Data import Data
         self.shadow = Data.get_form('g_7x0')
         self.shadow.bound(True)
@@ -41,7 +40,7 @@ class Unit(Prop):
 
     def update_tags(self):
         super().update_tags()
-        self.form.randomize(self.tags.get('seed', 0))
+        self.form.randomize(self.get_seed())
         rare = self.tags.get('rare', 0)
         if rare > 0:
             from src.tools.Data import Data
@@ -82,6 +81,9 @@ class Unit(Prop):
         elif self.action.delay == 0:
             self.action.set(self.next_action)
             self.next_action = 'idle'
+
+    def on_natural_spawn(self):
+        self.face(Global.r.rand_int(0, 3))
 
     def set_row(self, row):
         diff = self.destination.y - self.pos.y
@@ -293,7 +295,12 @@ class Unit(Prop):
 
     def get_team(self, ally=True):
         if ally:
-            return self.location.population.get_team(self.tags.get('team', 0))
+            teams = self.location.population.get_team(self.tags.get('team', 0))
+            r = []
+            for i in teams:
+                if i != self:
+                    r.append(i)
+            return teams
         else:
             return self.location.population.get_foe(self.tags.get('team', 0))
 
@@ -311,7 +318,7 @@ class Unit(Prop):
         return r
 
     def get_weight(self):
-        return super().get_weight() + self.tags.get('seed', 0) % 4 + 4
+        return super().get_weight() + self.get_seed() % 4 + 4
 
     def get_value(self):
         return 2

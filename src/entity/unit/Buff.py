@@ -300,6 +300,34 @@ class Script(Buff):
         Script.execute_code(self.var)
 
 
+class Spell(Buff):
+    def on_finish(self):
+        from src.entity.unit.item.Spell import Spell
+        Spell.get(self.var, power=self.duration).cast(self.host, delay=0)
+
+
+class Shapeshift(Buff):
+    def get_tags(self):
+        return ['stack']
+
+    def __str__(self):
+        return '[' + self.name + ',' + str(self.duration) + ',\'' + self.var + '\']'
+
+    def on_start(self):
+        var = self.var
+        self.host.states.buffs.remove(self)
+        self.var = self.host.__str__()
+        self.host.states.buffs.append(self)
+        from src.game.ScriptManual import ScriptManual
+        ScriptManual.shapeshift(self.host, var)
+
+    def on_finish(self):
+        data = Data.parse(self.var)
+        from src.game.ScriptManual import ScriptManual
+        old_host = self.host
+        ScriptManual.shapeshift(self.host, data[1], data=data).relocate(to=old_host.pos, force=True)
+
+
 class Concentration(Buff):
     def get_tags(self):
         return ['hide', 'stack']

@@ -48,7 +48,7 @@ sk.vengeance,Unique Passive: On taking 4 continuous hits',' push away and knockd
 sk.flurry,Passive: Stand still to concentrate',' attacking again on a successful hit. Attacks again up to flurry level.
 sk.cleave,Unique Passive: Successful attacks cleave to the sides at -1 damage penalty. Cleave attacks do not trigger skills.
 sk.frenzy,Unique Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
-sk.crush,Unique Passive: Destroy walls if damage rolls 7 or higher.
+sk.crush,Unique Passive: Destroy walls when attacking them. Bricks require 7 damage to break.
 sk.execute,Unique Passive: Successful attacks instantly kill enemies with health lower than current maximum damage.
 sk.knockout,Unique Passive: Successful attacks cause knockout 20% of the time.
 sk.concentration,Unique Passive: Concentration have 25% chance not to end on use.
@@ -83,3 +83,9 @@ Petrification,Incoming damage reduced by 5 but become immobile and slow attack s
 Vision,Gain vision through walls and objects.
 Levitation,Levitate off the ground.
 Poison,Take damage every hour.
+Strength,Strength determines your maximum damage. Default maximum damage modifier is 0.
+Dexterity,Dexterity determines your minimum damage. Default minimum damage modifier is 0.
+Stealth,Stealth determines how close enemies have to be to detect you. Enemies detect you as soon as they are in screen by default.
+Endurance,Endurance determines how much health you regenerate when you rest. Default regeneration is 4.
+Dodge,Dodge determines your maximum defense. Default defense is 0.
+Toughness,Toughness determines your maximum health. Default maximum health is 5.

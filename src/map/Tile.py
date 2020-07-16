@@ -103,10 +103,14 @@ class Tile(Space):
     def get_shader(self):
         return Tile.DATA[self.index][5]
 
+    def get_hardness(self):
+        return Tile.DATA[self.index][6]
+
     def get_image(self):
-        if self.get_extend() > 0:
-            return self.get_image_set()[self.sub_image]
-        return self.get_image_set()
+        r = self.get_image_set()
+        if isinstance(r, list):
+            return r[self.sub_image]
+        return r
 
     def update_shader(self):
         if self.get_shader() == 1:

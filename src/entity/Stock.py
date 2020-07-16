@@ -33,6 +33,13 @@ class Stock:
             Humanoid.faces.append(face)
 
     @staticmethod
+    def check(name):
+        if name in Stock.registry:
+            record = Stock.registry[name]
+            if record[1] in globals():
+                return True
+
+    @staticmethod
     def get(location, name, data=None):
         if not data:
             if name in Stock.registry:

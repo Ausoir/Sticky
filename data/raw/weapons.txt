@@ -1,4 +1,4 @@
-Bottle,Item,g_9x4,[P:8,p:8,alt:g_10x4,water:0,potion:0],[]
+Bottle,Item,g_9x4,[P:8,p:8,alt:g_10x4,container:1],[]
 Rock,Item,g_6x4,[p:4,def:7,pivy:-4,w:3,DMG:3],[]
 Parasol,Item,parasol,[P:8,p:8,pivx:4,w:2],[]
 Stick,Item,g_21x4,[p:8,def:3,pivx:10,w:3,DMG:2,wood:1],[]
@@ -28,4 +28,4 @@ Scythe,Item,scythe,[$:20,p:40,def:10,pivx:24,pivy:7,w:7,sharp:1,DMG:14,aspd:2],[
 Greatsword,Item,greatsword,[$:20,fuel:0,pivx:6,w:8,sharp:1,DMG:15,aspd:2],[]
 Blue Baton,Item,bluestick,[$:30,p:24,def:5,fuel:0,pivx:6,w:4,DMG:1],[[Brand,-1,shock]]
 Scorch Staff,Item,staff,[$:10,p:16,def:3,fuel:8,w:4,DMG:4],[[Brand,-1,>buff>Burn>12>0]]
-Bow,Item,bow,[$:10,p:16,spell:Arrow,power:100,motion:attack],[]
+Bow,Item,bow,[$:10,p:16,spell:Arrow,power:100,motion:arch,pivx:14,pivy:-6],[]

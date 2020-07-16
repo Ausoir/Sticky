@@ -55,66 +55,50 @@ class ScriptManual:
     @staticmethod
     def alchemy(host, var):
         if host.get_skill('alchemy'):
-            if host.weapon:
-                water = host.weapon.tags.get('water', -1)
-                table_water = var.tags.get('water', 0)
-                if water > 0:
-                    host.location.sound.register(host.pos, 0, file='drain')
-                    host.face_toward(var.pos)
-                    host.action.act('interact', 8)
-                    Global.main.monologue.set(Dialog.get('water_fill'))
-                    host.weapon.switch_form()
-                    host.weapon.tags.set('water', 0)
-                    var.tags.increment('water', 1)
-                elif host.weapon.tags.get('alchemy'):
-                    host.location.sound.register(host.pos, 0, file='mix')
-                    seed = host.weapon.tags.get('seed')
-                    density = seed % 100
-                    acidity = density - (abs(math.sin(seed % 101)) * density)
-                    toxicity = density - (abs(math.sin(seed % 102)) * density)
-                    var.tags.increment('density', int(density))
-                    var.tags.increment('acidity', int(acidity))
-                    var.tags.increment('toxicity', int(toxicity))
-                    host.drop().remove()
-                elif water == 0 and table_water > 0:
-                    host.location.sound.register(host.pos, 0, file='drain')
-                    host.drop().remove()
-                    from src.entity.Stock import Stock
-                    potion = Stock.make('Potion', host.pos)
-                    density = var.tags.get('density', 0) / table_water  # how effective potion is
-                    acidity = var.tags.get('acidity', 0) / table_water  # how long before expiry
-                    toxicity = var.tags.get('toxicity', 0) / table_water  # side effects
-                    if density >= 50:
-                        from src.tools.Data import Data
-                        data = Data.get_line('raw.txt', 'potions')[1]
-                        effect_num = len(data) - 1
-                        if acidity < toxicity:
-                            effect = acidity / toxicity
-                        else:
-                            effect = toxicity / acidity
-                        effect = int(effect * effect_num)
-                        potion.tags.set('p', table_water)
-                        potion.tags.set('P', table_water)
-                        potion.tags.set('spell', data[effect])
-                        potion.tags.set('power', min(100, density - 50))
-                    var.tags.increment('density', int(-density))
-                    if host.is_vacant(potion.get_weight()):
-                        potion.on_wield(host)
-                    var.tags.remove('density')
-                    var.tags.remove('acidity')
-                    var.tags.remove('toxicity')
-                    var.tags.set('water', 0)
+            if host.weapon and host.weapon.tags.get('alchemy'):
+                host.location.sound.register(host.pos, 0, file='mix')
+                seed = host.weapon.tags.get('seed')
+                density = seed % 100
+                acidity = density - (abs(math.sin(seed % 101)) * density)
+                toxicity = density - (abs(math.sin(seed % 102)) * density)
+                var.tags.increment('density', int(density))
+                var.tags.increment('acidity', int(acidity))
+                var.tags.increment('toxicity', int(toxicity))
+                host.drop().remove()
+            elif host.weapon and var.tags.get('density') and host.weapon.tags.get('container'):
+                host.location.sound.register(host.pos, 0, file='drain')
+                host.drop().remove()
+                from src.entity.Stock import Stock
+                potion = Stock.make('Potion', host.pos)
+                density = var.tags.get('density', 0)
+                acidity = var.tags.get('acidity', 0)
+                toxicity = var.tags.get('toxicity', 0)
+                if density >= 50:
+                    from src.tools.Data import Data
+                    data = Data.get_line('raw.txt', 'potions')[1]
+                    effect_num = len(data) - 1
+                    if acidity < toxicity:
+                        effect = acidity / toxicity
+                    else:
+                        effect = toxicity / acidity
+                    effect = int(effect * effect_num)
+                    potion.tags.set('effect', data[effect][0])
+                    potion.tags.set('dur', int(data[effect][1] * min(100, density - 50) * .1 + 1))
+                    potion.tags.set('var', data[effect][2])
+                    potion.tags.set('time', Global.player.days + density)
+                var.tags.increment('density', int(-density))
+                if host.is_vacant(potion.get_weight()):
+                    potion.on_wield(host)
+                var.tags.remove('density')
+                var.tags.remove('acidity')
+                var.tags.remove('toxicity')
             else:
                 require = []
-                water = var.tags.get('water')
                 ingredient = var.tags.get('density')
-                if water and ingredient:
-                    require.append('<' + Dialog.get('Bottle') + '>')
+                if ingredient:
+                    require.append('<' + Dialog.get('Container') + '>')
                 else:
-                    if not water:
-                        require.append('<' + Dialog.get('Water') + '>')
-                    if not ingredient:
-                        require.append('<' + Dialog.get('Ingredients') + '>')
+                    require.append('<' + Dialog.get('Ingredients') + '>')
                 Global.menu.get_message(Dialog.get('req_item', [','.join(require)]))()
         else:
             Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Alchemy')]))()
@@ -170,39 +154,34 @@ class ScriptManual:
         if host.get_skill('conjuration'):
             from src.entity.Stock import Stock
             marker = Stock.make('Marker', host.pos)
-            marker.tags.set('seed', var.tags.get('seed', 0))
+            marker.tags.set('seed', var.get_seed())
             marker.trigger()
         else:
             Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Conjuration')]))()
 
     @staticmethod
-    def shapeshift(host, var):
+    def shapeshift(host, var, data=None):
         if not host.tags.get('silver'):
-            from src.entity.unit.Humanoid import Humanoid
-            if isinstance(host, Humanoid):
-                host.drop()
-                host.unarmor()
-                host.unheadgear()
-                host.inventory.drop_all()
             from src.entity.Stock import Stock
-            unit = Stock.make(var, host.pos)
-            unit.tags.remove('ai')
-            from src.entity.unit.Unit import Unit
-            if isinstance(host, Unit):
-                old_host = host
-                for i in host.states.buffs:
-                    i.host = unit
-                unit.states = old_host.states
-                unit.skills = old_host.skills
-                unit.face(old_host.direction)
-                from src.entity.unit.Buffs import Buffs
-                old_host.states = Buffs(old_host)
-                old_host.remove()
-                if old_host == Global.player.character:
-                    Global.player.set_player(unit)
-                host.location.sound.register(host.pos, 8, file='void')
+            if data:
+                unit = Stock.get(host.location, var, data=data)
+                unit.add()
             else:
-                host.remove()
+                unit = Stock.make(var, host.pos)
+            unit.tags.remove('ai')
+            old_host = host
+            for i in host.states.buffs:
+                i.host = unit
+            unit.states = old_host.states
+            unit.skills = old_host.skills
+            unit.face(old_host.direction)
+            from src.entity.unit.Buffs import Buffs
+            old_host.states = Buffs(old_host)
+            old_host.remove()
+            if old_host == Global.player.character:
+                Global.player.set_player(unit)
+            host.location.sound.register(host.pos, 8, file='void')
+            return unit
         else:
             from src.entity.Particle import Particle
             Particle.make('sonic', host.pos)

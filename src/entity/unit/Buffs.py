@@ -31,12 +31,18 @@ class Buffs:
                 return i
         return None
 
+    @staticmethod
+    def get_buff(buff_name):
+        for i in Buff.__subclasses__() + StatBuff.__subclasses__():
+            if i.__name__ == buff_name:
+                return i
+
     def add(self, buff_name, duration, var=0, load=False, stack=True):
         preexisting = self.get(buff_name)
         if not stack or not preexisting or 'stack' not in preexisting.get_tags():
             buff = None
             for i in Buff.__subclasses__() + StatBuff.__subclasses__():
-                if i.__name__ == buff_name:
+                if i.__name__ == buff_name.title():
                     buff = i(self.host, buff_name, duration, var)
                     break
             if buff:

@@ -4,12 +4,14 @@ recipe_kitchen,1,Plank + Any raw food makes cooked food.
 resident,3,Yes?,[Talk,character],[Hire,!hire],[Move,#push]
 trader,3,Buy something!,[Introduce,!intro_trader],[Buy,>menu>shop],[Move,#push]
 intro_trader,1,I can sell you things. What more can I say? Browse my wares!
+trainer,3,Need training?,[Introduce,!intro_trainer],[Buy,>menu>shop],[Train,>menu>train],[Move,#push]
+intro_trainer,1,I am a trainer. I can increase one your stats at the cost of level points. I also may sell manuals.
 supply,3,Are you here to sell?,[Introduce,!intro_supplier],[Sell,>menu>supply],[Move,#push]
 intro_supplier,1,I am a supplier. I buy things from the public and sell them to merchants. Prices vary from time to time and from supplier to supplier.
-innkeep,3,How can I help you?,[Introduce,!intro_innkeep],[Buy Food,>menu>shop],[Store,>menu>storage],[Move,#push]
-intro_innkeep,1,I am an innkeep. I can store your items. I also sell food.
+innkeep,3,How can I help you?,[Introduce,!intro_innkeep],[Store,>menu>store_item],[Retrieve,>menu>container],[Move,#push]
+intro_innkeep,1,I am an innkeep. I can store your items',' and give them back for a price.
 blacksmith,3,What do you want?,[Introduce,!intro_blacksmith],[Buy,>menu>shop],[Repair,>menu>storage],[Modify,>menu>storage],[Move,#push]
-intro_blacksmith,1,I am a blacksmith. I repair, modify, and sell metal things.
+intro_blacksmith,1,I am a blacksmith. I repair',' modify',' and sell metal things.
 alchemist,3,What do you want?,[Introduce,!intro_alchemist],[Buy,>menu>shop],[Alchemy,!alchemy],[Move,#push]
 intro_alchemist,1,I am an alchemist. Alchemists create magical potions that grant abnormal status. Potions can also be used as magical traps when shattered and spilled.
 alchemy,3,Learn alchemy?,[Learn Skill,#push],[Explain,!desc_alchemy]
@@ -19,11 +21,6 @@ intro_conjurer,1,I am a conjurer. Conjuration is a branch of alchemy focused on 
 conjuration,3,Learn conjuration?,[Learn Skill,#push],[Explain,!desc_conjuration]
 desc_conjuration,1,Find a pre-made conjuration polygram if you are new. Start the ritual by shining candlelight on the polygram. Some polygrams work',' some do not. Imitate a working polygram or research your own. Once you light the polygram',' step off or you will burn.
 desc_conjuration2,1,Always be careful there is no object interfering the polygram. Results may vary on type of chalk used and terrain it is on. A well researched and designed polygram can conjure powerful things with long duration with minimum effort.
-contract,3,Need work?,[Introduce,!intro_contractor],[Buy,>menu>shop],[Jobs,>menu>contract],[About Missions,!ask_contract],[Move,#push]
-intro_contractor,1,I am a contractor. People come to me for jobs. If the current contract does not suit you',' come back in a day or two and I may have something more suitable for you.
-contract_success,1,You have successfully completed the contract. Here is your reward.
-contract_fail,1,You have abandoned your contract. Your reputation decreases.
-ask_contract,1,Missions are ranked 1 ~ 9 stars. If you are unsure if you can take on a mission',' just make sure your level is higher than the mission rank. When you accept a mission you will be transported immediately',' unless you are too hungry to travel.
 bookshelf,3,There are books here that can help you understand the world.,[Basic Functions,!controls],[More Functions,!adv_controls],[Life Pro Tips,!tip1],[Street Fighting,!tip2],[Simple Cooking,!tip3]
 controls,1,Use the WASD keys to move',' Q key to pick up or drop items',' SPACE key to attack',' and TAB key to access the menu. Use arrow keys and ENTER to examine or aim ranged weapons with. Likewise',' use left mouse button to move/access menu/attack and right mouse button to examine.
 adv_controls,1,Press R to sheathe your weapon. Press 1 to take out most recent item from inventory. Press 2 to activate worn accessory if possible. Press 3 to use special ability if you have any.

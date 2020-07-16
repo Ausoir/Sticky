@@ -10,7 +10,7 @@ class Menu:
         self.state = self.menu_message
         self.current_state = self.menu_message
         width = 180
-        self.window = Window(-400, 500, width=width, height=300)
+        self.window = Window(-200, 500, width=width, height=300)
         self.sub_window = Window(self.window.x + width, self.window.y, width=width, height=self.window.height)
         self.last_input = None
         self.history = []
@@ -114,6 +114,12 @@ class Menu:
             self.direct(self.menu_prompt)
         return message
 
+    def get_prompt2(self, msg, choice, choice2, cb, cb2, param=0, param2=0):
+        def message(index=None):
+            self.var = [msg, [choice, choice2], [cb, cb2], [param, param2]]
+            self.direct(self.menu_prompt2)
+        return message
+
     @staticmethod
     def get_conversation(dialogs):
         output = []
@@ -130,14 +136,33 @@ class Menu:
         def callback(arg):
             self.display(-1)
             self.var[2](arg)
-        text = self.var[0]
         button = Menu.make(self.var[1], callback, name=self.var[3], width=320)
         height = self.window.height - (self.window.margin.y * 2 + button.height)
-        textbox = Menu.make(text, None, color=Window.fore_color_transparent, height=height, width=320, resize=True)
+        textbox = Menu.make(self.var[0], None, color=Window.fore_color_transparent, height=height, width=320, resize=True)
         textbox.align = 'top'
         self.window.add(textbox)
         self.window.next_y = self.window.height + self.window.y
         self.window.add(button, reverse=True, index=0)
+        self.sub_window.display(1)
+
+    def menu_prompt2(self):
+        def callback(arg):
+            self.display(-1)
+            self.var[2][0](arg)
+
+        def callback2(arg):
+            self.display(-1)
+            self.var[2][1](arg)
+        button = Menu.make(self.var[1][0], callback, name=self.var[3][0], width=160)
+        button2 = Menu.make(self.var[1][1], callback2, name=self.var[3][1], width=160)
+        height = self.window.height - (self.window.margin.y * 2 + button.height)
+        textbox = Menu.make(self.var[0], None, color=Window.fore_color_transparent, height=height, width=320, resize=True)
+        textbox.align = 'top'
+        self.window.add(textbox)
+        self.window.next_y = self.window.height + self.window.y
+        self.window.add(button, reverse=True, index=0)
+        self.sub_window.next_y = self.window.height + self.window.y
+        self.sub_window.add(button2, reverse=True, index=0)
         self.sub_window.display(1)
 
     def menu_many_choice(self):

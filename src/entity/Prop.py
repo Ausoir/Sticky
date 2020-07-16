@@ -1,5 +1,6 @@
 from src.entity.Attribute import Attribute
 from src.entity.Object import Object
+from src.game import Global
 from src.game.Turn import Turn
 
 
@@ -19,6 +20,9 @@ class Prop(Object):
         index = super().load(arg)
         self.tags.load(arg[index])
         self.update_tags()
+        direction = self.tags.get('dir')
+        if direction:
+            self.face(direction)
         index += 1
         self.states.load(arg[index])
         return index + 1
@@ -36,9 +40,14 @@ class Prop(Object):
 
     def update_tags(self):
         self.tags.update()
-        direction = self.tags.get('dir')
-        if direction:
-            self.face(direction)
+        self.tags.add_tag(self)
+
+    def get_seed(self):
+        seed = self.tags.get('seed', -1)
+        if seed == -1:
+            seed = Global.r.rand_int(0, 99999)
+            self.tags.set('seed', seed)
+        return seed
 
     def face(self, direction):
         direction = direction % 4
@@ -67,7 +76,6 @@ class Prop(Object):
         loot = self.tags.get('loot')
         if loot:
             if loot.startswith('#'):
-                from src.game import Global
                 cell_coord = Global.world.get_current_chunk(self.pos.x, self.pos.y)
                 spawn = Global.world.get_spawn(loot[1:], cell_coord[0], cell_coord[1])
                 return spawn
@@ -88,6 +96,9 @@ class Prop(Object):
 
     def get_value(self):
         return self.tags.get('$', 1)
+
+    def on_natural_spawn(self):
+        pass
 
     def hit(self, damage, hitter=None):
         damage = max(0, damage - self.tags.get('def', 0))
@@ -116,9 +127,9 @@ class Prop(Object):
     def describe(self):
         from src.tools.Dialog import Dialog
         from src.tools.Data import Data
-        r = self.name
+        r = self.get_display_name()
         data = Data.get_line('descriptions.txt', r)
-        r += '   (' + Dialog.weight(self.tags.get('w', 1)) + ')'
+        r += '  (' + Dialog.weight(self.tags.get('w', 1)) + ')'
         if data:
             r += '\n' + data[1]
         hp = self.tags.get('p')
@@ -138,6 +149,11 @@ class Prop(Object):
 
     def on_sleep(self, time):
         self.states.on_sleep(time)
+        mut = self.tags.get('mut')
+        if mut and time >= 12 and Global.r.rand_bool():
+            from src.entity.Stock import Stock
+            Stock.make(mut, self.pos)
+            self.remove()
 
     def switch_form(self):
         alt = self.tags.get('alt')

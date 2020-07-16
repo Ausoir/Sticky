@@ -7,11 +7,6 @@ class Glasses(Headgear):
     def describe(self):
         r = super().describe()
         r += '\n' + Dialog.get('sight_range', [self.tags.get('level', 1)])
-        sight_type = []
-        from src.map.Tile import Tile
-        for i in str(self.tags.get('see', 0)):
-            sight_type.append(Tile.get_collision_by_name(i))
-        r += '\n' + Dialog.get('sight_type', [', '.join(sight_type)])
         return r
 
     def activate(self):
@@ -24,12 +19,31 @@ class Glasses(Headgear):
             self.host.action.on_finish = done
             coord = Global.cardinal_coord[self.host.direction]
             target = self.host.pos + [coord[0] * level, coord[1] * level]
-            sights = str(self.tags.get('see', 0))
-            pos = self.host.location.collide_land(self.host.pos, target, distance=level, flag=sights)
+            from src.map.Tile import Tile
+            pos = self.host.location.collide_land(self.host.pos, target, distance=level, flag=Tile.COLLIDE_WINDOW)
             from src.game.TempObject import TempObject
             viewer = TempObject(pos)
             from src.game.Camera import Camera
             Camera.target = viewer
+
+
+class Recall(Headgear):
+    def on_unwield(self):
+        light = self.host.states.get('Glow')
+        if light and light.duration == -1 and light.var == self.tags.get('level', 1):
+            light.end()
+        super().on_unwield()
+
+    def activate(self):
+        super().activate()
+        memory = self.tags.get('memory')
+        if memory:
+            args = memory.split('&')
+
+        else:
+            cell_coord = Global.world.get_current_chunk(self.pos.x, self.pos.y)
+            memory = '&'.join([str(x) for x in [cell_coord[0], cell_coord[1], self.pos.x, self.pos.y]])
+            self.tags.set('memory', memory)
 
 
 class SafetyHat(Headgear):
@@ -59,5 +73,5 @@ class Talisman(Headgear):
             spell = self.tags.get('spell')
             if spell:
                 from src.entity.unit.item.Spell import Spell
-                Spell.perform(self.host, spell)
+                Spell.get(spell, power=self.tags.get('power', 0)).cast_on(self.host.pos)
         super().die()

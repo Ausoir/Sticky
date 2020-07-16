@@ -28,18 +28,19 @@ class MenuPlayer(Menu):
         defense = str(mat_def) + ' ~ ' + str(host.get_defense() + mat_def)
         rmb = self.get_message(Dialog.get('dsc_level'))
         self.window.add(Menu.make(Dialog.get('Level'), rmb, color=None))
-        tag_level = host.tags.get('level', 0)
-        level = str(int(tag_level / 100)) + ' (' + str(tag_level % 100) + '%)'
-        self.sub_window.add(Menu.make(level, None, color=None))
+        tag_level = host.tags.get('lvl', 0)
+        level = int(tag_level / 100)
+        experience = tag_level % 100
+        self.sub_window.add(Menu.make(str(level) + ' (' + str(experience) + '%)', None, color=None))
+        rmb = self.get_message(Dialog.get('dsc_points'))
+        self.window.add(Menu.make(Dialog.get('Points'), rmb, color=None))
+        self.sub_window.add(Menu.make(str(host.tags.get('pts', 0)), None, color=None))
         rmb = self.get_message(Dialog.get('dsc_attack'))
         self.window.add(Menu.make(Dialog.get('Attack'), rmb, color=None))
         self.sub_window.add(Menu.make(attack, None, color=None))
         rmb = self.get_message(Dialog.get('dsc_defense'))
         self.window.add(Menu.make(Dialog.get('Defense'), rmb, color=None))
         self.sub_window.add(Menu.make(defense, None, color=None))
-        rmb = self.get_message(Dialog.get('dsc_reputation'))
-        self.window.add(Menu.make(Dialog.get('Reputation'), rmb, color=None))
-        self.sub_window.add(Menu.make('1', None, color=None))
         self.window.add(Menu.make(Dialog.get('Status'), lambda _: self.direct(self.menu_effects)))
         self.window.add(Menu.make(Dialog.get('Give up'), Script.execute_code, name='suicide'))
         self.sub_window.display(1)
@@ -55,15 +56,12 @@ class MenuPlayer(Menu):
             hunger = host.tags.get('hunger', 0) / 100
             datetime = Dialog.date(Global.player.days)
             hunger_level = Global.player.is_hungry()
-            if hunger_level == 2:
+            if hunger_level == 1:
                 text = Dialog.get('Starving')
-                rmb = self.get_message(Dialog.get('dsc_starve', [datetime, hunger]))
-            elif hunger_level == 1:
-                text = Dialog.get('Hungry')
                 rmb = self.get_message(Dialog.get('dsc_hunger', [datetime, hunger]))
             else:
                 text = str(int(hunger)) + '% ' + Dialog.get('Hunger')
-                rmb = self.get_message(Dialog.get('dsc_date', [datetime, hunger, int(100 - hunger)]))
+                rmb = self.get_message(Dialog.get('dsc_date', [datetime, hunger]))
             button_date.set_text(text)
             button_date.on_click = rmb
         host = Global.player.character
@@ -118,9 +116,13 @@ class MenuPlayer(Menu):
         def click_armor(name):
             Global.player.character.unarmor()
 
+        def click_pocket(index):
+            Global.player.character.unsheathe(index)
+
         self.window.add(Menu.make(Dialog.get('Headgear'), None, color=None))
         self.window.add(Menu.make(Dialog.get('Body'), None, color=None))
         self.window.add(Menu.make(Dialog.get('Weapon'), None, color=None))
+        self.window.add(Menu.make(Dialog.get('Pocket'), None, color=None))
         if not Global.player.character.headgear:
             display = '<' + Dialog.get('noaccessory') + '>'
             self.sub_window.add(Menu.make(display, lambda x: x, color=None))
@@ -145,6 +147,14 @@ class MenuPlayer(Menu):
             weapon_lmb = self.get_prompt(Global.player.character.weapon.describe(), Dialog.get('Drop'),
                                          lambda _: Global.player.character.drop())
             self.sub_window.add(Menu.make(display, weapon_lmb))
+        quick_item = Global.player.character.inventory.get_item(0)
+        if not quick_item:
+            display = '<' + Dialog.get('nopocket') + '>'
+            self.sub_window.add(Menu.make(display, lambda x: x, color=None))
+        else:
+            display = quick_item.get_display_name()
+            lmb = self.get_prompt(quick_item.describe(), Dialog.get('Wield'), click_pocket)
+            self.sub_window.add(Menu.make(display, lmb))
         self.window.add(Menu.make(Dialog.get('Money'), None, color=None))
         money = Menu.make('$' + str(Global.player.character.tags.get('money', 0)), None, color=None)
         self.sub_window.add(money)
@@ -155,6 +165,10 @@ class MenuPlayer(Menu):
             if Global.player.character.weapon:
                 index -= 1
             Global.player.character.unsheathe(index)
+
+        def pocket(index):
+            Global.main.monologue.set(Dialog.get('info_pocket'))
+            Global.player.character.inventory.prioritize(index)
 
         def sheathe(arg):
             dropped = Global.player.character.drop()
@@ -188,12 +202,15 @@ class MenuPlayer(Menu):
                 button.on_click = self.get_prompt(i.describe(), Dialog.get('Store'), sheathe, count)
             else:
                 button.set_text(i.get_display_name())
-                button.on_click = self.get_prompt(i.describe(), Dialog.get('Take'), click, count)
+                button.on_click = self.get_prompt2(i.describe(), Dialog.get('Take'),
+                                                   Dialog.get('Pocket'), click, pocket, count, count)
             button.width = button.text.content_width + 16
+            button.height = button.text.content_height + 8
             button.margin.load(8, 0)
             label = Window(0, 0, width=0, height=size + 10, multi_line=False)
             label.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
             label.set_text(Dialog.weight(i.get_weight()))
+            label.height = button.text.content_height + 8
             label.margin.load(100, 0)
             self.window.add(button)
             self.sub_window.add(label)
@@ -236,5 +253,15 @@ class MenuPlayer(Menu):
                 else:
                     fn = self.get_message(Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet'))
                 params.append([item, fn])
+        self.var = params
+        self.direct(self.menu_many_choice)
+
+    def menu_pickup(self):
+        def pickup(arg):
+            Global.player.character.pick_up(arg)
+        params = []
+        for item in self.var:
+            fn = self.get_prompt(item.describe(), Dialog.get('Take'), pickup, item)
+            params.append([item.name, fn])
         self.var = params
         self.direct(self.menu_many_choice)

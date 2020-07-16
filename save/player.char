@@ -1,2 +1,0 @@
-[map:world,time:7,frame:1525,coord_x:12,coord_y:12,seed:12122]
-[9,13],Human,Humanoid,human,[P:12,p:12,seed:318,team:1,money:5,def:0,abi:levitation,dir:3,DMG:0,space:3,hunger:10442,sth:0,aspd:0],[[Concentration,-1,0]],[flurry,flurry,flurry],[[29,33],Casual Wear,Armor,wear_3x1,[seed:8939,P:4,p:4,cov:35],[]],0,[[29,33],Shortsword,Item,shortsword,[$:6,P:40,p:40,fuel:0,def:7,pivx:6,sharp:1,w:4,DMG:2,aspd:-1],[]],[]

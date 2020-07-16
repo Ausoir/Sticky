@@ -12,25 +12,24 @@ class MenuAll(MenuPlayer):
         def buy(arg):
             sold = host.inventory.take_item(arg)
             Global.player.character.pick_up(sold)
-        if isinstance(self.var, Humanoid):
-            host = self.var
-            have = host.tags.remove('have', 0)
-            if have > 0:
-                loots = []
-                for i in range(have):
-                    loot = host.get_loot()
-                    if loot:
-                        loots.append('?' + loot)
-                host.inventory.load(loots)
-            if not host.inventory.items:
-                self.var = [Dialog.get('empty')]
-                self.menu_message()
-            else:
-                for i in host.inventory.get_range():
-                    item = host.inventory.get_item(i)
-                    lmb = self.get_prompt(item.describe(), Dialog.get('Take'), buy, i)
-                    self.window.add(Menu.make(item.get_display_name(), lmb))
-                self.sub_window.display(1)
+        host = self.var
+        have = host.tags.remove('have', 0)
+        if have > 0:
+            loots = []
+            for i in range(have):
+                loot = host.get_loot()
+                if loot:
+                    loots.append('?' + loot)
+            host.inventory.load(loots)
+        if not host.inventory.items:
+            self.var = [Dialog.get('empty')]
+            self.menu_message()
+        else:
+            for i in host.inventory.get_range():
+                item = host.inventory.get_item(i)
+                lmb = self.get_prompt(item.describe(), Dialog.get('Take'), buy, i)
+                self.window.add(Menu.make(item.get_display_name(), lmb))
+            self.sub_window.display(1)
 
     # noinspection PyUnresolvedReferences
     def menu_shop(self):
@@ -39,23 +38,23 @@ class MenuAll(MenuPlayer):
             if Global.player.pay(arg[1]):
                 sold = host.inventory.take_item(arg[0])
                 Global.player.character.pick_up(sold)
-        if isinstance(self.var, Humanoid):
-            host = self.var
-            if not host.inventory.items:
-                self.var = [Dialog.get('soldout')]
-                self.menu_message()
-            else:
-                count = 0
-                Global.r_t.reset(host.tags.get('seed', 0) + 333)
-                personality = Global.r_t.rand_int(0, 2)
-                for item_num in range(min(6, len(host.inventory.items))):
-                    item = host.inventory.get_item(item_num)
-                    value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, item.get_value()))
-                    lmb = self.get_prompt(item.describe(), Dialog.get('Buy'), buy, [count, value])
-                    self.window.add(Menu.make(item.get_display_name(), lmb))
-                    self.sub_window.add(Menu.make('$' + str(value), lmb, color=None))
-                    count += 1
-                self.sub_window.display(1)
+                Global.main.monologue.set(Dialog.get('transacted'))
+        host = self.var
+        if not host.inventory.items:
+            self.var = [Dialog.get('soldout')]
+            self.menu_message()
+        else:
+            count = 0
+            Global.r_t.reset(host.get_seed() + 333)
+            personality = Global.r_t.rand_int(0, 2)
+            for item_num in range(min(6, len(host.inventory.items))):
+                item = host.inventory.get_item(item_num)
+                value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, item.get_value()))
+                lmb = self.get_prompt(item.describe(), Dialog.get('Buy'), buy, [count, value])
+                self.window.add(Menu.make(item.name, lmb))
+                self.sub_window.add(Menu.make('$' + str(value), lmb, color=None))
+                count += 1
+            self.sub_window.display(1)
 
     def menu_supply(self):
         def buy(arg):
@@ -67,54 +66,67 @@ class MenuAll(MenuPlayer):
                     receipt += arg[1]
             if receipt > 0:
                 Global.player.character.tags.increment('money', receipt)
-                self.get_message(Dialog.get('supply_success', [receipt]))()
+                Global.main.monologue.set(Dialog.get('transacted'))
             else:
-                self.get_message(Dialog.get('supply_fail', [arg[0]]))()
+                Global.main.monologue.set(Dialog.get('reqnotmet'))
         if isinstance(self.var, Humanoid):
             host = self.var
             if isinstance(host, Humanoid):
-                items = []
-                day = int(Global.player.days / 24)
-                Global.r_t.reset(host.tags.get('seed', 0) + 777 + day)
-                personality = Global.r_t.rand_int(0, 1)
-                for k, item in enumerate(host.inventory.items):
-                    value = max(0, item.get_value() + personality + Global.r_t.rand_int(0, 1))
-                    param = [item.name, value]
-                    select = self.get_prompt(Dialog.get('supply', param), Dialog.get('Sell'), buy, param)
-                    items.append([item.name, select])
-                if items:
-                    self.var = items
-                    self.direct(self.menu_many_choice)
+                if host.inventory.items:
+                    seed = host.get_seed()
+                    Global.r_t.reset(seed + 777 + Global.player.days)
+                    personality = seed % 2
+                    for k in range(min(6, len(host.inventory.items))):
+                        item = host.inventory.get_item(k)
+                        value = max(0, item.get_value() + personality + Global.r_t.rand_int(0, 1))
+                        param = [item.name, value]
+                        lmb = self.get_prompt(Dialog.get('supply', param), Dialog.get('Sell'), buy, param)
+                        self.window.add(Menu.make(item.name, lmb))
+                        self.sub_window.add(Menu.make('$' + str(value), lmb, color=None))
+                    self.sub_window.display(1)
                 else:
                     self.get_message(Dialog.get('!supply'))()
 
-    def menu_contract(self):
-        def proceed(arg):
-            Global.player.tags.set('quest', arg)
-            from src.game.Script import Script
-            Script.var['1'] = 'data/map/quest/' + str(arg)
-            self.execute_code('quest')
+    def menu_store_item(self):
+        # noinspection PyUnresolvedReferences
+        def store(arg):
+            if Global.player.pay(cost):
+                host.tags.set('$', 1)
+                storing = Global.player.character.drop()
+                host.inventory.attempt_add(storing)
+                Global.main.monologue.set(Dialog.get('transacted'))
         if isinstance(self.var, Humanoid):
-            quest = Global.player.tags.remove('quest', default=0)
-            if quest == 999:
-                self.load('contract_success')
-            elif quest > 0:
-                self.load('contract_fail')
+            item = Global.player.character.weapon
+            host = self.var
+            if not item:
+                self.var = [Dialog.get('store_nothing')]
+                self.menu_message()
+            elif not host.is_vacant(item.get_weight()):
+                self.var = [Dialog.get('invfull')]
+                self.menu_message()
             else:
-                host = self.var
-                day = int(Global.player.days / 36)
-                Global.r_t.reset(host.tags.get('seed', 0) + 2000 + day)
-                mission = Global.r_t.rand_int(1, 1)
-                self.var = [Dialog.get('contract' + str(mission)), Dialog.get('Accept'), proceed, mission]
-                self.menu_prompt()
+                count = 0
+                Global.r_t.reset(host.get_seed() + 333)
+                personality = Global.r_t.rand_int(0, 2)
+                cost = max(1, item.get_value() + personality + Global.r_t.rand_int(0, item.get_value()))
+                message = item.describe() + '\n' + Dialog.get('store_item', [cost])
+                self.get_prompt(message, Dialog.get('Store'), store, count)()
 
-    def menu_storage(self):
-        def proceed(arg):
-            Global.main.monologue.set('FAR')
-        import math
-        mission = int(math.sin(Global.player.days + self.var[0].attributes.gene) * 10) % 3 + 1
-        reward = 40
-        self.var = [Dialog.get('sergentquest' + str(mission), [reward]),
-                    [Dialog.get('Proceed')], [proceed]]
-        self.state = self.menu_many_choice
-        self.display(1)
+    def menu_train(self):
+        # noinspection PyUnresolvedReferences
+        def train(arg):
+            if Global.player.pay(cost):
+                Global.player.character.tags.increment('lvl', 1)
+                Global.player.character.tags.increment(stat[1], stat[2])
+                Global.main.monologue.set(Dialog.get('transacted'))
+        cost = Global.player.character.tags.get('lvl', 0) ** 2
+        from src.tools.Data import Data
+        raw = Data.get_line('raw.txt', 'stat')[1]
+        stat = raw[self.var.get_seed() % len(raw)]
+        data = Data.get_line('descriptions.txt', stat[0])
+        name = stat[0].title()
+        if data:
+            message = data[0] + '\n' + Dialog.get('train', [name])
+        else:
+            message = Dialog.get('train', [name, cost])
+        self.get_prompt(message, Dialog.get('Train') + ' ' + name, train)()

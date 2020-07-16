@@ -22,18 +22,13 @@ class Attribute(Tag):
             self.host.form.image.anchor_x = self.attributes['pivx']
         if 'pivy' in self.attributes:
             self.host.form.image.anchor_y = int(self.host.form.height / 2) + self.attributes['pivy']
-        if 'seed' in self.attributes:
-            from src.game import Global
-            if self.attributes['seed'] == -1:
-                seed = Global.r.rand_int(1, 9999)
-                self.attributes['seed'] = seed
-                Global.r_t.reset(seed)
-            self.add_tag()
 
-    def add_tag(self):
+    def add_tag(self, host):
         add_tag = self.remove('+')
         if add_tag:
+            seed = host.get_seed()
             from src.game import Global
+            Global.r_t.reset(seed)
             new_tags = add_tag.split('&')
             for line in new_tags:
                 data = Attribute.ADD_ON[line]
@@ -46,7 +41,7 @@ class Attribute(Tag):
                     else:
                         tag_parts = tag.split(':')
                         self.increment(tag_parts[0], Data.parse(tag_parts[1])[0])
-            self.add_tag()
+            self.add_tag(host)
 
     def get_carry_over(self):
         permanent = ['money', 'seed', 'full']

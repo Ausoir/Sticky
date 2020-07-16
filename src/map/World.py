@@ -9,7 +9,9 @@ from src.tools.Space import Space
 class World:
     CHUNK = 20
     DEFAULT = [[-1, -1], [0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]
+    ALL = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     BIOME = None
+    SEASON = 720
 
     @staticmethod
     def coord_to_map_name(coord):
@@ -28,14 +30,15 @@ class World:
         self.last_cells = self.cells
         self.dirty = []
         self.map_biome = None
+        self.last_spawn = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def initialize(self, seed, coord_x, coord_y):
         self.map_biome = Biome(seed)
         self.cells = [[i[0] + coord_x, i[1] + coord_y] for i in World.DEFAULT]
-        self.load_bubble([0, 1, 2, 3, 4, 5, 6, 7, 8])
+        self.load_bubble(World.ALL)
 
     def save(self):
-        self.save_cell([0, 1, 2, 3, 4, 5, 6, 7, 8])
+        self.save_cell(World.ALL)
 
     def save_cell(self, cells, remove=False):
         for cell_num in cells:
@@ -68,9 +71,9 @@ class World:
             if is_blank:
                 continue
             if Global.player.player_mode == 0:
-                line_1 = '0'
+                line_1 = '0,0'
             else:
-                line_1 = str(Global.player.days)
+                line_1 = str(Global.player.days) + ',' + str(self.last_spawn[cell_num])
             line_2 = ','.join(cell_objects)
             line_3 = '%'.join(cell_tiles)
             line_4 = '%'.join(cell_roofs)
@@ -80,10 +83,10 @@ class World:
 
     def load_bubble(self, added, time=-1):
         obj = []
-        for count, cell_coord in enumerate(self.cells):
+        for cell_num, cell_coord in enumerate(self.cells):
             map_save_name = 'save/' + World.coord_to_map_name(cell_coord) + '.map'
             map_data_name = 'data/map/' + World.coord_to_map_name(cell_coord) + '.map'
-            start_coord = World.get_chunk_coord(count)
+            start_coord = World.get_chunk_coord(cell_num)
             map_is_save = Data.is_file(map_save_name)
             map_is_data = Data.is_file(map_data_name)
             if not map_is_save and not map_is_data:
@@ -92,6 +95,7 @@ class World:
                         tile = self.location.tiles[row][col]
                         tile.set_terrain('~')
                         tile.light_source = 0
+                        tile.roof = 0
                         tile.light = 0
                         obj += tile.things
             else:
@@ -100,12 +104,8 @@ class World:
                     time_passed = max(0, time - int(map_data[0][0]))
                 else:
                     map_data = Data.process_raw(Data.read(map_data_name))
-                    if time == -1:
-                        time_passed = 0
-                    else:
-                        time_passed = 24
-                if Global.player.player_mode != 1:
-                    time_passed = 0
+                    time_passed = 24
+                self.last_spawn[cell_num] = map_data[0][1]
                 terrains = map_data[2][0].split('%')
                 roofs = map_data[3][0].split('%')
                 for y, row in enumerate(range(start_coord[1], start_coord[1] + World.CHUNK)):
@@ -116,8 +116,9 @@ class World:
                         tile.light_source = 0
                         tile.light = 0
                         obj += tile.things
-                renew = time_passed >= 24
-                if count in added:
+                renew = Global.player.days - self.last_spawn[cell_num] >= 12
+                renew = False
+                if cell_num in added:
                     added_props = []
                     for i in map_data[1]:
                         prop = Stock.get(self.location, i[2], i)
@@ -126,8 +127,9 @@ class World:
                             prop.add()
                             added_props.append(prop)
                     if renew:
-                        savageness = self.map_biome.get_level(cell_coord[0], cell_coord[1])
-                        for times in range(16 + savageness * 6):
+                        self.last_spawn[cell_num] = int(Global.player.days / 12) * 12
+                        savageness = self.get_biome(cell_coord[0], cell_coord[1])
+                        for times in range(20 + savageness * 5):
                             x = Global.r.rand_int(start_coord[0], start_coord[0] + World.CHUNK)
                             y = Global.r.rand_int(start_coord[1], start_coord[1] + World.CHUNK)
                             tile = self.location.get_tile(x, y, limit=True)
@@ -136,6 +138,7 @@ class World:
                                 from src.map.Tile import Tile
                                 if not tile.is_land(Tile.CHECK_ANY):
                                     made = Stock.make(spawn, tile)
+                                    made.on_natural_spawn()
                                     if made.get_value() <= 1:
                                         made.tags.set('$', 2)
                         for prop in added_props:
@@ -143,15 +146,20 @@ class World:
         return obj
 
     def get_spawn(self, habitat, coord_x=0, coord_y=0, level=None):
-        spawn_list = World.BIOME.get(habitat)
+        if not Global.player.is_daytime():
+            spawn_list = World.BIOME.get(habitat + '_night') or World.BIOME.get(habitat)
+        else:
+            spawn_list = World.BIOME.get(habitat)
         if spawn_list:
+            if not isinstance(spawn_list[0], list):
+                return Global.r.rand_list(spawn_list)
             if level is None:
-                level = self.map_biome.get_level(coord_x, coord_y)
+                level = self.get_biome(coord_x, coord_y)
             if spawn_list[level]:
                 return Global.r.rand_list(spawn_list[level])
 
-    def push_cell(self, x, y):
-        new = [[i[0] + x, i[1] + y] for i in self.cells]
+    def load_cells(self, x, y):
+        new = [[i[0] + x, i[1] + y] for i in World.DEFAULT]
         abandoned = []
         added = []
         for i in range(9):
@@ -186,7 +194,7 @@ class World:
             for tile in row:
                 lights.append(tile.light)
                 light_sources.append(tile.light_source)
-        added = self.push_cell(offset_x, offset_y)
+        added = self.load_cells(self.cells[4][0] + offset_x, self.cells[4][1] + offset_y)
         objs = self.load_bubble(added, time=Global.player.days)
         offset_x *= -World.CHUNK
         offset_y *= -World.CHUNK
@@ -204,7 +212,24 @@ class World:
                     index += 1
             else:
                 index += self.location.get_width()
+        self.location.process_terrain()
         return offset_x, offset_y
+
+    def travel(self, coord_x, coord_y, x, y):
+        diff_x = coord_x - self.cells[4][0]
+        diff_y = coord_y - self.cells[4][1]
+        if abs(diff_x) <= 2 and abs(diff_y) <= 2:
+            self.recenter(diff_x * World.CHUNK + x, diff_y * World.CHUNK + y)
+            Global.player.character.relocate(x=x, y=y, force=True)
+            for i in self.location.population.get_all():
+                i.bound(False)
+        else:
+            data = Global.player.character.__str__()
+            added = self.load_cells(coord_x, coord_y)
+            self.load_bubble(added, time=Global.player.days)
+            Global.player.character.load(Data.parse(data))
+            Global.player.character.relocate(x=x, y=y, force=True)
+            self.location.process_terrain()
 
     def get_camera_pos(self, x, y):
         chunk = 4
@@ -228,14 +253,28 @@ class World:
                 chunk = 7
         return chunk
 
+    def get_tile_true_pos(self, x, y):
+        chunk = self.get_camera_pos(x, y)
+        return World.DEFAULT[chunk][0] * World.CHUNK + x, World.DEFAULT[chunk][1] * World.CHUNK + y
+
     def get_current_chunk(self, x, y):
         chunk = self.get_camera_pos(x, y)
         return self.cells[chunk]
 
+    @staticmethod
+    def get_coordinates(x, y):
+        chunk = Global.world.get_camera_pos(x, y)
+        return Global.world.cells[chunk][0], Global.world.cells[chunk][1]
+
     def dirty_pos(self, x=None, y=None):
         if x is None or y is None:
-            self.dirty = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            self.dirty = World.ALL
         else:
             chunk = self.get_camera_pos(x, y)
             if chunk not in self.dirty:
                 self.dirty.append(chunk)
+
+    def get_biome(self, x, y):
+        r = self.map_biome.get_level(x, y)
+        r = (r + int(Global.player.days / World.SEASON)) % 4
+        return r

@@ -331,7 +331,6 @@ class Attack(TargetTask):
     def update(self):
         super().update()
         if self.target and self.target.removed == 0 and self.target.tags.get('p', -1) >= 0:
-            self.host.target = self.target.pos
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()
         else:
@@ -357,7 +356,7 @@ class Attack(TargetTask):
                 self.pilot.move.target = self.target.pos
             else:
                 ability = self.host.tags.get('abi')
-                if ability and Global.r.rand_int(0, 8) == 0:
+                if ability and Global.r.rand_int(0, 6) == 0:
                     self.host.action.set('ability')
                 else:
                     self.pilot.move.target = self.target.pos

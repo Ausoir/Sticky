@@ -25,10 +25,22 @@ class Scripter(Prop):
     def add(self):
         super().add()
         Script.var['host'] = self
-        self.script.run()
+        if self.tags.get('trigger') == 'load':
+            self.script.run()
 
     def set_row(self, row):
         self.form.z = 800
+
+    def on_sleep(self, time):
+        super().on_sleep(time)
+        if time > 0 and self.tags.get('trigger') == 'time':
+            self.script.run()
+
+    def turn(self):
+        super().turn()
+        if self.tags.get('trigger') == 'always':
+            Script.var['host'] = self
+            self.script.run()
 
 
 class Force(Prop):
@@ -132,12 +144,12 @@ class Specie(Item):
 
     def get_display_name(self):
         cue = Data.get_line('raw.txt', 'cue')[1]
-        return cue[self.tags.get('seed', 0) % len(cue)].title() + ' ' + self.name
+        return cue[self.get_seed() % len(cue)].title() + ' ' + self.name
 
     def get_description(self):
         r = super().get_description()
         if Global.player.character.get_skill('alchemy'):
-            r += '\n' + Dialog.get('Density') + ': ' + str(self.tags.get('seed', 0) % 100)
+            r += '\n' + Dialog.get('Density') + ': ' + str(self.get_seed() % 100)
         return r
 
     def on_unwield(self):
@@ -264,24 +276,17 @@ class Marker(Prop):
         data = Data.get_line('raw.txt', 'portals')[1]
         from src.entity.unit.item.Spell import Spell
         category = data[max(0, len(data) - collision)]
-        seed = self.tags.get('seed', 0) * self.tags.get('way', 0)
+        seed = self.get_seed() * self.tags.get('way', 0)
         Spell.get(category[seed % len(category)], power=intensity * 6).cast_on(self.pos)
-        print('spell ' + category[seed % len(category)] + ' intensity ' + str(intensity * 6))
+        # print('spell ' + category[seed % len(category)] + ' intensity ' + str(intensity * 6))
 
 
 class Food(Item):
-    def __init__(self, location):
-        super().__init__(location)
-        self.nutrition = [-1, 0]
-
-    def __str__(self):
-        return super().__str__() + ',' + Dialog.nonstrlist(self.nutrition)
-
     def load(self, arg):
         index = super().load(arg)
-        self.nutrition = arg[index]
-        if self.nutrition[0] < 0:
-            self.nutrition[0] = Global.player.days + -self.nutrition[0]
+        time = self.tags.get('time', 0)
+        if time < 0:
+            self.tags.set('time', Global.player.days + -time)
         return index + 1
 
     def get_value(self):
@@ -292,7 +297,7 @@ class Food(Item):
 
     def describe(self):
         r = super().describe()
-        r += '\n' + Dialog.get('nutrition') + ': ' + str(self.nutrition[1]) + '%'
+        r += '\n' + Dialog.get('Nutrition') + ': ' + str(self.tags.get('hunger', 0)) + '%'
         expire = self.get_expiration()
         if expire:
             r += '\n' + Dialog.get('food_expire', [Dialog.hours(expire)])
@@ -301,13 +306,13 @@ class Food(Item):
         return r
 
     def get_expiration(self):
-        left = max(0, self.nutrition[0] - Global.player.days)
+        left = max(0, self.tags.get('time', 0) - Global.player.days)
         return left
 
     def use(self):
         if self.get_expiration():
             hunger = self.host.tags.get('hunger', 0)
-            if hunger >= self.nutrition[1]:
+            if hunger >= self.tags.get('hunger', 0):
                 self.host.action.act('eat', 8)
                 self.host.action.on_finish = self.eat
             else:
@@ -319,7 +324,8 @@ class Food(Item):
     def eat(self):
         for i in self.states.buffs:
             self.host.states.add(i.name, i.duration, i.var)
-        nutrition = -(self.nutrition[1] + self.host.get_skill('asceticism', stacks=True))
+        nutrition = -(self.tags.get('hunger', 0) + self.host.get_skill('asceticism', stacks=True))
+        self.location.sound.register(self.pos, 0, file='eat')
         self.host.tags.increment('hunger', nutrition)
         self.decay(1)
         return nutrition
@@ -422,13 +428,43 @@ class Manual(Item):
                 Global.main.monologue.set(Dialog.get('!learn', [self.skill]))
 
 
+class Potion(Food):
+    def describe(self):
+        r = super().describe()
+        arg = self.tags.get('dur')
+        if arg:
+            r += '\n' + Dialog.get('Duration') + ': ' + str(arg)
+        arg = self.tags.get('var')
+        if arg:
+            r += '\n' + Dialog.get('Modifier') + ': ' + str(arg)
+        return r
+
+    def eat(self):
+        host = self.host
+        r = super().eat()
+        effect = self.tags.get('effect')
+        if effect:
+            host.states.add(effect, self.tags.get('dur', 0), self.tags.get('var', 0))
+        return r
+
+    def hit(self, damage, hitter=None):
+        if damage > 0 and self.pos.get_yield() > -9:
+            from src.entity.Stock import Stock
+            r = Stock.make('Mine', self.pos)
+            r.tags.sync('effect', self.tags.get('effect'))
+            r.tags.sync('dur', self.tags.get('dur'))
+            r.tags.sync('var', self.tags.get('var'))
+        return super().hit(damage, hitter)
+
+
 class Mine(Prop):
     def turn(self):
         super().turn()
         for thing in self.pos.things:
             if thing != self and thing.tags.get('fly') != 1:
-                from src.entity.unit.item.Spell import Spell
-                Spell.get(self.tags.get('spell'), self.tags.get('power', 0)).cast_on(self.pos)
+                effect = self.tags.get('effect')
+                if effect:
+                    thing.states.add(effect, self.tags.get('dur', 0), self.tags.get('var', 0))
                 self.remove()
                 return
 
@@ -477,7 +513,7 @@ class Phantom(Unit):
     def die(self):
         super().die()
         if self.host:
-            self.host.relqocate(self.pos.x, self.pos.y, force=True)
+            self.host.relocate(to=self.pos, force=True)
             self.host.add()
 
 
@@ -518,3 +554,8 @@ class Pickaxe(Item):
                 self.host.action.act('rest', 8)
                 Stock.make('Break', tile)
                 self.decay(1)
+
+
+class Ceiling(Prop):
+    def set_row(self, row):
+        self.form.z = row * 20 + 200

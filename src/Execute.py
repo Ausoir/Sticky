@@ -22,12 +22,15 @@ class Execute(pyglet.window.Window):
         super(Execute, self).__init__(self.setting['width'], self.setting['height'], ' ',
                                       fullscreen=self.setting['fullscreen'] == 1, vsync=False, resizable=True)
         self.dt = 0
-        self.fps = 1 / 36.0
+        self.fps = 1 / 44.0
         self.set_location(self.setting['x'], self.setting['y'])
         self.init_other()
         self.monologue = Textbox(40, 40)
+
         glEnable(pyglet.gl.GL_BLEND)
         glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_ALPHA_TEST)
+        glAlphaFunc(GL_GREATER, 0.2)
         glClearColor(Global.mask_color[0], Global.mask_color[1], Global.mask_color[2], Global.mask_color[3])
 
     def init_other(self):
@@ -106,13 +109,12 @@ class Execute(pyglet.window.Window):
         vertical = int(Global.DISPLAY[1] / 2)
         glOrtho(-horizontal, horizontal, -vertical, vertical, -1000, 4)
         glMatrixMode(GL_MODELVIEW)
-        glPushMatrix()
         glTranslatef(Global.CURRENT_OFFSET[0] - Global.OFFSET[0], Global.CURRENT_OFFSET[1] - Global.OFFSET[1], 0)
         Global.CURRENT_OFFSET = Global.OFFSET
         Global.player.set_darkness()
         self.monologue.on_resize()
 
-    def on_activate(self):
+    def on_deactivate(self):
         Global.player.control.clear_press()
 
     def on_close(self):
@@ -124,6 +126,7 @@ class Execute(pyglet.window.Window):
     def loop(self, dt):
         self.dt += dt
         if self.dt > self.fps:
+            # print(str(1 / self.dt))
             self.dt = 0
             Camera.update()
             Turn.update()
@@ -133,8 +136,6 @@ class Execute(pyglet.window.Window):
     def on_draw(self):
         self.clear()
         Global.draw_group.draw()
-        Global.menu.draw()
-        Global.player.draw()
 
     def quit(self):
         Global.player.control.output('quit')

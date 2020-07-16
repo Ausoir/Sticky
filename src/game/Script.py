@@ -24,7 +24,6 @@ class Script:
     @staticmethod
     def execute_code(arg):
         if arg:
-            Global.player.control.clear_press()
             if arg.startswith('!'):
                 Global.menu.load(arg[1:])
                 return True
@@ -86,6 +85,7 @@ class Script:
                 self.run_exceptions()
                 return
         self.run_mechanisms()
+        return True
 
     def run_mechanisms(self):
         for i in self.mechanism:
@@ -108,6 +108,8 @@ class Script:
                 Script.var[str(arg[1])] = Data.get_line(arg[3] + '.txt', arg[4].lower())
             elif arg[2] == 'array':
                 Script.var[str(arg[1])] = arg[3][arg[4]]
+            elif arg[2] == 'split':
+                Script.var[str(arg[1])] = arg[3].split(arg[4])
             elif arg[2] == '?list':
                 Script.var[str(arg[1])] = self.get_rand().rand_list(arg[3])
             elif arg[2] == '?int':
@@ -161,8 +163,10 @@ class Script:
             return Global.player.is_safe()
         elif condition[0] == 'bright':
             return Global.player.is_bright()
+        elif condition[0] == 'bring':
+            return len(Script.var['host'].pos.things) >= condition[1]
         elif condition[0] == 'delay':
-            return Script.var[1].action.delay == 0
+            return Script.var['1'].action.delay == 0
         elif condition[0] == 'inmenu':
             return Global.menu.visible == 1
         elif condition[0] == 'ask':
@@ -217,43 +221,23 @@ class Script:
             Global.menu.direct(getattr(Global.menu, 'menu_' + arg[1].lower()))
         elif arg[0] == 'script':
             Script.execute_code(arg[1])
-        elif arg[0] == 'load':
-            building = Data.process_raw(Data.read(arg[1] + '.map'))
-            host = Script.var['host']
-            Global.world.location.load(building, offset=[arg[2], arg[3]], make=True)
-            Script.var['host'] = host
-        elif arg[0] == 'loadhere':
-            host = Script.var['host']
-            building = Data.process_raw(Data.read(arg[1] + '.map'))
-            from src.map.Location import Location
-            location = Location('', building, make=True)
-            location.rotate(self.get_rand().rand_int(0, 3))
-            data = Data.process_raw(location.__str__())
-            Script.var['host'] = host
-            offset = [Script.var['host'].pos.x, Script.var['host'].pos.y]
-            Script.var['host'].location.load(data, offset=offset, make=True)
-        elif arg[0] == 'merge':
-            host = Script.var['host']
-            building = Data.process_raw(Data.read(arg[2] + '.map'))
-            from src.map.Location import Location
-            location = Location(arg[1], building, make=True)
-            building = Data.process_raw(Data.read(arg[3] + '.map'))
-            location.load(building, offset=[arg[4], arg[5]], make=True)
-            location.save()
-            Script.var['host'] = host
         elif arg[0] == 'decay':
             Script.var['1'].decay(arg[1])
-        elif arg[0] == 'delay':
-            from src.entity.unit.Unit import Unit
-            if isinstance(Script.var['host'], Unit):
-                Script.var['host'].action.delay = arg[1]
         elif arg[0] == 'act':
             from src.entity.unit.Unit import Unit
-            if isinstance(Script.var['host'], Unit) and Script.var['host'].action.delay == 0:
+            if isinstance(Script.var['host'], Unit):
                 if arg[1] == 'act':
                     Script.var['host'].action.act(arg[2], arg[3])
                 else:
                     Script.var['host'].action.set(arg[1])
+        elif arg[0] == 'move':
+            from src.entity.Other import Scripter
+            host_pos = Script.var['host'].pos
+            for i in host_pos.things:
+                if not isinstance(i, Scripter):
+                    i.relocate(x=host_pos.x + arg[1], y=host_pos.y + arg[2], force=True)
+        elif arg[0] == 'teleport':
+            Global.world.travel(arg[1], arg[2], arg[3], arg[4])
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])
         elif arg[0] == 'deletefiles':

@@ -139,7 +139,7 @@ class Humanoid(Unit):
         return r
 
     def get_capacity(self):
-        r = 5 + self.tags.get('space', 0)
+        r = self.tags.get('space', 0)
         if self.armor:
             r += self.armor.tags.get('space', 0)
         if self.headgear:
@@ -195,6 +195,8 @@ class Humanoid(Unit):
     def die(self):
         self.drop()
         self.inventory.drop_all()
+        self.unarmor()
+        self.unheadgear()
         super().die()
 
     def update(self):
@@ -295,7 +297,7 @@ class Humanoid(Unit):
 
     def make_face(self):
         from src.form.Picture import Model
-        face = Humanoid.faces[self.tags.get('seed', 0) % len(Humanoid.faces)]
+        face = Humanoid.faces[self.get_seed() % len(Humanoid.faces)]
         model = Model(face)
         return model
 

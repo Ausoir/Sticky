@@ -63,13 +63,6 @@ class Actions:
         self.set('nothing')  # calls the set function
         self.make(action, turn=time)
 
-    def trinket(self):
-        if self.humanoid and self.host.headgear:
-            def fin():
-                self.host.headgear.activate()
-            self.make('eat', turn=6)
-            self.on_finish = fin
-
     def turn_direction(self, direction):
         speed = min(1, max(0, 3 - self.host.tags.get('spd', 0)))
         self.make('default', turn=speed)
@@ -157,17 +150,20 @@ class Actions:
                 Script.var['1'] = None
                 Script.execute_code('#water')
             else:
+                self.host.location.sound.register(self.host.pos, 1)
                 for thing in tile.things:
                     if self.interact(thing):
                         return True
 
     def interact(self, target):
+        def fn():
+            Script.var['host'] = self.host
+            Script.var['1'] = target
+            Script.execute_code(code)
         code = target.tags.get('#')
         if code:
             self.make('interact', turn=3)
-            Script.var['host'] = self.host
-            Script.var['1'] = target
-            self.on_finish = lambda: Script.execute_code(code)
+            self.on_finish = fn
             return True
 
     def side_step(self, tile):
@@ -211,15 +207,18 @@ class Actions:
         if self.humanoid:
             self.host.states.trigger(['act', 'grab'])
             from src.entity.unit.item.Item import Item
-            target = None
+            targets = []
             for thing in self.host.pos.things:
                 if isinstance(thing, Item):
                     if thing not in [self.host.weapon, self.host.headgear, self.host.armor]:
-                        target = thing
-                        break
-            if target:
+                        targets.append(thing)
+            if targets:
                 self.make('grab', turn=3)
-                self.host.pick_up(target)
+                if len(targets) > 1 and self.host == Global.player.character:
+                    Global.menu.var = targets
+                    Global.menu.direct(Global.menu.menu_pickup)
+                else:
+                    self.host.pick_up(targets[0])
             elif not self.host.tags.get('fly') or not self.interact_on(self.host.pos):
                 self.make('grab', turn=1)
                 self.host.drop()
@@ -228,15 +227,11 @@ class Actions:
         if self.host.weapon:
             def change():
                 dropped = self.host.drop()
-                self.host.inventory.attempt_add(dropped)
-                Global.temp['sheathe'] = dropped.name
+                self.host.inventory.attempt_add(dropped, insert=True)
             self.make('grab', turn=4)
             self.on_finish = change
         else:
-            sheathe = Global.temp.get('sheathe')
-            if sheathe:
-                index = self.host.inventory.get_item_index(sheathe)
-                self.host.unsheathe(index)
+            self.host.unsheathe(0)
 
     def crush(self):
         front = self.host.pos.get_cardinal(self.host.direction, 1)
@@ -252,19 +247,25 @@ class Actions:
         dmg = self.host.roll_damage()
         front = self.host.pos.get_cardinal(self.host.direction, 1)
         hitter = self.host.get_hitter()
-        self.host.location.field.register(dmg, front, delay=1, hitter=hitter,
+        if self.host.tags.get('spd', 0) > 0:
+            delay = 0
+        else:
+            delay = 1
+        self.host.location.field.register(dmg, front, delay=delay, hitter=hitter,
                                           sound=['swing', 0], callback=self.host.on_attack)
-        if self.host.get_skill('crush') and dmg > 6:
+        if self.host.get_skill('crush') and dmg >= front.get_hardness():
             self.on_finish = self.crush
 
     def ability(self):
-        from src.entity.unit.item.Spell import Spell
-        Spell.get(self.host.tags.get('abi'), power=100).cast(self.host)
-        self.make('cast', turn=12)
+        ability = self.host.tags.get('abi')
+        if ability:
+            from src.entity.unit.item.Spell import Spell
+            Spell.get(ability, power=self.host.tags.get('abp', 0)).cast(self.host)
+            self.make('cast', turn=12)
 
-    def pocket(self):
-        if self.humanoid:
-            def fin():
-                self.host.unsheathe(len(self.host.inventory.items) - 1)
-            self.make('grab', turn=4)
-            self.on_finish = fin
+    def ability2(self):
+        ability = self.host.tags.get('abi2')
+        if ability:
+            from src.entity.unit.item.Spell import Spell
+            Spell.get(ability, power=self.host.tags.get('abp2', 0)).cast(self.host)
+            self.make('cast', turn=12)

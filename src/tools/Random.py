@@ -32,7 +32,8 @@ class Random:
         return self.random.gauss(arg1, arg2)
 
     def rand_list(self, arg):
-        return arg[self.rand_int(0, len(arg) - 1)]
+        if arg:
+            return arg[self.rand_int(0, len(arg) - 1)]
 
     def rand_log(self, arg1):
         return int(math.log(self.random.randint(1, arg1), arg1) * arg1)

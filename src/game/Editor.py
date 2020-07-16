@@ -38,7 +38,6 @@ class Editor:
         offset = Global.world.recenter(Camera.target.pos.x, Camera.target.pos.y)
         Global.player.days = time
         if offset:
-            Camera.target.location.process_terrain()
             Camera.target.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
             Camera.target.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
         else:
@@ -54,7 +53,8 @@ class Editor:
     def input(self, action):
         m = self.control.cursor_tile
         self.prev_mouse = m
-        self.display_subtext = 'X:' + str(m[0]) + ' Y:' + str(m[1])
+        self.display_subtext = str(Global.world.get_tile_true_pos(m[0], m[1])) + ' / '
+        self.display_subtext += str(Global.world.get_coordinates(m[0], m[1]))
         if action == 'idle':
             self.tool.input(0, Global.world.location.get_tile(m[0], m[1], limit=True))
             self.tool.last = None
@@ -87,6 +87,7 @@ class Editor:
         elif action == 'fill':
             tile = Global.world.location.get_tile(m[0], m[1], limit=True)
             self.tool.fill(tile)
+            Global.world.dirty_pos()
             self.control.clear_press()
         elif action == 'sample':
             if action != self.prev_action:
@@ -160,10 +161,7 @@ class Editor:
             self.command()
         elif action == 'save':
             self.tool.cancel()
-            if Global.player.tags.get('map') == 'world':
-                Global.world.save()
-            else:
-                Global.world.location.save()
+            Global.world.save()
             self.display_text = 'saved map'
         self.prev_action = action
         if self.display_text != '':
@@ -183,9 +181,17 @@ class Editor:
                     self.display_text = self.tool.selection.__str__()
                     self.tool.last_data = Data.process_raw(self.display_text)
                 self.display_text = '[' + params[1] + '] Applied'
+        elif params[0] == 'prop':
+            for tool_type in Data.registry_list:
+                self.tool.cancel()
+                self.tool = ToolObject(tool_type)
+                for i in self.tool.object_list:
+                    if i[0] == params[1]:
+                        self.tool.select(i[0])
+                        return
         elif params[0] == 'tag':
             if isinstance(self.tool, ToolObject):
-                self.tool.selection.tags.set(params[1], params[2])
+                self.tool.selection.tags.set(params[1], Data.parse(params[2])[0])
         elif params[0] == 'image':
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.set_form(arg1)
@@ -297,7 +303,6 @@ class ToolTerrain(Tool):
 
     def fill(self, tile):
         self.fill_recurse(tile, tile.index)
-        Global.world.dirty_pos(tile.x, tile.y)
         Global.world.location.process_terrain()
 
     def fill_recurse(self, tile, target):
@@ -325,7 +330,6 @@ class ToolRoof(Tool):
 
     def fill(self, tile):
         self.fill_recurse(tile, tile.roof)
-        Global.world.dirty_pos()
         Global.world.location.process_terrain()
 
     def fill_recurse(self, tile, target):

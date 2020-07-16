@@ -7,12 +7,10 @@ from src.map.Field import Field
 from src.map.Population import Population
 from src.map.Sound import Sound
 from src.map.Tile import Tile
-from src.tools.Tag import Tag
 
 
 class Location:
     def __init__(self, data, make=False):
-        self.tags = Tag()
         self.field = Field(self)
         self.sound = Sound(self)
         self.population = Population()
@@ -20,11 +18,6 @@ class Location:
         self.push_status = [0, 0]
         self.header = None
         if data:
-            self.tags.load(data[0][0])
-            if make:
-                seed = self.tags.get('seed', 0)
-                if seed == -1:
-                    self.tags.set('seed', Global.r.rand_int(1, 9999))
             self.load(data, make)
         Turn.add(self.field.turn)
 
@@ -37,7 +30,7 @@ class Location:
             rt.append(row)
         tiles = '%'.join(rt)
         objects = self.population.__str__()
-        return self.tags.__str__() + '\n' + tiles + '\n' + objects + '\n'
+        return tiles + '\n' + objects + '\n'
 
     def load(self, arg, make=True, offset=(0, 0)):
         while len(arg) < 3:
@@ -129,17 +122,11 @@ class Location:
     def flip(self, flip_x, flip_y):
         if flip_y:
             self.tiles.reverse()
-            enter_y = self.tags.get('entery')
-            if enter_y is not None:
-                self.tags.set('entery', self.get_height() - 1 - enter_y)
         if flip_x:
             r = []
             for y in self.tiles:
                 r.append(y[::-1])
             self.tiles = r
-            enter_x = self.tags.get('enterx')
-            if enter_x is not None:
-                self.tags.set('enterx', self.get_width() - 1 - enter_x)
 
     def mirror_axis(self):
         copy = []
@@ -149,10 +136,6 @@ class Location:
             for x in range(self.get_width()):
                 copy[x][y] = self.tiles[y][x]
         self.tiles = copy
-        enter_x = self.tags.get('enterx', 0)
-        enter_y = self.tags.get('entery', 0)
-        self.tags.set('enterx', enter_y, add=False)
-        self.tags.set('entery', enter_x, add=False)
 
     def update_objects(self):
         for y in range(self.get_height()):

@@ -6,28 +6,21 @@ oos,Out of sight.
 noaccessory,No Headgear
 noarmor,No Armor
 noweapon,No Weapon
+nopocket,No Pocket
 no_status,No abnormal status effect found.
 dsc_location,Your current location.
-dsc_date,Date and Time: #. Current Hunger: #%. You progress in level at #% speed.
-dsc_hunger,Date and Time: #. Current Hunger: #%. You are too hungry to progress in level or perform time consuming actions.
-dsc_starve,Date and Time: #. Current Hunger: #%. You are starving and you take damage for each passing hour.
+dsc_date,Date and Time: #. Current Hunger: #%.
+dsc_hunger,Date and Time: #. Current Hunger: #%. You are starving and you take damage for each passing hour.
 youdie,You die... Press ESC to exit.
 dsc_level,You level up typically by eating and sleeping.
+dsc_points,This is the number of available points you can use to increase stats',' learn skills',' or to obtain special abilities. Every level provides a single point.
 dsc_attack,Your attack is determined by your Strength skill plus your weapon damage. Your Dexterity skill increases minimum damage.
 dsc_defense,Your defense is determined by your Dodge skill plus armor rating. Incoming damage is decreased by defense roll unless hit from behind or knocked down. Some units and objects have Armor which provide minimum defense.
-dsc_reputation,Reputation is equal to the rank of the hardest mission you have cleared. Reputation is lost when people die in a safe location that you are also in.
 travelto?,Travel to <#>?
 travelto,Travel to <#>
 soldout,I am all out of goods to sell.
-empty,This container is empty.
-contract1,A client lost an item deep inside an outlaw hideout. This is a 1 star mission. Do you wish to proceed?
-contract2,A wild beast is in possession of an important item. This is a 2 star mission. Proceed?
-contract3,Some marauders are attacking our post. Help defend us. This is a 3 star mission. Proceed?
-contract4,I have a contract to clear out a cave infested with wildlife. Kill the pack leader. This is a 3 star mission. Proceed?
-contract5,A mansion is infested with beasts. Clear them out. This is a 4 star mission. Proceed?
-contract6,Some outlaws have established a hideout. Clear them out. This is a 4 star mission. Proceed?
-contract7,A group of spell wielding fanatics are moving to a certain location. You need to stop them. This is a 5 star mission. Proceed?
-contract8,A gang leader living in a mansion is in possession of a rare artifact. This is a 5 star mission. You will need to be quick here because enemies will continuously send in reinforcements. Proceed?
+invfull,You cannot store any more items.
+empty,No items available.
 reqnotmet,Requirements not met.
 equipment_cov,Coverage: #%
 equipment_inv,Provides # inventory
@@ -47,10 +40,9 @@ equipment_skill,Grants skill <#>
 manual_skill,Teaches skill <#>
 learn,Learned skill <#>!
 !learn,<#> is already mastered.
-!supply,I am not buying anything right now.
 food_expire,Expires in #
 food_expired,Expired
-!pay,Not enough money!
+!pay,Not enough money! Requires $#.
 sight_range,Sight Range: #
 sight_type,Sight blocked by: #
 pickup,Pick up #?
@@ -70,3 +62,10 @@ water_fill,Filled with water.
 water_drain,Liquid has been drained.
 req_skill,Requires <#> skill.
 req_item,Requires items: #.
+supply,Would you like to sell # for $#?
+!supply,I am not buying anything right now.
+transacted,Transaction successful!
+store_item,Storage of this item would cost $#.
+store_nothing,You are not holding anything that can be stored.
+train,Train <#> stat for $#?
+info_pocket,Press <R> to access pocket

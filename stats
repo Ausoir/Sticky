@@ -282,3 +282,8 @@
 ---- PUSH
 7/01 Forgot to add new unit images (moth, boar) and maps
 ---- PUSH
+7/03 Pick up multiple items (1), Humanoid drops armor and helm (1)
+7/05 Roof duplication on recenter to blank sea map fix (1)
+7/11 GL_Nearest fix bleeding edge (1)
+7/16 Teleport script (1), Map slums (1), nuitka updated (1)
+---- PUSH

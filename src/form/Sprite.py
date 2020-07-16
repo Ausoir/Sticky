@@ -119,7 +119,7 @@ class SpriteGroup(graphics.Group):
     same parent group, texture and blend parameters.
     """
 
-    def __init__(self, texture, blend_src, blend_dest, parent=None):
+    def __init__(self, texture, parent=None):
         """Create a sprite group.
 
         The group is created internally within :py:class:`~pyglet.sprite.Sprite`; applications usually
@@ -139,22 +139,15 @@ class SpriteGroup(graphics.Group):
         """
         super(SpriteGroup, self).__init__(parent)
         self.texture = texture
-        self.blend_src = blend_src
-        self.blend_dest = blend_dest
 
     def set_state(self):
         glEnable(self.texture.target)
         glBindTexture(self.texture.target, self.texture.id)
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        glEnable(GL_BLEND)
-        glBlendFunc(self.blend_src, self.blend_dest)
-
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LESS)
-
-        glEnable(GL_ALPHA_TEST)
-        glAlphaFunc(GL_GREATER, 0.5)
 
     def unset_state(self):
         glPopAttrib()
@@ -167,14 +160,11 @@ class SpriteGroup(graphics.Group):
         return (other.__class__ is self.__class__ and
                 self.parent is other.parent and
                 self.texture.target == other.texture.target and
-                self.texture.id == other.texture.id and
-                self.blend_src == other.blend_src and
-                self.blend_dest == other.blend_dest)
+                self.texture.id == other.texture.id)
 
     def __hash__(self):
         return hash((id(self.parent),
-                     self.texture.id, self.texture.target,
-                     self.blend_src, self.blend_dest))
+                     self.texture.id, self.texture.target))
 
 
 class Sprite(event.EventDispatcher):
@@ -196,8 +186,6 @@ class Sprite(event.EventDispatcher):
 
     def __init__(self,
                  img, x=0, y=0, z=0,
-                 blend_src=GL_SRC_ALPHA,
-                 blend_dest=GL_ONE_MINUS_SRC_ALPHA,
                  batch=None,
                  group=None,
                  usage='dynamic'):
@@ -245,7 +233,7 @@ class Sprite(event.EventDispatcher):
         else:
             self._texture = img.get_texture()
 
-        self._group = SpriteGroup(self._texture, blend_src, blend_dest, group)
+        self._group = SpriteGroup(self._texture, group)
         self._usage = usage
         self._create_vertex_list()
 
@@ -328,10 +316,7 @@ class Sprite(event.EventDispatcher):
     def group(self, group):
         if self._group.parent == group:
             return
-        self._group = SpriteGroup(self._texture,
-                                  self._group.blend_src,
-                                  self._group.blend_dest,
-                                  group)
+        self._group = SpriteGroup(self._texture, group)
         if self._batch is not None:
             self._batch.migrate(self._vertex_list, GL_QUADS, self._group,
                                 self._batch)
@@ -366,10 +351,7 @@ class Sprite(event.EventDispatcher):
 
     def _set_texture(self, texture):
         if texture.id is not self._texture.id:
-            self._group = SpriteGroup(texture,
-                                      self._group.blend_src,
-                                      self._group.blend_dest,
-                                      self._group.parent)
+            self._group = SpriteGroup(texture, self._group.parent)
             if self._batch is None:
                 self._vertex_list.tex_coords[:] = texture.tex_coords
             else:

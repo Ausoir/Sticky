@@ -1,4 +1,3 @@
-import pyglet
 from pyglet.text.document import FormattedDocument
 from pyglet.text.layout import TextLayout
 
@@ -13,7 +12,8 @@ class Textbox:
         self.document = FormattedDocument(' ')
         properties = dict(font_name='Ubuntu', font_size=16, bold=True, color=(120, 30, 30, 220))
         self.document.set_style(0, 1, properties)
-        self.text = TextLayout(self.document, 120, 120, multiline=True, wrap_lines=True, group=Global.draw_group.group_gui)
+        self.text = TextLayout(self.document, 120, 120, multiline=True, wrap_lines=True,
+                               group=Global.draw_group.group_gui)
 
     def add_batch(self):
         self.text.batch = Global.draw_group.batch

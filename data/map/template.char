@@ -1,2 +1,2 @@
-[map:world,time:6,frame:2848,coord_x:6,coord_y:7,seed:1311]
-[5,1],Human,Humanoid,human,[P:12,p:12,seed:318,team:1,money:5,def:0,abi:levitation,dir:0,DMG:0,space:3,hunger:10271,sth:0,aspd:0],[[Concentration,-1,0]],[flurry,flurry,flurry],[[25,21],Casual Wear,Armor,wear_3x1,[seed:8939,P:4,p:4,cov:35],[]],0,[[25,21],Shortsword,Item,shortsword,[$:6,P:40,p:40,fuel:0,def:7,pivx:6,sharp:1,w:4,DMG:2,aspd:-1],[]],[]
+[time:6,frame:0]
+[1,1],Human,Humanoid,human,[P:5,p:5,space:3,seed:-1,team:1,lvl:0,money:0,dir:0,hunger:0],[[Concentration,-1,0]],[],[[25,21],Casual Wear,Armor,wear_3x1,[seed:-1,P:4,p:4,cov:35],[]],0,0,[]

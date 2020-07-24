@@ -27,12 +27,12 @@ def draw():
         print(row)
 
 
-# draw()
+draw()
 # count = biome.get_level(14, 12)
-level = 1
-count = 0
-while level != 0:
-    count += 1
-    biome = Biome(count)
-    level = biome.get_level(14, 12)
-print(str(count))
+# level = 1
+# count = 0
+# while level != 0:
+#     count += 1
+#     biome = Biome(count)
+#     level = biome.get_level(14, 12)
+# print(str(count))

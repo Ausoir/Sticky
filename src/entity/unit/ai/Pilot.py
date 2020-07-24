@@ -41,8 +41,9 @@ class Pilot:
             self.route = Routes(self.host, False)
         else:
             return
+        self.host.tags.set('ai', arg)
         tgt = self.host.tags.get('tgt')
-        if tgt:
+        if tgt is not None:
             self.retarget(tgt)
         else:
             self.set_task(self.default)
@@ -179,7 +180,8 @@ class Routes:
         for i in tile.things:
             if i.obstruct_type >= self.host.collision_type:
                 hp = i.tags.get('p')
-                if not hp or self.host.get_damage() <= i.tags.get('def', 0):
+                if not hp or self.host.get_damage() <= i.tags.get('def', 0)\
+                        or i.tags.get('team') == self.host.tags.get('team'):
                     return -1
                 else:
                     weight += i.tags.get('p')

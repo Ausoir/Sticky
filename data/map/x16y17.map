@@ -1,0 +1,4 @@
+0,-12
+[[5,0],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[6,2],Teleport,Scripter,g_4x0,[ob:0,trigger:always,tox:278,toy:219],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]],[[6,6],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]]
+R=RRCcCCCRR~~~~%R=RRCcccCRR~~~~%R=RRCc>cCRR~~~~%R=RRCcccCRR~~~~%R=RRCcCcCRRR~~~%R=RRCcccCRRR~~~%R=RRCCcCCRRR~~~%R=RRRR=RR=RR~~~%R=RRRR=RR=RR~~~%R==RRR=R==RR~~~%R===RR====RR~~~%RR==RRR===RR~~~%R===RRR===RR~~~%R===RRR==RRR~~~%R=======RRRR~~~
+111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000%111111111100000

@@ -10,7 +10,7 @@ class BSPTree(Generator):
         self.theme['2'] = 'Bush'
         self.theme['3'] = 'Tree'
         self.background['Door'] = 'w'
-        self.background['Lamp'] = '.'
+        self.background['Oil Lamp'] = '.'
         self.thickness = 10
 
     def process(self):
@@ -54,16 +54,16 @@ class BSPTree(Generator):
         door_rx = self.random.rand_int(estate[0] + 3, estate[2] - 3)
         if door_pos == 1:
             self.str_map[door_ry][estate[0] + 1] = 'D'
-            self.str_map[door_ry + 1][estate[0]] = 'Lamp'
+            self.str_map[door_ry + 1][estate[0]] = 'Oil Lamp'
         elif door_pos == 2:
             self.str_map[estate[1] + 1][door_rx] = 'D'
-            self.str_map[estate[1]][door_rx + 1] = 'Lamp'
+            self.str_map[estate[1]][door_rx + 1] = 'Oil Lamp'
         elif door_pos == 3:
             self.str_map[door_ry][estate[2] - 2] = 'D'
-            self.str_map[door_ry - 1][estate[2] - 1] = 'Lamp'
+            self.str_map[door_ry - 1][estate[2] - 1] = 'Oil Lamp'
         elif door_pos == 0:
             self.str_map[estate[3] - 2][door_rx] = 'D'
-            self.str_map[estate[3] - 1][door_rx - 1] = 'Lamp'
+            self.str_map[estate[3] - 1][door_rx - 1] = 'Oil Lamp'
 
     def iterate(self, px, py, px2, py2):
         estate = []

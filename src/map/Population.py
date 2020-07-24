@@ -3,7 +3,7 @@ from src.entity.unit.Unit import Unit
 
 class Population:
     def __init__(self):
-        self.teams = [[], [], [], []]
+        self.teams = [[], [], [], [], []]
         self.other = []
 
     def __str__(self):
@@ -26,7 +26,8 @@ class Population:
 
     def remove(self, unit):
         if not isinstance(unit, Unit):
-            self.other.remove(unit)
+            if unit.removed == 0:
+                self.other.remove(unit)
         else:
             team = unit.tags.get('team', 0)
             if unit in self.teams[team]:
@@ -67,13 +68,6 @@ class Population:
             if (i.pos - pos).difference() < mag:
                 r.append(i)
         return r
-
-    def get_from_pos(self, x, y, group=None):
-        if group is None:
-            group = self.get_all()
-        for i in group:
-            if i.pos.x == x and i.pos.y == y:
-                return i
 
     def get_from_name(self, identification, group=None):
         if group is None:

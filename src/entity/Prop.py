@@ -30,13 +30,16 @@ class Prop(Object):
     def add(self):
         r = super().add()
         if r:
-            Turn.add(self.turn)
             self.states.on_load()
             return r
 
     def remove(self):
-        Turn.remove(self.turn)
-        super().remove()
+        if super().remove():
+            Turn.remove(self.states.update)
+            return True
+
+    def turn(self):
+        pass
 
     def update_tags(self):
         self.tags.update()
@@ -60,9 +63,6 @@ class Prop(Object):
         super().set_form(arg)
         self.form.face(self.direction)
 
-    def turn(self):
-        self.states.update()
-
     def die(self):
         from src.entity.Particle import Particle
         Particle.make('disintegrate', self.pos, offset=0)
@@ -76,7 +76,7 @@ class Prop(Object):
         loot = self.tags.get('loot')
         if loot:
             if loot.startswith('#'):
-                cell_coord = Global.world.get_current_chunk(self.pos.x, self.pos.y)
+                cell_coord = Global.world.get_coordinates(self.pos.x, self.pos.y)
                 spawn = Global.world.get_spawn(loot[1:], cell_coord[0], cell_coord[1])
                 return spawn
             else:
@@ -162,3 +162,9 @@ class Prop(Object):
             self.set_form(alt)
             self.form.show(True)
             self.tags.set('alt', original)
+
+    def drown(self):
+        if self.tags.get('fly', 0) == 0:
+            from src.entity.Particle import Particle
+            Particle.make('drown', self.pos)
+            self.remove()

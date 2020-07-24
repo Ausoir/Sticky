@@ -69,3 +69,4 @@ store_item,Storage of this item would cost $#.
 store_nothing,You are not holding anything that can be stored.
 train,Train <#> stat for $#?
 info_pocket,Press <R> to access pocket
+hire?,Hire for $#?

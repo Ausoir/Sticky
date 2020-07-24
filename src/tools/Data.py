@@ -119,7 +119,10 @@ class Data:
             for x in range(0, cols):
                 left = width * x
                 bottom = image.height - height * (y + 1)
-                seq.append(image.get_region(left, bottom, width, height))
+                img = image.get_region(left, bottom, width, height)
+                img.anchor_x = img.width / 2
+                img.anchor_y = img.height / 2
+                seq.append(img)
         return Model(seq, **kwargs)
 
     @staticmethod

@@ -30,7 +30,7 @@ class Execute(pyglet.window.Window):
         glEnable(pyglet.gl.GL_BLEND)
         glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
         glEnable(GL_ALPHA_TEST)
-        glAlphaFunc(GL_GREATER, 0.2)
+        glAlphaFunc(GL_GREATER, 0.1)
         glClearColor(Global.mask_color[0], Global.mask_color[1], Global.mask_color[2], Global.mask_color[3])
 
     def init_other(self):
@@ -138,7 +138,7 @@ class Execute(pyglet.window.Window):
         Global.draw_group.draw()
 
     def quit(self):
-        Global.player.control.output('quit')
+        Global.player.control.output('exit')
         Global.player.save()
         self.on_close()
 

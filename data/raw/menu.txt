@@ -4,12 +4,14 @@ recipe_kitchen,1,Plank + Any raw food makes cooked food.
 resident,3,Yes?,[Talk,character],[Hire,!hire],[Move,#push]
 trader,3,Buy something!,[Introduce,!intro_trader],[Buy,>menu>shop],[Move,#push]
 intro_trader,1,I can sell you things. What more can I say? Browse my wares!
+mercenary,3,What do you want?,[Introduce,!intro_merc],[Hire,>menu>hire],[Move,#push]
+intro_merc,1,I am a mercenary. Do you need protection?
 trainer,3,Need training?,[Introduce,!intro_trainer],[Buy,>menu>shop],[Train,>menu>train],[Move,#push]
 intro_trainer,1,I am a trainer. I can increase one your stats at the cost of level points. I also may sell manuals.
 supply,3,Are you here to sell?,[Introduce,!intro_supplier],[Sell,>menu>supply],[Move,#push]
 intro_supplier,1,I am a supplier. I buy things from the public and sell them to merchants. Prices vary from time to time and from supplier to supplier.
-innkeep,3,How can I help you?,[Introduce,!intro_innkeep],[Store,>menu>store_item],[Retrieve,>menu>container],[Move,#push]
-intro_innkeep,1,I am an innkeep. I can store your items',' and give them back for a price.
+banker,3,How can I help you?,[Introduce,!intro_banker],[Store,>menu>store_item],[Retrieve,>menu>container],[Move,#push]
+intro_banker,1,I am an banker. I can store your items so you can retrieve them later for a price.
 blacksmith,3,What do you want?,[Introduce,!intro_blacksmith],[Buy,>menu>shop],[Repair,>menu>storage],[Modify,>menu>storage],[Move,#push]
 intro_blacksmith,1,I am a blacksmith. I repair',' modify',' and sell metal things.
 alchemist,3,What do you want?,[Introduce,!intro_alchemist],[Buy,>menu>shop],[Alchemy,!alchemy],[Move,#push]

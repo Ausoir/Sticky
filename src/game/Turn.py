@@ -10,7 +10,7 @@ class Turn:
     @staticmethod
     def init():
         Turn.hour_change = []
-        Turn.queue = [[], [], [], []]
+        Turn.queue = [[], [], [], [], [], []]
         Turn.rounds = len(Turn.queue)
         Turn.fast_queue = []
         Turn.frame = 0
@@ -40,3 +40,9 @@ class Turn:
         for i in Turn.queue:
             if arg in i:
                 i.remove(arg)
+
+    @staticmethod
+    def has(arg):
+        for i in Turn.queue:
+            if arg in i:
+                return True

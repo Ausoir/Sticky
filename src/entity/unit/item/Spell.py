@@ -50,6 +50,10 @@ class Spell:
         host.action.act(motion, time=delay)
         host.action.on_finish = self.perform
 
+    def cast_on(self, host):
+        self.host = host
+        self.perform()
+
     def perform(self):
         pass
 
@@ -101,8 +105,8 @@ class Glow(Spell):
             if self.get_power_0_9() >= 9:
                 duration = -1
             else:
-                duration = 40 + self.get_power_0_9() * 10
-            target.states.add('Glow', duration, self.get_power_0_9())
+                duration = 40 + self.get_power_0_9() * 120
+            target.states.add('Glow', duration, self.get_power_0_9() + 1)
 
 
 class Scorch(Spell):
@@ -122,28 +126,16 @@ class Scorch(Spell):
 class Scry(Spell):
     def perform(self):
         if self.host == Global.player.character:
-            def effect():
-                to = r.pos.get_cardinal(Global.player.character.direction)
-                r.move_line(to, flag=[Tile.COLLIDE_MAGIC])
-                if turnee.lifetime == 0:
-                    Global.map_view.overlay.weather = orig[0]
-                    Global.map_view.set_sight_range(orig[1])
-                    Global.map_view.set_view_range(orig[2])
-                    Global.map_view.on_sight_change()
-                    Global.player.character.center_camera()
-                    r.remove()
-                Particle.make('sonic', r.pos)
-            Global.player.character.states.add('Speed', 60, var=-12)
-            from src.map.Tile import Tile
-            from src.tools.Turnee import Turnee
-            orig = [Global.map_view.overlay.weather, Global.map_view.sight_range, Global.map_view.view_range]
-            Global.map_view.overlay.weather = [45, 25, 75, 160]
-            Global.map_view.set_sight_range(13)
-            Global.map_view.set_view_range(13)
-            Global.map_view.on_sight_change()
-            turnee = Turnee(effect, 10 * self.get_power_0_9())
-            r = Stock.make('Force', self.host.pos)
-            r.center_camera()
+            ghost = Stock.make('Ghost', self.host.pos)
+            ghost.tags.set('team', self.host.tags.get('team', 0))
+            ghost.states.add('Invisibility', -1, 0)
+            pos = Global.world.get_tile_true_pos(Global.player.character.pos.x, Global.player.character.pos.y)
+            ghost.tags.set('spd', 10)
+            ghost.tags.set('tox', pos[0])
+            ghost.tags.set('toy', pos[1])
+            ghost.states.add('Script', 160, '#reclaim')
+            self.host.save = True
+            Global.player.set_player(ghost)
 
 
 class Passwall(Spell):
@@ -295,12 +287,18 @@ class Dog(Spell):
             return
 
 
-class Man(Spell):
+class Transmogrify(Spell):
     def perform(self):
-        for i in Spell.get_subjects(self.host.pos):
-            from src.game.ScriptManual import ScriptManual
-            ScriptManual.shapeshift(i, 'Human')
-            return
+        target = self.auto_target(2)
+        if target:
+            target.location.sound.register(target.pos, 8, file='void')
+            from src.entity.unit.Unit import Unit
+            if isinstance(target, Unit):
+                from src.tools.Data import Data
+                from src.game.ScriptManual import ScriptManual
+                pick = Data.get_line('raw.txt', 'transmogrify')[1]
+                duration = self.get_power_0_9() * 40 + 40
+                target.states.add('Shapeshift', duration, Global.r.rand_list(pick))
 
 
 class Slow(Spell):
@@ -366,3 +364,14 @@ class Banish(Spell):
         Particle.make('zwip', self.host.pos)
         for i in self.host.pos.things:
             i.remove()
+
+
+class Corona(Spell):
+    def perform(self):
+        radius = self.get_power_0_4() + 5
+        duration = 40 + self.get_power_0_9() * 20
+        for tile in self.host.pos.get_area(radius, radius):
+            for thing in tile.things:
+                Particle.make('shock', tile)
+                thing.states.add('Glow', duration, 1)
+                break

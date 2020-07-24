@@ -20,7 +20,6 @@ class Unit(Prop):
         self.sight = Tile.CHECK_SIGHT
         from src.tools.Data import Data
         self.shadow = Data.get_form('g_7x0')
-        self.shadow.bound(True)
 
     def __str__(self):
         self.tags.set('dir', self.direction)
@@ -75,7 +74,6 @@ class Unit(Prop):
         self.healthbar.turn()
         if self.tags.get('ai'):
             self.pilot.update()
-        super().turn()
         if self.action.delay > 0:
             self.action.delay -= 1
         elif self.action.delay == 0:
@@ -123,10 +121,10 @@ class Unit(Prop):
     def get_defense(self):
         if self.action.current_action == 'fall':
             return 0
-        return self.tags.get('DEF', 0)
+        return max(0, self.tags.get('DEF', 0))
 
     def get_damage(self):
-        return self.tags.get('DMG', 0) + 1
+        return max(0, self.tags.get('DMG', 0) + 1)
 
     def roll_defense(self):
         defense = self.get_defense()
@@ -256,9 +254,19 @@ class Unit(Prop):
             hp = self.tags.get('P', 1)
             r.tags.set('p', hp)
 
+    def add(self):
+        r = super().add()
+        if r:
+            from src.game.Turn import Turn
+            Turn.add(self.turn)
+            self.states.on_load()
+            return r
+
     def remove(self):
-        self.healthbar.remove()
-        super().remove()
+        if super().remove():
+            from src.game.Turn import Turn
+            Turn.remove(self.turn)
+            self.healthbar.remove()
 
     def get_accessibles(self):
         r = []

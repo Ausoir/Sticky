@@ -1,4 +1,4 @@
-0,0
-[[0,2],Chest,Prop,g_22x3,[p:4,def:3,#:#search,loot:#chest],[]]
-rrrrrrrrrrraaar~~~~~%aaaaaaaaaaraaar~~~~~%aaaaaaaaaaraaar~~~~~%aaaaaaaaaaraaar~~~~~%rrrrrrraaaraaar~~~~~%aaaaaaraaaraaar~~~~~%aaaaaaraaaraaar~~~~~%aaaaaaraaaraaar~~~~~%aaraaaraaaraaar~~~~~%aaraaaraaaraaar~~~~~%aaraaaaaaaraaar~~~~~%aaraaaaaaaraaar~~~~~%aaraaaaaaaraaar~~~~~%aarrrrraaaraaar~~~~~%aaaaaaraaaraaar~~~~~%aaaaaaraaaraaar~~~~~%aaaaaaraaaraaar~~~~~%rrraaaraaaraaar~~~~~%..raaaraaaraaar~~~~~%*.raaaraaaraaar~~~~~
-11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%11111111111111100000%00111111111111100000%00111111111111100000
+0,-12
+[[1,14],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]]
+rrrrrrrrrrrrrrr%aaaaaaaaaaraaar%aaaaaaaaaaraaar%aaaaaaaaaaraaar%rrrrrrraaaraaar%aaaaaaraaaraaar%aaaaaaraaaraaar%aaaaaaraaaraaar%aaraaaraaaraaar%aaraaaraaaraaar%aaraaaaaaaraaar%aaraaaaaaaraaar%aaraaaaaaaraaar%aarrrrraaaraaar%raraaaraaaraaar
+111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111

@@ -25,11 +25,6 @@ class MapView:
         self.new_start = None
         self.old_camera = None
         self.overlay = Overlay()
-        from src.form.Shape import Shape
-        self.tape = Shape(-Global.CENTER[0], 160, 800, Global.draw_group.group_overlay,
-                          width=Global.DISPLAY[0] - Global.BLOCK * 2, height=Global.BLOCK, color=[0, 0, 0, 255])
-        self.tape.add_batch()
-        self.tape.show(True)
 
     @staticmethod
     def ratio_y(arg):
@@ -92,7 +87,7 @@ class MapView:
                     if tile.roof == 0:
                         self.shadows[index].set_color([120, 0, 0, 40])
                     else:
-                        self.shadows[index].set_color([250, 250, 0, 40])
+                        self.shadows[index].set_color([250, 250, 0, 60])
                     self.shadows[index].overlay.update()
                 index += 1
 
@@ -104,13 +99,13 @@ class MapView:
         dim_light = self.overlay.minimum[:3] + [int(self.overlay.minimum[3] * .7)]
         col_range = [cam_x-self.sight_range, cam_x+self.sight_range]
         row_range = [cam_y-self.sight_range_y, cam_y+self.sight_range_y]
-        for pos_y in range(row_range[0] - 5, row_range[1] + 6):
-            for pos_x in range(col_range[0] - 5, col_range[1] + 6):
+        for pos_y in range(row_range[0] - 1, row_range[1] + 2):
+            for pos_x in range(col_range[0] - 1, col_range[1] + 2):
                 this_tile = Global.world.location.get_tile(pos_x, pos_y)
                 if this_tile:
-                    this_tile.update_light()
                     if this_tile.roof == 0:
                         this_tile.light = max(this_tile.light, self.brightness)
+                    this_tile.update_light()
                     in_screen = row_range[0] <= pos_y <= row_range[1] and col_range[0] <= pos_x <= col_range[1]
                     if in_screen:
                         if self.draw_tiles[index].visible:
@@ -120,18 +115,15 @@ class MapView:
                                 self.shadows[index].set_color(dim_light)
                             else:
                                 self.shadows[index].set_color(self.overlay.minimum)
+                            for thing in this_tile.things:
+                                thing.update()
+                            for thing in this_tile.others:
+                                thing.update()
                         vec_x, vec_y = Camera.get_relative_pos(pos_x * Global.BLOCK,
                                                                pos_y * Global.BLOCK)
                         self.draw_tiles[index].place(vec_x + Global.HALF_BLOCK, vec_y - Global.HALF_BLOCK)
                         self.shadows[index].update(x=vec_x, y=Global.DISPLAY[1] - vec_y)
                         index += 1
-                    for thing in this_tile.things:
-                        thing.update()
-                    for thing in this_tile.others:
-                        thing.update()
-        tx = self.draw_tiles[0].x - Global.OFFSET[0] - Global.BLOCK
-        ty = Global.DISPLAY[1] - (self.draw_tiles[0].y - Global.OFFSET[1]) - Global.HALF_BLOCK - Global.BLOCK
-        self.tape.update(x=tx, y=ty)
 
     def update_region(self):
         for i in self.in_bounds:
@@ -158,6 +150,7 @@ class MapView:
                         self.draw_tiles[index].set(Data.get_cache(this_tile.get_image()))
                         self.draw_tiles[index].face(this_tile.direction)
                         self.draw_tiles[index].show(True)
+                        self.shadows[index].show(True)
                         row = this_tile.y - cam_y + self.sight_range_y
                         self.in_bounds.append(this_tile)
                         for thing in this_tile.things:
@@ -168,10 +161,12 @@ class MapView:
                     else:  # tile is dark
                         self.shadows[index].set_color([0, 0, 0, 255])
                         self.shadows[index].remove_shades()
+                        self.shadows[index].show(False)
                         self.draw_tiles[index].show(False)
                 else:  # tile is out of bounds
                     self.shadows[index].set_color([0, 0, 0, 255])
                     self.shadows[index].remove_shades()
+                    self.shadows[index].show(False)
                     self.draw_tiles[index].show(False)
                 index += 1
         self.old_camera = Camera.target.pos

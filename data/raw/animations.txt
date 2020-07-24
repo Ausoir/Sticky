@@ -24,5 +24,6 @@ heal,[gfx_22x0,gfx_22x1,gfx_22x2,gfx_22x3],0.1,0
 power,[gfx_23x0,gfx_23x1,gfx_23x2,gfx_23x3],0.1,0
 shine,[gfx_24x0,gfx_24x1,gfx_24x2,gfx_24x3],0.05,0
 fireball,[gfx_25x0,gfx_25x1,gfx_25x2,gfx_25x3],0.1,0
+drown,[gfx_26x0,gfx_26x1,gfx_26x2,gfx_26x3],0.1,0
 shout,[g_5x0],0.10,0
 fog,[gfx_19x0,gfx_19x1,gfx_19x2,gfx_19x3],0.5,1

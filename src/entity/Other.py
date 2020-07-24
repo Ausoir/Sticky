@@ -23,10 +23,19 @@ class Scripter(Prop):
         return index + 1
 
     def add(self):
-        super().add()
-        Script.var['host'] = self
-        if self.tags.get('trigger') == 'load':
-            self.script.run()
+        if super().add():
+            if self.tags.get('trigger') == 'always':
+                from src.game.Turn import Turn
+                Turn.add(self.turn)
+            Script.var['host'] = self
+            if self.tags.get('trigger') == 'load':
+                self.script.run()
+            return self
+
+    def remove(self):
+        if super().remove():
+            from src.game.Turn import Turn
+            Turn.remove(self.turn)
 
     def set_row(self, row):
         self.form.z = 800
@@ -37,10 +46,8 @@ class Scripter(Prop):
             self.script.run()
 
     def turn(self):
-        super().turn()
-        if self.tags.get('trigger') == 'always':
-            Script.var['host'] = self
-            self.script.run()
+        Script.var['host'] = self
+        self.script.run()
 
 
 class Force(Prop):
@@ -58,7 +65,7 @@ class Force(Prop):
         self.removed = 1
         del self
 
-    def relocate(self, to=None, x=None, y=None, force=0):
+    def relocate(self, to=None, x=None, y=None, force=0, adjust=False):
         if to is None:
             to = self.location.get_tile(x, y, limit=True)
         self.pos = to
@@ -80,13 +87,23 @@ class Door(Prop):
         self.orig_obstruct_type = self.obstruct_type
         return index
 
+    def add(self):
+        if super().add():
+            from src.game.Turn import Turn
+            Turn.add(self.turn)
+            return self
+
+    def remove(self):
+        if super().remove():
+            from src.game.Turn import Turn
+            Turn.remove(self.turn)
+
     def set_row(self, row):
         self.form.z = row * 20 + 100
         self.form1.z = self.form.z
         self.form2.z = self.form.z
 
     def turn(self):
-        super().turn()
         if self.form.inbound:
             if len(self.pos.things) > 1:
                 if self.obstruct_type != Tile.COLLIDE_ITEM:
@@ -124,7 +141,7 @@ class Specie(Item):
     def load(self, arg):
         r = super().load(arg)
         if self.form_name is None:
-            cell_coord = Global.world.get_current_chunk(self.pos.x, self.pos.y)
+            cell_coord = Global.world.get_coordinates(self.pos.x, self.pos.y)
             seed = int(Global.world.map_biome.get_noise(cell_coord[0], cell_coord[1]) * 12500)
             self.tags.set('seed', seed)
             cue = Data.get_line('raw.txt', self.name.lower())[1]
@@ -270,14 +287,13 @@ class Marker(Prop):
                         interrupt = False
                 if interrupt:
                     self.states.add('Burn', 12)
-        super().turn()
 
     def cast(self, intensity, collision):
         data = Data.get_line('raw.txt', 'portals')[1]
         from src.entity.unit.item.Spell import Spell
         category = data[max(0, len(data) - collision)]
         seed = self.get_seed() * self.tags.get('way', 0)
-        Spell.get(category[seed % len(category)], power=intensity * 6).cast_on(self.pos)
+        Spell.get(category[seed % len(category)], power=intensity * 6).cast_on(Global.player.character)
         # print('spell ' + category[seed % len(category)] + ' intensity ' + str(intensity * 6))
 
 
@@ -458,8 +474,18 @@ class Potion(Food):
 
 
 class Mine(Prop):
+    def add(self):
+        if super().add():
+            from src.game.Turn import Turn
+            Turn.add(self.turn)
+            return self
+
+    def remove(self):
+        if super().remove():
+            from src.game.Turn import Turn
+            Turn.remove(self.turn)
+
     def turn(self):
-        super().turn()
         for thing in self.pos.things:
             if thing != self and thing.tags.get('fly') != 1:
                 effect = self.tags.get('effect')

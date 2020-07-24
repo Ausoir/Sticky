@@ -2,7 +2,9 @@ target,data/unit/static,g_1x0
 ivy,data/unit/slime,unit/ivy
 ivy2,data/unit/slime,unit/ivy2
 human,data/unit/man,wear_0x0
-zombie,data/unit/man,wear_0x3
+rot,data/unit/man,wear_1x3
+zombie,data/unit/man,wear_2x3
+skeleton,data/unit/man,wear_3x3
 golem,data/unit/golem,unit/golem
 worm,data/unit/worm,unit/worm
 slime,data/unit/slime,unit/slime
@@ -12,8 +14,10 @@ tiger,data/unit/dog,unit/tiger
 snake,data/unit/worm,unit/snake
 boar,data/unit/dog,unit/boar
 dog,data/unit/dog,unit/dog
+mole,data/unit/dog,unit/mole
 moth,data/unit/bug,unit/moth
-wasp,data/unit/bug,unit/moth
+wasp,data/unit/bug,unit/wasp
+bat,data/unit/bug,unit/bat
 spider,data/unit/spider,unit/spider
 spider2,data/unit/spider,unit/spider2,unit/spider3
 ghost,data/unit/slime,g_8x0

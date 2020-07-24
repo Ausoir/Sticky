@@ -158,13 +158,6 @@ class Humanoid(Unit):
     def is_vacant(self, weight):
         return self.get_capacity() >= self.get_equipment_weight() + weight
 
-    def turn(self):
-        super().turn()
-        if self.weapon:
-            self.weapon.turn()
-        if self.headgear:
-            self.headgear.turn()
-
     def use(self):
         if self.weapon:
             self.states.trigger(['act', 'use'])
@@ -173,24 +166,34 @@ class Humanoid(Unit):
         else:
             self.action.attack()
 
-    def relocate(self, to=None, x=None, y=None, force=False):
-        super().relocate(to, x, y, force)
+    def relocate(self, to=None, x=None, y=None, force=False, adjust=False):
+        super().relocate(to, x, y, force, adjust)
         if self.weapon:
-            self.weapon.relocate(to=to, x=x, y=y, force=force)
+            self.weapon.relocate(to=to, x=x, y=y, force=force, adjust=adjust)
         if self.armor:
-            self.armor.relocate(to=to, x=x, y=y, force=force)
+            self.armor.relocate(to=to, x=x, y=y, force=force, adjust=adjust)
         if self.headgear:
-            self.headgear.relocate(to=to, x=x, y=y, force=force)
+            self.headgear.relocate(to=to, x=x, y=y, force=force, adjust=adjust)
+
+    def deregister(self):
+        super().deregister()
+        if self.weapon:
+            self.weapon.deregister()
+        if self.armor:
+            self.armor.deregister()
+        if self.headgear:
+            self.headgear.deregister()
 
     def remove(self):
-        super().remove()
-        if self.armor:
-            self.armor.host = None
-            self.armor.remove()
-        if self.weapon:
-            self.weapon.remove()
-        if self.headgear:
-            self.headgear.remove()
+        if super().remove():
+            if self.armor:
+                self.armor.host = None
+                self.armor.remove()
+            if self.weapon:
+                self.weapon.remove()
+            if self.headgear:
+                self.headgear.remove()
+            return True
 
     def die(self):
         self.drop()
@@ -245,8 +248,8 @@ class Humanoid(Unit):
         hp = self.tags.get('p')
         mhp = self.tags.get('P')
         if self.armor:
-            a_hp = self.armor.tags.get('p')
-            a_mhp = self.armor.tags.get('P')
+            a_hp = self.armor.tags.get('p') or 0
+            a_mhp = self.armor.tags.get('P') or 0
         else:
             a_hp = 0
             a_mhp = 0
@@ -296,8 +299,16 @@ class Humanoid(Unit):
             return self.headgear.unwear()
 
     def make_face(self):
+        heads = self.tags.get('head')
+        if heads:
+            heads = heads.split('&')
+            face = []
+            from src.tools.Data import Data
+            for image in heads:
+                face.append(Data.get_cache(image))
+        else:
+            face = Humanoid.faces[self.get_seed() % len(Humanoid.faces)]
         from src.form.Picture import Model
-        face = Humanoid.faces[self.get_seed() % len(Humanoid.faces)]
         model = Model(face)
         return model
 
@@ -307,11 +318,12 @@ class Humanoid(Unit):
             def change():
                 self.drop()
                 item.on_wield(self)
-            self.action.act('grab', 8)
+            self.action.act('grab', 4)
             self.action.on_finish = change
             self.action.delay = 4
 
     def pick_up(self, item):
+        item.relocate(to=self.pos)
         if self.weapon:
             self.inventory.attempt_add(item)
         else:

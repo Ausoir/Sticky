@@ -1,7 +1,7 @@
 class Inventory:
     def __init__(self, host):
         self.host = host
-        self.items = None
+        self.items = []
 
     def __str__(self):
         items = []
@@ -82,6 +82,8 @@ class Inventory:
                 item = Stock.get(self.host.location, item)
                 if item:
                     self.items[index] = item
+                else:
+                    del self.items[index]
             return item
 
     def validate_index(self, index):

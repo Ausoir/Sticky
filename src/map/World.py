@@ -3,11 +3,10 @@ from src.game import Global
 from src.map.Biome import Biome
 from src.map.Location import Location
 from src.tools.Data import Data
-from src.tools.Space import Space
 
 
 class World:
-    CHUNK = 20
+    CHUNK = 15
     DEFAULT = [[-1, -1], [0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]
     ALL = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     BIOME = None
@@ -32,8 +31,10 @@ class World:
         self.map_biome = None
         self.last_spawn = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    def initialize(self, seed, coord_x, coord_y):
+    def set_seed(self, seed):
         self.map_biome = Biome(seed)
+
+    def initialize(self, coord_x, coord_y):
         self.cells = [[i[0] + coord_x, i[1] + coord_y] for i in World.DEFAULT]
         self.load_bubble(World.ALL)
 
@@ -47,6 +48,7 @@ class World:
             cell_roofs = []
             start_coord = World.get_chunk_coord(cell_num)
             is_blank = True
+            remove_objs = []
             for y, row in enumerate(range(start_coord[1], start_coord[1] + World.CHUNK)):
                 tile_row = ''
                 roof_row = ''
@@ -60,14 +62,14 @@ class World:
                     for thing in tile.things:
                         is_blank = False
                         if thing.save:
-                            temp = thing.pos
-                            thing.pos = Space(thing.pos.x - start_coord[0], thing.pos.y - start_coord[1])
+                            thing.pos_offset = start_coord
                             cell_objects.append('[' + thing.__str__() + ']')
-                            thing.pos = temp
-                        if remove:
-                            thing.remove()
+                        remove_objs.append(thing)
                 cell_tiles.append(tile_row)
                 cell_roofs.append(roof_row)
+            if remove:
+                for i in remove_objs:
+                    i.remove()
             if is_blank:
                 continue
             if Global.player.player_mode == 0:
@@ -185,9 +187,7 @@ class World:
             offset_y = 1
         else:
             return False
-        while self.dirty:
-            index = self.dirty.pop()
-            self.save_cell([index])
+        self.save_cell(self.dirty)
         lights = []
         light_sources = []
         for row in self.location.tiles:
@@ -199,7 +199,8 @@ class World:
         offset_x *= -World.CHUNK
         offset_y *= -World.CHUNK
         for i in objs:
-            i.relocate(x=i.pos.x + offset_x, y=i.pos.y + offset_y, force=True)
+            i.relocate(x=i.pos.x + offset_x, y=i.pos.y + offset_y, force=True, adjust=True)
+            i.bound(False)
         index = 0
         width = self.location.get_width()
         height = self.location.get_height()
@@ -215,20 +216,21 @@ class World:
         self.location.process_terrain()
         return offset_x, offset_y
 
-    def travel(self, coord_x, coord_y, x, y):
-        diff_x = coord_x - self.cells[4][0]
-        diff_y = coord_y - self.cells[4][1]
-        if abs(diff_x) <= 2 and abs(diff_y) <= 2:
-            self.recenter(diff_x * World.CHUNK + x, diff_y * World.CHUNK + y)
-            Global.player.character.relocate(x=x, y=y, force=True)
+    def travel(self, x, y):
+        args = self.get_true_pos_tile(x, y)
+        diff_x = args[2] - self.cells[4][0]
+        diff_y = args[3] - self.cells[4][1]
+        if abs(diff_x) <= 1 and abs(diff_y) <= 1:
+            pos = self.get_tile_true_pos(Global.player.character.pos.x, Global.player.character.pos.y)
+            pos = Global.player.character.pos.get_neighbor(x - pos[0], y - pos[1])
+            Global.player.character.relocate(to=pos, force=True)
             for i in self.location.population.get_all():
                 i.bound(False)
         else:
-            data = Global.player.character.__str__()
-            added = self.load_cells(coord_x, coord_y)
+            Global.player.character.deregister()
+            added = self.load_cells(args[2], args[3])
             self.load_bubble(added, time=Global.player.days)
-            Global.player.character.load(Data.parse(data))
-            Global.player.character.relocate(x=x, y=y, force=True)
+            Global.player.character.relocate(x=args[0] + World.CHUNK, y=args[1] + World.CHUNK, force=True)
             self.location.process_terrain()
 
     def get_camera_pos(self, x, y):
@@ -253,18 +255,28 @@ class World:
                 chunk = 7
         return chunk
 
+    def get_coordinates(self, x, y):
+        chunk = self.get_camera_pos(x, y)
+        return self.cells[chunk][0], self.cells[chunk][1]
+
     def get_tile_true_pos(self, x, y):
         chunk = self.get_camera_pos(x, y)
-        return World.DEFAULT[chunk][0] * World.CHUNK + x, World.DEFAULT[chunk][1] * World.CHUNK + y
+        coord = self.get_coordinates(x, y)
+        r_x = coord[0] * World.CHUNK - World.DEFAULT[chunk][0] * World.CHUNK + x
+        r_y = coord[1] * World.CHUNK - World.DEFAULT[chunk][1] * World.CHUNK + y
+        return r_x, r_y
 
-    def get_current_chunk(self, x, y):
-        chunk = self.get_camera_pos(x, y)
-        return self.cells[chunk]
+    def get_true_pos_tile(self, x, y):
+        coord_x = int(x / World.CHUNK) - 1
+        coord_y = int(y / World.CHUNK) - 1
+        r_x = x % World.CHUNK
+        r_y = y % World.CHUNK
+        return r_x, r_y, coord_x, coord_y
 
-    @staticmethod
-    def get_coordinates(x, y):
-        chunk = Global.world.get_camera_pos(x, y)
-        return Global.world.cells[chunk][0], Global.world.cells[chunk][1]
+    def get_biome(self, x, y):
+        r = self.map_biome.get_level(x, y)
+        r = (r + int(Global.player.days / World.SEASON)) % 4
+        return r
 
     def dirty_pos(self, x=None, y=None):
         if x is None or y is None:
@@ -273,8 +285,3 @@ class World:
             chunk = self.get_camera_pos(x, y)
             if chunk not in self.dirty:
                 self.dirty.append(chunk)
-
-    def get_biome(self, x, y):
-        r = self.map_biome.get_level(x, y)
-        r = (r + int(Global.player.days / World.SEASON)) % 4
-        return r

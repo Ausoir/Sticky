@@ -22,6 +22,7 @@ class Armor(Equipment):
             self.host.armor = self
             super().wear(start)
             self.host.form.set_model(self.form_name)
+            self.show(False)
 
     def unwear(self):
         from src.tools.Data import Data

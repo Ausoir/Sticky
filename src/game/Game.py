@@ -34,22 +34,36 @@ class Game:
     def initialize(self):
         if not self.tags.get('seed'):
             self.tags.set('seed', Global.r.rand_int(0, 99999))
+        Global.world.set_seed(self.tags.get('seed'))
         if not self.tags.get('coord_x') or not self.tags.get('coord_y'):
-            data2 = Global.r.rand_list(Data.get_line('raw.txt', 'spawn')[1])
-            self.tags.set('coord_x', data2[0])
-            self.tags.set('coord_y', data2[1])
-            Global.world.initialize(self.tags.get('seed'), data2[0], data2[1])
+            spawns = []
+            count = 0
+            while not spawns:
+                spawns = self.get_biomes(count)
+                count += 1
+            data3 = Global.r.rand_list(spawns)
+            self.tags.set('coord_x', data3[2])
+            self.tags.set('coord_y', data3[3])
+            Global.world.initialize(data3[2], data3[3])
             from src.entity.Stock import Stock
             self.character = Stock.get(Global.world.location, self.temporary[1], data=self.temporary).add()
-            self.character.pos.load(data2[2], data2[3])
+            self.character.pos.load(data3[0], data3[1])
         else:
-            Global.world.initialize(self.tags.get('seed'), self.tags.get('coord_x'), self.tags.get('coord_y'))
+            Global.world.initialize(self.tags.get('coord_x'), self.tags.get('coord_y'))
             from src.entity.Stock import Stock
             self.character = Stock.get(Global.world.location, self.temporary[1], data=self.temporary).add()
         self.temporary = self.character.sight
         self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
         self.set_player(self.character)
         self.initialize_mode()
+
+    def get_biomes(self, level):
+        spawns = []
+        for i in Data.get_line('raw.txt', 'spawn')[1]:
+            data3 = Global.world.get_true_pos_tile(i[0], i[1])
+            if Global.world.get_biome(data3[2], data3[3]) == level:
+                spawns.append(data3)
+        return spawns
 
     def travel(self, to_map, x=None, y=None):
         if self.character.location.name != to_map:
@@ -158,13 +172,11 @@ class Game:
             self.tags.set('frame', Turn.frame)
             chunk = Global.world.get_camera_pos(self.character.pos.x, self.character.pos.y)
             start_coord = World.get_chunk_coord(chunk)
-            temp = self.character.pos
-            self.character.pos = self.character.pos - start_coord
+            self.character.pos_offset = start_coord
             self.tags.set('coord_x', Global.world.cells[chunk][0])
             self.tags.set('coord_y', Global.world.cells[chunk][1])
             r = self.tags.__str__() + '\n'
             r += self.character.__str__() + '\n'
-            self.character.pos = temp
             Data.write('save/player.char', r)
 
     def is_safe(self):

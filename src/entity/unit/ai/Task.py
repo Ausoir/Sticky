@@ -36,12 +36,21 @@ class TargetTask(Task):
 
     def record(self):
         if self.target:
-            target = 'x' + str(self.target.pos.x) + 'y' + str(self.target.pos.y)
+            host = Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)
+            target = Global.world.get_tile_true_pos(self.target.pos.x, self.target.pos.y)
+            target = 'x' + str(target[0] - host[0]) + 'y' + str(target[1] - host[1])
             self.host.tags.set('tgt', target)
 
     def load(self, arg):
         pos = arg.split('y')
-        self.target = self.host.location.population.get_from_pos(int(pos[0][1:]), int(pos[1]))
+        tile = self.host.pos.get_neighbor(int(pos[0][1:]), int(pos[1]))
+        if tile:
+            things = tile.things
+            from src.entity.unit.Unit import Unit
+            for i in things:
+                if isinstance(i, Unit):
+                    self.target = i
+                    break
 
 
 class Return(Task):
@@ -220,9 +229,6 @@ class Path(Task):  # path finding A*
         ints = arg[1:].split('y')
         self.target = self.host.location.get_tile(int(ints[0]), int(ints[1]))
 
-    def record(self):
-        self.host.tags.set('tgt', 'x' + str(self.target.x) + 'y' + str(self.target.y))
-
     def on_set(self):
         super().on_set()
         self.out_of_reach = False
@@ -372,20 +378,20 @@ class Follow(TargetTask):
         super().update()
         if not self.target:
             target = self.host.tags.get('tgt')
-            if target is None:
+            if target:
+                self.load(target)
+            else:
                 team = self.host.get_team()
                 done = False
                 for i in self.host.pos.get_area(3, 3):
                     if i != self.host.pos:
                         for thing in i.things:
                             if thing in team and thing.tags.get('ai') != 'ally':
-                                target = 'x' + str(i.x) + 'y' + str(i.y)
+                                self.target = thing
                                 done = True
                                 break
                     if done:
                         break
-            if target is not None:
-                self.load(target)
         if self.target and self.target.removed == 0:
             self.pilot.move.target = self.target.pos
             self.pilot.move.update()

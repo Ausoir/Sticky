@@ -37,7 +37,7 @@ class HealthBar:
                 self.timer.set(80)
 
     def colorize(self, percent):
-        val = int(250 * percent)
+        val = int(250 * percent ** 2)
         self.foreground.set_solid_color((250 - val, val, 0, 200))
 
     def turn(self):

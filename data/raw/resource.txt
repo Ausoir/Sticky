@@ -1,5 +1,5 @@
-gfx,_effect,[26,4],0
+gfx,_effect,[32,4],0
 g,_single,[36,8],0
 g2,_oversize,[16,1],[20,20]
-half,_half,[14,6],0
+half,_half,[16,7],0
 wear,unit/armor,[8,4],0

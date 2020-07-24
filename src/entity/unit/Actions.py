@@ -102,22 +102,21 @@ class Actions:
             else:
                 self.idle()
         else:
-            grounded = self.host.tags.get('fly', 0) == 0
-            if grounded:
-                solid = front.get_solidity()
-                if solid >= self.host.collision_type:
-                    if self.interact_on(front):
+            solid = front.get_solidity()
+            if solid >= self.host.collision_type:
+                if self.interact_on(front):
+                    return
+                team = self.host.get_team()
+                for thing in front.things:
+                    if thing in team:
+                        Script.var['host'] = thing
+                        Script.var['1'] = self.host
+                        Script.execute_code('#push')
                         return
-                    team = self.host.get_team()
-                    for thing in front.things:
-                        if thing in team:
-                            Script.var['host'] = thing
-                            Script.var['1'] = self.host
-                            Script.execute_code('#push')
-                            return
-                    if self.host.get_skill('side step'):
-                        if self.side_step(front):
-                            return
+                if self.host.get_skill('side step'):
+                    if self.side_step(front):
+                        return
+                if self.host.tags.get('fly', 0) == 0:
                     self.idle()
                 else:
                     self.move(front)
@@ -137,23 +136,22 @@ class Actions:
                 sound = max(0, -self.host.tags.get('sth', 0))
                 self.host.location.sound.register(self.host.pos, sound, file='step', priority=4)
             self.host.destination = self.host.pos.get_cardinal(self.host.direction, 1)
-            self.on_finish = lambda: self.host.move_line(self.host.pos.get_cardinal(self.host.direction))
+            self.on_finish = self.finish_moving
             self.host.states.trigger(['act', 'move'])
             return True
         else:
             self.idle()
 
+    def finish_moving(self):
+        self.host.relocate(to=self.host.destination)
+        return False
+
     def interact_on(self, tile):
         if self.host == Global.player.character:
-            if tile.get_icon() == '~':
-                Script.var['host'] = self.host
-                Script.var['1'] = None
-                Script.execute_code('#water')
-            else:
-                self.host.location.sound.register(self.host.pos, 1)
-                for thing in tile.things:
-                    if self.interact(thing):
-                        return True
+            self.host.location.sound.register(self.host.pos, 1)
+            for thing in tile.things:
+                if thing != self.host.weapon and self.interact(thing):
+                    return True
 
     def interact(self, target):
         def fn():
@@ -219,15 +217,14 @@ class Actions:
                     Global.menu.direct(Global.menu.menu_pickup)
                 else:
                     self.host.pick_up(targets[0])
-            elif not self.host.tags.get('fly') or not self.interact_on(self.host.pos):
+            elif not self.interact_on(self.host.pos):
                 self.make('grab', turn=1)
                 self.host.drop()
 
     def sheathe(self):
         if self.host.weapon:
             def change():
-                dropped = self.host.drop()
-                self.host.inventory.attempt_add(dropped, insert=True)
+                self.host.inventory.attempt_add(self.host.weapon, insert=True)
             self.make('grab', turn=4)
             self.on_finish = change
         else:
@@ -243,7 +240,7 @@ class Actions:
 
     def attack(self):
         self.host.states.trigger(['act', 'attack'])
-        self.make(self.host.get_attack_motion(), turn=4 + max(0, 2 + self.host.get_attack_speed()))
+        self.make(self.host.get_attack_motion(), turn=5 + max(0, 2 + self.host.get_attack_speed()))
         dmg = self.host.roll_damage()
         front = self.host.pos.get_cardinal(self.host.direction, 1)
         hitter = self.host.get_hitter()

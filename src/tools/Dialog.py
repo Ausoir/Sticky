@@ -61,10 +61,6 @@ class Dialog:
         return r
 
     @staticmethod
-    def space(arg):
-        return '[' + str(arg.x) + ',' + str(arg.y) + ']'
-
-    @staticmethod
     def date(time):
         hour = time % 24
         day = str(int(time / 24))

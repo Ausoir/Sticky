@@ -1,7 +1,7 @@
 ?,black,g_0x1,-10,0,0,99
 .,dirt,g_0x2,0,0,0,0
-=,crust,g_1x2,0,0,0,0
-:,grass,[g_1x1,g_2x1,g_3x1,g_4x1,g_5x1,g_6x1],-1,1,0,0
+=,crust,g_1x2,1,0,0,0
+:,grass,[g_1x1,g_2x1,g_3x1,g_4x1,g_5x1,g_6x1],0,1,0,0
 ;,field,[g_29x1,g_30x1,g_31x1,g_32x1,g_33x1,g_34x1],0,1,0,0
 ~,water,[g_7x1,g_8x1,g_9x1,g_10x1,g_11x1,g_12x1],-9,2,0,0
 R,rock,[g_13x1,g_14x1,g_15x1,g_16x1,g_17x1,g_18x1],-10,3,0,11
@@ -16,7 +16,7 @@ b,brick floor,g_7x2,0,0,0,0
 C,stone,g_8x2,-10,0,1,10
 c,stone floor,g_9x2,0,0,0,0
 p,pavement,g_10x2,1,0,0,0
-M,marble,g_11x2,-10,0,0,6
+M,marble,g_11x2,0,0,0,6
 l,linen,g_12x2,0,0,0,0
 r,rocky,g_13x2,-10,0,1,7
 k,oak floor,g_15x2,0,0,0,0
@@ -25,6 +25,6 @@ a,andesite,g_17x2,0,0,0,0
 v,slide,g_18x2,-1,0,0,0
 i,oil,g_20x2,-10,0,1,0
 t,taint,g_21x2,-1,0,0,0
-o,muck,g_22x2,-1,1,0,0
+o,muck,g_22x2,0,1,0,0
 T,corruption,[g_23x2,g_24x2,g_25x2,g_26x2,g_27x2,g_28x2],0,1,0,0
 O,obsidian,[g_29x2,g_30x2,g_31x2,g_32x2,g_33x2,g_34x2],-10,3,0,13

@@ -1,0 +1,4 @@
+0,-12
+[[11,0],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[8,10],Teleport,Scripter,g_4x0,[ob:0,trigger:always,tox:261,toy:271],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]]
+cccccccccc..RRR%ccccccccccRRRRR%.......cccRRRRR%....&..cccRRRRR%.&..&..cccRRRRR%..~~&..cccRRRRR%&&~~..~cccRRRRR%~~~~~~RcccRRRRR%.~~~RRRcccRRRRR%~~~RRRRcccRRRRR%~~~RRRRc>cRRRRR%~~~RRRRcccRRRR~%~~~RRRRRRRRRR~~%~~~RRRRRRRRRR~~%~~R~RRRRRRRR~~~
+000000000011110%000000000011110%000000000011111%000000000011111%000000000011111%000000000011111%000000000011111%000000000011111%000001111111111%000001111111111%000001111111000%000001111111000%000001111111000%000001111111000%000000000000000

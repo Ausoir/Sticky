@@ -26,7 +26,6 @@ class Equipment(Item):
         self.wear()
 
     def wear(self, start=False):
-        self.show(False)
         if self.host.weapon == self:
             host = self.host
             self.host.drop()

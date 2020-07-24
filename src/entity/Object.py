@@ -1,6 +1,6 @@
 from src.entity.Image import Image
+from src.game import Global
 from src.map.Tile import Tile
-from src.tools.Dialog import Dialog
 
 
 class Object(Image):
@@ -12,13 +12,15 @@ class Object(Image):
         self.class_name = None
         self.destination = None
         self.pos = None
+        self.pos_offset = (0, 0)
         self.save = True
         self.obstruct_type = Tile.COLLIDE_OBJECT
         self.collision_type = Tile.COLLIDE_UNIT
         self.removed = 1
 
     def __str__(self):
-        return Dialog.space(self.pos) + ',' + self.name + ',' + self.class_name + ',' + self.form_name
+        space = '[' + str(self.pos.x - self.pos_offset[0]) + ',' + str(self.pos.y - self.pos_offset[1]) + ']'
+        return space + ',' + self.name + ',' + self.class_name + ',' + self.form_name
 
     def load(self, p):
         index = 0
@@ -46,10 +48,12 @@ class Object(Image):
     def remove(self):
         if self.removed == 0:
             self.removed = 1
+            self.bound(False)
             self.show(False)
             self.location.population.remove(self)
             self.pos.things.remove(self)
             del self
+            return True
 
     def set_row(self, row):
         self.form.z = row * 20 + 100
@@ -68,18 +72,31 @@ class Object(Image):
     def trigger(self):
         pass
 
-    def relocate(self, to=None, x=None, y=None, force=False):
+    def relocate(self, to=None, x=None, y=None, force=False, adjust=False):
         if to is None:
             to = self.location.get_tile(x, y, limit=True)
         if force or to != self.pos:
             self.pos.things.remove(self)
             to.things.append(self)
+            if adjust and self.destination:
+                diff = self.destination - self.pos
+                self.destination = to.get_neighbor(diff.x, diff.y)
+            else:
+                self.destination = to
             self.pos = to
-            self.destination = to
             if force:
                 self.update_vec()
+            elif self.pos.get_icon() == '~':
+                self.drown()
+            if self.pos not in Global.map_view.in_bounds:
+                Global.map_view.in_bounds.append(self.pos)
             return True
-        return 0
+
+    def deregister(self):
+        self.pos.things.remove(self)
+
+    def drown(self):
+        pass
 
     def move_line(self, to, flag=None):
         if flag is None:

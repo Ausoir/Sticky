@@ -35,7 +35,6 @@ class Headgear(Equipment):
         else:
             self.host.headgear = self
             super().wear(start)
-            self.show(True)
             self.direction = self.host.direction + 1  # force face
             self.face(self.host.direction)
 
@@ -48,19 +47,16 @@ class Headgear(Equipment):
         self.form_name = arg
         self.form = Data.get_form(arg, form='Head')
 
-    def activate(self):
-        spell = self.tags.get('spell')
-        if spell:
-            charge = self.tags.get('charge', 0)
-            if charge > 0:
-                self.tags.increment('charge', -1)
-                self.host.action.act('grab', 8)
-                from src.entity.unit.item.Spell import Spell
-                from src.game import Global
-                if self.host == Global.player.character:
-                    power = self.tags.get('power', 0)
-                    Spell.get(spell, power=power).cast(self.host)
-
     def on_sleep(self, time):
         if time > 0:
             self.tags.set('charge', 1)
+
+
+class Talisman(Headgear):
+    def die(self):
+        if self.host:
+            spell = self.tags.get('spell')
+            if spell:
+                from src.entity.unit.item.Spell import Spell
+                Spell.get(spell, power=self.tags.get('power', 0)).cast_on(self.host)
+        super().die()

@@ -8,10 +8,8 @@ Amnesia Potion,Potion that makes the user forget few recipes
 Scorch,Create scorching ground that burns anything nearby
 Memory Amulet,Remembers the location that it was worn
 Ruby Amulet,Absorbs power from a corpse to protect the user
-Glasses,Activate to look farther. <E> is activate by default
-Strong Glasses,Activate to look farther. <E> is activate by default
-Headband,Can be worn or be used on headgear to make it indestructible
-Safety Helmet,Activate to provide light. <E> is activate by default
+Telescope,Use to look farther
+Oil Lamp,Use to produce light
 Manual,Read to learn skills
 Dispel,Purge all magical status effects of the target.
 Gravity,Pull everything within 12 tiles towards south.
@@ -65,6 +63,7 @@ sk.scribing,Draw conjuration polygrams on paper to create spell scrolls. Require
 sk.carpentry,Construct buildings using wooden planks.
 sk.steal,Passive: Stand still to concentrate',' next bare handed damage steals weapon from target. Steals from inventory if not concentrated.
 sk.feed,Passive: When damaging any unit',' this skill is replaced by one skill that the victim knew.
+sk.rally,Passive: Nearby allies come to aid when damaged.
 Glow,You emit light.
 Revive,Revive on death.
 Health,Health is rapidly changing.

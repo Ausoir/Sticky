@@ -287,3 +287,9 @@
 7/11 GL_Nearest fix bleeding edge (1)
 7/16 Teleport script (1), Map slums (1), nuitka updated (1)
 ---- PUSH
+7/17 Teleport fix (1), Map mansion (1), Overlapping props not saving correctly fix (1), safe spawn (1)
+7/20 Props bound false on recenter (1), shadow dont add on start (1), Prop bound false on relocation (1)
+7/21 Center model anchor (1), humanoid equipment removal on recenter fix (1), unit temp pos assign bugs fix (1)
+7/22 Bat/Wasp/Undead (1), Pocket item replace headgear (1), chunk size 15 and movement faster (1)
+7/23 Habitat changes (1), Prop only add to Turn when necessary (1)
+---- PUSH

@@ -81,7 +81,7 @@ class StatBuff(Buff):
         return ['magic']
 
     def get_display_name(self):
-        return 'Status' + ' (' + Dialog.sign(self.var) + ' ' + self.get_stat()[1] + ')'
+        return Dialog.sign(self.var) + ' ' + Dialog.get(self.get_stat()[1])
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -151,9 +151,6 @@ class Health(Buff):
 class Brand(Buff):
     def get_tags(self):
         return ['stack']
-
-    def get_display_name(self):
-        return self.var
 
     def trigger(self, arg):
         if arg[0] == 'attack':

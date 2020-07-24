@@ -9,7 +9,7 @@ class MenuAll(MenuPlayer):
     # noinspection PyUnresolvedReferences
     def menu_container(self):
         # noinspection PyUnresolvedReferences
-        def buy(arg):
+        def retrieve(arg):
             sold = host.inventory.take_item(arg)
             Global.player.character.pick_up(sold)
         host = self.var
@@ -21,13 +21,14 @@ class MenuAll(MenuPlayer):
                 if loot:
                     loots.append('?' + loot)
             host.inventory.load(loots)
+            host.tags.remove('loot')
         if not host.inventory.items:
             self.var = [Dialog.get('empty')]
             self.menu_message()
         else:
             for i in host.inventory.get_range():
                 item = host.inventory.get_item(i)
-                lmb = self.get_prompt(item.describe(), Dialog.get('Take'), buy, i)
+                lmb = self.get_prompt(item.describe(), Dialog.get('Take'), retrieve, i)
                 self.window.add(Menu.make(item.get_display_name(), lmb))
             self.sub_window.display(1)
 
@@ -75,10 +76,10 @@ class MenuAll(MenuPlayer):
                 if host.inventory.items:
                     seed = host.get_seed()
                     Global.r_t.reset(seed + 777 + Global.player.days)
-                    personality = seed % 2
+                    personality = seed % 3
                     for k in range(min(6, len(host.inventory.items))):
                         item = host.inventory.get_item(k)
-                        value = max(0, item.get_value() + personality + Global.r_t.rand_int(0, 1))
+                        value = max(0, item.get_value() + personality + Global.r_t.rand_int(0, 2))
                         param = [item.name, value]
                         lmb = self.get_prompt(Dialog.get('supply', param), Dialog.get('Sell'), buy, param)
                         self.window.add(Menu.make(item.name, lmb))
@@ -130,3 +131,37 @@ class MenuAll(MenuPlayer):
         else:
             message = Dialog.get('train', [name, cost])
         self.get_prompt(message, Dialog.get('Train') + ' ' + name, train)()
+
+    def menu_hire(self):
+        # noinspection PyUnresolvedReferences
+        def hire(arg):
+            if Global.player.pay(cost):
+                host.tags.set('team', Global.player.character.tags.get('team', 0))
+                host.pilot.load('ally')
+                host.tags.set('#', '>menu>order')
+        host = self.var
+        cost = host.get_seed() % 8 + 2
+        self.get_prompt(Dialog.get('hire?', [cost]), Dialog.get('Hire'), hire)()
+
+    def menu_order(self):
+        def order(arg):
+            if arg == 1:
+                host.face_toward(Global.player.character.pos)
+                from src.game.ScriptManual import ScriptManual
+                ScriptManual.push(Global.player.character, host)
+            elif arg == 2:
+                host.tags.remove('tgt')
+                host.pilot.load('guard')
+            elif arg == 3:
+                host.tags.remove('tgt')
+                host.pilot.load('ally')
+            elif arg == 4:
+                host.action.set('grab')
+            self.display(-1)
+        host = self.var
+        host.face_toward(Global.player.character.pos)
+        self.window.add(Menu.make(Dialog.get('Swap'), order, name=1, width=320))
+        self.window.add(Menu.make(Dialog.get('Guard'), order, name=2, width=320))
+        self.window.add(Menu.make(Dialog.get('Follow'), order, name=3, width=320))
+        self.window.add(Menu.make(Dialog.get('Wield'), order, name=4, width=320))
+        self.sub_window.display(1)

@@ -181,17 +181,13 @@ class MenuPlayer(Menu):
             items = [Global.player.character.weapon] + Global.player.character.inventory.items
         else:
             items = Global.player.character.inventory.items
-        text = 'Capacity: ' + str(len(items)) + ' / 12'
-        capacity_label = Menu.make(text, None, None, height=20, color=None)
-        capacity_label.margin.load(0, 0)
-        capacity_label.document.set_style(0, 99, dict(font_size=12, bold='True'))
-        self.window.add(capacity_label)
         capacity = Global.player.character.get_capacity()
         text = 'Weight: ' + str(Global.player.character.get_equipment_weight()) + ' / ' + str(capacity)
         capacity_label = Menu.make(text, None, None, height=20, color=None)
         capacity_label.margin.load(0, 0)
         capacity_label.document.set_style(0, 99, dict(font_size=12, bold='True'))
-        self.sub_window.add(capacity_label)
+        self.window.add(capacity_label)
+        self.sub_window.add(Menu.make('', None, None, height=20, color=None))
         count = 0
         for i in items:
             size = min(self.window.height - 48, int(160 * (i.get_weight() / max(1, capacity))))

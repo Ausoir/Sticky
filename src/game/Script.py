@@ -164,7 +164,7 @@ class Script:
         elif condition[0] == 'bright':
             return Global.player.is_bright()
         elif condition[0] == 'bring':
-            return len(Script.var['host'].pos.things) >= condition[1]
+            return Script.var['host'].pos == Global.player.character.pos
         elif condition[0] == 'delay':
             return Script.var['1'].action.delay == 0
         elif condition[0] == 'inmenu':
@@ -196,7 +196,7 @@ class Script:
         elif arg[0] == 'effect':
             Particle.make(arg[1], Script.var['host'].pos, offset=8)
         elif arg[0] == 'sound':
-            Script.var['host'].location.sound.register(Script.var['host'].pos, arg[2], file=arg[1])
+            Script.var['host'].location.sound.register(Script.var['host'].pos, arg[1], file=arg[2])
         elif arg[0] == 'closemenu':
             Global.menu.display(-1)
         elif arg[0] == 'message':
@@ -236,8 +236,11 @@ class Script:
             for i in host_pos.things:
                 if not isinstance(i, Scripter):
                     i.relocate(x=host_pos.x + arg[1], y=host_pos.y + arg[2], force=True)
+        elif arg[0] == 'forward':
+            host = Script.var['host']
+            host.relocate(to=host.pos.get_cardinal(host.direction, arg[1]))
         elif arg[0] == 'teleport':
-            Global.world.travel(arg[1], arg[2], arg[3], arg[4])
+            Global.world.travel(arg[1], arg[2])
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])
         elif arg[0] == 'deletefiles':

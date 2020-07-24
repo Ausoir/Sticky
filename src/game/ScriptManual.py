@@ -10,36 +10,6 @@ class ScriptManual:
         getattr(ScriptManual, arg)(host, var)
 
     @staticmethod
-    def search(host, var):
-        def confirm(index):
-            from src.entity.Stock import Stock
-            Stock.make(item, host.pos)
-            var.tags.remove('loot')
-        item = var.get_loot()
-        if item:
-            Global.menu.get_prompt(Dialog.get('pickup', [item]), Dialog.get('proceed'), confirm)(None)
-        host.action.act('grab', 8)
-
-    @staticmethod
-    def replenish(host, var):
-        def confirm(index):
-            from src.entity.Stock import Stock
-            Stock.make(item, host.pos)
-        item = var.get_loot()
-        if item:
-            Global.menu.get_prompt(Dialog.get('pickup', [item]), Dialog.get('proceed'), confirm)(None)
-        host.action.act('grab', 8)
-
-    @staticmethod
-    def water(host, var):
-        from src.entity.unit.Humanoid import Humanoid
-        if isinstance(host, Humanoid) and host.weapon and host.weapon.tags.get('water') == 0:
-            host.location.sound.register(host.pos, 0, file='drain')
-            host.weapon.switch_form()
-            host.weapon.tags.set('water', 1)
-            Global.main.monologue.set(Dialog.get('water_fill'))
-
-    @staticmethod
     def push(host, var):
         def fn():
             front = var.pos.get_cardinal(var.direction, 1)
@@ -48,7 +18,6 @@ class ScriptManual:
                 host.relocate(to=var.pos)
                 var.action.move(old)
         if var.action.delay == 0:
-            var.face_toward(host.pos)
             var.action.act('interact', 4)
             var.action.on_finish = fn
 
@@ -185,3 +154,23 @@ class ScriptManual:
         else:
             from src.entity.Particle import Particle
             Particle.make('sonic', host.pos)
+
+    @staticmethod
+    def reclaim(host, var):
+        x = host.tags.get('tox')
+        y = host.tags.get('toy')
+        Global.world.travel(x, y)
+        from src.entity.unit.Unit import Unit
+        for i in host.pos.things:
+            if i != host and isinstance(i, Unit):
+                host.remove()
+                Global.player.set_player(i)
+                break
+
+    @staticmethod
+    def test(host, var):
+        var_x = 0
+        var_y = 0
+        for i in range(10):
+            Global.world.travel(var_x, var_y)
+            var_x += 30

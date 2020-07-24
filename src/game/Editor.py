@@ -22,8 +22,6 @@ class Editor:
         self.prev_command = None
         self.selection = None
         Global.map_view.overlay.clear()
-        for i in Global.world.location.population.get_all():
-            i.show(True)
 
     def update(self):
         self.control.turn()
@@ -348,6 +346,7 @@ class ToolObject(Tool):
     def __init__(self, object_type):
         self.text = 'Door'
         self.selection = Stock.get(Global.world.location, 'Door').add()
+        self.selection.save = False
         self.tile = Global.world.location.get_tile(0, 0)
         self.object_list = list(Data.process_raw(Data.read('data/raw/' + object_type + '.txt')))
         self.current = 0
@@ -375,11 +374,13 @@ class ToolObject(Tool):
         if self.selection:
             self.selection.relocate(x=Global.player.control.cursor_tile[0], y=Global.player.control.cursor_tile[1])
             self.selection.add()
+            self.selection.save = False
 
     def input(self, button, tile):
         if not button:
             self.selection.relocate(to=tile)
         elif button == 1:
+            self.selection.save = True
             self.selection.relocate(to=tile, force=1)
             preexisting = 0
             for i in tile.things:

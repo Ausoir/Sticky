@@ -2,6 +2,7 @@ ESCAPE,#exit
 F11,fullscreen
 GRAVE,switch
 TAB,#menu
+P,##test
 LMB,click
 RMB,#>menu>examine
 A,left

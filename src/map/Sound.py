@@ -15,7 +15,7 @@ class Sound:
                     unit.pilot.hear(pos)
         if file:
             from src.game.Camera import Camera
-            if (pos - Camera.target.pos).difference() < 13:
+            if Camera.target and (pos - Camera.target.pos).difference() < 13:
                 from src.tools.Data import Data
                 self.play.queue(Data.get_track(file))
                 if self.play.playing:

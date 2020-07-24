@@ -17,13 +17,17 @@ class Buffs:
             self.add(i[0], i[1], i[2], load=True)  # fn, duration, var
 
     def update(self):
+        done = False
         for k, i in enumerate(self.buffs):
             self.current = i
             if i.update():
                 i.on_finish()
                 self.buffs.pop(k)
+                done = True
             else:
                 i.on_update()
+        if done and not self.buffs:
+            self.on_remove()
 
     def get(self, name):
         for i in self.buffs:
@@ -51,6 +55,7 @@ class Buffs:
                 elif buff.is_valid():
                     self.buffs.append(buff)
                     buff.on_start()
+                    self.on_add()
                 else:
                     return None
                 return buff
@@ -78,9 +83,19 @@ class Buffs:
     def on_load(self):
         for i in self.buffs:
             i.on_load()
+        self.on_add()
 
     def on_sleep(self, time):
         for i in self.buffs:
             if i.duration > 0:
                 i.duration = max(0, i.duration - (time * Turn.HOUR_FRAME))
                 i.trigger(['time', time])
+
+    def on_add(self):
+        from src.game.Turn import Turn
+        if not Turn.has(self.update):
+            Turn.add(self.update)
+
+    def on_remove(self):
+        from src.game.Turn import Turn
+        Turn.remove(self.host.states.update)

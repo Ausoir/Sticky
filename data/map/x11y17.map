@@ -1,4 +1,4 @@
-0,-12
-[[3,3],Chest,Container,g_22x3,[p:4,def:3,#:>menu>container,loot:#chest,have:3],[],[]],[[8,3],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[6,9],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[2,11],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[4,13],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]]
-:::::::::::::::%rrrrr:::rrrrr::%aaaar:::raaar::%raMar:::aaMar::%raaar:::raaar::%rrrrr:::rrrrr::%aaaar::::::::::%raaar:rrrrr::::%aaaar:raaar::::%rvvvr:aaMar::::%rvvvr:raaar::::%rrvrr:rrrrr::::%:::::::::::::::%::rrarr::::::::%::raaar::::::::
-000000000000000%111110001111100%111110001111100%110110001101100%111110001111100%111110001111100%111110000000000%111110111110000%111110111110000%111110110110000%111110111110000%111110111110000%000000000000000%001111100000000%001111100000000
+-24
+[[2,11],Door,Door,g_1x3,[p:2,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[1,12],Post,Prop,g_11x3,[p:4,ob:4,def:3],[]],[[2,12],Post,Prop,g_11x3,[p:4,ob:4,def:3],[]],[[3,12],Post,Prop,g_11x3,[p:4,ob:4,def:3],[]]
+:::::::::::::%rrrrrrr::::::%raaaaar::::::%caaaaar::::::%raaaaar::::::%rrrrrrr::::::%ccccr::::::::%rcccr::::::::%ccccr::::::::%rvvvr::::::::%rvvvr::::::::%rrvrr::::::::%:::::::::::::
+0000000000000%1111111000000%1111111000000%1111111000000%1111111000000%1111111000000%1111100000000%1111100000000%1111100000000%1111100000000%1111100000000%1111100000000%0000000000000

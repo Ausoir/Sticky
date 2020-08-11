@@ -1,34 +1,36 @@
 none,None
 proceed,Proceed
-dsc_health,You die when your health reaches 0. Health: # out of #. Current armor durability: # out of #
-any,Any #
-oos,Out of sight.
-noaccessory,No Headgear
-noarmor,No Armor
-noweapon,No Weapon
-nopocket,No Pocket
+dsc_health,You die when your health reaches 0. Health: # out of #. Health can be restored by sleeping at a bed or drinking potions. Current armor durability: # out of #. Armor can be mended by a blacksmith.
+dsc_money,You can use money to buy things from vendors or hire mercenaries.
+classless,You are classless.
+avenger,You are an Avenger. When you slay <#> you gain their level as extra experience.
+psycho,You are a Psycho. You get 3 times more experience from killing friendlies.
+gourmet,You are a Gourmet. You get 4 times more experience from eating <#>.
+survivor,You are a Survivor. Your passive experience gain from things like resting is doubled.
+agent,You are an Agent. You gain experience when you sabotage your targets. Your targets are: #.
+explorer,You are an Explorer. You gain experience from exploring new area.
+scholar,You are a Scholar. Using the observer item gives you 4 times more experience.
 no_status,No abnormal status effect found.
 dsc_location,Your current location.
-dsc_date,Date and Time: #. Current Hunger: #%.
-dsc_hunger,Date and Time: #. Current Hunger: #%. You are starving and you take damage for each passing hour.
-youdie,You die... Press ESC to exit.
-dsc_level,You level up typically by eating and sleeping.
-dsc_points,This is the number of available points you can use to increase stats',' learn skills',' or to obtain special abilities. Every level provides a single point.
-dsc_attack,Your attack is determined by your Strength skill plus your weapon damage. Your Dexterity skill increases minimum damage.
-dsc_defense,Your defense is determined by your Dodge skill plus armor rating. Incoming damage is decreased by defense roll unless hit from behind or knocked down. Some units and objects have Armor which provide minimum defense.
+dsc_date,Date and Time: #. Current Hunger: #%
+dsc_hunger,Date and Time: #. Current Hunger: #%. You are starving and you take damage for each passing hour
+stat_applied,Level up! You are now level #!
+dsc_level,You progress in level by doing things like eating',' killing units of higher level',' resting',' or performing class missions. Experience gain diminishes with level increase.
+dsc_vitality,Vitality determines your maximum health. Humanoids have 2 health by default.
+dsc_strength,Strength determines how much weight you can carry and wield.
+dsc_stealth,Stealth determines how close enemies have to be to detect you. Normally enemies see you when you see them.
+dsc_intelligence,Intelligence determines how many skills you can learn.
 travelto?,Travel to <#>?
 travelto,Travel to <#>
 soldout,I am all out of goods to sell.
 invfull,You cannot store any more items.
 empty,No items available.
 reqnotmet,Requirements not met.
-equipment_cov,Coverage: #%
-equipment_inv,Provides # inventory
-equipment_def,Provides # defense
+equipment_end,Provides # vitality
+equipment_def,Provides # armor
+equipment_inv,Provides # strength
 equipment_sth,Provides # stealth
 equipment_skill,Grants skill <#>
-!repair,Cannot repair
-!durability,Does not break
 !heavy,Too heavy! #/# + #kg
 !bright,Too dark!
 !safe,Not safe!
@@ -36,10 +38,12 @@ equipment_skill,Grants skill <#>
 !eat,Too hungry!
 !hungry,Not hungry!
 !expire,Food has expired!
+!sociable,Not enough charisma! #/# companions
 ?learn,Learn #?
 manual_skill,Teaches skill <#>
 learn,Learned skill <#>!
-!learn,<#> is already mastered.
+!learn_full,<#> is already mastered.
+!learn_int,Not enough intelligence! #/# skills
 food_expire,Expires in #
 food_expired,Expired
 !pay,Not enough money! Requires $#.
@@ -47,19 +51,17 @@ sight_range,Sight Range: #
 sight_type,Sight blocked by: #
 pickup,Pick up #?
 !dsc_skill,No skill information provided.
+item_skill,This skill was granted by an item.
 light_range,Light Radius: #
 charged,Item is ready.
 !charged,Item is out of charge.
-artifact,Use to cast spell: #
+artifact,Enchanted with spell: #
 terrain wall,This terrain is impassible.
-terrain speed,Terrain speed modifier: #.
 terrain lit,This terrain is bright.
-terrain roof,There terrain has a roof.
+terrain roof,This terrain has a roof.
 starve,You are too hungry to travel. Force travel at 2 health cost per hour?
 succumb,You are starving. Give up?
 obtain,Obtained #.
-water_fill,Filled with water.
-water_drain,Liquid has been drained.
 req_skill,Requires <#> skill.
 req_item,Requires items: #.
 supply,Would you like to sell # for $#?
@@ -68,5 +70,12 @@ transacted,Transaction successful!
 store_item,Storage of this item would cost $#.
 store_nothing,You are not holding anything that can be stored.
 train,Train <#> stat for $#?
+!train,You need #% more experience to train # stat and reach your next level.
 info_pocket,Press <R> to access pocket
 hire?,Hire for $#?
+insure?,I can clone your body so you can be revived even if you die. Take this health insurance for $#? Be aware that this revival effect only lasts # hours.
+observe,You gained # experience from this observation.
+repair,All your equipment have been repaired.
+wait,Wait # seconds!
+craftables,Click an item to view recipe
+dsc_examine,Use the arrow keys then press Enter to examine target.

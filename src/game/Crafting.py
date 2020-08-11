@@ -20,7 +20,7 @@ class Crafting:
         if resource:
             for i in resource:
                 if i.startswith('#'):
-                    i = Dialog.get('any', [i[1:].title()])
+                    i = Dialog.get('Any ') + i[1:].title()
                 r += ' [' + i + ']'
         else:
             r += ' ' + Dialog.get('none')

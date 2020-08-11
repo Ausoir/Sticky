@@ -1,2 +1,2 @@
-[time:6,frame:0]
-[1,1],Human,Humanoid,human,[P:5,p:5,space:3,seed:-1,team:1,lvl:0,money:0,dir:0,hunger:0],[[Concentration,-1,0]],[],[[25,21],Casual Wear,Armor,wear_3x1,[seed:-1,P:4,p:4,cov:35],[]],0,0,[]
+[time:7,frame:0]
+[1,1],Human,Humanoid,human,[P:2,p:2,str:1,sth:0,int:0,cha:0,team:1,lvl:100,money:0,dir:0,hunger:0],[[Concentration,-1,0]],[],[],Casual Wear,0,0

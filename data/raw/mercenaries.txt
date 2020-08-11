@@ -1,0 +1,24 @@
+
+
+
+
+
+
+
+
+Some Rando,Humanoid,human,[P:2,p:2,ai:wander,#:!rando,str:3,e_armor:armors,e_weapon:weapons,e_head:headgears,+:_health&_health&_damage&_damage&_skills&_power&_ability],[],[?Cash Bundle],[],0,0,0
+Chef Moe,Humanoid,human,[P:18,p:18,ai:wander,#:!chef moe,str:3],[],[?Burger,?Sandwich,?Roast,?Corn,?Fruit,?Salad],[],Green Robe,Headband,Cleaver
+Doctor See Saw,Humanoid,human,[P:4,p:4,ai:wander,#:!see saw,str:3,+:_damage&_damage],[],[?Raw Meat,?Cash Bundle,?Cash,?Cash],[],White Robe,Glow Hat,Saw
+Trashman,Humanoid,human,[P:4,p:4,ai:wander,#:!trashman,str:3,abi:pester,abp:30,+:_power&_damage&_damage],[],[?Scrap,?Glass,?Spoon,?Brush,?Cloth,?Fiber],[frenzy],Rags,Headband,Stick
+Knight Knight,Humanoid,human,[P:7,p:7,ai:wander,#:!knightknight,str:5,+:_health&_damage],[],[?Cash Bundle],[parry],Platemail,Full Helm,Broadsword
+Undead J,Humanoid,skeleton,[P:3,p:3,def:1,head:half_15x0&half_15x1&half_15x2,ai:wander,#:!undeadj,str:3],[],[?Cash Bundle],[],Jumpsuit,Hat,0
+Macaroni Thay,Humanoid,human,[P:4,p:4,def:1,head:half_3x0&half_3x1&half_3x2,ai:wander,#:!macaroni,str:7],[],[?Cash,?Bread,?Plant,?Plant,?Plant],[],Fabric Wear,Cap,Scythe
+Humble Bob,Humanoid,human,[P:3,p:3,head:half_1x0&half_1x1&half_1x2,ai:wander,#:!humblebob,str:5],[],[?Cash,?Roast],[],Scalemail,0,Axe
+Mary J,Humanoid,human,[P:3,p:3,seed:700,ai:wander,#:!maryj,str:3,abi:barrier,+:_power],[],[?Cash],[],Green Robe,0,Parasol
+Creep,Humanoid,human,[P:7,p:7,ai:wander,def:1,team:2,str:3,+:_health&_health],[],[?Cash],[fortitude,psychic],Cult Robe,Glasses,Telescope
+Captain Knight,Humanoid,human,[P:9,p:9,ai:wander,def:1,team:2,str:8,+:_health&_health],[],[?Cash Bundle],[lunge,crush],Scalemail,Lace Helm,Warhammer
+Reaper,Humanoid,skeleton,[P:9,p:9,def:2,ai:wander,team:3,str:3,+:_health&_health],[],[?Manual],[constitution,nocturnal],Cult Robe,Blink Charm,Scythe
+Robin Hoot,Humanoid,human,[P:7,p:7,ai:wander,def:1,team:2,str:5,+:_health&_health],[],[?Cash Bundle],[parry,steal],Leather Gear,Bandana,0
+Ivy Live,Unit,ivy2,[P:1,p:1,fuel:2,team:3,def:2,ai:guard,spd:-1,+:health,abi:fireball],[],[?Plant],[]
+Death Snack,Unit,slime3,[P:4,p:4,def:1,team:3,fuel:0,ai:wander,spd:1,deaf:1,spd:-1],[[Brand,-1,>buff>Shapeshift>-1>Slime]],[?Pearl],[]
+Mushmaker,Unit,brainsucker,[P:12,p:12,def:1,team:3,ai:wander,deaf:1,spd:-1,abi:barrier],[],[?Silver],[feed,feed,feed]

@@ -33,6 +33,12 @@ class Spell:
     def set_power(self, power):
         self.power = max(0, min(100, power))
 
+    def get_delay(self):
+        return 4
+
+    def get_cooldown(self):
+        return 8
+
     def get_power_0_3(self):
         return int(self.power / 33)
 
@@ -65,13 +71,16 @@ class Spell:
         else:
             targets = self.host.get_team(ally=False)
         nearest = None
-        nearest_dist = self.get_range() + 1
+        nearest_dist = self.get_range() + 2
         for target in targets:
             if target.pos != self.host.pos and self.host.direction == self.host.pos.get_face(target.pos):
                 distance = (target.pos - self.host.pos).difference()
                 if distance < nearest_dist:
-                    nearest_dist = distance
-                    nearest = target
+                    reachable = self.host.location.collide_land(self.host.pos, target.pos, self.host.sight,
+                                                                distance=distance + 1, return_prev=False)
+                    if target.pos == reachable:
+                        nearest_dist = distance
+                        nearest = target
         return nearest
 
     def cardinal_target(self, block=Tile.COLLIDE_OBJECT):
@@ -91,6 +100,8 @@ class Dispel(Spell):
             Particle.make('sonic', i)
             for thing in i.things.copy():
                 thing.hit(0)
+                thing.pos.light_source = 0
+                thing.pos.light = 0
                 thing.states.clear(lambda x: 'magic' in x.get_tags())
 
 
@@ -124,36 +135,63 @@ class Scorch(Spell):
 
 
 class Scry(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 100
+
     def perform(self):
         if self.host == Global.player.character:
-            ghost = Stock.make('Ghost', self.host.pos)
-            ghost.tags.set('team', self.host.tags.get('team', 0))
-            ghost.states.add('Invisibility', -1, 0)
+            ghost = Stock.make('Viewer', self.host.pos)
+            Global.map_view.overlay.blackout()
+            Global.map_view.overlay.colorize([25, 10, 125, 160])
             pos = Global.world.get_tile_true_pos(Global.player.character.pos.x, Global.player.character.pos.y)
-            ghost.tags.set('spd', 10)
             ghost.tags.set('tox', pos[0])
             ghost.tags.set('toy', pos[1])
-            ghost.states.add('Script', 160, '#reclaim')
+            ghost.tags.set('view', 8)
+            power = self.get_power_0_4() * 10 + 20
+            ghost.states.add('Script', power, '#reclaim')
             self.host.save = True
+            Global.player.character.tags.set('husk', 1)
             Global.player.set_player(ghost)
 
 
 class Passwall(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 100
+
     def perform(self):
         from src.map.Tile import Tile
         front = self.host.pos.get_cardinal(self.host.direction)
         if front.get_yield() == -10:
-            self.host.move_line(front, flag=[Tile.COLLIDE_MAGIC])
+            self.host.move_line(front, flag=Tile.COLLIDE_MAGIC)
 
 
 class Charm(Spell):
+    def get_delay(self):
+        return 8
+
+    def get_cooldown(self):
+        return 100
+
     def perform(self):
         for i in self.auto_target(2):
-            i.tags.set('team', self.host.tags.get('team', 0))
-            i.pilot.load('ally')
+            from src.game.ScriptManual import ScriptManual
+            ScriptManual.ally(Global.player.character, i)
+            break
 
 
 class Transience(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 100
+
     def perform(self):
         ghost = Stock.make('Ghost', self.host.pos)
         ghost.tags.set('team', self.host.tags.get('team', 0))
@@ -166,6 +204,12 @@ class Transience(Spell):
 
 
 class Disintegration(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 20
+
     def perform(self):
         target = self.cardinal_target(block=Tile.COLLIDE_ITEM)
         target.location.sound.register(target, 18, file='critical')
@@ -174,7 +218,7 @@ class Disintegration(Spell):
             target.set_terrain('.')
         else:
             for i in target.things.copy():
-                i.decay(self.get_power_0_9() * 5)
+                i.decay(self.get_power_0_4() + 1)
                 if i.name == 'Corpse':
                     Stock.make('Raw Meat', i.pos)
 
@@ -195,18 +239,30 @@ class Wall(Spell):
 
 
 class Zombie(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 20
+
+    def get_range(self):
+        return self.get_power_0_9() + 3
+
     def perform(self):
         target = self.auto_target(0)
         if target:
-            from src.entity.Other import Corpse
-            if isinstance(target, Corpse):
-                Particle.make('zwip', target)
-                target.location.sound.register(target, 8, file='void')
-                zombie = Stock.make('Zombie', target.pos)
+            zombie_able = target.tags.get('zombie')
+            if zombie_able:
+                from src.tools.Data import Data
+                zombie_type = Data.get_line('raw.txt', 'zombie')[1][zombie_able - 1]
+                Particle.make('zwip', target.pos)
+                target.location.sound.register(target.pos, 8, file='void')
+                zombie = Stock.make(zombie_type, target.pos)
                 health = target.tags.get('P', 1) + self.get_power_0_9()
                 zombie.tags.set('P', health * 2)
                 zombie.tags.set('p', health)
-                zombie.tags.set('team', self.host.tags.get('team', 0))
+                from src.game.ScriptManual import ScriptManual
+                ScriptManual.ally(Global.player.character, zombie)
                 target.remove()
 
 
@@ -218,10 +274,17 @@ class Fog(Spell):
             for y in range(-length, length + 1):
                 tile = self.host.pos.get_neighbor(x, y)
                 if tile and not tile.things:
-                    Stock.make('Fog', tile)
+                    fog = Stock.make('Fog', tile)
+                    fog.states.add('Script', self.power + 40, 'remove')
 
 
 class Find(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 100
+
     def perform(self):
         self.host.location.sound.register(self.host.pos, 3, file='spell')
         from src.tools.Data import Data
@@ -230,6 +293,9 @@ class Find(Spell):
 
 
 class Phantom(Spell):
+    def get_range(self):
+        return self.get_power_0_9() + 3
+
     def perform(self):
         target = self.auto_target(0)
         if target:
@@ -239,7 +305,7 @@ class Phantom(Spell):
                 if not target.host:
                     phantom = Stock.make('Phantom', target.pos)
                     phantom.set_host(target)
-                    phantom.states.add('Script', self.power * 160 + 160, 'remove')
+                    phantom.states.add('Script', self.power + 40, 'remove')
                     phantom.tags.set('team', self.host.tags.get('team', 0))
                     return
 
@@ -256,35 +322,34 @@ class Pester(Spell):
                 summon.tags.set('team', self.host.tags.get('team', 0))
                 summon.tags.set('task', 'Attack')
                 summon.pilot.retarget('x' + str(target.pos.x) + 'y' + str(target.pos.y))
-                summon.states.add('Script', self.get_power_0_9() + 8, 'remove')
+                summon.states.add('Script', self.get_power_0_4() * 2 + 16, 'remove')
 
 
-class Locate(Spell):
+class Memorize(Spell):
     def perform(self):
-        summon = Stock.make('Mark', self.host.pos)
-        summon.tags.set('data', self.host.pos)
+        cell_coord = Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)
+        memory = '&'.join([str(x) for x in [cell_coord[0], cell_coord[1]]])
+        self.host.tags.set('memory', '&' + memory)
+        self.host.location.sound.register(self.host.pos, 1, file='obtain')
+        Particle.make('portal', self.host.pos)
 
 
-class Gateway(Spell):
+class Recall(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 100
+
     def perform(self):
-        summon = Stock.make('Gateway', self.host.pos)
-        summon.tags.set('power', self.power)
-
-
-class Slime(Spell):
-    def perform(self):
-        target = self.auto_target(2)
-        if target:
-            from src.game.ScriptManual import ScriptManual
-            ScriptManual.shapeshift(target, 'Slime')
-
-
-class Dog(Spell):
-    def perform(self):
-        for i in Spell.get_subjects(self.host.pos):
-            from src.game.ScriptManual import ScriptManual
-            ScriptManual.shapeshift(i, 'Dog')
-            return
+        if self.host == Global.player.character:
+            memory = self.host.tags.get('memory')
+            if memory:
+                args = memory.split('&')
+                Global.world.travel(int(args[1]), int(args[2]))
+            else:
+                Particle.make('portal', self.host.pos)
+                self.host.location.sound.register(self.host.pos, 4, file='void')
 
 
 class Transmogrify(Spell):
@@ -295,7 +360,6 @@ class Transmogrify(Spell):
             from src.entity.unit.Unit import Unit
             if isinstance(target, Unit):
                 from src.tools.Data import Data
-                from src.game.ScriptManual import ScriptManual
                 pick = Data.get_line('raw.txt', 'transmogrify')[1]
                 duration = self.get_power_0_9() * 40 + 40
                 target.states.add('Shapeshift', duration, Global.r.rand_list(pick))
@@ -304,15 +368,15 @@ class Transmogrify(Spell):
 class Slow(Spell):
     def perform(self):
         for i in Spell.get_subjects(self.host.pos):
-            if isinstance(i, Item) and i.enhance(Global.r.rand_int(1, self.power)):
-                i.tags.increment('aspd', -1)
-            elif not i.states.get('Speed'):
-                i.states.add('Speed', 40 * self.get_power_0_4(), -2)
-                i.states.add('Fatigue', 40 * self.get_power_0_4(), -2)
+            if not i.states.get('Speed'):
+                i.states.add('Speed', 40 * self.get_power_0_4() + 40, -4)
             return
 
 
 class Fireball(Spell):
+    def get_cooldown(self):
+        return 20
+
     def get_range(self):
         return self.get_power_0_4() + 3
 
@@ -336,34 +400,40 @@ class Arrow(Spell):
     def perform(self):
         def fn(prev, tile):
             if tile:
-                if not tile.in_sight:
+                if not tile.is_seen():
                     return prev
                 if tile.get_solidity() >= Tile.COLLIDE_FOG:
                     return tile
         destination = self.host.pos.get_cardinal(self.host.direction, distance=self.get_range())
         target = self.host.location.collide_line(self.host.pos.x, self.host.pos.y,
-                                                destination.x, destination.y, fn, 10)
+                                                 destination.x, destination.y, fn, 10)
         r = Stock.make('Arrow', self.host.pos)
         r.face(target.get_face(r.pos))
         r.relocate(to=target)
-        self.host.location.field.register(40, target, delay=1)
+        self.host.location.field.register(1, target, delay=1)
+
+
+class Bolt(Spell):
+    def get_range(self):
+        return self.get_power_0_9() + 1
+
+    def perform(self):
+        target = self.auto_target(2)
+        if target:
+            r = Stock.make('Arrow', self.host.pos)
+            r.face(target.get_face(r.pos))
+            r.relocate(to=target)
+            self.host.location.field.register(1, target, delay=1)
 
 
 class Blink(Spell):
     def perform(self):
-        power = self.get_power_0_9()
+        power = self.get_power_0_9() + 1
         x = Global.r.rand_int(-power, power)
         y = Global.r.rand_int(-power, power)
+        destination = self.host.pos.get_neighbor(x, y)
         for i in self.host.pos.things:
-            i.relocate(to=self.host.pos.get_neighbor(x, y))
-
-
-class Banish(Spell):
-    def perform(self):
-        self.host.location.sound.register(self.host.pos, 4, file='void')
-        Particle.make('zwip', self.host.pos)
-        for i in self.host.pos.things:
-            i.remove()
+            i.move_line(destination)
 
 
 class Corona(Spell):
@@ -375,3 +445,103 @@ class Corona(Spell):
                 Particle.make('shock', tile)
                 thing.states.add('Glow', duration, 1)
                 break
+
+
+class Push(Spell):
+    def get_delay(self):
+        return 0
+
+    def get_cooldown(self):
+        return -80
+
+    def perform(self):
+        target = self.cardinal_target(block=Tile.COLLIDE_ITEM)
+        Particle.make('wind', target)
+        tile = target.get_cardinal(self.host.direction)
+        for i in target.things.copy():
+            i.relocate(to=tile)
+
+
+class Jump(Spell):
+    def get_delay(self):
+        return 0
+
+    def perform(self):
+        power = self.get_power_0_4() + 2
+        front = self.host.pos.get_cardinal(self.host.direction, distance=power)
+        self.host.move_line(front, flag=self.host.collision_type + 2)
+
+
+class Evacuate(Spell):
+    def get_cooldown(self):
+        return 200
+
+    def perform(self):
+        if self.host == Global.player.character:
+            from src.tools.Data import Data
+            pos = Global.r.rand_list(Data.get_line('raw.txt', 'spawn')[1])
+            Global.world.travel(pos[0], pos[1])
+        else:
+            self.host.location.sound.register(self.host.pos, 4, file='void')
+            Particle.make('zwip', self.host.pos)
+            self.host.remove()
+
+
+class Torment(Spell):
+    def get_delay(self):
+        return 8
+
+    def perform(self):
+        targets = self.host.get_team(ally=False)
+        power = self.get_power_0_9() + 1
+        for i in targets:
+            if (i.pos - self.host.pos).difference() <= power:
+                self.host.location.sound.register(i.pos, 9, file='fire')
+                if len(self.host.pos.things) < 5:
+                    r = Stock.make('Flame', self.host.pos)
+                    r.relocate(to=i.pos)
+                    r.tags.set('p', power)
+                    r.tags.set('P', power)
+
+
+class Destabilize(Spell):
+    def get_range(self):
+        return self.get_power_0_4() + 5
+
+    def perform(self):
+        targets = self.host.location.population.get_all()
+        self.host.location.sound.register(self.host.pos, 13, file='void')
+        for i in targets:
+            if i != self.host and (i.pos - self.host.pos).difference() <= self.get_range():
+                i.relocate(to=self.host.pos, force=True)
+
+
+class Summon(Spell):
+    def get_delay(self):
+        return 2
+
+    def get_cooldown(self):
+        return -80
+
+    def get_range(self):
+        return self.get_power_0_9() + 3
+
+    def perform(self):
+        target = self.auto_target(2)
+        if target:
+            power = 5 - self.get_power_0_4()
+            x = Global.r.rand_int(-power, power)
+            y = Global.r.rand_int(-power, power)
+            destination = self.host.pos.get_neighbor(x, y)
+            Particle.make('wind', target.pos)
+            target.move_line(destination)
+            target.states.add('Speed', 4, -10)
+            target.location.sound.register(target.pos, 4, file='down')
+
+
+class Barrier(Spell):
+    def get_delay(self):
+        return 14
+
+    def perform(self):
+        self.host.states.add('Barrier', 40 * self.get_power_0_4() + 40)

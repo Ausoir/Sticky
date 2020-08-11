@@ -97,19 +97,22 @@ class Script:
 
     def get_rand(self):
         if not self.rand:
-            self.rand = Random(Script.var['host'].tags.get('seed', Global.r.rand_int(0, 9999)))
+            self.rand = Random(Script.var['host'].get_seed())
         return self.rand
 
     def run_preposition(self, arg):
         if arg[0] == '=':
             Script.var[str(arg[1])] = arg[2]
         elif arg[0] == 'v':
-            if arg[2] == 'raw':
-                Script.var[str(arg[1])] = Data.get_line(arg[3] + '.txt', arg[4].lower())
-            elif arg[2] == 'array':
+            if arg[2] == 'array':
                 Script.var[str(arg[1])] = arg[3][arg[4]]
             elif arg[2] == 'split':
                 Script.var[str(arg[1])] = arg[3].split(arg[4])
+            elif arg[2] == '?raw':
+                data = Data.get_line(arg[3] + '.txt', arg[4].lower())[1]
+                Script.var[str(arg[1])] = self.get_rand().rand_list(data)
+            elif arg[2] == 'raw':
+                Script.var[str(arg[1])] = Data.get_line(arg[3] + '.txt', arg[4].lower())[1]
             elif arg[2] == '?list':
                 Script.var[str(arg[1])] = self.get_rand().rand_list(arg[3])
             elif arg[2] == '?int':
@@ -119,23 +122,22 @@ class Script:
                     Script.var[str(arg[1])] = str(arg[3]) + str(arg[4])
                 else:
                     Script.var[str(arg[1])] = arg[3] + arg[4]
+            elif arg[2] == '!+':
+                Script.var[str(arg[1])] = arg[3] - arg[4]
             elif arg[2] == 'x':
-                Script.var[str(arg[1])] = int(float(arg[3]) * float(arg[4]))
+                Script.var[str(arg[1])] = float(arg[3]) * float(arg[4])
+            elif arg[2] == '%':
+                Script.var[str(arg[1])] = arg[3] % arg[4]
+            elif arg[2] == 'int':
+                Script.var[str(arg[1])] = int(arg[3])
             elif arg[2] == 'time':
                 Script.var[str(arg[1])] = Global.player.days
-                Global.player.set_darkness()
             elif arg[2] == 'map':
                 Script.var[str(arg[1])] = arg[3].location
             elif arg[2] == 'tag':
                 Script.var[str(arg[1])] = arg[3].tags.get(arg[4], Script.var['fail'])
             elif arg[2] == 'skill':
-                Script.var[str(arg[1])] = Script.var[str(arg[1])].get_skill(arg[3], stacks=True)
-            elif arg[2] == 'settag':
-                Script.var[str(arg[1])].tags.set(arg[3], arg[4])
-            elif arg[2] == 'addtag':
-                Script.var[str(arg[1])].tags.increment(arg[3], arg[4])
-            elif arg[2] == 'deltag':
-                Script.var[str(arg[1])].tags.remove(arg[3])
+                Script.var[str(arg[1])] = Script.var[str(arg[1])].get_skill(arg[3])
         else:
             return False
         return True
@@ -148,9 +150,9 @@ class Script:
         elif self.run_preposition(condition):
             return True
         elif condition[0] == 'equal':
-            return Script.var['1'] == condition[1]
+            return condition[1] == condition[2]
         elif condition[0] == 'greater':
-            return Script.var['1'] > condition[1]
+            return condition[1] > condition[2]
         elif condition[0] == 'date':
             if Global.player.days > condition[1]:
                 condition[1] = Global.player.days + condition[2]
@@ -163,6 +165,8 @@ class Script:
             return Global.player.is_safe()
         elif condition[0] == 'bright':
             return Global.player.is_bright()
+        elif condition[0] == 'day':
+            return Global.player.is_daytime()
         elif condition[0] == 'bring':
             return Script.var['host'].pos == Global.player.character.pos
         elif condition[0] == 'delay':
@@ -188,8 +192,8 @@ class Script:
             Global.main.quit()
         elif arg[0] == 'script':
             Script.execute_code(arg[1])
-        elif arg[0] == 'save':
-            Data.write('data/raw/' + arg[1] + '.txt', arg[2])
+        elif arg[0] == 'build':
+            Script.var['host'].pos.set_terrain(arg[1])
         elif arg[0] == 'spawn':
             from src.entity.Stock import Stock
             Script.var['1'] = Stock.make(arg[1], Script.var['host'].pos)
@@ -207,11 +211,14 @@ class Script:
             Global.main.monologue.set(arg[1])
         elif arg[0] == 'remove':
             arg[1].remove()
-        elif arg[0] == 'spell':
-            from src.entity.unit.item.Spell import Spell
-            Spell.perform(Script.var['host'].pos, arg[1])
         elif arg[0] == 'buff':
             Script.var['host'].states.add(arg[1], arg[2], var=arg[3])
+        elif arg[0] == 'settag':
+            Script.var['host'].tags.set(arg[1], arg[2])
+        elif arg[0] == 'addtag':
+            Script.var['host'].tags.increment(arg[1], arg[2])
+        elif arg[0] == 'deltag':
+            Script.var['host'].tags.remove(arg[1])
         elif arg[0] == 'time':
             Global.player.days = arg[1]
             Global.map_view.overlay.blackout()
@@ -219,10 +226,10 @@ class Script:
         elif arg[0] == 'menu':
             Global.menu.var = Script.var['1']
             Global.menu.direct(getattr(Global.menu, 'menu_' + arg[1].lower()))
-        elif arg[0] == 'script':
-            Script.execute_code(arg[1])
         elif arg[0] == 'decay':
-            Script.var['1'].decay(arg[1])
+            Script.var['host'].decay(arg[1])
+        elif arg[0] == 'exp':
+            Script.var['host'].progress_level(arg[1])
         elif arg[0] == 'act':
             from src.entity.unit.Unit import Unit
             if isinstance(Script.var['host'], Unit):
@@ -240,8 +247,17 @@ class Script:
             host = Script.var['host']
             host.relocate(to=host.pos.get_cardinal(host.direction, arg[1]))
         elif arg[0] == 'teleport':
+            Global.map_view.overlay.blackout()
             Global.world.travel(arg[1], arg[2])
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])
+        elif arg[0] == 'delbuff':
+            Script.var['host'].states.clear(lambda x: x.name.lower() == arg[1].lower())
+        elif arg[0] == 'insure':
+            host = Script.var['host']
+            cell_coord = [str(x) for x in Global.world.get_tile_true_pos(host.pos.x, host.pos.y)]
+            host.states.add('Revive', arg[1], '&'.join(cell_coord))
         elif arg[0] == 'deletefiles':
             Data.delete_all()
+        elif arg[0] == 'restart':
+            Global.main.init_other()

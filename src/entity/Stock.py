@@ -11,7 +11,7 @@ from src.entity.unit.item.Focus import Focus
 # noinspection PyUnresolvedReferences
 from src.entity.unit.Unit import Unit
 # noinspection PyUnresolvedReferences
-from src.entity.Projectile import Projectile
+from src.entity.Container import Container
 # noinspection PyUnresolvedReferences
 from src.entity.unit.Humanoid import Humanoid
 # noinspection PyUnresolvedReferences
@@ -27,7 +27,8 @@ class Stock:
         for i in Data.registry_list:
             registry_items = Data.process_raw(Data.read('data/raw/' + i + '.txt'))
             for item in registry_items:
-                Stock.registry[item[0]] = item
+                if item:
+                    Stock.registry[item[0]] = item
         for model in Data.get_line('raw.txt', 'face')[1]:
             face = []
             for image in model:

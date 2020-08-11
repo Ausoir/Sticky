@@ -25,5 +25,9 @@ power,[gfx_23x0,gfx_23x1,gfx_23x2,gfx_23x3],0.1,0
 shine,[gfx_24x0,gfx_24x1,gfx_24x2,gfx_24x3],0.05,0
 fireball,[gfx_25x0,gfx_25x1,gfx_25x2,gfx_25x3],0.1,0
 drown,[gfx_26x0,gfx_26x1,gfx_26x2,gfx_26x3],0.1,0
+barrier2,[gfx_27x0,gfx_27x1,gfx_27x2,gfx_27x3],0.1,0
+barrier3,[gfx_28x0,gfx_28x1,gfx_28x2,gfx_28x3],0.1,0
 shout,[g_5x0],0.10,0
 fog,[gfx_19x0,gfx_19x1,gfx_19x2,gfx_19x3],0.5,1
+evil blade,[blade_0x13,blade_0x14],0.1,1
+flameberge,[blade_0x16,blade_0x17],0.1,1

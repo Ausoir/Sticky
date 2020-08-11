@@ -1,90 +1,86 @@
-Package,Use to complete quest
-Jelly,A blob of slime goo
+Poison Vial,Drink from this vial to die.
+Jelly,A blob of slime goo. Poisonous but tasty when cooked
 Fiber,Some fibrous material
-Blue Baton,Shocks on hit
-Marker,This is part of a conjuration polygram. Shine dim light here to begin. It will try to consume everything it reaches as part of its sacrifice.
-Pickaxe,Can be used to destroy walls and floors
-Amnesia Potion,Potion that makes the user forget few recipes
-Scorch,Create scorching ground that burns anything nearby
-Memory Amulet,Remembers the location that it was worn
-Ruby Amulet,Absorbs power from a corpse to protect the user
+Observer,Use on units with higher level than you to earn experience just as if you killed them. Usable once per 12 hours.
+Marker,This is part of a conjuration polygram. Make sure it is dark',' then bring a candle to begin ritual.
+Mirror,Use to mark a location and return there later
 Telescope,Use to look farther
 Oil Lamp,Use to produce light
-Manual,Read to learn skills
+Manual,Read to learn skills. You can only learn as many skills as your Intelligence.
 Dispel,Purge all magical status effects of the target.
-Gravity,Pull everything within 12 tiles towards south.
-Glow,Makes target glow permanently.
+Charm,Enslave target unit permanently. Target must be directly in front of the caster. Requires charisma.
+Push,Push anything in front away.
+Glow,Makes target glow. Permanent at high power.
 Scorch,Create a scorching flame on the target.
-Summon Bread,Summons bread.
-Scry,Reveal sight of far away location.
-Vision,See through walls.
-Passwall,Pass through solid object.
-Restoration,Target mends 8 durability over 8 seconds. If target is an unaware unit',' it will be knocked down unconscious during the effect.
-Levitation,Move unhindered by terrain and traps. Use on items to decrease weight.
-Haste,Move and attack faster until hit.
-Invisibility,Become invisible until attacking.
+Scry,Travel as a ghost to observe far away locations relatively safely.
+Passwall,Pass through a solid wall.
 Charm,Increase friendliness of target.
-Possess,Take control of a unit in front of the caster.
-Summon Wall,Create a spell wall to block out enemies.
-Raise Dead,Turn corpses into zombies.
-Summon Weapon,Summon a random weapon.
-Summon Armor,Summon a random piece of armor or clothing.
+Transience,Assume a spiritual form from which you may possess another living being. Possess by pressing attack key on top of a unit.
+Wall,Create a spell wall to block out enemies.
+Zombie,Turn corpses into zombies.
 Phantom,Summon a phantom to possess any item laying underneath the caster.
-Evacuate,Teleport out safely to world map.
-Slime Form,Turn into a slime that is immune to many status effects.
+Transmogrify,Mutate target into a random creature.
+Evacuate,Teleport to a relatively safe location.
 Ghost Form,Turn into a ghost that can pass through walls but cannot interact with the world.
-Dog Form,Turn into a dog that can consume corpses and move faster than average.
-Barkskin,Lignify target',' becoming slowed and vulnerable to fire but reducing incoming damage by 3.
-Stone Form,Turn flesh into stone',' becoming immobile but reducing incoming damage by 7.
-sk.asceticism,Passive: Food provide 1 extra nutrition per level.
-sk.perseverance,Passive: Resting restores an additional 20% maximum health per level.
-sk.block,Unique Passive: Stand still to concentrate. Reduce damage from the front by 1 while concentrated.
-sk.constitution,Unique Passive: 1 second of invulnerability upon taking a hit.
-sk.parry,Unique Passive: On taking a hit',' reflect damage 20% of the time.
-sk.iron will,Unique Passive: Stand still to concentrate',' removing one harmful status effect.
-sk.vengeance,Unique Passive: On taking 4 continuous hits',' push away and knockdown all adjacent units.
-sk.flurry,Passive: Stand still to concentrate',' attacking again on a successful hit. Attacks again up to flurry level.
-sk.cleave,Unique Passive: Successful attacks cleave to the sides at -1 damage penalty. Cleave attacks do not trigger skills.
-sk.frenzy,Unique Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
-sk.crush,Unique Passive: Destroy walls when attacking them. Bricks require 7 damage to break.
-sk.execute,Unique Passive: Successful attacks instantly kill enemies with health lower than current maximum damage.
-sk.knockout,Unique Passive: Successful attacks cause knockout 20% of the time.
-sk.concentration,Unique Passive: Concentration have 25% chance not to end on use.
-sk.assassination,Passive: Attacks from behind silence target and deal 7 true damage per level.
-sk.side step,Unique Passive: Stand still to concentrate',' then move towards a unit to knockout and swap places.
-sk.hide,Unique Passive: Stand still to concentrate',' becoming invisible until moving.
-sk.heightened sense,Unique Passive: Stand still to concentrate. Gain vision through obstacles while concentrated.
-sk.alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers. Pour in water then use the empty bottle to extract a potion.
-sk.carving,Carve wands on a spellcraft table using an alchemical potion',' shiny metal',' and a stick.
+sk.block,Passive: Stand still to concentrate. Get +1 defense against frontal attacks when concentrated and standing still.
+sk.fortitude,Passive: After taking damage',' gain damage immunity for a short while.
+sk.parry,Passive: Stand still to concentrate. On hit',' use concentration to dodge a non-backstab attack.
+sk.iron will,Passive: Stand still to concentrate. Remove 1 harmful status effect.
+sk.lunge,Passive: Move forward when attacking.
+sk.flurry,Passive: After a successful attack',' quickly continue attacking adjacent hostiles if possible.
+sk.frenzy,Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
+sk.crush,Passive: Destroy walls when damage is higher than hardness of the wall.
+sk.assassinate,Passive: Attacks from behind silences target and deal double damage.
+sk.side step,Passive: Stand still to concentrate',' then move towards a unit to knockout and swap places.
+sk.hide,Passive: Stand still to concentrate',' becoming invisible until moving.
+sk.deep sense,Passive: Stand still to concentrate. Gain vision through obstacles while concentrated.
+sk.alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers. Read from bookshelf to learn more.
+sk.scribing,Create spell scrolls at a registry desk.
+sk.carving,Carve wands on a spellcraft table using a catalyst',' shiny metal',' and a stick. Read from bookshelf to learn more.
 sk.herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time. They continue to spread as long as you come check them.
-sk.conjuration,Draw conjuration polygrams using chalk.
-sk.willpower,Allows control of more powerful or larger number of conjured creatures.
-sk.scribing,Draw conjuration polygrams on paper to create spell scrolls. Requires conjuration knowledge.
-sk.carpentry,Construct buildings using wooden planks.
+sk.conjuration,Draw conjuration polygrams using chalk. Read from bookshelf to learn more.
 sk.steal,Passive: Stand still to concentrate',' next bare handed damage steals weapon from target. Steals from inventory if not concentrated.
 sk.feed,Passive: When damaging any unit',' this skill is replaced by one skill that the victim knew.
 sk.rally,Passive: Nearby allies come to aid when damaged.
+sk.constitution,Passive: Immune to knockdown.
+sk.psychic,Passive: Always know where you are.
 Glow,You emit light.
 Revive,Revive on death.
 Health,Health is rapidly changing.
-Damage,Your damage is modified.
 Brand,Attacks cause special on-hit effects.
 Burn,Constantly take damage and spread to nearby flammables.
 Effect,Produces visual effect.
 Speed,Movement speed is altered.
 Invisible,Become invisible.
-Invulnerability,Immune to physical damage.
+Invincible,Immune to physical damage.
 Immune,Immune to status effects.
 Concentration,Ready for special actions.
-Vengeance,At 4 stacks nearby enemies will be pushed away and knocked down.
-Lignification,Incoming damage reduced by 2 but become slowed and vulnerable to fire.
-Petrification,Incoming damage reduced by 5 but become immobile and slow attack speed.
+Amnesia,A more popular alternative to brainsuckers.
+Exhaustion,Special ability cannot be performed while exhausted.
+Lignification,Incoming damage reduced by 2 but become immobile and vulnerable to fire.
 Vision,Gain vision through walls and objects.
 Levitation,Levitate off the ground.
-Poison,Take damage every hour.
-Strength,Strength determines your maximum damage. Default maximum damage modifier is 0.
-Dexterity,Dexterity determines your minimum damage. Default minimum damage modifier is 0.
-Stealth,Stealth determines how close enemies have to be to detect you. Enemies detect you as soon as they are in screen by default.
-Endurance,Endurance determines how much health you regenerate when you rest. Default regeneration is 4.
-Dodge,Dodge determines your maximum defense. Default defense is 0.
-Toughness,Toughness determines your maximum health. Default maximum health is 5.
+Slime,Here is a cute slime.
+Venomous Spider,A venomous version of the common spider. Anyone bit will likely be dead in an hour.
+Snake,This snake is poisonous. Anyone bit will likely be dead in an hour.
+Killer Ivy,A man eating plant that ambush its prey from out of sight.
+Deathtrap,A deadly plant that lobs fireball at its prey. How it does that is on a debate by scholars world wide.
+Moth,This is surprisingly a moth.
+Crab,This crab has 2 pairs of claws!
+Octopus,The skin of this octopus glows under the sun.
+Tiger,A striped version of the cat. Much more deadly.
+Foul Snack,You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
+Brainsucker,This vile creature steals the knowledge of its victims. For this reason this creature gets frequent visits from gurus who wish to start anew.
+Leper,A blighted fellow. Fortunately for him and unfortunately for you','This guy does not seem to feel pain anymore.
+Skeleton,In addition to being immune to pain',' this undead has some innate skeletal armor.
+Caller,A scholar of the arcane arts who learned to summon moths.
+Witch,A scholar of witchcraft who learned how to turn you into something disgusting.
+Master,A master of the martial arts.
+Shade,Spooky!
+Resident,This is a common resident who got stuck in this hell hole.
+Soldier,This poor guy was drafted into the army with no other option.
+Banker,He calls himself a banker',' but all he does is store items.
+Trainer,A physical education teacher who turned to the dark ways of physical assault to survive.
+Hireling,A member of the mercenary guild',' equipped with leather armor and wearing guild cap.
+Mercenary,A desperate resident surviving by looting from the outlaws and wildlife despite the danger',' just like you.
+Panda,This animal is educated in the ways of the martial arts.

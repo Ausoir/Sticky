@@ -1,11 +1,11 @@
-from src.entity.Prop import Prop
+from src.entity.Container import Container
 from src.form.Body import Body
 from src.game import Global
 from src.game.Camera import Camera
 from src.map.Tile import Tile
 
 
-class Unit(Prop):
+class Unit(Container):
     def __init__(self, location):
         super().__init__(location)
         from src.entity.unit.Actions import Actions
@@ -34,6 +34,10 @@ class Unit(Prop):
         ai = self.tags.get('ai')
         self.pilot = Pilot.Pilot(self)
         self.pilot.load(ai)
+        skills = self.tags.remove('skills')
+        if skills:
+            for i in skills.split('&'):
+                self.skills.append(i)
         index += 1
         return index
 
@@ -62,7 +66,7 @@ class Unit(Prop):
     def update(self):
         if Camera.target != self:
             self.draw_synchronize()
-        diff = self.destination.get_center() - self.vec
+        diff = self.pos.get_center() - self.vec
         self.vec += diff * .1
         bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
         self.form.place(bound_x, bound_y)
@@ -84,13 +88,8 @@ class Unit(Prop):
         self.face(Global.r.rand_int(0, 3))
 
     def set_row(self, row):
-        diff = self.destination.y - self.pos.y
-        if diff > 0:
-            self.form.set_row((row + diff) * 20 + 100)
-            self.shadow.z = (row + diff) * 20 + 101
-        else:
-            self.form.set_row(row * 20 + 100)
-            self.shadow.z = row * 20 + 101
+        self.shadow.z = row * 20 + 100
+        self.form.set_row(row * 20 + 100)
 
     def show(self, visible):
         self.healthbar.show(visible)
@@ -118,90 +117,90 @@ class Unit(Prop):
             diff.x >= 0 and self.direction == 3 or\
             diff.y >= 0 and self.direction == 0
 
-    def get_defense(self):
-        if self.action.current_action == 'fall':
-            return 0
-        return max(0, self.tags.get('DEF', 0))
-
-    def get_damage(self):
-        return max(0, self.tags.get('DMG', 0) + 1)
-
-    def roll_defense(self):
-        defense = self.get_defense()
-        return Global.r.rand_int(0, defense)
-
-    def roll_damage(self):
-        damage = self.get_damage()
-        dex = min(self.tags.get('dmg', 0), damage)
-        return Global.r.rand_int(dex, damage)
-
-    def calculate_hit(self, damage, hitter=None):
-        self.action.idle_frame = 0
-        backstab = False
-        if isinstance(hitter, Prop):
-            if self.is_facing(hitter.pos):
-                block = self.get_skill('block')
-                if block and hitter.pos == self.pos.get_cardinal(self.direction, 1):
-                    if self.states.get('Concentration'):
-                        damage -= block
+    def progress_level(self, exp, mode='other', var=None):
+        personality = self.tags.get('class', 'classless')
+        current_level = self.get_level()
+        curve = int(3 / current_level)
+        if exp <= 0:
+            if mode == 'sabotage' and personality == 'agent' and var.name in self.tags.get('mission').split('&'):
+                exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 2) + var.get_value()
             else:
-                backstab = True
-        if not backstab and self.action.current_action != 'fall':
-            damage -= self.roll_defense()
-        if self.get_skill('vengeance'):
-            if self.states.add('Vengeance', 20).duration == 0:
-                damage = 0
-        self.states.trigger(['act', 'hit', damage])
-        if damage > 0:
-            if self.get_skill('constitution'):
-                self.states.add('Invulnerability', 40)
-            self.pilot.hit(hitter)
-            if self.get_skill('parry') and Global.r.rand_int(0, 4) == 0:
-                from src.entity.Particle import Particle
-                Particle.make('barrier', self.pos)
-                self.location.sound.register(self.pos, 0, file='critical')
-                if isinstance(hitter, Prop):
-                    hitter.decay(damage + self.get_defense())
-                return False
-            self.form.randomize_once(4)
-            return True
+                return
+        if mode == 'kill':
+            if personality == 'psycho' and var.tags.get('team') == self.tags.get('team'):
+                exp *= 3
+            elif personality == 'avenger' and var.name == self.tags.get('revenge'):
+                exp += var.get_level()
+        elif mode == 'eat' and personality == 'gourmet' and var.name == self.tags.get('favorite'):
+            exp *= 4
+        elif mode == 'survive' and personality == 'survivor':
+            exp *= 2
+        elif mode == 'explore':
+            if personality == 'explorer':
+                curve = int(curve * current_level / 5) * 2
+            else:
+                return
+        elif mode == 'observe' and personality == 'scholar':
+            exp *= 4
+        current_experience = self.tags.get('lvl', 100) % 100
+        current_experience = min(99, exp * curve + current_experience)
+        self.tags.set('lvl', current_level * 100 + current_experience)
 
     def hit(self, damage, hitter=None):
         r = 0
-        if self.calculate_hit(damage, hitter):
-            r = super().hit(damage, hitter)
-        return r
-
-    def on_hit(self, hitter=None):
-        from src.entity.Particle import Particle
-        if hitter.tags.get('sharp'):
-            self.location.sound.register(self.pos, 7, file='hit_cut')
-            Particle.make('splat', self.pos)
+        self.action.idle_frame = 0
+        backstab = False
+        if hitter is not None and self.action.delay == 0:
+            if self.is_facing(hitter.pos):
+                if self.get_skill('block') and self.states.get('Concentration'):
+                    damage -= 1
+            else:
+                backstab = True
+        if not backstab and self.action.current_action != 'fall':
+            damage -= self.tags.get('def', 0)
+        if self.states.get('Barrier'):
+            damage = 0
+        self.states.trigger(['act', 'hit', damage])
+        self.pilot.hit(hitter)
+        if damage > 0:
+            self.location.field.unregister(self)
+            if self.get_skill('fortitude'):
+                self.states.add('Invincible', 8)
+            if not backstab and self.get_skill('parry'):
+                concentration = self.states.get('Concentration')
+                if concentration:
+                    concentration.trigger(['spend'])
+                    from src.entity.Particle import Particle
+                    Particle.make('barrier', self.pos)
+                    self.location.sound.register(self.pos, 0, file='critical')
+                    return 0
+            self.form.randomize_once(4)
+            r = self.decay(damage)
+            if r == 2:
+                if hitter:
+                    exp = self.get_level() - hitter.get_level() + 1
+                    hitter.progress_level(exp, mode='kill', var=self)
+                self.on_hit(effect='splat', sound='hit_cut')
+            else:
+                self.on_hit()
+                if hitter and not self.removed:
+                    front = self.pos.get_cardinal(hitter.pos.get_face(self.pos))
+                    self.action.knockdown(self, 4, push=front)
+                else:
+                    self.action.knockdown(self, 4)
         else:
-            self.location.sound.register(self.pos, 7, file='hit_bash')
-            Particle.make('batter', self.pos)
-
-    def get_hitter(self):
-        return self
+            self.on_hit(effect='slash', sound='hit_armor')
+        return r
 
     def on_attack(self, target):
         self.states.trigger(['attack', target])
         if isinstance(target, Unit):
-            if self.get_skill('cleave'):
-                left = self.pos.get_cardinal((self.direction - 1) % 4, 1)
-                right = self.pos.get_cardinal((self.direction + 1) % 4, 1)
-                dmg = self.roll_damage() - 1
-                hitter = self.get_hitter()
-                self.location.field.register(dmg, left, hitter=hitter)
-                self.location.field.register(dmg, right, hitter=hitter)
             if self.get_skill('frenzy'):
                 self.states.add('Damage', 40, 1)
             if not target.is_facing(self.pos):
-                if self.get_skill('assassination'):
+                if self.get_skill('assassinate'):
                     target.tags.set('deaf', 1)
                     self.critical_attack(target)
-            if self.get_skill('knockout') and Global.r.rand_int(0, 4) == 0:
-                target.states.add('Knockout', 20)
             if self.get_skill('feed'):
                 for i in target.skills:
                     if i not in self.skills:
@@ -209,22 +208,24 @@ class Unit(Prop):
                         self.skills.append(i)
                         from src.entity.Particle import Particle
                         Particle.make('spin', target.pos)
+                        target.skills.remove(i)
                         self.location.sound.register(target.pos, 2, file='drain', priority=2)
                         break
-        flurry = self.get_skill('flurry', stacks=True)
+        flurry = self.get_skill('flurry')
         if flurry:
-            concentration = self.states.get('Concentration')
-            if concentration:
-                concentration.trigger(['spend'])
-                concentration.var += 1
-                if concentration.var <= flurry:
-                    self.action.attack()
-                    concentration.duration = self.action.delay
+            valid_sides = []
+            for sides in [1, -1, 2]:
+                front = self.pos.get_cardinal(self.direction + sides)
+                if front:
+                    for i in front.things:
+                        if isinstance(i, Unit) and i.tags.get('team') != self.tags.get('team'):
+                            valid_sides.append(sides)
+                            break
+            if valid_sides:
+                self.face(self.direction + valid_sides[0])
+                self.action.attack()
                 self.form.set_state('flurry')
                 self.form.timer.set(4)
-        if self.get_skill('execute'):
-            if target.tags.get('p', 20) <= self.get_damage():
-                target.die()
 
     def decay(self, damage):
         r = super().decay(damage)
@@ -232,16 +233,14 @@ class Unit(Prop):
         return r
 
     def get_durability(self):
-        hp = self.tags.get('p')
-        mhp = self.tags.get('P')
+        hp = self.tags.get('p', 0)
+        mhp = self.tags.get('P', 0)
         return 0, 0, hp, mhp
 
     def display_hp(self):
         hp = self.tags.get('p')
-        if hp is not None:
-            m_hp = self.tags.get('P', -1)
-            if m_hp > 0:
-                self.healthbar.appear(hp, m_hp)
+        m_hp = self.tags.get('P')
+        self.healthbar.appear(hp, m_hp)
 
     def die(self):
         pos = self.pos
@@ -267,6 +266,7 @@ class Unit(Prop):
             from src.game.Turn import Turn
             Turn.remove(self.turn)
             self.healthbar.remove()
+            return True
 
     def get_accessibles(self):
         r = []
@@ -276,30 +276,27 @@ class Unit(Prop):
                 r.append(thing)
         return r
 
-    def get_skill(self, skill, stacks=False):
+    def get_skills(self):
+        r = self.skills.copy()
+        if self.tags.get('abi'):
+            r.append(self.tags.get('abi'))
+        return r
+
+    def get_skill(self, skill):
         r = 0
         for i in self.skills:
             if skill == i:
-                if not stacks:
-                    return 1
                 r += 1
         return r
 
     def critical_attack(self, target):
-        critical = self.get_skill('assassination', stacks=True)
-        target.decay(max(7, critical * 7))
+        target.decay(1)
         from src.entity.Particle import Particle
-        Particle.make('power', target.pos)
+        Particle.make('power', target.pos, offset=16)
         self.location.sound.register(target.pos, 0, file='critical')
 
     def is_team(self, target):
         return self.tags.get('bad') == target.tags.get('bad')
-
-    def get_attack_motion(self):
-        return 'attack'
-
-    def get_attack_speed(self):
-        return self.tags.get('aspd', 0)
 
     def get_team(self, ally=True):
         if ally:
@@ -312,25 +309,32 @@ class Unit(Prop):
         else:
             return self.location.population.get_foe(self.tags.get('team', 0))
 
-    def set_team(self, target):
-        bad = target.tags.get('bad')
-        if bad == 1:
-            self.tags.set('bad', 1)
-        elif self.tags.get('bad') == 1:
-            self.tags.remove('bad')
-
     def describe(self):
         r = super().describe()
         from src.tools.Dialog import Dialog
-        r += '\n' + Dialog.get('Level') + ': ' + str(len(self.skills))
+        r += '\n' + Dialog.get('Level') + ': ' + str(self.get_level())
+        spd = self.tags.get('spd')
+        if spd:
+            r += '\n' + Dialog.get('Speed') + ': ' + str(spd)
+        if self.skills:
+            r += '\n' + Dialog.get('Skills') + ': ' + ', '.join(self.skills)
         return r
+
+    def get_level(self):
+        level = self.tags.get('lvl')
+        if level:
+            r = int(level / 100)
+        else:
+            r = len(self.skills)
+            r += self.tags.get('P', 10) + self.tags.get('str', 1)
+            r += self.tags.get('sth', 0) + self.tags.get('int', 0) + self.tags.get('cha', 0)
+            if self.tags.get('abi'):
+                r += 1
+            r -= 2
+        return max(1, r)
 
     def get_weight(self):
         return super().get_weight() + self.get_seed() % 4 + 4
 
     def get_value(self):
         return 2
-
-    def progress_level(self, exp):
-        multiplier = 10000 - self.tags.get('hunger', 0)
-        self.tags.increment('level', int(exp * multiplier))

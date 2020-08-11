@@ -48,9 +48,10 @@ class Porter(Item):
             memory = self.tags.get('memory')
             if memory:
                 args = memory.split('&')
+                Global.world.travel(args[0], args[1])
             else:
-                cell_coord = Global.world.get_coordinates(self.pos.x, self.pos.y)
-                memory = '&'.join([str(x) for x in [cell_coord[0], cell_coord[1], self.pos.x, self.pos.y]])
+                cell_coord = Global.world.get_tile_true_pos(self.pos.x, self.pos.y)
+                memory = '&'.join([str(x) for x in [cell_coord[0], cell_coord[1]]])
                 self.tags.set('memory', memory)
 
 
@@ -67,9 +68,3 @@ class Lamp(Item):
             light.end()
         else:
             self.states.add('Glow', -1, var=self.tags.get('level', 1))
-
-
-class Pusher(Item):
-    def on_attack(self, target):
-        diff = target.pos - self.host.pos
-        target.relocate(to=target.pos.get_neighbor(diff.x, diff.y))

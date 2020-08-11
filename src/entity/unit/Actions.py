@@ -17,8 +17,6 @@ class Actions:
     def set(self, action):
         if self.current_action != action:
             self.idle_frame = 0
-            if self.delay > 0:
-                self.host.location.field.unregister(self.host.get_hitter())
             self.current_action = action
             self.current_action_fn = getattr(self, action)
         if self.on_finish:
@@ -41,12 +39,21 @@ class Actions:
         self.delay = turn
 
     @staticmethod
-    def knockdown(victim, time=None):
+    def knockdown(victim, time=None, push=None):
+        from src.entity.unit.item.Item import Item
+        if isinstance(victim, Item):
+            if victim.host:
+                victim = victim.host
         if isinstance(victim, Unit):
-            if victim.action.current_action != 'fall' and not victim.get_skill('toughness'):
-                victim.action.fall()
-                if time:
-                    victim.action.delay = time
+            if victim.action.current_action != 'fall':
+                if victim.get_skill('constitution'):
+                    victim.action.hit()
+                else:
+                    if push:
+                        victim.action.move(push, check=victim.collision_type + 2)
+                    victim.action.fall()
+                    if time:
+                        victim.action.delay = time
 
     def idle(self):
         if self.idle_frame >= 12:
@@ -94,60 +101,44 @@ class Actions:
 
     def walk(self):
         front = self.host.pos.get_cardinal(self.host.direction, 1)
-        if not front:
-            on_edge = self.host.location.tags.get('edge')
-            if on_edge:
-                Script.var['host'] = self.host
-                Script.execute_code(on_edge)
-            else:
-                self.idle()
-        else:
+        if front:
             solid = front.get_solidity()
             if solid >= self.host.collision_type:
                 if self.interact_on(front):
                     return
-                team = self.host.get_team()
-                for thing in front.things:
-                    if thing in team:
-                        Script.var['host'] = thing
-                        Script.var['1'] = self.host
-                        Script.execute_code('#push')
-                        return
-                if self.host.get_skill('side step'):
+                elif self.host.get_skill('side step'):
                     if self.side_step(front):
                         return
-                if self.host.tags.get('fly', 0) == 0:
-                    self.idle()
-                else:
-                    self.move(front)
             else:
                 self.move(front)
 
-    def move(self, front):
-        speed = self.host.tags.get('spd', 0)
-        fly = self.host.tags.get('fly', 0)
-        if front.get_yield() > -10 and fly == 0:
-            speed += front.get_move_speed()
-        if speed > -10:
-            if fly:
-                self.make('fly', turn=max(0, 2 - speed))
+    def move(self, front, check=10):
+        solidity = front.get_solidity()
+        if solidity < check:
+            speed = self.host.tags.get('spd', 0)
+            fly = self.host.tags.get('fly', 0)
+            if front.get_yield() > -10 and fly == 0:
+                speed += front.get_move_speed()
+            if speed > -10:
+                if fly:
+                    self.make('fly', turn=max(0, 2 - speed))
+                else:
+                    self.make('walk', turn=max(0, 1 - speed))
+                    sound = max(0, -self.host.tags.get('sth', 0))
+                    self.host.location.sound.register(self.host.pos, sound, file='step', priority=4)
+                self.host.relocate(to=front)
+                self.host.states.trigger(['act', 'move'])
+                from src.map.Tile import Tile
+                if solidity == Tile.COLLIDE_UNIT:
+                    for i in self.host.pos.things:
+                        if i != self.host and isinstance(i, Unit):
+                            i.action.knockdown(i, 4)
+                return True
             else:
-                self.make('walk', turn=max(0, 1 - speed))
-                sound = max(0, -self.host.tags.get('sth', 0))
-                self.host.location.sound.register(self.host.pos, sound, file='step', priority=4)
-            self.host.destination = self.host.pos.get_cardinal(self.host.direction, 1)
-            self.on_finish = self.finish_moving
-            self.host.states.trigger(['act', 'move'])
-            return True
-        else:
-            self.idle()
-
-    def finish_moving(self):
-        self.host.relocate(to=self.host.destination)
-        return False
+                self.idle()
 
     def interact_on(self, tile):
-        if self.host == Global.player.character:
+        if self.host == Global.player.character and self.humanoid:
             self.host.location.sound.register(self.host.pos, 1)
             for thing in tile.things:
                 if thing != self.host.weapon and self.interact(thing):
@@ -160,7 +151,7 @@ class Actions:
             Script.execute_code(code)
         code = target.tags.get('#')
         if code:
-            self.make('interact', turn=3)
+            self.make('interact', turn=1)
             self.on_finish = fn
             return True
 
@@ -178,6 +169,16 @@ class Actions:
 
     def fall(self):
         self.make('fall', turn=18)
+        self.on_finish = self.stand
+
+    def hit(self):
+        self.make('idle', turn=4)
+        self.host.form.randomize_once(4)
+
+    def stand(self):
+        for i in self.host.pos.things:
+            if i != self.host and isinstance(i, Unit):
+                self.knockdown(i, 2, push=i.pos.get_cardinal(i.direction))
 
     def click(self):
         x_diff = Global.player.control.cursor_tile[0] - self.host.pos.x
@@ -222,47 +223,67 @@ class Actions:
                 self.host.drop()
 
     def sheathe(self):
-        if self.host.weapon:
-            def change():
-                self.host.inventory.attempt_add(self.host.weapon, insert=True)
-            self.make('grab', turn=4)
-            self.on_finish = change
+        if self.humanoid:
+            if self.host.weapon:
+                def change():
+                    weapon = self.host.weapon
+                    self.host.unsheathe(0)
+                    self.host.inventory.add_item(weapon, insert=True)
+                self.make('grab', turn=4)
+                self.on_finish = change
+            else:
+                self.host.unsheathe(0)
+
+    def attack(self):
+        self.host.states.trigger(['act', 'attack'])
+        for i in range(self.host.get_skill('lunge')):
+            front = self.host.pos.get_cardinal(self.host.direction, 1)
+            self.move(front, self.host.collision_type)
+        atk_spd = self.host.get_skill('deft')
+        self.host.form.animation_ended = 1
+        front = self.host.pos.get_cardinal(self.host.direction, 1)
+        dmg = self.host.tags.get('dmg', 1)
+        if self.humanoid and not self.host.weapon:
+            motion = 'kick'
         else:
-            self.host.unsheathe(0)
+            motion = 'attack'
+        if self.host.get_skill('bash'):
+            concentration = self.host.states.get('Concentration')
+            if concentration:
+                concentration.trigger(['spend'])
+                self.host.location.field.register(dmg, front, delay=0)
+                if self.humanoid:
+                    motion = 'bash'
+        self.make(motion, turn=6 - atk_spd)
+        delay = 0 if self.host.tags.get('spd', 0) > 0 else 1
+        self.host.location.field.register(dmg, front, delay=delay, hitter=self.host,
+                                          sound=['swing', 0], callback=self.host.on_attack)
+        if self.host.get_skill('crush') and dmg >= front.get_hardness():
+            self.on_finish = self.crush
 
     def crush(self):
         front = self.host.pos.get_cardinal(self.host.direction, 1)
         if front.get_yield() == -10:
+            if self.host == Global.player.character:
+                self.host.tags.increment('hunger', 1000)
             self.host.location.sound.register(self.host.pos, 16, file='critical')
             front.set_terrain('.')
             front.connect_connect()
             front.update_update_shader()
 
-    def attack(self):
-        self.host.states.trigger(['act', 'attack'])
-        self.make(self.host.get_attack_motion(), turn=5 + max(0, 2 + self.host.get_attack_speed()))
-        dmg = self.host.roll_damage()
-        front = self.host.pos.get_cardinal(self.host.direction, 1)
-        hitter = self.host.get_hitter()
-        if self.host.tags.get('spd', 0) > 0:
-            delay = 0
-        else:
-            delay = 1
-        self.host.location.field.register(dmg, front, delay=delay, hitter=hitter,
-                                          sound=['swing', 0], callback=self.host.on_attack)
-        if self.host.get_skill('crush') and dmg >= front.get_hardness():
-            self.on_finish = self.crush
-
     def ability(self):
         ability = self.host.tags.get('abi')
         if ability:
-            from src.entity.unit.item.Spell import Spell
-            Spell.get(ability, power=self.host.tags.get('abp', 0)).cast(self.host)
-            self.make('cast', turn=12)
-
-    def ability2(self):
-        ability = self.host.tags.get('abi2')
-        if ability:
-            from src.entity.unit.item.Spell import Spell
-            Spell.get(ability, power=self.host.tags.get('abp2', 0)).cast(self.host)
-            self.make('cast', turn=12)
+            exhaustion = self.host.states.get('Exhaustion')
+            if not exhaustion:
+                from src.entity.unit.item.Spell import Spell
+                power = self.host.tags.get('abp', 0)
+                spell = Spell.get(ability, power=power)
+                self.make('cast', turn=spell.get_delay())
+                cooldown = 100 - power + spell.get_cooldown()
+                if cooldown > 0:
+                    self.host.states.add('Exhaustion', cooldown)
+                spell.cast(self.host)
+            elif self.host == Global.player.character:
+                from src.tools.Dialog import Dialog
+                Global.main.monologue.set(Dialog.get('wait', [exhaustion.duration]), time=20)

@@ -1,4 +1,5 @@
 from src.entity.unit.ai.Task import *
+from src.map.Tile import Tile
 
 
 class Pilot:
@@ -34,8 +35,8 @@ class Pilot:
             self.move = Path(self)
             self.attack = Attack(self)
             self.route = Routes(self.host, False)
-        elif arg == 'roam':
-            self.default = Wander(self)
+        elif arg == 'travel':
+            self.default = Travel(self)
             self.move = Path(self)
             self.attack = Attack(self)
             self.route = Routes(self.host, False)
@@ -52,8 +53,9 @@ class Pilot:
         self.set_task(Return(self, target))
 
     def update(self):
+        old_task = self.task
         self.task.update()
-        if self.host.action.delay == 0:
+        if self.host.action.delay == 0 and old_task == self.task:
             self.act()
 
     def set_task(self, task):
@@ -63,6 +65,7 @@ class Pilot:
             interaction = self.host.tags.remove('#')
             if interaction:
                 self.host.tags.set('!#', interaction)
+                self.host.tags.set('#', 'busy')
         else:
             interaction = self.host.tags.remove('!#')
             if interaction:
@@ -100,17 +103,21 @@ class Pilot:
 
     def perceive(self, enemies):
         perceived = []
+        night_vision = self.host.get_skill('nocturnal')
         for thing in enemies:
             diff_x = abs(thing.pos.x - self.host.pos.x)
             diff_y = abs(thing.pos.y - self.host.pos.y)
             if self.host.is_facing(thing.pos):
                 s = thing.tags.get('sth', 0)
-                if thing.pos.light:
+                if thing.pos.light or night_vision:
                     in_range = diff_x <= Global.map_view.sight_range - s and diff_y <= Global.map_view.sight_range_y - s
                 else:
-                    in_range = diff_x <= Global.map_view.view_range - s and diff_y <= Global.map_view.view_range_y - s
+                    in_range = diff_x <= 3 - s and diff_y <= 3 - s
                 if in_range:
                     perceived.append(thing)
+        if self.host.get_skill('psychic'):
+            if Global.player.character not in perceived and Global.player.character in enemies:
+                perceived.append(Global.player.character)
         return perceived
 
     def hear(self, pos):
@@ -180,17 +187,17 @@ class Routes:
         for i in tile.things:
             if i.obstruct_type >= self.host.collision_type:
                 hp = i.tags.get('p')
-                if not hp or self.host.get_damage() <= i.tags.get('def', 0)\
+                if not hp or self.host.tags.get('dmg', 1) <= i.tags.get('def', 0)\
                         or i.tags.get('team') == self.host.tags.get('team'):
                     return -1
                 else:
-                    weight += i.tags.get('p')
-        if tile.get_yield() == -10:
-            if self.host.get_damage() >= tile.get_hardness() and self.host.get_skill('crush'):
+                    weight += hp
+        if tile.get_yield() == -10 and self.host.collision_type <= Tile.COLLIDE_TERRAIN:
+            if self.host.tags.get('dmg', 1) > tile.get_hardness() and self.host.get_skill('crush'):
                 weight += 3
             else:
                 return -1
-        elif tile.get_yield() == -9:
+        elif tile.get_yield() == -9 and self.host.collision_type <= Tile.COLLIDE_WINDOW:
             return -1
         return weight
 

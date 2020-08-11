@@ -1,6 +1,5 @@
 from src.game import Global
 from src.game.Crafting import Crafting
-from src.game.Script import Script
 from src.interface.Menu import Menu
 from src.interface.Window import Window
 from src.tools.Data import Data
@@ -9,41 +8,19 @@ from src.tools.Dialog import Dialog
 
 class MenuPlayer(Menu):
     def menu_examine(self):
-        if not Global.player.control.target_mark.form.visible:
-            Global.player.control.move_mark_toward(0)
-        tile = Global.player.character.target
-        if tile:
-            if tile.things:
-                self.get_message(tile.things[0].describe())(0)
+        if Global.player.control.target_mark.form.visible:
+            self.history.pop()
+            tile = Global.player.control.get_mark()
+            if tile:
+                if tile.things:
+                    self.get_message(tile.things[0].describe())(0)
+                else:
+                    self.get_message(Dialog.describe_terrain(tile))(0)
             else:
-                self.get_message(Dialog.describe_terrain(tile))(0)
+                self.get_message(Dialog.get('Out of sight'))(0)
+            Global.player.control.target_mark.form.show(False)
         else:
-            self.get_message(Dialog.get('oos'))(0)
-        Global.player.control.target_mark.form.show(False)
-
-    def menu_character(self):
-        host = Global.player.character
-        attack = str(host.get_skill('dexterity', stacks=True)) + ' ~ ' + str(host.get_damage())
-        mat_def = host.tags.get('def', 0)
-        defense = str(mat_def) + ' ~ ' + str(host.get_defense() + mat_def)
-        rmb = self.get_message(Dialog.get('dsc_level'))
-        self.window.add(Menu.make(Dialog.get('Level'), rmb, color=None))
-        tag_level = host.tags.get('lvl', 0)
-        level = int(tag_level / 100)
-        experience = tag_level % 100
-        self.sub_window.add(Menu.make(str(level) + ' (' + str(experience) + '%)', None, color=None))
-        rmb = self.get_message(Dialog.get('dsc_points'))
-        self.window.add(Menu.make(Dialog.get('Points'), rmb, color=None))
-        self.sub_window.add(Menu.make(str(host.tags.get('pts', 0)), None, color=None))
-        rmb = self.get_message(Dialog.get('dsc_attack'))
-        self.window.add(Menu.make(Dialog.get('Attack'), rmb, color=None))
-        self.sub_window.add(Menu.make(attack, None, color=None))
-        rmb = self.get_message(Dialog.get('dsc_defense'))
-        self.window.add(Menu.make(Dialog.get('Defense'), rmb, color=None))
-        self.sub_window.add(Menu.make(defense, None, color=None))
-        self.window.add(Menu.make(Dialog.get('Status'), lambda _: self.direct(self.menu_effects)))
-        self.window.add(Menu.make(Dialog.get('Give up'), Script.execute_code, name='suicide'))
-        self.sub_window.display(1)
+            self.get_message(Dialog.get('dsc_examine'))(0)
 
     def menu_main(self):
         def update():
@@ -66,42 +43,67 @@ class MenuPlayer(Menu):
             button_date.on_click = rmb
         host = Global.player.character
         self.update = update
-        self.window.add(Menu.make(Dialog.get('Character'), lambda _: self.direct(self.menu_character)))
+        if host.tags.get('lvl', 0) % 100 == 99:
+            text = Dialog.get('Level Up')
+        else:
+            text = Dialog.get('Character')
+        self.window.add(Menu.make(text, lambda _: self.direct(self.menu_character)))
         from src.entity.unit.Humanoid import Humanoid
         if isinstance(host, Humanoid):
-            self.window.add(Menu.make(Dialog.get('Equipment'), lambda _: self.direct(self.menu_equipment)))
-            self.window.add(Menu.make(Dialog.get('Inventory'), lambda _: self.direct(self.menu_inventory)))
-        self.window.add(Menu.make(Dialog.get('Skills'), lambda _: self.direct(self.menu_skill)))
+            if host.weapon or host.armor or host.headgear:
+                self.window.add(Menu.make(Dialog.get('Equipment'), lambda _: self.direct(self.menu_equipment)))
+            if host.get_equipment_weight() > 0:
+                self.window.add(Menu.make(Dialog.get('Inventory'), lambda _: self.direct(self.menu_inventory)))
+        if host.get_skills():
+            self.window.add(Menu.make(Dialog.get('Skills'), lambda _: self.direct(self.menu_skill)))
         hp_display = Menu.make('', None, color=None)
         self.window.add(hp_display)
         button_date = Menu.make('', None, color=None)
         self.window.add(button_date)
 
+    def menu_character(self):
+        def stat(arg):
+            host.tags.increment(arg, 1)
+            host.tags.increment('lvl', 1)
+            Global.main.monologue.set(Dialog.get('stat_applied', [level + 1]))
+            from src.entity.Particle import Particle
+            Particle.make('barrier', host.pos)
+            host.location.sound.register(host.pos, 0, file='level', priority=1)
+        host = Global.player.character
+        rmb = self.get_message(Dialog.get('dsc_level'))
+        tag_level = host.tags.get('lvl', 0)
+        level = int(tag_level / 100)
+        experience = tag_level % 100
+        text = Dialog.get('Level') + ' ' + str(level) + ' (' + str(experience) + '%)'
+        self.window.add(Menu.make(text, rmb, color=None))
+        rmb = self.get_message(Global.player.describe_class())
+        self.sub_window.add(Menu.make(host.tags.get('class', 'classless').title(), rmb, color=None))
+        stats = Data.get_line('raw.txt', 'stat')[1]
+        for i in stats:
+            tag = host.tags.get(i[1])
+            if tag is not None:
+                if experience == 99:
+                    rmb = self.get_prompt(Dialog.get('dsc_' + i[0]), Dialog.get('Increase Stat'), stat, param=i[1])
+                    color = Window.fore_color2
+                else:
+                    rmb = self.get_message(Dialog.get('dsc_' + i[0]))
+                    color = None
+                self.window.add(Menu.make(str(tag) + ' ' + Dialog.get(i[0].title()), rmb, color=color))
+        self.sub_window.display(1)
+
     def menu_skill(self):
-        skills = {}
-        for i in Global.player.character.skills:
-            if i in skills:
-                skills[i] += 1
-            else:
-                skills[i] = 1
         index = 0
-        for k, v in skills.items():
-            name = 'sk.' + k
-            stacking = Data.get_line('raw.txt', 'stacking skill')[1]
-            if k in [x[0] for x in stacking]:
-                title = k.title() + ' ' + str(v)
-            else:
-                title = k.title()
-            data = Data.get_line('script.txt', name)
+        for skill in Global.player.character.get_skills():
+            name = 'sk.' + skill
+            title = skill.title()
             desc = Data.get_line('descriptions.txt', name)
-            if data and desc:
-                button = Menu.make(title, self.get_prompt(desc[1], Dialog.get('Perform'), Script.execute_code, name))
-            elif data:
-                button = Menu.make(title, Script.execute_code, name=name)
-            elif desc:
-                button = Menu.make(title, self.get_message(desc[1]))
+            if desc:
+                text = desc[1]
             else:
-                button = Menu.make(title, self.get_message(Dialog.get('!dsc_skill')))
+                text = Dialog.get('!dsc_skill')
+            if skill not in Global.player.character.skills:
+                text += '\n' + Dialog.get('item_skill')
+            button = Menu.make(title, self.get_message(text))
             if index < 6:
                 self.window.add(button)
             else:
@@ -116,15 +118,11 @@ class MenuPlayer(Menu):
         def click_armor(name):
             Global.player.character.unarmor()
 
-        def click_pocket(index):
-            Global.player.character.unsheathe(index)
-
         self.window.add(Menu.make(Dialog.get('Headgear'), None, color=None))
         self.window.add(Menu.make(Dialog.get('Body'), None, color=None))
         self.window.add(Menu.make(Dialog.get('Weapon'), None, color=None))
-        self.window.add(Menu.make(Dialog.get('Pocket'), None, color=None))
         if not Global.player.character.headgear:
-            display = '<' + Dialog.get('noaccessory') + '>'
+            display = '<' + Dialog.get('No Headgear') + '>'
             self.sub_window.add(Menu.make(display, lambda x: x, color=None))
         else:
             display = Global.player.character.headgear.get_display_name()
@@ -132,14 +130,14 @@ class MenuPlayer(Menu):
                                            click_headgear)
             self.sub_window.add(Menu.make(display, headgear_lmb))
         if not Global.player.character.armor:
-            display = '<' + Dialog.get('noarmor') + '>'
+            display = '<' + Dialog.get('No Armor') + '>'
             self.sub_window.add(Menu.make(display, lambda x: x, color=None))
         else:
             display = Global.player.character.armor.get_display_name()
             armor_lmb = self.get_prompt(Global.player.character.armor.describe(), Dialog.get('Drop'), click_armor)
             self.sub_window.add(Menu.make(display, armor_lmb))
         if not Global.player.character.weapon:
-            display = '<' + Dialog.get('noweapon') + '>'
+            display = '<' + Dialog.get('No Weapon') + '>'
             self.sub_window.add(Menu.make(display,
                                           lambda _: Global.player.character.action.set('grab'), color=None))
         else:
@@ -147,32 +145,26 @@ class MenuPlayer(Menu):
             weapon_lmb = self.get_prompt(Global.player.character.weapon.describe(), Dialog.get('Drop'),
                                          lambda _: Global.player.character.drop())
             self.sub_window.add(Menu.make(display, weapon_lmb))
-        quick_item = Global.player.character.inventory.get_item(0)
-        if not quick_item:
-            display = '<' + Dialog.get('nopocket') + '>'
-            self.sub_window.add(Menu.make(display, lambda x: x, color=None))
-        else:
-            display = quick_item.get_display_name()
-            lmb = self.get_prompt(quick_item.describe(), Dialog.get('Wield'), click_pocket)
-            self.sub_window.add(Menu.make(display, lmb))
         self.window.add(Menu.make(Dialog.get('Money'), None, color=None))
-        money = Menu.make('$' + str(Global.player.character.tags.get('money', 0)), None, color=None)
+        rmb = self.get_message(Dialog.get('dsc_money'))
+        money = Menu.make('$' + str(Global.player.character.tags.get('money', 0)), rmb, color=None)
         self.sub_window.add(money)
         self.sub_window.display(1)
 
     def menu_inventory(self):
         def click(index):
-            if Global.player.character.weapon:
+            if host.weapon:
                 index -= 1
-            Global.player.character.unsheathe(index)
+            host.unsheathe(index)
 
-        def pocket(index):
-            Global.main.monologue.set(Dialog.get('info_pocket'))
-            Global.player.character.inventory.prioritize(index)
+        def drop(index):
+            host.location.sound.register(host.pos, 0, file='wear')
+            host.inventory.take_item(index)
 
         def sheathe(arg):
-            dropped = Global.player.character.drop()
-            Global.player.character.inventory.attempt_add(dropped)
+            dropped = host.drop()
+            host.inventory.attempt_add(dropped)
+        host = Global.player.character
         temp = self.window.margin.y
         self.window.margin.y = 2
         temp2 = self.sub_window.margin.y
@@ -181,7 +173,7 @@ class MenuPlayer(Menu):
             items = [Global.player.character.weapon] + Global.player.character.inventory.items
         else:
             items = Global.player.character.inventory.items
-        capacity = Global.player.character.get_capacity()
+        capacity = Global.player.character.tags.get('str', 1)
         text = 'Weight: ' + str(Global.player.character.get_equipment_weight()) + ' / ' + str(capacity)
         capacity_label = Menu.make(text, None, None, height=20, color=None)
         capacity_label.margin.load(0, 0)
@@ -190,8 +182,8 @@ class MenuPlayer(Menu):
         self.sub_window.add(Menu.make('', None, None, height=20, color=None))
         count = 0
         for i in items:
-            size = min(self.window.height - 48, int(160 * (i.get_weight() / max(1, capacity))))
-            button = Window(0, 0, width=260, height=size + 10, multi_line=True)
+            size = min(self.window.height - 48, int(140 * (i.get_weight() / max(1, capacity))))
+            button = Window(0, 0, width=260, height=size + 4, multi_line=True)
             button.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
             if i == Global.player.character.weapon:
                 button.set_text(i.get_display_name() + ' [' + Dialog.get('Held') + ']')
@@ -199,14 +191,14 @@ class MenuPlayer(Menu):
             else:
                 button.set_text(i.get_display_name())
                 button.on_click = self.get_prompt2(i.describe(), Dialog.get('Take'),
-                                                   Dialog.get('Pocket'), click, pocket, count, count)
+                                                   Dialog.get('Drop'), click, drop, count, count)
             button.width = button.text.content_width + 16
-            button.height = button.text.content_height + 8
+            button.height = button.text.content_height + 2
             button.margin.load(8, 0)
             label = Window(0, 0, width=0, height=size + 10, multi_line=False)
             label.document.set_style(0, 1, dict(font_size=max(10, min(24, size))))
             label.set_text(Dialog.weight(i.get_weight()))
-            label.height = button.text.content_height + 8
+            label.height = button.text.content_height + 2
             label.margin.load(100, 0)
             self.window.add(button)
             self.sub_window.add(label)
@@ -232,6 +224,7 @@ class MenuPlayer(Menu):
                 self.sub_window.add(second_col)
         if not buff_list:
             self.get_message(Dialog.get('no_status'))()
+            self.history.pop()
         else:
             self.sub_window.display(1)
 
@@ -240,23 +233,26 @@ class MenuPlayer(Menu):
             if Global.player.sleep(1):
                 Crafting.craft(Global.player.character, arg[0], arg[1])
                 Global.player.character.action.act('grab', 8)
-        params = []
-        for item in self.var:
+        self.window.add(Menu.make(Dialog.get('craftables'), None, color=None))
+        self.sub_window.add(Menu.make('', None, color=None))
+        for k, item in enumerate(self.var):
             ingreds = Crafting.get_ingredients(item)
             if ingreds:
                 if Crafting.is_craftable(Global.player.character, ingreds):
                     fn = self.get_prompt(Crafting.describe(item, ingreds), Dialog.get('Craft'), craft, [item, ingreds])
                 else:
                     fn = self.get_message(Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet'))
-                params.append([item, fn])
-        self.var = params
-        self.direct(self.menu_many_choice)
+                if k < 5:
+                    self.window.add(Menu.make(item, fn))
+                else:
+                    self.sub_window.add(Menu.make(item, fn))
+        self.sub_window.display(1)
 
     def menu_pickup(self):
         def pickup(arg):
             Global.player.character.pick_up(arg)
         params = []
-        for item in self.var:
+        for item in self.var[:12]:
             fn = self.get_prompt(item.describe(), Dialog.get('Take'), pickup, item)
             params.append([item.name, fn])
         self.var = params

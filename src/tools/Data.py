@@ -24,7 +24,8 @@ class Data:
         for i in animation:
             sequence = []
             for sprite in i[1]:
-                sequence.append(Data.get_cache(sprite))
+                image = Data.get_cache(sprite)
+                sequence.append(image)
             loop = bool(i[3])
             if not loop:
                 sequence.append(Data.get_cache('none'))
@@ -127,7 +128,8 @@ class Data:
 
     @staticmethod
     def initialize_image(name, texture, subset_size, anchor=None):
-        image = pyglet.image.load(Data.direct('data/image/' + texture + '.png'))
+        image = Data.atlas.add(pyglet.image.load(Data.direct('data/image/' + texture + '.png')))
+        # image = pyglet.image.load(Data.direct('data/image/' + texture + '.png'))
         image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
         seq = pyglet.image.TextureGrid(image_grid)
         i = 0
@@ -157,7 +159,7 @@ class Data:
         while data:
             code = data[0]
             data = data[1:]
-            if code == '\'':
+            if code == '\\':
                 special = not special
             elif special:
                 raw += code

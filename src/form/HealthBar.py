@@ -29,7 +29,7 @@ class HealthBar:
     def appear(self, hp, mhp):
         if hp and mhp:
             width = int(Global.BLOCK * min(1, hp / mhp)) - 2
-            self.foreground.width = width
+            self.foreground.width = max(0, width)
             if not self.displaying_health:
                 self.displaying_health = True
                 self.background.add_batch()

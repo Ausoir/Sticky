@@ -293,3 +293,13 @@
 7/22 Bat/Wasp/Undead (1), Pocket item replace headgear (1), chunk size 15 and movement faster (1)
 7/23 Habitat changes (1), Prop only add to Turn when necessary (1)
 ---- PUSH
+7/24 Habitat and map (1), Fixed menu prev (1), Drowning (1), Fixed swap/unit pos destination (1)
+7/25 Pathing adjust for flying units and new move system (1), Humanoid equipment pos desync fix (1)
+7/26 Item enchantment (1), Wander (1), 2 chunk distance travel fix (1)
+7/27 Warehouse (1), Gate (1)
+7/28 Action combat system (2), fixed renew (1), bgm (1), dojo (1), bash (1)
+7/31 Class (1), Introduction (1), Insurance (1), Level up system (1)
+8/02 Wander pickup (1), Final boss gear (1), Blades atlas (1), Respec (1)
+8/04 Mapview optimized by removed tiles (1), Mercenary (1), Level up system (1)
+8/09 Tutorial and restart after death (1), Charisma (1)
+---- PUSH

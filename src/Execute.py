@@ -20,10 +20,14 @@ class Execute(pyglet.window.Window):
         Data.init()
         self.setting = Dialog.to_dict(Data.process_raw(Data.read('data/setting.txt')))
         super(Execute, self).__init__(self.setting['width'], self.setting['height'], ' ',
-                                      fullscreen=self.setting['fullscreen'] == 1, vsync=False, resizable=True)
+                                      vsync=False, resizable=True)
+        if self.setting['fullscreen'] == 1:
+            self.set_fullscreen(fullscreen=True, width=self.setting['res_x'], height=self.setting['res_y'])
+        self.set_location(self.setting['x'], self.setting['y'])
+        if abs(self.screen.width - self.setting['width']) + abs(self.screen.height - self.setting['height']) < 80:
+            self.maximize()
         self.dt = 0
         self.fps = 1 / 44.0
-        self.set_location(self.setting['x'], self.setting['y'])
         self.init_other()
         self.monologue = Textbox(40, 40)
 
@@ -57,11 +61,12 @@ class Execute(pyglet.window.Window):
         Global.menu = MenuAll()
         Global.world = World()
         Global.player = Game()
+        Global.DISPLAY = (self.setting['width'], self.setting['height'])  # Menu position fix
         Global.player.initialize()
 
     def set_fullscreen(self, fullscreen=True, screen=None, mode=None,
                        width=None, height=None):
-        super().set_fullscreen(fullscreen, width=Global.main.setting['res_x'], height=Global.main.setting['res_y'])
+        super().set_fullscreen(fullscreen, width=width, height=height)
         self.set_location(0, 0)
         self.clear()
 
@@ -139,6 +144,7 @@ class Execute(pyglet.window.Window):
 
     def quit(self):
         Global.player.control.output('exit')
+        Global.world.save()
         Global.player.save()
         self.on_close()
 

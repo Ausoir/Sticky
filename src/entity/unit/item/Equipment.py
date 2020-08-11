@@ -1,27 +1,7 @@
 from src.entity.unit.item.Item import Item
-from src.tools.Dialog import Dialog
 
 
 class Equipment(Item):
-    def describe(self):
-        r = super().describe()
-        stat = self.tags.get('cov')
-        if stat:
-            r += '\n' + Dialog.get('equipment_cov', [min(100, stat)])
-        stat = self.tags.get('sth')
-        if stat:
-            r += '\n' + Dialog.get('equipment_sth', [Dialog.sign(stat)])
-        space = self.tags.get('space', 0)
-        if space > 0:
-            r += '\n' + Dialog.get('equipment_inv', [Dialog.weight(space)])
-        defense = self.tags.get('DEF', 0)
-        if defense:
-            r += '\n' + Dialog.get('equipment_def', [Dialog.sign(defense)])
-        skill = self.tags.get('skill')
-        if skill:
-            r += '\n' + Dialog.get('equipment_skill', [skill.title()])
-        return r
-
     def use(self):
         self.wear()
 
@@ -40,11 +20,6 @@ class Equipment(Item):
         self.host = host
         self.host.face(self.host.direction)
 
-    def remove(self):
-        if self.host:
-            self.unwear()
-        super().remove()
-
     def unwear(self):
         self.show(True)
         self.on_unwear()
@@ -53,10 +28,19 @@ class Equipment(Item):
 
     def on_wear(self):
         self.location.sound.register(self.pos, 3, file='wear')
-        self.host.tags.sync('DEF', self.tags.get('DEF'))
+        self.host.tags.sync('str', self.tags.get('str'))
+        self.host.tags.sync('def', self.tags.get('DEF'))
         self.host.tags.sync('sth', self.tags.get('sth'))
+        self.host.tags.sync('sth', self.tags.get('sth'))
+        self.host.tags.sync('spd', self.tags.get('spd'))
+        self.host.tags.sync('P', self.tags.get('end'))
+        self.host.tags.sync('p', self.tags.get('end'))
 
     def on_unwear(self):
         self.location.sound.register(self.pos, 3, file='wear')
-        self.host.tags.sync('DEF', self.tags.get('DEF'), ratio=-1)
+        self.host.tags.sync('str', self.tags.get('str'), ratio=-1)
+        self.host.tags.sync('def', self.tags.get('DEF'), ratio=-1)
         self.host.tags.sync('sth', self.tags.get('sth'), ratio=-1)
+        self.host.tags.sync('spd', self.tags.get('spd'), ratio=-1)
+        self.host.tags.sync('P', self.tags.get('end'), ratio=-1)
+        self.host.tags.sync('p', self.tags.get('end'), ratio=-1)

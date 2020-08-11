@@ -7,7 +7,7 @@ from src.game.Turn import Turn
 
 class Particle(Image):
     @classmethod
-    def make(cls, arg, pos, glow=-1, lifetime=6, offset=16, direction=4):
+    def make(cls, arg, pos, glow=-1, lifetime=6, offset=0, direction=4):
         r = cls(pos.location)
         r.name = arg
         r.set_form(arg)
@@ -46,9 +46,22 @@ class Particle(Image):
         else:
             self.lifetime -= 1
 
+    def relocate(self, to=None, x=None, y=None, force=False):
+        if to is None:
+            to = self.pos.location.get_tile(x, y, limit=True)
+        if force or to != self.pos:
+            self.pos.others.remove(self)
+            to.others.append(self)
+            self.pos = to
+            self.vec = to.get_center()
+            return True
+
     def set_form(self, arg):
         super().set_form(arg)
         self.form.z = 800
+
+    def bound(self, arg):
+        pass
 
     def update(self):
         bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)

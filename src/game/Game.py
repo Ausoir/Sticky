@@ -1,6 +1,7 @@
 from src.game import Global
 from src.game.Camera import Camera
 from src.game.Editor import Editor
+from src.game.Mercenary import Mercenary
 from src.game.Script import Script
 from src.game.Turn import Turn
 from src.map.World import World
@@ -29,33 +30,62 @@ class Game:
         Turn.frame = self.tags.get('frame')
         self.player_mode = 1
         self.character = None
-        self.temporary = data[1]
+        self.temporary = data
+        self.npc = Mercenary()
 
     def initialize(self):
         if not self.tags.get('seed'):
             self.tags.set('seed', Global.r.rand_int(0, 99999))
         Global.world.set_seed(self.tags.get('seed'))
-        if not self.tags.get('coord_x') or not self.tags.get('coord_y'):
+        is_new = False
+        if not self.tags.get('c_x') or not self.tags.get('c_y'):
+            is_new = True
             spawns = []
             count = 0
             while not spawns:
                 spawns = self.get_biomes(count)
                 count += 1
             data3 = Global.r.rand_list(spawns)
-            self.tags.set('coord_x', data3[2])
-            self.tags.set('coord_y', data3[3])
+            self.tags.set('c_x', data3[2])
+            self.tags.set('c_y', data3[3])
+            self.npc.make()
             Global.world.initialize(data3[2], data3[3])
             from src.entity.Stock import Stock
-            self.character = Stock.get(Global.world.location, self.temporary[1], data=self.temporary).add()
+            self.character = Stock.get(Global.world.location, self.temporary[1][1], data=self.temporary[1]).add()
             self.character.pos.load(data3[0], data3[1])
+            class_data = Data.get_line('raw.txt', 'class')[1]
+            self.set_class(Global.r.rand_list(class_data))
         else:
-            Global.world.initialize(self.tags.get('coord_x'), self.tags.get('coord_y'))
+            self.npc.load(self.temporary[2:], self.tags.get('c_x'), self.tags.get('c_y'))
+            Global.world.initialize(self.tags.get('c_x'), self.tags.get('c_y'))
             from src.entity.Stock import Stock
-            self.character = Stock.get(Global.world.location, self.temporary[1], data=self.temporary).add()
+            self.character = Stock.get(Global.world.location, self.temporary[1][1], data=self.temporary[1]).add()
         self.temporary = self.character.sight
         self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
         self.set_player(self.character)
         self.initialize_mode()
+        bgm = []
+        Global.r_t.reset(self.tags.get('seed'))
+        for i in [1, 2, 0, 0, 3, 4, 5, 6, 0, 0, 0]:
+            if i != 0:
+                bgm.append(Global.r_t.rand_list(['k_[', 'k_1', 'k_3', 'k_o']))
+        self.character.location.sound.set_bgm(bgm, 2)
+        if is_new:
+            Script.execute_code('!birth')
+
+    def save(self):
+        if not self.character.removed:
+            self.tags.set('time', self.days)
+            self.tags.set('frame', Turn.frame)
+            chunk = Global.world.get_camera_pos(self.character.pos.x, self.character.pos.y)
+            start_coord = World.get_chunk_coord(chunk)
+            self.character.pos_offset = start_coord
+            self.tags.set('c_x', Global.world.cells[chunk][0])
+            self.tags.set('c_y', Global.world.cells[chunk][1])
+            r = self.tags.__str__() + '\n'
+            r += self.character.__str__() + '\n'
+            r += self.npc.__str__()
+            Data.write('save/player.char', r)
 
     def get_biomes(self, level):
         spawns = []
@@ -65,21 +95,15 @@ class Game:
                 spawns.append(data3)
         return spawns
 
-    def travel(self, to_map, x=None, y=None):
-        if self.character.location.name != to_map:
-            self.character.location.save()
-        self.character.action.set('idle')
-        self.character.form.set_state('interact')
-        self.character.location.name = to_map
-        Global.player.save()
-        Turn.init()
-        self.character.remove()
-        Global.player = Game()
-        if x is None:
-            x = Global.player.character.location.tags.get('enterx', 0)
-        if y is None:
-            y = Global.player.character.location.tags.get('entery', 0)
-        Global.player.character.relocate(x=x, y=y, force=True)
+    def set_class(self, arg):
+        self.character.tags.set('class', arg)
+        if arg == 'avenger':
+            self.character.tags.set('revenge', Global.r.rand_list(Data.get_line('raw.txt', 'revenge')[1]))
+        elif arg == 'gourmet':
+            self.character.tags.set('favorite', Global.r.rand_list(Data.get_line('raw.txt', 'favorite')[1]))
+        elif arg == 'agent':
+            mission = Global.r.rand_list(Data.get_line('raw.txt', 'mission')[1])
+            self.character.tags.set('mission', '&'.join(mission))
 
     def set_player(self, player):
         player.tags.set('hunger', player.tags.get('hunger', 0))
@@ -89,6 +113,7 @@ class Game:
         self.player = player
         Script.var['game'] = self
         Script.var['player'] = player
+        self.set_darkness()
         return player
 
     def is_daytime(self):
@@ -96,11 +121,17 @@ class Game:
 
     def sleep(self, time, blackout=True):
         if time > 0:
-            self.character.tags.increment('hunger', 100 * time)
-            if self.is_hungry():
-                self.character.decay(time)
+            self.character.progress_level(time, mode='survive')
+            self.character.tags.increment('hunger', 1000 * time)
             self.days += time
             self.character.location.on_sleep(time)
+            if self.is_hungry():
+                self.character.decay(time)
+            self.npc.update(0, 0, force=True)
+            event = Global.r.rand_list(Data.get_line('raw.txt', 'event')[1])
+            if event:
+                Script.var['host'] = self
+                Script.execute_code(event)
         if blackout:
             Global.map_view.overlay.blackout()
         else:
@@ -112,7 +143,10 @@ class Game:
         time = self.days % 24
         Global.map_view.overlay.set_time(time)
         Global.map_view.set_sight_range(Global.SIGHT)
-        Global.map_view.set_view_range(3)
+        if self.character.get_skill('nocturnal'):
+            Global.map_view.set_view_range(Global.map_view.sight_range)
+        else:
+            Global.map_view.set_view_range(self.character.tags.get('view', 3))
 
     def input(self, command):
         if self.player:
@@ -145,11 +179,21 @@ class Game:
     def turn(self):
         if self.character.removed:
             if self.dead == 10:
-                Script.execute_code('death')
+                revive = self.character.states.get('Revive')
+                if revive:
+                    revive.end()
+                    args = [int(x) for x in revive.var.split('&')]
+                    self.character.add()
+                    Global.world.travel(args[0], args[1])
+                else:
+                    Script.execute_code('death')
             else:
                 self.dead += 1
         elif self.character.action.delay > 0:
-            self.character.tags.increment('hunger', 3)
+            self.character.tags.increment('hunger', 10)
+            if self.is_hungry():
+                self.character.form.randomize_once(3)
+        self.character.location.sound.update_bgm()
         old_x = self.character.pos.x
         old_y = self.character.pos.y
         if Global.world.recenter(self.character.pos.x, self.character.pos.y):
@@ -164,20 +208,6 @@ class Game:
 
     def on_hour_change(self):
         self.sleep(1, blackout=False)
-
-    def save(self):
-        if not self.character.removed:
-            Global.world.save()
-            self.tags.set('time', self.days)
-            self.tags.set('frame', Turn.frame)
-            chunk = Global.world.get_camera_pos(self.character.pos.x, self.character.pos.y)
-            start_coord = World.get_chunk_coord(chunk)
-            self.character.pos_offset = start_coord
-            self.tags.set('coord_x', Global.world.cells[chunk][0])
-            self.tags.set('coord_y', Global.world.cells[chunk][1])
-            r = self.tags.__str__() + '\n'
-            r += self.character.__str__() + '\n'
-            Data.write('save/player.char', r)
 
     def is_safe(self):
         for unit in self.character.get_team(ally=False):
@@ -208,7 +238,29 @@ class Game:
             return True
         Global.main.monologue.set(Dialog.get('!pay', [amount]))
 
+    def is_sociable(self):
+        count = 0
+        for i in self.character.location.population.get_team(self.character.tags.get('team', 0)):
+            if i.tags.get('ai', '') == 'ally' and i.pilot.task.target == self.character:
+                count += 1
+        if count < self.character.tags.get('cha', 0):
+            return True
+        Global.main.monologue.set(Dialog.get('!sociable', [count, self.character.tags.get('cha', 0)]))
+
     def is_bright(self):
         if self.is_daytime() or self.character.pos.light >= Turn.rounds:
             return True
         Global.main.monologue.set(Dialog.get('!bright'))
+
+    def describe_class(self):
+        persona = self.character.tags.get('class', 'classless')
+        if persona == 'avenger':
+            arg = self.character.tags.get('revenge')
+            return Dialog.get(persona, [arg])
+        elif persona == 'gourmet':
+            arg = self.character.tags.get('favorite')
+            return Dialog.get(persona, [arg])
+        elif persona == 'agent':
+            arg = ', '.join(self.character.tags.get('mission').split('&'))
+            return Dialog.get(persona, [arg])
+        return Dialog.get(persona)

@@ -1,4 +1,4 @@
-0,-12
-[[14,0],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[2,7],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[2,8],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[2,9],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[0,10],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[1,10],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[2,10],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]]
-*.raaaraaaraaar%*.raaaraaaraaar%*.raaaraaaraaar%*.raaaaaaaaaaar%*.raaaaaaaaaaar%*.raaaaaaaaaaar%*.rrrrrrrrraaar%*.........raaar%..........raaar%..........raaar%..........raaar%..........raaar%..........raaar%..........rrrrr%ccccccccccccccc
-001111111111111%001111111111111%001111111111111%001111111111111%001111111111111%001111111111111%001111111111111%000000000011111%000000000011111%000000000011111%000000000011111%000000000011111%000000000011111%000000000011111%000000000000000
+-24
+[[0,10],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[1,10],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[2,10],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[8,12],Signpost,Prop,g_0x3,[p:4,ob:4,#:read,read:To East Gate],[]]
+.**.*.raraaar%.**.*.rarrrar%.**.*.rrraaar%.**.*.raaaraa%.**.*.rarrrrr%.**.*.raaaraa%.**.*.rrrarrr%........raaaa%........rrraa%..........raM%...^^^....raa%...^.^^^^^raa%..........rrr
+0000001111111%0000001111111%0000001111111%0000001111111%0000001111111%0000001111111%0000001111111%0000000011111%0000000011111%0000000000111%0000000000111%0000000000111%0000000000111

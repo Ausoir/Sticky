@@ -10,16 +10,38 @@ class ScriptManual:
         getattr(ScriptManual, arg)(host, var)
 
     @staticmethod
-    def push(host, var):
+    def swap(host, var):
         def fn():
-            front = var.pos.get_cardinal(var.direction, 1)
-            if host in front.things:
-                old = host.pos
-                host.relocate(to=var.pos)
-                var.action.move(old)
+            front = var.pos.get_cardinal(var.direction)
+            from src.entity.unit.Unit import Unit
+            for i in front.things:
+                if isinstance(i, Unit) and i.tags.get('team') == var.tags.get('team'):
+                    old = i.pos
+                    i.relocate(to=var.pos)
+                    var.action.move(old)
         if var.action.delay == 0:
-            var.action.act('interact', 4)
+            var.action.act('interact', 1)
             var.action.on_finish = fn
+
+    @staticmethod
+    def ally(host, var):
+        if Global.player.is_sociable():
+            var.tags.set('team', Global.player.character.tags.get('team', 0))
+            pos = Global.player.character.pos - var.pos
+            var.tags.set('tgt', 'x' + str(pos.x) + 'y' + str(pos.y))
+            var.pilot.load('ally')
+            var.tags.set('#', '>menu>order')
+
+    @staticmethod
+    def repair(host, var):
+        from src.entity.unit.Humanoid import Humanoid
+        if isinstance(Global.player.character, Humanoid):
+            for i in [Global.player.character.armor, Global.player.character.headgear, Global.player.character.weapon]:
+                if i:
+                    full = i.tags.get('P')
+                    if full:
+                        i.tags.set('p', full)
+        Global.main.monologue.set(Dialog.get('repair'))
 
     @staticmethod
     def alchemy(host, var):
@@ -113,7 +135,7 @@ class ScriptManual:
                 if not var.tags.get('jewel'):
                     require.append('<' + Dialog.get('Jewel') + '>')
                 if not var.tags.get('spell'):
-                    require.append('<' + Dialog.get('Potion') + '>')
+                    require.append('<' + Dialog.get('Spell') + '>')
                 Global.menu.get_message(Dialog.get('req_item', [','.join(require)]))()
         else:
             Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Carving')]))()
@@ -130,47 +152,92 @@ class ScriptManual:
 
     @staticmethod
     def shapeshift(host, var, data=None):
-        if not host.tags.get('silver'):
+        from src.entity.unit.Unit import Unit
+        if not host.tags.get('silver') and isinstance(host, Unit):
             from src.entity.Stock import Stock
             if data:
                 unit = Stock.get(host.location, var, data=data)
                 unit.add()
             else:
                 unit = Stock.make(var, host.pos)
-            unit.tags.remove('ai')
-            old_host = host
-            for i in host.states.buffs:
-                i.host = unit
-            unit.states = old_host.states
-            unit.skills = old_host.skills
-            unit.face(old_host.direction)
-            from src.entity.unit.Buffs import Buffs
-            old_host.states = Buffs(old_host)
-            old_host.remove()
-            if old_host == Global.player.character:
-                Global.player.set_player(unit)
-            host.location.sound.register(host.pos, 8, file='void')
-            return unit
+            if isinstance(unit, Unit):
+                old_host = host
+                if old_host == Global.player.character:
+                    unit.tags.remove('ai')
+                for i in host.states.buffs:
+                    i.host = unit
+                unit.states = old_host.states
+                unit.states.host = unit
+                unit.states.on_add()
+                unit.face(old_host.direction)
+                old_host.remove()
+                if old_host == Global.player.character:
+                    Global.player.set_player(unit)
+                host.location.sound.register(host.pos, 8, file='void')
+                return unit
         else:
             from src.entity.Particle import Particle
             Particle.make('sonic', host.pos)
+
+    @staticmethod
+    def observe(host, var):
+        if Global.player.days - host.tags.get('observe', -12) >= 12:
+            front = host.pos.get_cardinal(host.direction)
+            for i in front.things:
+                from src.entity.unit.Unit import Unit
+                if isinstance(i, Unit):
+                    host.tags.set('observe', Global.player.days)
+                    exp = i.get_level() - host.get_level()
+                    Global.menu.get_message(i.describe() + '\n' + Dialog.get('observe', [max(0, exp)]))(0)
+                    host.progress_level(exp, mode='observe')
 
     @staticmethod
     def reclaim(host, var):
         x = host.tags.get('tox')
         y = host.tags.get('toy')
         Global.world.travel(x, y)
+        candidates = []
         from src.entity.unit.Unit import Unit
-        for i in host.pos.things:
-            if i != host and isinstance(i, Unit):
-                host.remove()
-                Global.player.set_player(i)
-                break
+        for i in host.location.population.get_units():
+            if i != host and isinstance(i, Unit) and i.tags.get('husk'):
+                candidates.append(i)
+        closest = None
+        for i in candidates:
+            diff = (i.pos - host.pos).difference()
+            if not closest or diff < (closest - host.pos).difference():
+                closest = i.pos
+        if closest:
+            for i in closest.things:
+                if i != host and isinstance(i, Unit) and i.tags.remove('husk'):
+                    host.remove()
+                    Global.player.set_player(i)
+                    break
+            Global.player.sleep(0)
 
     @staticmethod
-    def test(host, var):
-        var_x = 0
-        var_y = 0
-        for i in range(10):
-            Global.world.travel(var_x, var_y)
-            var_x += 30
+    def raid(host, var):
+        direction = Global.r.rand_int(0, 3)
+        from src.tools.Data import Data
+        for i in range(24):
+            enemy = Global.r.rand_list(Data.get_line('habitat.txt', var)[1])
+            if enemy:
+                host_pos = Global.player.character.pos
+                distance = 9
+                if direction == 0:
+                    from_x = host_pos.x - distance - Global.r.rand_int(0, 3)
+                    from_y = host_pos.y + Global.r.rand_int(-distance, distance)
+                elif direction == 1:
+                    from_x = host_pos.x + Global.r.rand_int(-distance, distance)
+                    from_y = host_pos.y - distance - Global.r.rand_int(0, 3)
+                elif direction == 2:
+                    from_x = host_pos.x + distance + Global.r.rand_int(0, 3)
+                    from_y = host_pos.y + Global.r.rand_int(-distance, distance)
+                else:
+                    from_x = host_pos.x + Global.r.rand_int(-distance, distance)
+                    from_y = host_pos.y + distance + Global.r.rand_int(0, 3)
+                tile = Global.player.character.location.get_tile(from_x, from_y)
+                if tile and tile.get_solidity() == 0:
+                    from src.entity.Stock import Stock
+                    enemy = Stock.make(enemy, tile)
+                    enemy.pilot.set_task(enemy.pilot.attack)
+                    enemy.pilot.task.target = Global.player.character

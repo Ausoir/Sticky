@@ -22,6 +22,9 @@ class Editor:
         self.prev_command = None
         self.selection = None
         Global.map_view.overlay.clear()
+        for i in Global.world.location.population.get_all():
+            if i.states.get('Invisible'):
+                i.show(True)
 
     def update(self):
         self.control.turn()
@@ -171,7 +174,9 @@ class Editor:
         self.prev_command = Global.main.monologue.document.text
         params = Global.main.monologue.document.text.split(',')
         arg1 = ' '.join(params[1:])
-        if params[0] == 'set':
+        if params[0] == 'to':
+            Global.world.travel(int(params[1]) * Global.world.CHUNK, int(params[2]) * Global.world.CHUNK)
+        elif params[0] == 'set':
             if isinstance(self.tool, ToolObject):
                 if self.tool.selection.name == 'Scripter':
                     script = Data.process_raw(params[1])
@@ -187,9 +192,22 @@ class Editor:
                     if i[0] == params[1]:
                         self.tool.select(i[0])
                         return
+        elif params[0] in ['tp', 'gate']:
+            self.tool.cancel()
+            self.tool = ToolObject('miscellaneous')
+            if params[0] == 'tp':
+                self.tool.select('Teleport')
+            else:
+                self.tool.select('Gate')
+            to = Global.world.get_tile_true_pos(self.control.cursor_tile[0], self.control.cursor_tile[1])
+            self.tool.selection.tags.set('tox', to[0])
+            self.tool.selection.tags.set('toy', to[1])
         elif params[0] == 'tag':
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.tags.set(params[1], Data.parse(params[2])[0])
+        elif params[0] == 'deltag':
+            if isinstance(self.tool, ToolObject):
+                self.tool.selection.tags.remove(params[1])
         elif params[0] == 'image':
             if isinstance(self.tool, ToolObject):
                 self.tool.selection.set_form(arg1)
@@ -206,30 +224,6 @@ class Editor:
             Global.world.location.process_terrain()
         elif params[0] == 'resize':
             Global.world.location.resize(int(params[1]), int(params[2]))
-        elif params[0] == 'new':
-            from src.map.Location import Location
-            tiles = ''
-            for y in range(int(params[2])):
-                for x in range(int(params[3])):
-                    tiles += '.'
-                tiles += '%'
-            new = Location(params[1], Data.process_raw('[]\n' + tiles[:-1] + '\n'))
-            Global.world.location = new
-            Global.player.save()
-            Global.player.switch()
-            Global.player.travel(params[1])
-            Global.player.switch()
-        elif params[0] == 'load':
-            maps = Data.get_files('save', lambda l: l.endswith('.map'))
-            if arg1 + '.map' in maps:
-                Global.player.switch()
-                Global.player.travel(arg1)
-                Global.player.switch()
-        elif params[0] == 'loadraw':
-            if Data.is_file('data/map/' + params[1] + '.map'):
-                Global.player.switch()
-                Global.player.travel('../data/map/' + params[1])
-                Global.player.switch()
         elif params[0] == 'script':
             Global.player.switch()
             from src.game.Script import Script
@@ -240,6 +234,7 @@ class Editor:
             Script.execute_string(Data.process_raw('1,[],[' + params[1] + '],[]'))
         elif params[0] == 'save':
             self.tool.cancel()
+            Global.world.save()
             Global.player.save()
             self.display_text = 'saved to ' + arg1
         elif params[0] == 'time':
@@ -304,7 +299,7 @@ class ToolTerrain(Tool):
         Global.world.location.process_terrain()
 
     def fill_recurse(self, tile, target):
-        if tile and tile.index != self.terrain and tile.index == target and tile.in_sight:
+        if tile and tile.index != self.terrain and tile.index == target and tile.is_seen():
             tile.set_index(self.terrain)
             self.fill_recurse(tile.get_neighbor(1, 0), target)
             self.fill_recurse(tile.get_neighbor(-1, 0), target)
@@ -331,7 +326,7 @@ class ToolRoof(Tool):
         Global.world.location.process_terrain()
 
     def fill_recurse(self, tile, target):
-        if tile and tile.roof == target and tile.in_sight:
+        if tile and tile.roof == target and tile.is_seen():
             if tile.roof == 1:
                 tile.roof = 0
             else:

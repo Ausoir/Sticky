@@ -42,7 +42,7 @@ class Inventory:
             from src.game import Global
             if self.host == Global.player.character:
                 from src.tools.Dialog import Dialog
-                params = [self.host.get_equipment_weight(), self.host.get_capacity(), item.get_weight()]
+                params = [self.host.get_equipment_weight(), self.host.tags.get('str', 1), item.get_weight()]
                 Global.main.monologue.set(Dialog.get('!heavy', params))
 
     def add_item(self, item, insert=False):
@@ -93,15 +93,16 @@ class Inventory:
     def take_item(self, item_index):
         if 0 <= item_index < len(self.items):
             item = self.get_item(item_index)
-            self.items.remove(item)
-            item.pos = self.host.pos
-            item.on_unwield()
-            return item.add()
+            if item:
+                self.items.remove(item)
+                item.pos = self.host.pos
+                item.on_unwield()
+                return item.add()
 
     def find_weapon(self):
         for i in self.get_range():
             item = self.get_item(i)
-            if item.tags.get('dmg', 0) > 0 or item.tags.get('DMG', 0) > 0:
+            if item.tags.get('dmg'):
                 return i
 
     def update_capacity(self):
@@ -115,6 +116,3 @@ class Inventory:
             item = self.take_item(0)
             item.host = self.host
             item.on_unwield()
-
-    def prioritize(self, index):
-        self.items[0], self.items[index] = self.items[index], self.items[0]

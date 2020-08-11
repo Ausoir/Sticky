@@ -10,7 +10,6 @@ class Object(Image):
         super().__init__()
         self.location = location
         self.class_name = None
-        self.destination = None
         self.pos = None
         self.pos_offset = (0, 0)
         self.save = True
@@ -27,7 +26,6 @@ class Object(Image):
         if isinstance(p[index][0], list):
             p[index] = p[index][0]
         self.pos = self.location.get_tile(p[index][0], p[index][1], limit=True)
-        self.destination = self.pos
         index += 1
         self.name = p[index]
         index += 1
@@ -59,7 +57,7 @@ class Object(Image):
         self.form.z = row * 20 + 100
 
     def update(self):
-        diff = self.destination.get_center() - self.vec
+        diff = self.pos.get_center() - self.vec
         self.vec += diff * .2
         super().update()
 
@@ -72,17 +70,12 @@ class Object(Image):
     def trigger(self):
         pass
 
-    def relocate(self, to=None, x=None, y=None, force=False, adjust=False):
+    def relocate(self, to=None, x=None, y=None, force=False):
         if to is None:
             to = self.location.get_tile(x, y, limit=True)
         if force or to != self.pos:
             self.pos.things.remove(self)
             to.things.append(self)
-            if adjust and self.destination:
-                diff = self.destination - self.pos
-                self.destination = to.get_neighbor(diff.x, diff.y)
-            else:
-                self.destination = to
             self.pos = to
             if force:
                 self.update_vec()
@@ -105,8 +98,6 @@ class Object(Image):
         moved = self.pos != new_pos
         if moved:
             self.relocate(to=new_pos)
-        else:
-            self.destination = self.pos
         return moved
 
     def update_vec(self):

@@ -42,7 +42,7 @@ class Scripter(Prop):
 
     def on_sleep(self, time):
         super().on_sleep(time)
-        if time > 0 and self.tags.get('trigger') == 'time':
+        if self.tags.get('trigger') == 'time' and time >= self.tags.get('time'):
             self.script.run()
 
     def turn(self):
@@ -65,7 +65,7 @@ class Force(Prop):
         self.removed = 1
         del self
 
-    def relocate(self, to=None, x=None, y=None, force=0, adjust=False):
+    def relocate(self, to=None, x=None, y=None, force=0):
         if to is None:
             to = self.location.get_tile(x, y, limit=True)
         self.pos = to
@@ -119,24 +119,6 @@ class Door(Prop):
                     self.obstruct_type = self.orig_obstruct_type
 
 
-class Container(Prop):
-    def __init__(self, location):
-        super().__init__(location)
-        from src.entity.unit.Inventory import Inventory
-        self.inventory = Inventory(self)
-
-    def __str__(self):
-        return super().__str__() + ',' + self.inventory.__str__()
-
-    def load(self, arg):
-        index = super().load(arg)
-        self.inventory.load(arg[index])
-        return index + 1
-
-    def is_vacant(self, weight):
-        return self.tags.get('space', 0) >= self.inventory.get_weight() + weight
-
-
 class Specie(Item):
     def load(self, arg):
         r = super().load(arg)
@@ -160,11 +142,11 @@ class Specie(Item):
             super().set_form(arg)
 
     def get_display_name(self):
-        cue = Data.get_line('raw.txt', 'cue')[1]
+        cue = Data.get_line('raw.txt', 'plant_cue')[1]
         return cue[self.get_seed() % len(cue)].title() + ' ' + self.name
 
-    def get_description(self):
-        r = super().get_description()
+    def describe(self):
+        r = super().describe()
         if Global.player.character.get_skill('alchemy'):
             r += '\n' + Dialog.get('Density') + ': ' + str(self.get_seed() % 100)
         return r
@@ -194,6 +176,17 @@ class Marker(Prop):
                 if tile_marker.name == 'Marker':
                     return True
         return False
+
+    def add(self):
+        if super().add():
+            from src.game.Turn import Turn
+            Turn.add(self.turn)
+            return self
+
+    def remove(self):
+        if super().remove():
+            from src.game.Turn import Turn
+            Turn.remove(self.turn)
 
     def connect_connect(self):
         for i in Global.cardinal_coord:
@@ -264,37 +257,48 @@ class Marker(Prop):
         glow = self.states.get('Glow')
         if not glow:
             if self.pos.light_source > 0:
-                self.states.add('Glow', 7, 4)
+                self.states.add('Glow', 7, 5)
         elif glow.duration == 1:
+            if self.tags.increment('stress', 1) > 12:
+                self.tags.increment('fuel', 1)
+                self.states.add('Burn', 12)
             routes = self.get_routes()
             for tile in routes:
                 interrupt = True
                 for thing in tile.things.copy():
                     if isinstance(thing, Marker) and len(tile.things) == 1:
-                        if len(thing.states.buffs) == 0:
-                            Particle.make('fire', tile)
-                            thing.states.add('Glow', 1, glow.var - thing.tags.get('ohm', 0))
-                        elif glow.var >= 8:
+                        Particle.make('fire', tile)
+                        thing.states.add('Glow', 1, glow.var - thing.tags.get('ohm', 0))
+                        if glow.var >= 12 and len(thing.states.buffs) > 0:
                             thing_glow = thing.states.get('Glow')
                             if thing_glow:
-                                power = abs(thing_glow.var - glow.var)
-                                self.tags.set('fuel', power)
+                                self.echo(1)
                                 self.states.add('Burn', 12)
                                 Particle.make('portal', self.pos)
-                                self.cast(glow.var, power + 1)
+                                self.cast()
                                 thing.remove()
                                 self.remove()
                         interrupt = False
                 if interrupt:
                     self.states.add('Burn', 12)
 
-    def cast(self, intensity, collision):
+    def echo(self, val):
+        self.tags.set('hold', val)
+        routes = self.get_routes()
+        for tile in routes:
+            for thing in tile.things.copy():
+                if isinstance(thing, Marker) and not thing.tags.get('hold'):
+                    thing.echo(val + 1)
+                    Particle.make('explode', thing.pos, glow=1, offset=4)
+                    thing.remove()
+
+    def cast(self):
         data = Data.get_line('raw.txt', 'portals')[1]
         from src.entity.unit.item.Spell import Spell
-        category = data[max(0, len(data) - collision)]
-        seed = self.get_seed() * self.tags.get('way', 0)
-        Spell.get(category[seed % len(category)], power=intensity * 6).cast_on(Global.player.character)
-        # print('spell ' + category[seed % len(category)] + ' intensity ' + str(intensity * 6))
+        world_seed = Global.player.tags.get('seed') + ord(self.pos.get_icon())
+        spell = data[world_seed % len(data)]
+        Spell.get(spell, power=100).cast_on(self)
+        # print('spell ' + spell)
 
 
 class Food(Item):
@@ -313,17 +317,20 @@ class Food(Item):
 
     def describe(self):
         r = super().describe()
-        r += '\n' + Dialog.get('Nutrition') + ': ' + str(self.tags.get('hunger', 0)) + '%'
+        r += '\n' + Dialog.get('Nutrition') + ': ' + str(int(self.tags.get('hunger', 0) / 100)) + '%'
         expire = self.get_expiration()
-        if expire:
+        if expire > 0:
             r += '\n' + Dialog.get('food_expire', [Dialog.hours(expire)])
-        else:
+        elif expire == 0:
             r += '\n' + Dialog.get('food_expired')
         return r
 
     def get_expiration(self):
-        left = max(0, self.tags.get('time', 0) - Global.player.days)
-        return left
+        time = self.tags.get('time')
+        if time is not None:
+            left = max(0, time - Global.player.days)
+            return left
+        return -1
 
     def use(self):
         if self.get_expiration():
@@ -340,9 +347,10 @@ class Food(Item):
     def eat(self):
         for i in self.states.buffs:
             self.host.states.add(i.name, i.duration, i.var)
-        nutrition = -(self.tags.get('hunger', 0) + self.host.get_skill('asceticism', stacks=True))
+        nutrition = -self.tags.get('hunger', 0)
         self.location.sound.register(self.pos, 0, file='eat')
         self.host.tags.increment('hunger', nutrition)
+        self.host.progress_level(self.tags.get('$', 1) - 1, mode='eat')
         self.decay(1)
         return nutrition
 
@@ -378,8 +386,8 @@ class Corpse(Prop):
         dead = 'dead'
         self.form.randomize_clip(dead, 8)
         self.form.set_state(dead)
+        self.form.show(True)
         self.form.set_state = self.invalid
-        self.show(True)
         return self
 
     def update(self):
@@ -399,6 +407,12 @@ class Corpse(Prop):
     def die(self):
         self.remove()
 
+    def on_sleep(self, time):
+        if time >= 12:
+            from src.entity.Stock import Stock
+            Stock.make('Skull', self.pos)
+            self.remove()
+
 
 class Manual(Item):
     def __init__(self, location):
@@ -412,8 +426,7 @@ class Manual(Item):
         index = super().load(arg)
         self.skill = arg[index]
         if not self.skill:
-            data = [x[0] for x in Data.get_line('raw.txt', 'stacking skill')[1]]
-            data += Data.get_line('raw.txt', 'unique skill')[1]
+            data = Data.get_line('raw.txt', 'skill')[1]
             self.skill = Global.r.rand_list(data)
         return index + 1
 
@@ -433,15 +446,19 @@ class Manual(Item):
             self.host.action.on_finish = self.learn
 
     def learn(self):
-        if self.host:
+        if self.host and self.host == Global.player.character:
             skill = self.skill.lower()
             if skill not in self.host.skills:
-                if Global.player.is_bright() and Global.player.sleep(1):
-                    Global.main.monologue.set(Dialog.get('learn', [self.skill]))
-                    self.host.skills.append(skill)
-                    self.die()
-            elif self.host == Global.player.character:
-                Global.main.monologue.set(Dialog.get('!learn', [self.skill]))
+                intelligence = self.host.tags.get('int', 0)
+                if intelligence > len(self.host.skills):
+                    if Global.player.is_bright() and Global.player.sleep(1):
+                        Global.main.monologue.set(Dialog.get('learn', [self.skill]))
+                        self.host.skills.append(skill)
+                        self.die()
+                else:
+                    Global.main.monologue.set(Dialog.get('!learn_int', [intelligence, len(self.host.skills)]))
+            else:
+                Global.main.monologue.set(Dialog.get('!learn_full', [self.skill]))
 
 
 class Potion(Food):
@@ -512,14 +529,13 @@ class Phantom(Unit):
         return index + 1
 
     def set_host(self, host):
+        host.deregister()
         self.host = host
         self.tags.sync('spd', self.host.tags.get('spd'))
         self.tags.sync('dmg', self.host.tags.get('dmg'))
-        self.tags.sync('DMG', self.host.tags.get('DMG'))
         self.tags.sync('def', self.host.tags.get('def'))
-        self.tags.sync('DEF', self.host.tags.get('DEF'))
-        self.tags.set('p', self.host.tags.get('p', 1))
-        self.tags.set('P', self.host.tags.get('P', 1))
+        self.tags.set('p', self.host.tags.get('p', 4))
+        self.tags.set('P', self.host.tags.get('P', 4))
         loot = self.host.tags.remove('loot')
         if loot:
             self.tags.set('loot', loot)
@@ -545,10 +561,6 @@ class Phantom(Unit):
 
 class Ghost(Unit):
     def use(self):
-        pass
-
-    def move_line(self, to, flag=None):
-        moved = super().move_line(to, flag)
         if self == Global.player.character:
             for i in self.pos.things:
                 if i != self and isinstance(i, Unit) and i.pilot.priority > 3:
@@ -556,7 +568,6 @@ class Ghost(Unit):
                     Global.player.set_player(i)
                     i.center_camera()
                     break
-        return moved
 
 
 class Pickaxe(Item):
@@ -585,3 +596,9 @@ class Pickaxe(Item):
 class Ceiling(Prop):
     def set_row(self, row):
         self.form.z = row * 20 + 200
+
+
+class Barrel(Prop):
+    def die(self):
+        super().die()
+        self.pos.set_terrain('~')

@@ -127,11 +127,13 @@ class Dialog:
         if tile.get_yield() <= -10:
             r += '\n' + Dialog.get('terrain wall')
         elif speed != 0:
-            r += '\n' + Dialog.get('terrain speed', [str(speed)])
+            r += '\n' + Dialog.get('terrain speed', [speed])
         if tile.light > 0:
             r += '\n' + Dialog.get('terrain lit')
         if tile.roof > 0:
             r += '\n' + Dialog.get('terrain roof')
+        if tile.get_hardness() > 0:
+            r += '\n' + Dialog.get('Hardness') + ': ' + str(tile.get_hardness())
         return r
 
     @staticmethod
@@ -155,6 +157,6 @@ class Dialog:
             if max_hp:
                 return Dialog.get('Durability') + ': ' + str(hp) + '/' + str(max_hp)
             else:
-                return Dialog.get('Durability') + ': ' + str(hp) + ' (' + Dialog.get('!repair') + ')'
+                return Dialog.get('Durability') + ': ' + str(hp) + ' (' + Dialog.get('Unrepairable') + ')'
         else:
-            return Dialog.get('!durability')
+            return Dialog.get('Indestructible')

@@ -1,0 +1,4 @@
+-24
+[[10,4],Teleport,Scripter,g_4x0,[ob:0,trigger:always,tox:328,toy:185],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]],[[11,4],Manhole,Prop,g_26x3,[ob:0],[]],[[0,11],Skull,Prop,g_7x5,[p:1,ob:0,zombie:2],[]],[[2,11],Stalagmite,Prop,g_5x5,[p:1,def:1,ob:4],[]]
+~~~~~~~~RRRRR%~~~~~~~RRRRRR%~~~~~~RRRRRRR%~~~~~~RRRRRRR%~~~~~RRRRR..R%RRRRRRRRRR.RR%RRRRRRRR....R%RRRRRRR...RRR%RRRRRR.....RR%RRRRR=...R.RR%.R...R.R.RRRR%........R=RRR%.........RRRR
+0000000000000%0000000000000%0000000000000%0000000001111%0000000011111%0000000111111%0000001111111%0000001111111%1111111111111%1111111111110%1111111111110%1111111111100%1111111111100

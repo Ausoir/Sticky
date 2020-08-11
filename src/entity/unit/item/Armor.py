@@ -7,13 +7,10 @@ class Armor(Equipment):
         self.form_name = arg
         self.form = Data.get_form(arg, form='Armor')
 
-    def die(self):
-        if self.host:
-            self.host.unarmor()
-        super().die()
-
-    def get_value(self):
-        return super().get_value() + self.tags.get('def', 0) + self.tags.get('space', 0)
+    def remove(self):
+        if self.host and self.host.armor == self:
+            self.unwear()
+        super().remove()
 
     def wear(self, start=False):
         if self.host.armor:

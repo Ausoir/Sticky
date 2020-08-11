@@ -2,7 +2,7 @@ ESCAPE,#exit
 F11,fullscreen
 GRAVE,switch
 TAB,#menu
-P,##test
+P,#test
 LMB,click
 RMB,#>menu>examine
 A,left
@@ -13,12 +13,12 @@ LEFT,left2
 UP,up2
 RIGHT,right2
 DOWN,down2
-ENTER,#>menu>examine
+ENTER,#examine
 SPACE,use
 Q,grab
 R,sheathe
-_1,ability
-_2,ability2
+E,ability
 Z,#equipment
 X,#inventory
 C,#skill
+END,#suicide

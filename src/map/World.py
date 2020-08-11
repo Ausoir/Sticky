@@ -6,11 +6,11 @@ from src.tools.Data import Data
 
 
 class World:
-    CHUNK = 15
+    CHUNK = 13
     DEFAULT = [[-1, -1], [0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]
     ALL = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     BIOME = None
-    SEASON = 720
+    SEASON = 360
 
     @staticmethod
     def coord_to_map_name(coord):
@@ -29,7 +29,6 @@ class World:
         self.last_cells = self.cells
         self.dirty = []
         self.map_biome = None
-        self.last_spawn = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def set_seed(self, seed):
         self.map_biome = Biome(seed)
@@ -39,7 +38,8 @@ class World:
         self.load_bubble(World.ALL)
 
     def save(self):
-        self.save_cell(World.ALL)
+        if not Global.player.character.removed:
+            self.save_cell(World.ALL)
 
     def save_cell(self, cells, remove=False):
         for cell_num in cells:
@@ -47,6 +47,8 @@ class World:
             cell_objects = []
             cell_roofs = []
             start_coord = World.get_chunk_coord(cell_num)
+            if remove:
+                Global.player.npc.update(self.cells[cell_num][0], self.cells[cell_num][1])
             is_blank = True
             remove_objs = []
             for y, row in enumerate(range(start_coord[1], start_coord[1] + World.CHUNK)):
@@ -64,7 +66,7 @@ class World:
                         if thing.save:
                             thing.pos_offset = start_coord
                             cell_objects.append('[' + thing.__str__() + ']')
-                        remove_objs.append(thing)
+                            remove_objs.append(thing)
                 cell_tiles.append(tile_row)
                 cell_roofs.append(roof_row)
             if remove:
@@ -73,9 +75,9 @@ class World:
             if is_blank:
                 continue
             if Global.player.player_mode == 0:
-                line_1 = '0,0'
+                line_1 = '0'
             else:
-                line_1 = str(Global.player.days) + ',' + str(self.last_spawn[cell_num])
+                line_1 = str(Global.player.days)
             line_2 = ','.join(cell_objects)
             line_3 = '%'.join(cell_tiles)
             line_4 = '%'.join(cell_roofs)
@@ -106,8 +108,9 @@ class World:
                     time_passed = max(0, time - int(map_data[0][0]))
                 else:
                     map_data = Data.process_raw(Data.read(map_data_name))
-                    time_passed = 24
-                self.last_spawn[cell_num] = map_data[0][1]
+                    time_passed = 8
+                if Global.player.player_mode == 0:
+                    time_passed = 0
                 terrains = map_data[2][0].split('%')
                 roofs = map_data[3][0].split('%')
                 for y, row in enumerate(range(start_coord[1], start_coord[1] + World.CHUNK)):
@@ -118,33 +121,30 @@ class World:
                         tile.light_source = 0
                         tile.light = 0
                         obj += tile.things
-                renew = Global.player.days - self.last_spawn[cell_num] >= 12
-                renew = False
+                        obj += tile.others
                 if cell_num in added:
-                    added_props = []
+                    renew = time_passed >= 8
+                    renew = False
+                    obj += Global.player.npc.spawn(cell_coord[0], cell_coord[1], start_coord[0], start_coord[1])
                     for i in map_data[1]:
                         prop = Stock.get(self.location, i[2], i)
                         if not renew or prop.get_value() <= 1:
-                            prop.relocate(x=prop.pos.x + start_coord[0], y=prop.pos.y + start_coord[1], force=True)
+                            prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
                             prop.add()
-                            added_props.append(prop)
+                            prop.on_sleep(time_passed)
                     if renew:
-                        self.last_spawn[cell_num] = int(Global.player.days / 12) * 12
                         savageness = self.get_biome(cell_coord[0], cell_coord[1])
-                        for times in range(20 + savageness * 5):
-                            x = Global.r.rand_int(start_coord[0], start_coord[0] + World.CHUNK)
-                            y = Global.r.rand_int(start_coord[1], start_coord[1] + World.CHUNK)
-                            tile = self.location.get_tile(x, y, limit=True)
-                            spawn = self.get_spawn(tile.get_name(), level=savageness)
-                            if spawn and spawn != 0:
-                                from src.map.Tile import Tile
-                                if not tile.is_land(Tile.CHECK_ANY):
+                        for times in range(24):
+                            x = Global.r.rand_int(start_coord[0], start_coord[0] + World.CHUNK - 1)
+                            y = Global.r.rand_int(start_coord[1], start_coord[1] + World.CHUNK - 1)
+                            tile = self.location.get_tile(x, y)
+                            if tile.get_yield() > -8 and not tile.things:
+                                spawn = self.get_spawn(tile.get_name(), level=savageness)
+                                if spawn and spawn != 0:
                                     made = Stock.make(spawn, tile)
                                     made.on_natural_spawn()
                                     if made.get_value() <= 1:
                                         made.tags.set('$', 2)
-                        for prop in added_props:
-                            prop.on_sleep(time_passed)
         return obj
 
     def get_spawn(self, habitat, coord_x=0, coord_y=0, level=None):
@@ -196,10 +196,11 @@ class World:
                 light_sources.append(tile.light_source)
         added = self.load_cells(self.cells[4][0] + offset_x, self.cells[4][1] + offset_y)
         objs = self.load_bubble(added, time=Global.player.days)
+        Global.player.character.progress_level(len(added), mode='explore')
         offset_x *= -World.CHUNK
         offset_y *= -World.CHUNK
         for i in objs:
-            i.relocate(x=i.pos.x + offset_x, y=i.pos.y + offset_y, force=True, adjust=True)
+            i.relocate(x=i.pos.x + offset_x, y=i.pos.y + offset_y, force=True)
             i.bound(False)
         index = 0
         width = self.location.get_width()
@@ -226,6 +227,13 @@ class World:
             Global.player.character.relocate(to=pos, force=True)
             for i in self.location.population.get_all():
                 i.bound(False)
+        elif abs(diff_x) <= 2 and abs(diff_y) <= 2:
+            Global.player.character.deregister()
+            self.save_cell(World.ALL, remove=True)
+            self.cells = [[i[0] + args[2], i[1] + args[3]] for i in World.DEFAULT]
+            self.load_bubble(World.ALL, time=Global.player.days)
+            Global.player.character.relocate(x=args[0] + World.CHUNK, y=args[1] + World.CHUNK, force=True)
+            self.location.process_terrain()
         else:
             Global.player.character.deregister()
             added = self.load_cells(args[2], args[3])

@@ -1,4 +1,4 @@
-0,-12
-[[11,3],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[14,6],Chest,Container,g_22x3,[p:4,def:3,#:>menu>container,loot:#chest,have:3],[],[]],[[4,8],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[14,8],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[4,11],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[9,11],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[7,12],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[14,14],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]]
-aaaaaararararar%aaaaaaraaaraaar%aaaaaaaaaaaaaaa%rrrrrrrrrrrarrr%..RRRRRRRRR.RRR%RRRRRRRRRRR.RRR%RRRRRRRRRR..RR=%RR.==...R....=.%RR...=....==.R=%RR.....==.=....%.R.===..===..RR%R...=.=...==.RR%==..=.=.=.==.==%RRR==R==RRRRR==%RRR==RRRRRRRRR=
-111111111111111%111111111111111%111111111111111%111111111111111%000000001111111%011111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111%111111111111111
+-24
+[[4,8],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[12,8],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[4,11],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[9,11],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]],[[7,12],Stalagmite,Prop,g_5x5,[p:1,def:5,ob:4],[]]
+rraaarrararrr%crararrarrraa%craraaaaaaaar%rrrrrrrrrrrrr%..RRRRRRRRRRR%RRRRRRRRRRRRR%RRRRRRRRRR==R%RR===...R.=..%RR==.=======.%RR.=.=======.%=R.========..%R...========.%==..========.
+1111111111111%1111111111111%1111111111111%1111111111111%0001111111111%0111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111

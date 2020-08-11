@@ -34,7 +34,7 @@ class Tag:
             self.attributes[tag] = arg
             return True
 
-    def increment(self, tag, arg, remove=None):
+    def increment(self, tag, arg, remove=None, default=0):
         if isinstance(arg, int):
             if tag in self.attributes:
                 self.attributes[tag] += arg
@@ -44,7 +44,7 @@ class Tag:
                 else:
                     return self.attributes[tag]
             elif arg != 0:
-                self.attributes[tag] = arg
+                self.attributes[tag] = default + arg
                 return self.attributes[tag]
         else:
             self.set(tag, arg)

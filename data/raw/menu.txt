@@ -1,31 +1,44 @@
-kitchen,3,Craft something?,[Craft,#craft],[Recipes,!recipe_kitchen],[Explain,!intro_kitchen]
-intro_kitchen,1,Any ingredients adjacent to this structure will be used to craft.
-recipe_kitchen,1,Plank + Any raw food makes cooked food.
-resident,3,Yes?,[Talk,character],[Hire,!hire],[Move,#push]
-trader,3,Buy something!,[Introduce,!intro_trader],[Buy,>menu>shop],[Move,#push]
+birth,2,You are stranded in the Peninsula of Doom. The evil lord at the eastern gate is blocking access to your freedom. Survival here will not be easy. Find food and level up first to fight your way out! Maybe reading from a bookshelf may be of help.,Enter Tutorial,>teleport>110>446
+pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
+resident,3,Yes?,[Move,#swap],[Talk,character],[Hire,!hire]
+trader,3,Buy something!,[Move,#swap],[Introduce,!intro_trader],[Buy,>menu>shop]
 intro_trader,1,I can sell you things. What more can I say? Browse my wares!
-mercenary,3,What do you want?,[Introduce,!intro_merc],[Hire,>menu>hire],[Move,#push]
+mercenary,3,What do you want?,[Move,#swap],[Introduce,!intro_merc],[Hire,>menu>hire]
 intro_merc,1,I am a mercenary. Do you need protection?
-trainer,3,Need training?,[Introduce,!intro_trainer],[Buy,>menu>shop],[Train,>menu>train],[Move,#push]
-intro_trainer,1,I am a trainer. I can increase one your stats at the cost of level points. I also may sell manuals.
-supply,3,Are you here to sell?,[Introduce,!intro_supplier],[Sell,>menu>supply],[Move,#push]
-intro_supplier,1,I am a supplier. I buy things from the public and sell them to merchants. Prices vary from time to time and from supplier to supplier.
-banker,3,How can I help you?,[Introduce,!intro_banker],[Store,>menu>store_item],[Retrieve,>menu>container],[Move,#push]
-intro_banker,1,I am an banker. I can store your items so you can retrieve them later for a price.
-blacksmith,3,What do you want?,[Introduce,!intro_blacksmith],[Buy,>menu>shop],[Repair,>menu>storage],[Modify,>menu>storage],[Move,#push]
-intro_blacksmith,1,I am a blacksmith. I repair',' modify',' and sell metal things.
-alchemist,3,What do you want?,[Introduce,!intro_alchemist],[Buy,>menu>shop],[Alchemy,!alchemy],[Move,#push]
-intro_alchemist,1,I am an alchemist. Alchemists create magical potions that grant abnormal status. Potions can also be used as magical traps when shattered and spilled.
-alchemy,3,Learn alchemy?,[Learn Skill,#push],[Explain,!desc_alchemy]
-desc_alchemy,1,Basics of alchemy goes like this: Fill alchemy table with water',' dump in any suspicious plant',' and use an empty bottle on the table again to obtain your potion. I recommend testing your potion first on a captured animal.
-conjurer,3,What do you want?,[Introduce,!intro_conjurer],[Buy,>menu>shop],[Conjuration,!conjuration],[Move,#push]
-intro_conjurer,1,I am a conjurer. Conjuration is a branch of alchemy focused on creation of items and units using magic circles called polygrams. Mastery of conjuration require comprehensive research of polygram design.
-conjuration,3,Learn conjuration?,[Learn Skill,#push],[Explain,!desc_conjuration]
-desc_conjuration,1,Find a pre-made conjuration polygram if you are new. Start the ritual by shining candlelight on the polygram. Some polygrams work',' some do not. Imitate a working polygram or research your own. Once you light the polygram',' step off or you will burn.
-desc_conjuration2,1,Always be careful there is no object interfering the polygram. Results may vary on type of chalk used and terrain it is on. A well researched and designed polygram can conjure powerful things with long duration with minimum effort.
-bookshelf,3,There are books here that can help you understand the world.,[Basic Functions,!controls],[More Functions,!adv_controls],[Life Pro Tips,!tip1],[Street Fighting,!tip2],[Simple Cooking,!tip3]
-controls,1,Use the WASD keys to move',' Q key to pick up or drop items',' SPACE key to attack',' and TAB key to access the menu. Use arrow keys and ENTER to examine or aim ranged weapons with. Likewise',' use left mouse button to move/access menu/attack and right mouse button to examine.
-adv_controls,1,Press R to sheathe your weapon. Press 1 to take out most recent item from inventory. Press 2 to activate worn accessory if possible. Press 3 to use special ability if you have any.
-tip1,1,You can use number keys to select menu buttons even faster. For example',' access the character menu by typing TAB 1.
-tip2,1,Your clothing have a chance to take damage for you',' aka the Coverage value. If they take too much beating they will be destroyed. Check the durability of your armor from your health menu and repair your equipment at an anvil to prevent this.
-tip3,1,Interacting with a water source while holding an empty bottle fills it up with water.
+insurer,3,Do you require aid?,[Move,#swap],[Introduce,!intro_insurer],[Diagnose,>menu>effects],[Cure,cure],[Insure,>menu>insure]
+intro_insurer,1,I am a insurance agent. This place is dangerous and sooner or later you will die. I cannot help you not die\,\ but I can help you revive!
+supply,3,Are you here to sell?,[Move,#swap],[Introduce,!intro_supplier],[Sell,>menu>supply]
+intro_supplier,1,I am a supplier. I buy doodads from public agents like you and sell them to merchants. Speak to me again if you want to earn some money.
+banker,3,How can I help you?,[Move,#swap],[Introduce,!intro_banker],[Store,>menu>store_item],[Retrieve,>menu>container]
+intro_banker,1,I am an banker. I can store your items so you can retrieve them later.
+blacksmith,3,What do you want?,[Move,#swap],[Introduce,!intro_blacksmith],[Buy,>menu>shop],[Repair,#repair],[Modify,>menu>storage]
+intro_blacksmith,1,I'm a blacksmith. I repair\,\ modify\,\ and sell metal things.
+bookshelf,3,There are books here that can help you understand the world.,[Basic Functions,!controls],[More Functions,!adv_controls],[Life Pro Tips,!tip1],[Fighting Tips,!tip2],[Urban Living,!tip3]
+controls,1,Use the WASD keys to move\,\ Q key to pick up or drop items\,\ SPACE key to attack\,\ and TAB key to access the menu. Use R key to access the pocket. If using the mouse\,\ use the left mouse button to move and attack.
+adv_controls,1,Press R to access your pocket. Use the Arrow keys and the ENTER key to examine. You can also use the right mouse button to examine as well.
+tip1,1,You can use number keys to select menu buttons even faster. For example\,\ access the inventory by typing <TAB> then <3>. Press <Q> to return to previous menu.
+tip2,1,If you are not sure if you can beat an enemy\,\ examine them first from a line of sight blockers like a bush. Enemies with skills like lunge or parry should be approached with some kind of plan.
+tip3,1,Earn money by selling requested items to a supplier or by robbing money off looters on the street. Merchants and suppliers can be found inside safe buildings.
+see saw,2,Hello fellow. I am a rather famous public servant known as Doctor See Saw. While many are desperate to leave this hell of a place\,\ I live here voluntarily\,\ where my services are needed the most. Do you require my assistance?,Proceed,!see saw2
+see saw2,3,Please\,\ take your time.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Hire,>menu>hire]
+chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a chain restaurant around here... Which is not really a thing anymore since no ones enforcing laws these days. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
+chef moe2,3,Mhmm.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
+trashman,3,You got anything for me? huh?,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
+rando,3,I am gonna get the hell out of here\,\ I swear. I just need to farm one more manual...,,[Move,#swap],[Hire,>menu>hire]
+knightknight,2,Look at me mate\,\ I got full plate armor! Do you think I am prepared to breach the evil gates? There are assaults there almost every day around noon\,\ but I have not heard of any successful stories...,Sure,!knightknight2
+knightknight2,3,Maybe we can travel together. Maybe.,[Move,#swap],[Hire,>menu>hire]
+undeadj,2,Calm down man\,\ I'm no monster. The health insurance guy did a shoddy job at cloning me. You know?,That happens?,!undeadj2
+undeadj2,3,I'm a pretty good kicker. Are you are thinking what I'm thinking? maybe we should party up and kick a leper in the face.,[Move,#swap],[Join,#ally]
+humblebob,3,My name is bob.,[Move,#swap],[Hire,>menu>hire]
+macaroni,2,I don't know what's harder\,\ running from wildlife or running from outlaw maniacs. I'm starting to think breaching the east gate may be better than waiting for a slow death down here.,Sure,!maryj2
+macaroni2,3,Call me Macaroni.,[Move,#swap],[Join,#ally]
+maryj,2,There are many interesting plants around here. Just pay some attention to them and a whole new world might show itself.,Sure,!macaroni2
+maryj2,3,I am Mary. How may I be of service?,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
+helper,3,Do you need help fighting?,[Move,#swap],[Get Help,#ally]
+tutorial1,1,Use the WASD keys to maneuver. Press the SPACE key to attack. Press TAB to close out of this dialog.
+tutorial2,1,Most enemies are hostile on sight. The easiest way to beat a hostile enemy is to stand and wait for them to come to you then attacking when in range.
+tutorial3,1,Press Q to drop your weapon. Press Q when empty handed to grab an item on the floor. Grab the stool on the floor and smash the window to get through.
+tutorial4,1,Some weapons provide special skills. Pick up the stick. Press TAB to access your menu then press 4 to access your skills menu to read about the skill.
+tutorial5,1,Some enemies have special skills and should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description.
+tutorial6,1,Some friendly allies can be interacted using the WASD keys. You can continue trying to beat this segment or end tutorial by using the door on the left.
+tutorial7,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in the dark\,\ and be chased all over the place. Good luck!

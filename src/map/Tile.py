@@ -56,7 +56,10 @@ class Tile(Space):
         self.light = 0
         self.light_source = 0
         self.joint_neighbors = [0, 0, 0, 0]
-        self.in_sight = False
+        self.sight_frame = 0
+
+    def is_seen(self):
+        return self.sight_frame == Global.map_view.sight_frame
 
     def set_terrain(self, terrain):
         data = Tile.DICTIONARY.get(terrain)
@@ -106,6 +109,12 @@ class Tile(Space):
     def get_hardness(self):
         return Tile.DATA[self.index][6]
 
+    def get_tags(self):
+        return Tile.DATA[self.index][7]
+
+    def has_tag(self, tag):
+        return tag in self.get_tags()
+
     def get_image(self):
         r = self.get_image_set()
         if isinstance(r, list):
@@ -143,7 +152,7 @@ class Tile(Space):
                             self.light = diminish
 
     def glow(self, mag):
-        self.light = min(18, max(mag, self.light))
+        self.light = min(13, max(mag, self.light))
         self.light_source = Turn.rounds
         diff = (Camera.target.pos - self).abs()
         if diff.x > Global.map_view.sight_range or diff.y > Global.map_view.sight_range_y:
@@ -199,11 +208,14 @@ class Tile(Space):
         return self.get_vec() + (Global.HALF_BLOCK, Global.BLOCK)
 
     def is_land(self, check):
-        if self.get_yield() == -10 and Tile.COLLIDE_TERRAIN in check:
+        tile_yield = self.get_yield()
+        if tile_yield == -99:
             return 1
-        elif self.get_yield() == -9 and Tile.COLLIDE_WINDOW in check:
+        elif tile_yield == -10 and Tile.COLLIDE_TERRAIN in check:
             return 1
-        elif self.get_yield() == -8 and Tile.COLLIDE_FOG in check:
+        elif tile_yield == -9 and Tile.COLLIDE_WINDOW in check:
+            return 1
+        elif tile_yield == -8 and Tile.COLLIDE_FOG in check:
             return 1
         for i in self.things:
             if i.obstruct_type in check:
@@ -228,8 +240,6 @@ class Tile(Space):
         yld = self.get_yield()
         most = 0
         for i in self.things:
-            if i.obstruct_type == -1:
-                return -1
             most = max(most, i.obstruct_type)
         if yld == -10:
             most = max(most, Tile.COLLIDE_TERRAIN)
@@ -237,6 +247,8 @@ class Tile(Space):
             most = max(most, Tile.COLLIDE_WINDOW)
         elif yld == -8:
             most = max(most, Tile.COLLIDE_FOG)
+        elif yld == -99:
+            most = 7
         return most
 
     def get_move_speed(self):

@@ -1,5 +1,6 @@
 from src.entity.Attribute import Attribute
 from src.entity.Object import Object
+from src.entity.Particle import Particle
 from src.game import Global
 from src.game.Turn import Turn
 
@@ -101,28 +102,23 @@ class Prop(Object):
         pass
 
     def hit(self, damage, hitter=None):
-        damage = max(0, damage - self.tags.get('def', 0))
+        damage -= self.tags.get('def', 0)
         if damage > 0:
-            if hitter:
-                self.on_hit(hitter)
-            return self.decay(damage)
+            self.on_hit()
+            r = self.decay(damage)
+            if r == 2:
+                if hitter:
+                    hitter.progress_level(0, mode='sabotage', var=self)
+            return r
+        self.on_hit(effect='slash', sound='hit_armor')
         return 0
 
-    def on_hit(self, hitter=None):
-        from src.entity.Particle import Particle
-        if hitter.tags.get('sharp'):
-            self.location.sound.register(self.pos, 7, file='hit_bash')
-            Particle.make('slash', self.pos)
-        else:
-            self.location.sound.register(self.pos, 7, file='hit_bash')
-            Particle.make('batter', self.pos)
+    def on_hit(self, effect='batter', sound='hit_bash'):
+        self.location.sound.register(self.pos, 7, file=sound)
+        Particle.make(effect, self.pos)
 
     def get_display_name(self):
         return self.name
-
-    def get_description(self):
-        from src.tools.Data import Data
-        return Data.get_line('descriptions.txt', self.name)
 
     def describe(self):
         from src.tools.Dialog import Dialog
@@ -138,13 +134,9 @@ class Prop(Object):
         armor = self.tags.get('def')
         if armor:
             r += '\n' + Dialog.armor(armor)
-        hinder = self.tags.get('spd')
-        if hinder:
-            r += '\n' + Dialog.get('terrain speed', [hinder])
-        damage = self.tags.get('DMG')
+        damage = self.tags.get('dmg')
         if damage:
-            damage_min = self.tags.get('dmg', 0)
-            r += '\n' + Dialog.get('Damage') + ': ' + str(damage_min) + ' ~ ' + str(damage)
+            r += '\n' + Dialog.get('Damage') + ': ' + str(damage)
         return r
 
     def on_sleep(self, time):
@@ -164,7 +156,7 @@ class Prop(Object):
             self.tags.set('alt', original)
 
     def drown(self):
-        if self.tags.get('fly', 0) == 0:
+        if self.tags.get('fly', 0) == 0 and Global.player.player_mode == 1:
             from src.entity.Particle import Particle
             Particle.make('drown', self.pos)
             self.remove()

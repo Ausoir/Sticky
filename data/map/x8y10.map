@@ -1,4 +1,4 @@
-0,-12
-[[2,1],Door,Door,g_1x3,[p:4,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]]
-..CCCCCCCCC....%..bbbCbbbbC....%..CbbCbbbbC....%..CbbCbMbbC....%..CbbCbbbbC....%..CbbCbbbbC....%..CbbCCCCbC....%..CbbbbbbbC....%^.CCCCCCCCC....%^............^^%^.......^^^^^^;%^^....^^^;;;;;;%;^^^^^^;;;;;;;;%;;;;;;;;;;;;;;;%;;;;;;;;;;;;;;;
-001111111110000%001111111110000%001111111110000%001111111110000%001111111110000%001111111110000%001111111110000%001111111110000%001111111110000%000000000000000%000000000000000%000000000000000%000000000000000%000000000000000%000000000000000
+-24
+[[2,1],Door,Door,g_1x3,[p:2,def:3,ob:2,mut:Locked Door,alt:g_2x3,loot:Plank],[]],[[8,1],Showcase,Container,g_3x6,[p:1,def:1,ob:4,loot:#showcase],[],[]],[[7,3],Lantern,Ceiling,g2_12x0,[p:1,ob:0],[[Glow,-1,12]]],[[8,3],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[11,3],Manhole,Prop,g_26x3,[ob:0],[]],[[11,3],Teleport,Scripter,g_4x0,[ob:0,trigger:always,tox:232,toy:160],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]],[[6,4],Potion Stand,Container,g_4x6,[p:2,def:3,loot:#potions,#:>menu>container,have:1],[],[]],[[8,4],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]],[[8,5],Fence,Prop,g_0x6,[p:1,ob:4,def:5],[]]
+..CCCCCCCCCcC%..bbbCbbbbCcC%..CbbCbbbbCcC%..CbbCbbbbCcC%..CbbCbbbbCCC%..CbbCbbbbC..%..CbbCCCCbC..%..CbbbbbbbC..%^.CCCCCCCCC..%^............%^.......^^^^^%^^....^^^;;;;%;^^^^^^;;;;;;
+0011111111111%0011111111111%0011111111111%0011111111111%0011111111111%0011111111100%0011111111100%0011111111100%0011111111100%0000000000000%0000000000000%0000000000000%0000000000000

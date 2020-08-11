@@ -14,7 +14,6 @@ class Menu:
         self.sub_window = Window(self.window.x + width, self.window.y, width=width, height=self.window.height)
         self.last_input = None
         self.history = []
-        self.history_var = []
         self.var = None
         self.update = None
 
@@ -22,19 +21,20 @@ class Menu:
         if self.visible == 1:
             if self.update:
                 self.update()
+        else:
+            self.wipe()
 
     def previous(self):
         if self.visible == 1 and len(self.history) > 1:
             self.history.pop()
-            self.history_var.pop()
             if self.history:
-                self.state = self.history[len(self.history) - 1]
-                self.var = self.history_var[len(self.history_var) - 1]
+                self.state = self.history[len(self.history) - 1][0]
+                self.var = self.history[len(self.history) - 1][1]
             else:
                 self.toggle()
             self.display(1)
         else:
-            self.toggle()
+            self.display(-1)
 
     def input(self, event):
         if self.window.input(event):
@@ -58,7 +58,6 @@ class Menu:
 
     def wipe(self):
         self.history = []
-        self.history_var = []
 
     def toggle(self):
         self.visible *= -1
@@ -75,12 +74,9 @@ class Menu:
             self.current_state = self.state
             self.state()
             self.window.display(1)
-        else:
-            self.wipe()
 
     def direct(self, page):
-        self.history.append(page)
-        self.history_var.append(self.var)
+        self.history.append([page, self.var])
         self.state = page
         self.display(1)
 

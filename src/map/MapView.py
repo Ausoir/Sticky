@@ -9,12 +9,12 @@ from src.tools.Data import Data
 class MapView:
     octant_flip = [[1, 0, 0, 1], [0, 1, 1, 0], [0, -1, 1, 0], [-1, 0, 0, 1],
                    [-1, 0, 0, -1], [0, -1, -1, 0], [0, 1, -1, 0], [1, 0, 0, -1]]
-    display_ratio = .7
+    display_ratio = .75
 
     def __init__(self):
+        self.sight_frame = 0
         self.draw_frame = 0
         self.draw_tiles = []
-        self.tiles = {}
         self.shadows = []
         self.in_bounds = []
         self.sight_range = 0
@@ -81,10 +81,9 @@ class MapView:
         index = 0
         for pos_y in range(cam_y-self.sight_range_y, cam_y+self.sight_range_y + 1):
             for pos_x in range(cam_x-self.sight_range, cam_x+self.sight_range + 1):
-                key = str(pos_x) + ',' + str(pos_y)
-                tile = self.tiles.get(key)
-                if tile:
-                    if tile.roof == 0:
+                this_tile = Global.world.location.get_tile(pos_x, pos_y)
+                if this_tile:
+                    if this_tile.roof == 0:
                         self.shadows[index].set_color([120, 0, 0, 40])
                     else:
                         self.shadows[index].set_color([250, 250, 0, 60])
@@ -139,31 +138,24 @@ class MapView:
         row_range = [cam_y-self.sight_range_y, cam_y+self.sight_range_y]
         for pos_y in range(row_range[0], row_range[1] + 1):
             for pos_x in range(col_range[0], col_range[1] + 1):
-                key = str(pos_x) + ',' + str(pos_y)
-                this_tile = self.tiles.get(key)
-                if this_tile:
-                    if this_tile.in_sight:
-                        if this_tile.get_shader() == 1:
-                            self.shadows[index].shade_walls(this_tile.joint_neighbors)
-                        else:
-                            self.shadows[index].remove_shades()
-                        self.draw_tiles[index].set(Data.get_cache(this_tile.get_image()))
-                        self.draw_tiles[index].face(this_tile.direction)
-                        self.draw_tiles[index].show(True)
-                        self.shadows[index].show(True)
-                        row = this_tile.y - cam_y + self.sight_range_y
-                        self.in_bounds.append(this_tile)
-                        for thing in this_tile.things:
-                            thing.bound(True)
-                            thing.set_row(row)
-                        for thing in this_tile.others:
-                            thing.form.bound(True)
-                    else:  # tile is dark
-                        self.shadows[index].set_color([0, 0, 0, 255])
+                this_tile = Global.world.location.get_tile(pos_x, pos_y)
+                if this_tile and this_tile.is_seen():
+                    if this_tile.get_shader() == 1:
+                        self.shadows[index].shade_walls(this_tile.joint_neighbors)
+                    else:
                         self.shadows[index].remove_shades()
-                        self.shadows[index].show(False)
-                        self.draw_tiles[index].show(False)
-                else:  # tile is out of bounds
+                    self.draw_tiles[index].set(Data.get_cache(this_tile.get_image()))
+                    self.draw_tiles[index].face(this_tile.direction)
+                    self.draw_tiles[index].show(True)
+                    self.shadows[index].show(True)
+                    row = this_tile.y - cam_y + self.sight_range_y
+                    self.in_bounds.append(this_tile)
+                    for thing in this_tile.things:
+                        thing.bound(True)
+                        thing.set_row(row)
+                    for thing in this_tile.others:
+                        thing.form.bound(True)
+                else:
                     self.shadows[index].set_color([0, 0, 0, 255])
                     self.shadows[index].remove_shades()
                     self.shadows[index].show(False)
@@ -172,11 +164,11 @@ class MapView:
         self.old_camera = Camera.target.pos
 
     def update_fog(self):
+        self.sight_frame += 1
         center = Global.world.location.get_tile(Camera.target.pos.x, Camera.target.pos.y)
-        self.tiles = {str(Camera.target.pos.x) + ',' + str(Camera.target.pos.y): center}
         for i in range(8):
             self.shadow_cast(Camera.target.pos, 1, 1.0, 0.0, self.octant_flip[i], 0)
-        center.in_sight = True
+        center.sight_frame = self.sight_frame
 
     def shadow_cast(self, camera, row, start, end, flips, depth):
         if start < end:
@@ -202,10 +194,7 @@ class MapView:
                             in_view_range = abs(tile_x) <= self.view_range and abs(tile_y) <= self.view_range_y
                             if in_view_range or (tile.light and abs(tile_x) <= self.sight_range
                                                  and abs(tile_y) <= self.sight_range_y):
-                                tile.in_sight = True
-                            else:
-                                tile.in_sight = False
-                            self.tiles[str(map_x) + ',' + str(map_y)] = tile
+                                tile.sight_frame = self.sight_frame
                         if blocked:
                             if tile.is_land(Global.player.character.sight):
                                 self.new_start = end_slope

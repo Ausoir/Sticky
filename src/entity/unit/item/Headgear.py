@@ -3,23 +3,10 @@ from src.tools.Dialog import Dialog
 
 
 class Headgear(Equipment):
-    def describe(self):
-        r = super().describe()
-        spell = self.tags.get('spell')
-        if spell:
-            r += '\n' + Dialog.get('artifact', [spell])
-        charge = self.tags.get('charge')
-        if charge:
-            if charge > 0:
-                r += '\n' + Dialog.get('charged')
-            else:
-                r += '\n' + Dialog.get('!charged')
-        return r
-
-    def die(self):
-        if self.host:
-            self.host.unheadgear()
-        super().die()
+    def remove(self):
+        if self.host and self.host.headgear == self:
+            self.unwear()
+        super().remove()
 
     def face(self, direction):
         if super().face(direction):
@@ -47,16 +34,23 @@ class Headgear(Equipment):
         self.form_name = arg
         self.form = Data.get_form(arg, form='Head')
 
-    def on_sleep(self, time):
-        if time > 0:
-            self.tags.set('charge', 1)
-
 
 class Talisman(Headgear):
+    def describe(self):
+        r = super().describe()
+        spell = self.tags.get('spell')
+        if spell:
+            r += '\n' + Dialog.get('artifact', [spell.title()])
+        return r
+
     def die(self):
         if self.host:
             spell = self.tags.get('spell')
             if spell:
                 from src.entity.unit.item.Spell import Spell
                 Spell.get(spell, power=self.tags.get('power', 0)).cast_on(self.host)
+        if self.host:
+            effect = self.tags.get('effect')
+            if effect:
+                self.host.states.add(effect, self.tags.get('dur', 0), self.tags.get('var', 0))
         super().die()

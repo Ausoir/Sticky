@@ -32,16 +32,11 @@ class Editor:
         for tile in Camera.target.pos.get_area(8, 6):
             tile.light = 4
         self.moving = [0, 0]
-        old_x = Camera.target.pos.x
-        old_y = Camera.target.pos.y
         time = Global.player.days
         Global.player.days = 0
         offset = Global.world.recenter(Camera.target.pos.x, Camera.target.pos.y)
         Global.player.days = time
-        if offset:
-            Camera.target.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
-            Camera.target.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
-        else:
+        if not offset:
             Global.map_view.update_region()
             Global.map_view.update_fog()
             Global.map_view.update()

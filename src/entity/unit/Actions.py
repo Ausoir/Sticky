@@ -39,7 +39,7 @@ class Actions:
         self.delay = turn
 
     @staticmethod
-    def knockdown(victim, time=None, push=None):
+    def knockdown(victim, time, push=None):
         from src.entity.unit.item.Item import Item
         if isinstance(victim, Item):
             if victim.host:
@@ -52,8 +52,7 @@ class Actions:
                     if push:
                         victim.action.move(push, check=victim.collision_type + 2)
                     victim.action.fall()
-                    if time:
-                        victim.action.delay = time
+                    victim.action.delay = time
 
     def idle(self):
         if self.idle_frame >= 12:

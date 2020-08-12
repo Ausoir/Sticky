@@ -64,19 +64,17 @@ class ScriptManual:
                 density = var.tags.get('density', 0)
                 acidity = var.tags.get('acidity', 0)
                 toxicity = var.tags.get('toxicity', 0)
-                if density >= 50:
-                    from src.tools.Data import Data
-                    data = Data.get_line('raw.txt', 'potions')[1]
-                    effect_num = len(data) - 1
-                    if acidity < toxicity:
-                        effect = acidity / toxicity
-                    else:
-                        effect = toxicity / acidity
-                    effect = int(effect * effect_num)
-                    potion.tags.set('effect', data[effect][0])
-                    potion.tags.set('dur', int(data[effect][1] * min(100, density - 50) * .1 + 1))
-                    potion.tags.set('var', data[effect][2])
-                    potion.tags.set('time', Global.player.days + density)
+                from src.tools.Data import Data
+                data = Data.get_line('raw.txt', 'potions')[1]
+                effect_num = len(data) - 1
+                if acidity < toxicity:
+                    effect = acidity / toxicity
+                else:
+                    effect = toxicity / acidity
+                effect = int(effect * effect_num)
+                potion.tags.set('effect', data[effect][0])
+                potion.tags.set('dur', int(data[effect][1] * min(100, density) * .1 + 1))
+                potion.tags.set('var', data[effect][2])
                 var.tags.increment('density', int(-density))
                 if host.is_vacant(potion.get_weight()):
                     potion.on_wield(host)

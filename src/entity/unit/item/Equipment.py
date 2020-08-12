@@ -35,6 +35,7 @@ class Equipment(Item):
         self.host.tags.sync('spd', self.tags.get('spd'))
         self.host.tags.sync('P', self.tags.get('end'))
         self.host.tags.sync('p', self.tags.get('end'))
+        self.host.tags.sync('abp', self.tags.get('abp'))
 
     def on_unwear(self):
         self.location.sound.register(self.pos, 3, file='wear')
@@ -44,3 +45,4 @@ class Equipment(Item):
         self.host.tags.sync('spd', self.tags.get('spd'), ratio=-1)
         self.host.tags.sync('P', self.tags.get('end'), ratio=-1)
         self.host.tags.sync('p', self.tags.get('end'), ratio=-1)
+        self.host.tags.sync('abp', self.tags.get('abp'), ratio=-1)

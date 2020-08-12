@@ -1,4 +1,4 @@
-birth,2,You are stranded in the Peninsula of Doom. The evil lord at the eastern gate is blocking access to your freedom. Survival here will not be easy. Find food and level up first to fight your way out! Maybe reading from a bookshelf may be of help.,Enter Tutorial,>teleport>110>446
+birth,2,You started playing some strange video game when you were sucked into the computer... then you woke up in a different world. A stranger tells you that you can return home if you can get to the Northeastern Gate.,Enter Tutorial,>teleport>110>446
 pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
 resident,3,Yes?,[Move,#swap],[Talk,character],[Hire,!hire]
 trader,3,Buy something!,[Move,#swap],[Introduce,!intro_trader],[Buy,>menu>shop]
@@ -23,22 +23,34 @@ see saw,2,Hello fellow. I am a rather famous public servant known as Doctor See 
 see saw2,3,Please\,\ take your time.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Hire,>menu>hire]
 chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a chain restaurant around here... Which is not really a thing anymore since no ones enforcing laws these days. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
 chef moe2,3,Mhmm.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
-trashman,3,You got anything for me? huh?,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
+trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
 rando,3,I am gonna get the hell out of here\,\ I swear. I just need to farm one more manual...,,[Move,#swap],[Hire,>menu>hire]
-knightknight,2,Look at me mate\,\ I got full plate armor! Do you think I am prepared to breach the evil gates? There are assaults there almost every day around noon\,\ but I have not heard of any successful stories...,Sure,!knightknight2
+knightknight,2,Look at me mate\,\ I got full plate armor! Do you think I am prepared to breach the evil gates? I have not heard of any success stories...,Sure,!knightknight2
 knightknight2,3,Maybe we can travel together. Maybe.,[Move,#swap],[Hire,>menu>hire]
-undeadj,2,Calm down man\,\ I'm no monster. The health insurance guy did a shoddy job at cloning me. You know?,That happens?,!undeadj2
-undeadj2,3,I'm a pretty good kicker. Are you are thinking what I'm thinking? maybe we should party up and kick a leper in the face.,[Move,#swap],[Join,#ally]
+undeadj,2,Calm down man\,\ I'm no monster. The life insurance guy did a shoddy job at cloning me. You know?,That happens?,!undeadj2
+undeadj2,3,I'm a pretty good kicker. Are you are thinking what I'm thinking? maybe we should party up and kick a leper around!,[Move,#swap],[Join,#ally]
 humblebob,3,My name is bob.,[Move,#swap],[Hire,>menu>hire]
-macaroni,2,I don't know what's harder\,\ running from wildlife or running from outlaw maniacs. I'm starting to think breaching the east gate may be better than waiting for a slow death down here.,Sure,!maryj2
+macaroni,2,I don't know what's harder\,\ running from wildlife or running from outlaw maniacs. I'm starting to think breaching the Northeastern Gate may be better than waiting for a slow death down here.,Sure,!maryj2
 macaroni2,3,Call me Macaroni.,[Move,#swap],[Join,#ally]
 maryj,2,There are many interesting plants around here. Just pay some attention to them and a whole new world might show itself.,Sure,!macaroni2
 maryj2,3,I am Mary. How may I be of service?,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
+stonefeller,2,I am Stonefeller. I break rocks. If you want to know where rare minerals can be used\,\ ask a wand crafter.,Ok,!stonefeller2
+stonefeller,3,Dig dig dig.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
+masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young lad wielding a flaming blade on a field casting scorch on a slime. I took him in\,\ taught him the ways of fighting\,\ and soon he became the strongest fighter of this peninsula,Ok,!masterlee2
+masterlee2,3,Young people these days are so naive.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair]
+bobjoe,2,You were sucked in here too? Did you kill somebody too? Goddamn it\,\ I should've kept going to church...,Uh...,bobjoe2
+bobjoe2,3,I'm not going to that Northeastern Gate or whatever. There are things worse than death in this hell of a place.,[Move,#swap],[Sell,>menu>supply]
+janedoe,2,You were sucked in here too? From what I found out\,\ we are stranded in the Peninsula of Doom. This place is filled with monsters and looters. The natives told me we need to breach the Northeastern Gate if we wish to return home. It sounded like the natives wanted to leave too.,Ok,janedoe2
+janedoe2,3,We should travel together.,[Move,#swap],[Sell,>menu>supply]
 helper,3,Do you need help fighting?,[Move,#swap],[Get Help,#ally]
 tutorial1,1,Use the WASD keys to maneuver. Press the SPACE key to attack. Press TAB to close out of this dialog.
-tutorial2,1,Most enemies are hostile on sight. The easiest way to beat a hostile enemy is to stand and wait for them to come to you then attacking when in range.
-tutorial3,1,Press Q to drop your weapon. Press Q when empty handed to grab an item on the floor. Grab the stool on the floor and smash the window to get through.
-tutorial4,1,Some weapons provide special skills. Pick up the stick. Press TAB to access your menu then press 4 to access your skills menu to read about the skill.
-tutorial5,1,Some enemies have special skills and should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description.
-tutorial6,1,Some friendly allies can be interacted using the WASD keys. You can continue trying to beat this segment or end tutorial by using the door on the left.
-tutorial7,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in the dark\,\ and be chased all over the place. Good luck!
+tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1. You will gain experience if you kill an enemy in melee\,\ depending on level difference.
+tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
+tutorial4,1,In safe areas you will find useful services like buying and selling goods\,\ swords for hire\,\ and life insurance. Most friendlies can be interacted with WASD keys. The character to your right is a supplier.
+tutorial5,1,Some weapons provide special skills. If you wield the stick\,\ you will get access to a new skill called lunge. Press TAB to access your menu then press 4 to access your skills menu to read about the skill.
+tutorial6,1,Some enemies have special skills and should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description.
+tutorial7,1,If you are wielding something already\,\ you will notice that you cannot carry any more weight. That is because you only have 2 strength right now. Press Q on an empty tile to drop your current item then press Q on the stool while empty handed.
+tutorial8,1,If you examine the window you will notice it has an armor value of 1. That means you need at least 2 damage to break that window. The stool on your left gives you 1 damage. Pick it up and smash the window.
+tutorial9,1,You can check your current health from the menu. You should always travel with full health. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag.
+tutorial10,1,You cannot travel far away places empty handed. You need food to satiate your hunger or you will take starvation damage. Hunger can be checked from TAB menu. Take some food from the crate and press SPACE to interact with it.
+tutorial11,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!

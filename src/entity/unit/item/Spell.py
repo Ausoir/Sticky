@@ -71,7 +71,7 @@ class Spell:
         else:
             targets = self.host.get_team(ally=False)
         nearest = None
-        nearest_dist = self.get_range() + 2
+        nearest_dist = self.get_range() + 1
         for target in targets:
             if target.pos != self.host.pos and self.host.direction == self.host.pos.get_face(target.pos):
                 distance = (target.pos - self.host.pos).difference()
@@ -136,10 +136,7 @@ class Scorch(Spell):
 
 class Scry(Spell):
     def get_delay(self):
-        return 14
-
-    def get_cooldown(self):
-        return 100
+        return 20
 
     def perform(self):
         if self.host == Global.player.character:
@@ -150,8 +147,7 @@ class Scry(Spell):
             ghost.tags.set('tox', pos[0])
             ghost.tags.set('toy', pos[1])
             ghost.tags.set('view', 8)
-            power = self.get_power_0_4() * 10 + 20
-            ghost.states.add('Script', power, '#reclaim')
+            ghost.states.add('Script', self.get_power_0_4() * 8 + 16, '#reclaim')
             self.host.save = True
             Global.player.character.tags.set('husk', 1)
             Global.player.set_player(ghost)
@@ -178,11 +174,14 @@ class Charm(Spell):
     def get_cooldown(self):
         return 100
 
+    def get_range(self):
+        return 1
+
     def perform(self):
-        for i in self.auto_target(2):
+        target = self.auto_target(2)
+        if target:
             from src.game.ScriptManual import ScriptManual
-            ScriptManual.ally(Global.player.character, i)
-            break
+            ScriptManual.ally(Global.player.character, target)
 
 
 class Transience(Spell):
@@ -479,7 +478,7 @@ class Evacuate(Spell):
     def perform(self):
         if self.host == Global.player.character:
             from src.tools.Data import Data
-            pos = Global.r.rand_list(Data.get_line('raw.txt', 'spawn')[1])
+            pos = Global.r.rand_list(Data.get_line('raw.txt', 'evacuate')[1])
             Global.world.travel(pos[0], pos[1])
         else:
             self.host.location.sound.register(self.host.pos, 4, file='void')
@@ -545,3 +544,27 @@ class Barrier(Spell):
 
     def perform(self):
         self.host.states.add('Barrier', 40 * self.get_power_0_4() + 40)
+
+
+class Clone(Spell):
+    def get_delay(self):
+        return 14
+
+    def get_cooldown(self):
+        return 600
+
+    def get_range(self):
+        return 1
+
+    def perform(self):
+        target = self.auto_target(0)
+        if target:
+            self.host.location.sound.register(self.host.pos, 0, file='void')
+            Particle.make('barrier3', target.pos)
+            from src.tools.Data import Data
+            unit = Stock.get(target.location, target.name, data=Data.parse(target.__str__()))
+            unit.add()
+            x = Global.r.rand_int(-1, 1)
+            y = Global.r.rand_int(-1, 1)
+            destination = unit.pos.get_neighbor(x, y)
+            unit.move_line(destination)

@@ -11,6 +11,7 @@ worm,data/unit/worm,unit/worm
 slime,data/unit/slime,unit/slime
 slime2,data/unit/slime,unit/slime2
 slime3,data/unit/slime,unit/slime3
+slime4,data/unit/slime,unit/slime4
 brainsucker,data/unit/slime,unit/brainsucker
 rat,data/unit/dog,unit/rat
 cat,data/unit/dog,unit/cat

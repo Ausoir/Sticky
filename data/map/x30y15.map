@@ -1,4 +1,4 @@
 -24
-[[5,5],Streetlight,Prop,g_5x3,[p:4,ob:4],[[Glow,-1,9]]],[[7,8],Hole,Prop,g_9x3,[ob:0],[]],[[11,9],Rack,Container,g_23x3,[p:4,ob:4,loot:#weapons,#:>menu>container,have:2],[],[]],[[12,9],Rack,Container,g_23x3,[p:4,ob:4,loot:#weapons,#:>menu>container,have:2],[],[]],[[0,12],Streetlight,Prop,g_5x3,[p:4,ob:4],[[Glow,-1,9]]]
+[[5,5],Streetlight,Prop,g_5x4,[p:4,ob:4],[[Glow,-1,9]]],[[7,8],Hole,Prop,g_9x4,[ob:0],[]],[[11,9],Rack,Container,g_23x4,[p:4,ob:4,loot:#weapons,#:>menu>container,have:2],[],[]],[[12,9],Rack,Container,g_23x4,[p:4,ob:4,loot:#weapons,#:>menu>container,have:2],[],[]],[[0,12],Streetlight,Prop,g_5x4,[p:4,ob:4],[[Glow,-1,9]]]
 ...^^^cccccc^%.....^vvvvvv^%.....^vvvvvv^%.....^......^%.............%.............%.............%......CC.C.cc%......C..C.cc%......CCCC.cc%^^^^^^^^^^^^^%.............%..CCCCCCCCCCC
 0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000001111011%0000001111011%0000001111011%0000000000000%0000000000000%0011111111111

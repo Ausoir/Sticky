@@ -350,7 +350,7 @@ class Food(Item):
         nutrition = -self.tags.get('hunger', 0)
         self.location.sound.register(self.pos, 0, file='eat')
         self.host.tags.increment('hunger', nutrition)
-        self.host.progress_level(self.tags.get('$', 1) - 1, mode='eat')
+        self.host.progress_level(self.tags.get('$', 1) - 1, mode='eat', var=self)
         self.decay(1)
         return nutrition
 
@@ -462,14 +462,23 @@ class Manual(Item):
 
 
 class Potion(Food):
+    def get_display_name(self):
+        effect = self.tags.get('effect')
+        if effect:
+            return effect + ' ' + super().get_display_name()
+        return super().get_display_name()
+
     def describe(self):
         r = super().describe()
         arg = self.tags.get('dur')
         if arg:
             r += '\n' + Dialog.get('Duration') + ': ' + str(arg)
-        arg = self.tags.get('var')
-        if arg:
-            r += '\n' + Dialog.get('Modifier') + ': ' + str(arg)
+        effect = self.tags.get('effect')
+        if effect:
+            r += '\n' + Dialog.get('Effect') + ': ' + effect
+            data = Data.get_line('descriptions.txt', effect)
+            if data:
+                r += '\n' + data[1]
         return r
 
     def eat(self):
@@ -563,7 +572,7 @@ class Ghost(Unit):
     def use(self):
         if self == Global.player.character:
             for i in self.pos.things:
-                if i != self and isinstance(i, Unit) and i.pilot.priority > 3:
+                if i != self and isinstance(i, Unit) and i.pilot.priority > 3 and not i.states.get('Immune'):
                     Global.player.character.remove()
                     Global.player.set_player(i)
                     i.center_camera()

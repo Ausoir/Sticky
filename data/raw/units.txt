@@ -1,5 +1,6 @@
 Human,Humanoid,human,[P:2,p:2,str:1],[],[],[],0,0,0
-Slime,Unit,slime,[P:1,p:1,fuel:0,ai:wander,deaf:1,spd:-7,corpse:0],[],[?Jelly],[]
+Slime,Unit,slime,[p:2,fuel:0,ai:wander,deaf:1,spd:-7,corpse:0],[],[?Jelly],[]
+Mud Slime,Unit,slime4,[p:2,fuel:0,team:3,ai:wander,deaf:1,spd:-5,corpse:0],[],[?Dung],[]
 Cave Slime,Unit,slime2,[p:4,fuel:0,ai:wander,deaf:1,spd:-5,corpse:0],[],[?Jelly],[rally]
 Killer Ivy,Unit,ivy,[P:1,p:1,fuel:2,team:3,def:2,ai:guard,spd:-20],[],[?Plant],[hide]
 Moth,Unit,moth,[P:1,p:1,team:3,ai:wander,fly:1,col:5],[],[],[]
@@ -24,15 +25,15 @@ Brainsucker,Unit,brainsucker,[P:4,p:4,def:1,team:3,ai:wander,deaf:1,spd:-1],[],[
 Golem,Unit,golem,[P:10,p:10,team:3,def:4,ai:wander,spd:-5,dmg:12,+:damage&health],[],[],[constitution,crush,flurry]
 Leper,Humanoid,rot,[p:2,team:2,ai:wander,abi:slow,head:half_13x0&half_13x1&half_13x2],[],[],[constitution],0,0,0
 Zombie,Humanoid,zombie,[p:2,team:3,ai:wander,head:half_14x0&half_14x1&half_14x2,zombie:1],[],[],[constitution],0,0,0
-Cultist,Humanoid,human,[P:10,p:10,team:3,ai:wander,str:5,+:speed,+:_ability],[],[?Coin],[],Cult Robe,Veil,Dagger
-Fanatic,Humanoid,human,[P:10,p:10,team:3,ai:wander,str:5,+:speed,abi:torment,abp:50,+:_power],[],[?Torch,?Cash],[],Cult Robe,Veil,Torch
-Sacrifice,Humanoid,zombie,[P:20,p:20,team:3,ai:wander,head:half_14x0&half_14x1&half_14x2],[],[],[constitution],Cult Robe,Veil,Scythe
+Cultist,Humanoid,human,[P:10,p:10,team:3,ai:wander,str:5,+:speed,+:_ability],[],[],[],Cult Robe,Veil,Dagger
+Fanatic,Humanoid,human,[P:10,p:10,team:3,ai:wander,str:5,+:speed,abi:torment,abp:50,+:_power],[],[?Torch,?Cash],[psychic],Cult Robe,Veil,Torch
+Sacrifice,Humanoid,zombie,[P:20,p:20,team:3,ai:wander,head:half_14x0&half_14x1&half_14x2],[],[],[hide,psychic],Cult Robe,Veil,Scythe
 Skeleton,Humanoid,skeleton,[p:1,def:1,team:3,ai:wander,head:half_15x0&half_15x1&half_15x2,str:4,zombie:3],[],[],[constitution,lunge],0,0,Scimitar
-Wraith,Humanoid,skeleton,[p:3,def:1,team:3,ai:wander,head:half_15x0&half_15x1&half_15x2,str:7,zombie:4],[[Glow,-1,2]],[],[constitution,lunge],Chainmail,Lace Helm,Broadsword
+Wraith,Humanoid,skeleton,[p:4,def:1,team:3,ai:wander,head:half_15x0&half_15x1&half_15x2,str:7,zombie:4],[[Glow,-1,2]],[],[constitution,lunge],Chainmail,Lace Helm,Broadsword
 Hobo,Humanoid,human,[P:2,p:2,team:2,ai:wander,spd:-1],[],[],[],Rags,0,0
 Looter,Humanoid,human,[P:2,p:2,team:2,ai:wander],[],[],[],Casual Wear,0,Stick
-Thief,Humanoid,human,[P:2,p:2,team:2,ai:wander,str:3,+:damage],[],[?Coin],[steal],Casual Wear,Bandana,Stick
-Robber,Humanoid,human,[P:2,p:2,team:2,ai:wander,str:3,+:damage],[],[?Coin],[side step],Tough Wear,Bandana,Club
+Thief,Humanoid,human,[P:2,p:2,team:2,ai:wander,str:3,loot:#cash,have:1,+:damage],[],[],[steal],Casual Wear,Bandana,Stick
+Robber,Humanoid,human,[P:2,p:2,team:2,ai:wander,str:3,loot:#cash,have:1,+:damage],[],[],[side step],Tough Wear,Bandana,Club
 Killer,Humanoid,human,[P:3,p:3,team:2,ai:wander,str:5,loot:#weapons,have:1,+:health],[],[?Cash],[fortitude,bash],Jumpsuit,0,Saw
 Caller,Humanoid,human,[P:2,p:2,team:2,ai:wander,str:5,+:speed,abi:pester,abp:0,+:_power],[],[?Torch,?Cash],[],Green Robe,Beanie,0
 Witch,Humanoid,human,[P:2,p:2,team:2,ai:wander,str:5,+:speed,abi:transmogrify,abp:0,+:_power],[],[?Torch,?Cash],[],Teal Robe,Beanie,0
@@ -57,5 +58,5 @@ Supplier,Humanoid,human,[P:3,p:3,team:1,str:3,loot:#supplier,have:3,ai:guard,#:!
 Insurer,Humanoid,human,[$:3,P:3,p:3,team:1,str:3,ai:guard,#:!insurer,+:health],[[Safeguard,-1,0]],[],[rally],Tuxedo,Glasses,Oil Lamp
 Banker,Humanoid,human,[P:3,p:3,team:1,str:3,ai:guard,#:!banker,+:health],[[Safeguard,-1,0]],[],[rally],Tuxedo,Sunglasses,0
 Robber Boss,Humanoid,human,[P:8,p:8,team:2,str:5,ai:wander,+:damage],[],[],[rally,flurry,parry],Ringmail,Bandana,Falchion
-Evil Lord,Humanoid,human,[P:20,p:20,team:2,str:8,ai:wander,+:damage],[],[],[rally,deep sense,parry,lunge,flurry,deft,deft,deft],Evil Gear,Full Helm,Greatsword
+Evil Lord,Humanoid,human,[P:16,p:16,team:3,str:8,ai:guard],[[Immune,-1,0]],[Gold Mirror],[rally,deep sense,parry,lunge,flurry,deft,deft,deft,constitution],Evil Gear,Evil Helm,Evil Blade
 Helper,Humanoid,human,[$:2,P:8,p:8,team:1,seed:0,str:3,ai:guard,e_weapon:weapons,#:!helper,+:health&damage],[],[],[parry],Casual Wear,Cap,Stick

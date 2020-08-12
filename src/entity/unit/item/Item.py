@@ -41,6 +41,9 @@ class Item(Prop):
         skill = self.tags.get('skill')
         if skill:
             r += '\n' + Dialog.get('equipment_skill', [skill.title()])
+        abp = self.tags.get('abp')
+        if abp:
+            r += '\n' + Dialog.get('equipment_abp')
         return r
 
     def on_wield(self, host, start=False):

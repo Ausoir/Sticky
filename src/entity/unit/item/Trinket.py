@@ -43,16 +43,24 @@ class Porter(Item):
             light.end()
         super().on_unwield()
 
+    def activate(self):
+        memory = self.tags.get('memory')
+        if memory:
+            args = memory.split('y')
+            Global.world.travel(int(args[0][1:]), int(args[1]))
+        else:
+            cell_coord = Global.world.get_tile_true_pos(self.pos.x, self.pos.y)
+            memory = 'x' + str(cell_coord[0]) + 'y' + str(cell_coord[1])
+            self.tags.set('memory', memory)
+        self.host.location.sound.register(self.host.pos, 0, file='energy')
+        from src.entity.Particle import Particle
+        Particle.make('portal', self.pos)
+
     def use(self):
         if self.host == Global.player.character:
-            memory = self.tags.get('memory')
-            if memory:
-                args = memory.split('&')
-                Global.world.travel(args[0], args[1])
-            else:
-                cell_coord = Global.world.get_tile_true_pos(self.pos.x, self.pos.y)
-                memory = '&'.join([str(x) for x in [cell_coord[0], cell_coord[1]]])
-                self.tags.set('memory', memory)
+            self.host.action.act('grab', 4)
+            self.host.action.on_finish = self.activate
+            self.host.action.delay = 4
 
 
 class Lamp(Item):

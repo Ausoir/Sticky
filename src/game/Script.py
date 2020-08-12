@@ -212,7 +212,7 @@ class Script:
         elif arg[0] == 'remove':
             arg[1].remove()
         elif arg[0] == 'buff':
-            Script.var['host'].states.add(arg[1], arg[2], var=arg[3])
+            arg[1].states.add(arg[2], arg[3], var=arg[4])
         elif arg[0] == 'settag':
             Script.var['host'].tags.set(arg[1], arg[2])
         elif arg[0] == 'addtag':
@@ -252,7 +252,7 @@ class Script:
         elif arg[0] == 'sleep':
             Global.player.sleep(arg[1])
         elif arg[0] == 'delbuff':
-            Script.var['host'].states.clear(lambda x: x.name.lower() == arg[1].lower())
+            arg[1].states.clear(lambda x: x.name.lower() == arg[2].lower())
         elif arg[0] == 'insure':
             host = Script.var['host']
             cell_coord = [str(x) for x in Global.world.get_tile_true_pos(host.pos.x, host.pos.y)]

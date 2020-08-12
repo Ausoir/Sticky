@@ -184,9 +184,16 @@ class Game:
                     revive.end()
                     args = [int(x) for x in revive.var.split('&')]
                     self.character.add()
-                    Global.world.travel(args[0], args[1])
+                    self.character.tags.set('money', 0)
+                    self.character.tags.set('hunger', 0)
+                    if self.character.tags.get('P', 0) <= 0:
+                        Script.execute_code('death')
+                    else:
+                        Global.world.travel(args[0], args[1])
                 else:
                     Script.execute_code('death')
+            elif self.dead == 20:
+                Global.menu.direct(Global.menu.menu_victory)
             else:
                 self.dead += 1
         elif self.character.action.delay > 0:
@@ -194,11 +201,7 @@ class Game:
             if self.is_hungry():
                 self.character.form.randomize_once(3)
         self.character.location.sound.update_bgm()
-        old_x = self.character.pos.x
-        old_y = self.character.pos.y
         if Global.world.recenter(self.character.pos.x, self.character.pos.y):
-            self.character.vec.x += Camera.pos[0] - old_x * Global.BLOCK - Global.HALF_BLOCK
-            self.character.vec.y += Camera.pos[1] - old_y * Global.BLOCK - Global.HALF_BLOCK
             Global.map_view.turn()
             Camera.update()
             Global.map_view.update_region()

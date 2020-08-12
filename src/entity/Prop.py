@@ -86,7 +86,7 @@ class Prop(Object):
     def decay(self, damage):
         hp = self.tags.get('p')
         if hp is not None:
-            self.tags.set('p', min(max(0, hp - damage), self.tags.get('P', 1000)))
+            self.tags.set('p', min(max(0, hp - damage), self.tags.get('P', 1)))
             if self.tags.get('p') == 0:
                 self.die()
                 return 2

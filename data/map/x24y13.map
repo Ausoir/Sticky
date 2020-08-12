@@ -1,4 +1,4 @@
 -24
-[[3,2],Manhole,Prop,g_26x3,[ob:0],[]],[[3,2],Teleport,Scripter,g_4x0,[ob:0,trigger:always,tox:335,toy:199],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]]
+[[3,2],Manhole,Prop,g_26x4,[ob:0],[]],[[3,2],Teleport,Scripter,g_4x0,[ob:0,trigger:always,tox:335,toy:199],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]]
 RRRRRRR.R~~~~%RRRRRR..R~~~~%RRR....~~~~~~%RR....~~~~~~~%RR~.~~~~~~~~~%RR~~~~~~~~~~~%RR~~~~~~~~~~R%RR~~~~~~~~~~R%~~~~~~~~~~~RR%~~~~~~~~~~~RR%~~~~~~~~~R~~R%~~~~~~~~~~~RR%~~~~~~~~R~RRR
 0000001110000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000

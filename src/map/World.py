@@ -200,7 +200,9 @@ class World:
         offset_x *= -World.CHUNK
         offset_y *= -World.CHUNK
         for i in objs:
-            i.relocate(x=i.pos.x + offset_x, y=i.pos.y + offset_y, force=True)
+            i.relocate(x=i.pos.x + offset_x, y=i.pos.y + offset_y)
+            i.vec.x += offset_x * Global.BLOCK
+            i.vec.y += offset_y * Global.BLOCK
             i.bound(False)
         index = 0
         width = self.location.get_width()

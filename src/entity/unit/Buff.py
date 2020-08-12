@@ -365,16 +365,11 @@ class Concentration(Buff):
             return super().is_valid()
 
     def effect_on_load(self):
-        if self.host.get_skill('deep sense'):
-            copy = self.host.sight
-            from src.map.Tile import Tile
-            new = []
-            for i in copy:
-                if i != Tile.COLLIDE_FOG:
-                    new.append(i)
-            self.host.sight = new
+        if self.host.get_skill('deep sense') and not self.host.states.get('Vision'):
+            self.host.states.add('Vision', 8)
 
     def on_stack(self, duration, var):
+        self.effect_on_load()
         if self.host.get_skill('iron will'):
             for i in self.host.states.buffs:
                 if 'harm' in i.get_tags():
@@ -397,11 +392,6 @@ class Concentration(Buff):
 
     def on_load(self):
         self.effect_on_load()
-
-    def on_finish(self):
-        if self.host.get_skill('deep sense'):
-            from src.map.Tile import Tile
-            self.host.sight.append(Tile.COLLIDE_FOG)
 
     def trigger(self, arg):
         super().trigger(arg)
@@ -446,18 +436,19 @@ class Vision(Buff):
         Particle.make('portal', self.host.pos)
         self.var = Dialog.nonstrlist(self.host.sight)
         from src.map.Tile import Tile
-        self.host.sight = [Tile.COLLIDE_MAGIC]
+        self.host.sight = [Tile.COLLIDE_TERRAIN]
 
     def on_load(self):
         from src.map.Tile import Tile
-        self.host.sight = [Tile.COLLIDE_MAGIC]
+        self.host.sight = [Tile.COLLIDE_TERRAIN]
 
     def on_finish(self):
         self.host.sight = Data.parse(self.var)[0]
 
     def trigger(self, arg):
         super().trigger(arg)
-        self.end()
+        if arg[0] == 'act' and arg[1] == 'hit':
+            self.end()
 
 
 class Levitation(Buff):
@@ -496,7 +487,7 @@ class Levitation(Buff):
         if arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
             self.end()
             from src.entity.unit.Actions import Actions
-            Actions.knockdown(self.host)
+            Actions.knockdown(self.host, 8)
 
     def on_update(self):
         if self.effect(6):

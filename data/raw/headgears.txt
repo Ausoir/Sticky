@@ -13,6 +13,7 @@ Glow Hat,Headgear,unit/safety_hat,[P:12,p:12,def:4,end:1],[[Glow,-1,9],[Immune,-
 Blink Charm,Talisman,unit/talisman,[p:2,spell:blink,power:50],[]
 Fade Charm,Talisman,unit/talisman,[p:2,effect:invisible,dur:120],[]
 Lifesaver,Talisman,unit/talisman,[p:1,spell:evacuate],[]
+Recall Charm,Talisman,unit/talisman,[p:2,effect:recall,dur:0],[]
 Lace Helm,Headgear,unit/lace_helm,[P:10,p:10,def:2,DEF:1,w:2],[]
 Full Helm,Headgear,unit/full_helm,[P:10,p:10,def:3,DEF:1,skill:block,w:3],[]
 Evil Helm,Headgear,unit/evil_helm,[P:10,p:10,def:3,DEF:1,w:3,spell:zombie,power:100],[]

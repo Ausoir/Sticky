@@ -177,3 +177,9 @@ class MenuAll(MenuPlayer):
             self.window.add(Menu.make(Dialog.get('Follow'), order, name=3, width=320))
             self.window.add(Menu.make(Dialog.get('Wield'), order, name=4, width=320))
         self.sub_window.display(1)
+
+    def menu_victory(self):
+        datetime = Dialog.date(Global.player.days)
+        self.get_message(Dialog.get('dsc_victory', [datetime]))()
+        self.sub_window.display(1)
+        Global.player.dead = 11

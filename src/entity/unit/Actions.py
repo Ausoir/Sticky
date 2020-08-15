@@ -227,7 +227,8 @@ class Actions:
                 def change():
                     weapon = self.host.weapon
                     self.host.unsheathe(0)
-                    self.host.inventory.add_item(weapon, insert=True)
+                    if weapon:
+                        self.host.inventory.add_item(weapon, insert=True)
                 self.make('grab', turn=4)
                 self.on_finish = change
             else:
@@ -241,7 +242,7 @@ class Actions:
         atk_spd = self.host.get_skill('deft')
         self.host.form.animation_ended = 1
         front = self.host.pos.get_cardinal(self.host.direction, 1)
-        dmg = self.host.tags.get('dmg', 1)
+        dmg = self.host.tags.get('dmg', 0) + 1
         if self.humanoid and not self.host.weapon:
             motion = 'kick'
         else:

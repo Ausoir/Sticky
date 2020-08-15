@@ -124,7 +124,7 @@ class World:
                         obj += tile.others
                 if cell_num in added:
                     renew = time_passed >= 8
-                    renew = False
+                    # renew = False
                     obj += Global.player.npc.spawn(cell_coord[0], cell_coord[1], start_coord[0], start_coord[1])
                     for i in map_data[1]:
                         prop = Stock.get(self.location, i[2], i)

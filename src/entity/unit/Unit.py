@@ -326,11 +326,11 @@ class Unit(Container):
             r = int(level / 100)
         else:
             r = len(self.skills)
-            r += self.tags.get('P', 10) + self.tags.get('str', 1)
+            r += self.tags.get('P', 1) + self.tags.get('str', 1)
             r += self.tags.get('sth', 0) + self.tags.get('int', 0) + self.tags.get('cha', 0)
             if self.tags.get('abi'):
                 r += 1
-            r -= 2
+            r -= 1
         return max(1, r)
 
     def get_weight(self):

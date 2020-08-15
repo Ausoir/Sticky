@@ -1,5 +1,7 @@
+Chalk,Use to draw conjuration polygrams. Resulting spell is dependent on shape and terrain. Shine it to begin.
 Poison Vial,Drink from this vial to die.
-Jelly,A blob of slime goo. Poisonous but tasty when cooked
+Jelly,A blob of slime goo. Edible\,\ but a lot more digestible when cooked with salt.
+Pudding,Is this pudding or is this jelly? Chewy\,\ juicy\,\ salty\,\ and delicious!
 Fiber,Some fibrous material
 Observer,Use on units with higher level than you to earn experience just as if you killed them. Usable once per 12 hours.
 Marker,This is part of a conjuration polygram. Make sure it is dark\,\ then bring a candle to begin ritual.
@@ -13,7 +15,7 @@ Ore,Break to obtain rare minerals.
 sk.block,Passive: Stand still to concentrate. Get +1 defense against frontal attacks when concentrated and standing still.
 sk.fortitude,Passive: After taking damage\,\ gain damage immunity for a short while.
 sk.parry,Passive: Stand still to concentrate. On hit\,\ use concentration to dodge a non-backstab attack.
-sk.iron will,Passive: Stand still to concentrate. Remove 1 harmful status effect.
+sk.iron will,Passive: Stand still to concentrate. When affected by a harmful debuff\,\ spend concentration to deflect it.
 sk.lunge,Passive: Move forward when attacking.
 sk.flurry,Passive: After a successful attack\,\ quickly continue attacking adjacent hostiles if possible.
 sk.frenzy,Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
@@ -26,11 +28,12 @@ sk.alchemy,Brew potions on an alchemy table with alchemical ingredients like flo
 sk.scribing,Create spell scrolls at a registry desk.
 sk.carving,Carve wands on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick. Read from bookshelf to learn more.
 sk.herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time. They continue to spread as long as you come check them.
-sk.conjuration,Draw conjuration polygrams using chalk. Read from bookshelf to learn more.
+sk.conjuration,Draw conjuration polygrams using a chalk. Polygrams can be used to conjure items\,\ open portals\,\ and create simple spell effects at no cost.
 sk.steal,Passive: Stand still to concentrate\,\ next bare handed damage steals weapon from target. Steals from inventory if not concentrated.
 sk.feed,Passive: When damaging any unit\,\ this skill is replaced by one skill that the victim knew.
 sk.rally,Passive: Nearby allies come to aid when damaged.
 sk.constitution,Passive: Immune to knockdown.
+sk.deft,Passive: Decreases post attack delay.
 sk.psychic,Passive: Always know where you are.
 Dispel,Purge all magical status effects of the target.
 Charm,Enslave target unit permanently. Target must be directly in front of the caster.
@@ -74,7 +77,7 @@ Moth,This is surprisingly a moth.
 Crab,This crab has 2 pairs of claws!
 Octopus,The skin of this octopus glows under the sun.
 Tiger,A striped version of the cat. Much more deadly.
-Foul Snack,You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
+Foul Snack,Once a fulfilling cereal\,\ now a bringer of despair. You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
 Brainsucker,This vile creature steals the knowledge of its victims. For this reason this creature gets frequent visits from gurus who wish to start anew.
 Leper,A blighted fellow. Fortunately for him and unfortunately for you\,\This guy does not seem to feel pain anymore.
 Skeleton,In addition to being immune to pain\,\ this undead has some innate skeletal armor.
@@ -84,8 +87,6 @@ Master,A master of the martial arts.
 Shade,Spooky!
 Resident,This is a common resident who got stuck in this hell hole.
 Soldier,This poor guy was drafted into the army with no other option.
-Banker,He calls himself a banker\,\ but all he does is store items.
-Trainer,A physical education teacher who turned to the dark ways of physical assault to survive.
 Hireling,A member of the mercenary guild\,\ equipped with leather armor and wearing guild cap.
-Mercenary,A desperate resident surviving by looting from the outlaws and wildlife despite the danger\,\ just like you.
+Rando,A desperate resident surviving by looting from the outlaws and wildlife despite the danger\,\ just like you.
 Panda,This animal is educated in the ways of the martial arts.

@@ -277,6 +277,7 @@ class Wander(Task):
 class Attack(TargetTask):
     def on_set(self):
         super().on_set()
+        self.lifetime = 360
         self.pilot.priority = 1
         if self.pilot.is_humanoid:
             weapon = self.pilot.host.inventory.find_weapon()

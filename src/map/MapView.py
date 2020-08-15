@@ -25,6 +25,11 @@ class MapView:
         self.new_start = None
         self.old_camera = None
         self.overlay = Overlay()
+        from src.form.Shape import Shape
+        self.tape = Shape(-Global.CENTER[0], 160, 800, Global.draw_group.group_overlay,
+                          width=Global.DISPLAY[0] - Global.BLOCK * 2, height=Global.BLOCK, color=[0, 0, 0, 255])
+        self.tape.add_batch()
+        self.tape.show(True)
 
     @staticmethod
     def ratio_y(arg):
@@ -123,6 +128,9 @@ class MapView:
                         self.draw_tiles[index].place(vec_x + Global.HALF_BLOCK, vec_y - Global.HALF_BLOCK)
                         self.shadows[index].update(x=vec_x, y=Global.DISPLAY[1] - vec_y)
                         index += 1
+        tx = self.draw_tiles[0].x - Global.OFFSET[0] - Global.BLOCK
+        ty = Global.DISPLAY[1] - (self.draw_tiles[0].y - Global.OFFSET[1]) - Global.HALF_BLOCK - Global.BLOCK
+        self.tape.update(x=tx, y=ty)
 
     def update_region(self):
         for i in self.in_bounds:
@@ -158,7 +166,7 @@ class MapView:
                 else:
                     self.shadows[index].set_color([0, 0, 0, 255])
                     self.shadows[index].remove_shades()
-                    self.shadows[index].show(False)
+                    # self.shadows[index].show(False)
                     self.draw_tiles[index].show(False)
                 index += 1
         self.old_camera = Camera.target.pos

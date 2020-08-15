@@ -13,10 +13,10 @@ Trashman,Humanoid,human,[P:4,p:4,ai:wander,#:!trashman,str:3,abi:pester,abp:30,+
 Knight Knight,Humanoid,human,[P:7,p:7,team:1,ai:wander,#:!knightknight,str:5,+:_health&_damage],[],[?Cash Bundle],[parry],Platemail,Full Helm,Broadsword
 Undead J,Humanoid,skeleton,[P:3,p:3,def:1,head:half_15x0&half_15x1&half_15x2,ai:wander,#:!undeadj,str:3],[],[?Cash Bundle],[],Jumpsuit,Hat,0
 Macaroni Thay,Humanoid,human,[P:4,p:4,def:1,head:half_3x0&half_3x1&half_3x2,ai:wander,#:!macaroni,str:7],[],[?Cash,?Bread,?Plant,?Plant,?Plant],[],Fabric Wear,Cap,Scythe
-Humble Bob,Humanoid,human,[P:3,p:3,team:1,head:half_1x0&half_1x1&half_1x2,ai:wander,#:!humblebob,str:5],[],[?Cash,?Roast],[],Scalemail,0,Axe
+Humble Bob,Humanoid,human,[P:8,p:8,team:1,head:half_1x0&half_1x1&half_1x2,ai:wander,#:!humblebob,str:5],[],[?Cash,?Roast],[],Scalemail,0,Axe
 Mary J,Humanoid,human,[P:3,p:3,seed:700,ai:wander,#:!maryj,str:3,abi:barrier,+:_power],[],[?Cash],[],Green Robe,0,Parasol
-Stonefeller,Humanoid,human,[P:7,p:7,seed:100,ai:wander,#:!stonefeller,str:5],[],[?Silver,?Pickaxe,?Gold,?Amber,?Jet],[],Jumpsuit,Glow Hat,Pickaxe
-Master Lee,Humanoid,human,[P:9,p:9,seed:100,ai:wander,team:1,#:!masterlee,str:4,cha:3,sth:5],[],[?Manual],[parry,lunge,deft],Black Robe,Straw Hat,Katana
+Stonefeller,Humanoid,human,[P:3,p:3,seed:100,ai:wander,#:!stonefeller,str:5],[],[?Silver,?Pickaxe,?Gold,?Amber,?Jet],[],Jumpsuit,Glow Hat,Pickaxe
+Master Lee,Humanoid,human,[P:9,p:9,seed:100,ai:wander,team:1,#:!masterlee,str:4,cha:3,sth:5],[],[?Manual],[parry,lunge,deft],Red Robe,Straw Hat,Katana
 Bob Joe,Humanoid,human,[P:2,p:2,seed:300,ai:wander,#:!bobjoe,str:3,sth:2,loot:#farmer,have:6,+:_health&_health&_health&_skills],[],[],[assassinate,side step],Bloody Wear,Cap,Dagger
 Jane Doe,Humanoid,human,[P:2,p:2,seed:800,ai:wander,team:1,#:!janedoe,str:3,sth:1,+:_health&_health],[],[],[hide,side step],Fabric Wear,Hat,Torch
 Creep,Humanoid,human,[P:7,p:7,ai:wander,def:1,team:2,str:3,+:_health&_health],[],[?Cash],[fortitude,psychic],Cult Robe,Glasses,Telescope
@@ -24,6 +24,6 @@ Captain Knight,Humanoid,human,[P:9,p:9,ai:wander,def:1,team:2,str:8,+:_health&_h
 Reaper,Humanoid,skeleton,[P:9,p:9,def:2,ai:wander,team:3,str:3,+:_health&_health],[],[?Manual],[constitution,nocturnal],Cult Robe,Blink Charm,Scythe
 Robin Hoot,Humanoid,human,[P:7,p:7,ai:wander,def:1,team:2,str:5,+:_health&_health],[],[?Cash Bundle],[parry,steal],Leather Gear,Bandana,0
 John Joe,Humanoid,human,[P:2,p:2,team:2,seed:400,ai:wander,str:3,sth:2,loot:#farmer,have:3,+:_health&_health&_skills],[],[],[assassinate,side step],Bloody Wear,Cap,Dagger
-Ivy Live,Unit,ivy2,[P:1,p:1,fuel:2,team:3,def:2,ai:guard,spd:-1,+:health,abi:fireball],[],[?Plant],[]
-Death Snack,Unit,slime3,[P:4,p:4,def:1,team:3,fuel:0,ai:wander,spd:1,deaf:1,spd:-1],[[Brand,-1,>buff>Shapeshift>-1>Slime]],[?Pearl],[]
+Ivy Live,Unit,ivy2,[P:1,p:1,fuel:2,team:3,def:2,ai:guard,spd:-4,+:health,abi:fireball,abp:100],[],[?Plant],[]
+Death Snack,Unit,slime3,[P:4,p:4,def:1,team:3,fuel:0,ai:wander,spd:1,deaf:1,spd:-1],[[Brand,-1,>buff>*host>Shapeshift>-1>Slime]],[?Pearl],[]
 Mushmaker,Unit,brainsucker,[P:12,p:12,def:1,team:3,ai:wander,deaf:1,spd:-1,abi:barrier],[],[?Silver],[feed,feed,feed]

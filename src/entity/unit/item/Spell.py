@@ -233,8 +233,7 @@ class Wall(Spell):
                 if x != 0 or y != 0:
                     tile = self.host.pos.get_neighbor(x, y)
                     if tile and not tile.things:
-                        r = Stock.make('Spell Wall', tile)
-                        r.states.add('Script', duration, 'remove')
+                        Stock.make('Spell Wall', tile)
 
 
 class Zombie(Spell):
@@ -324,31 +323,28 @@ class Pester(Spell):
                 summon.states.add('Script', self.get_power_0_4() * 2 + 16, 'remove')
 
 
-class Memorize(Spell):
-    def perform(self):
-        cell_coord = Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)
-        memory = '&'.join([str(x) for x in [cell_coord[0], cell_coord[1]]])
-        self.host.tags.set('memory', '&' + memory)
-        self.host.location.sound.register(self.host.pos, 1, file='obtain')
-        Particle.make('portal', self.host.pos)
-
-
-class Recall(Spell):
+class Gateway(Spell):
     def get_delay(self):
-        return 14
+        return 24
 
     def get_cooldown(self):
-        return 100
+        return 1200
 
     def perform(self):
-        if self.host == Global.player.character:
-            memory = self.host.tags.get('memory')
-            if memory:
-                args = memory.split('&')
-                Global.world.travel(int(args[1]), int(args[2]))
-            else:
-                Particle.make('portal', self.host.pos)
-                self.host.location.sound.register(self.host.pos, 4, file='void')
+        memory = Global.player.tags.remove('gateway')
+        if memory:
+            args = memory.split('&')
+            portal = Stock.make('Gateway', self.host.pos)
+            portal.states.add('Effect', -1, 'wind')
+            portal.tags.set('tox', int(args[1]))
+            portal.tags.set('toy', int(args[2]))
+            portal.tags.set('#', 'travel')
+        else:
+            Stock.make('Gateway', self.host.pos)
+            cell_coord = Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)
+            memory = '&'.join([str(x) for x in [cell_coord[0], cell_coord[1]]])
+            Global.player.tags.set('gateway', '&' + memory)
+            self.host.location.sound.register(self.host.pos, 8, file='void')
 
 
 class Transmogrify(Spell):
@@ -364,11 +360,11 @@ class Transmogrify(Spell):
                 target.states.add('Shapeshift', duration, Global.r.rand_list(pick))
 
 
-class Slow(Spell):
+class Snare(Spell):
     def perform(self):
         for i in Spell.get_subjects(self.host.pos):
             if not i.states.get('Speed'):
-                i.states.add('Speed', 40 * self.get_power_0_4() + 40, -4)
+                i.states.add('Speed', 40 * self.get_power_0_4() + 40, -20)
             return
 
 
@@ -389,7 +385,7 @@ class Fireball(Spell):
         destination = self.host.pos.get_cardinal(self.host.direction, distance=self.get_range())
         self.host.location.sound.register(destination, 9, file='fire')
         r.relocate(to=destination)
-        r.states.add('Script', 2, '>buff>Burn>8>0')
+        r.states.add('Script', 2, '>buff>*host>Burn>8>0')
 
 
 class Arrow(Spell):
@@ -503,16 +499,15 @@ class Torment(Spell):
                     r.tags.set('P', power)
 
 
-class Destabilize(Spell):
-    def get_range(self):
-        return self.get_power_0_4() + 5
-
+class Avatar(Spell):
     def perform(self):
-        targets = self.host.location.population.get_all()
-        self.host.location.sound.register(self.host.pos, 13, file='void')
-        for i in targets:
-            if i != self.host and (i.pos - self.host.pos).difference() <= self.get_range():
-                i.relocate(to=self.host.pos, force=True)
+        golem = Stock.make('Golem', self.host.pos)
+        x = Global.r.rand_int(-1, 1)
+        y = Global.r.rand_int(-1, 1)
+        destination = self.host.pos.get_neighbor(x, y)
+        golem.move_line(destination)
+        golem.tags.set('team', self.host.tags.get('team', 0))
+        golem.states.add('Script', 140 + self.power, 'remove')
 
 
 class Summon(Spell):

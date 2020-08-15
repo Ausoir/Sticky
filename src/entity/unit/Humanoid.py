@@ -161,6 +161,7 @@ class Humanoid(Unit):
         if self.tags.get('p', 0) == 1:
             from src.entity.Particle import Particle
             Particle.make('blood', self.pos, offset=8)
+            self.form.randomize_once(2)
 
     def use(self):
         if self.weapon:

@@ -1,11 +1,11 @@
 none,None
 proceed,Proceed
 dsc_health,You die when your health reaches 0. Health: # out of #. Health can be restored by sleeping at a bed or drinking potions. Current armor durability: # out of #. Armor can be mended by a blacksmith.
-dsc_money,You can use money to buy things from vendors or hire mercenaries.
+dsc_money,You can use money to buy things from vendors or hire mercenaries. You have $# of investment made.
 classless,You are classless.
 avenger,You are an Avenger. When you slay <#> you gain their level as extra experience.
 psycho,You are a Psycho. You get 3 times more experience from killing friendlies.
-gourmet,You are a Gourmet. You get 4 times more experience from eating <#>.
+gourmet,You are a Gourmet. You get 4 times more experience from eating.
 survivor,You are a Survivor. Your passive experience gain from things like resting is doubled.
 agent,You are an Agent. You gain experience when you sabotage your targets. Your targets are: #.
 explorer,You are an Explorer. You gain experience from exploring new area.
@@ -13,7 +13,7 @@ scholar,You are a Scholar. Using the observer item gives you 4 times more experi
 no_status,No abnormal status effect found.
 dsc_location,Your current location.
 dsc_date,Date and Time: #. Current Hunger: #%
-dsc_hunger,Date and Time: #. Current Hunger: #%. You are starving and you take damage for each passing hour
+dsc_hunger,Date and Time: #. Current Hunger: #%. You are starving and you will be constantly knocked down.
 stat_applied,Level up! You are now level #!
 dsc_level,You progress in level by doing things like eating',' killing units of higher level',' resting',' or performing class missions. Experience gain diminishes with level increase.
 dsc_vitality,Vitality determines your maximum health. Humanoids have 2 health by default.
@@ -70,8 +70,6 @@ supply,Would you like to sell # for $#?
 transacted,Transaction successful!
 store_item,Storage of this item would cost $#.
 store_nothing,You are not holding anything that can be stored.
-train,Train <#> stat for $#?
-!train,You need #% more experience to train # stat and reach your next level.
 info_pocket,Press <R> to access pocket
 hire?,Hire for $#?
 insure?,I can clone your body so you can be revived even if you die. Will you take this life insurance for $#? This life insurance lasts # hours.
@@ -81,3 +79,4 @@ wait,Wait # seconds!
 craftables,Click an item to view recipe
 dsc_examine,Use the arrow keys then press Enter to examine target.
 dsc_victory,You have returned home from the Peninsula of Doom! You are victorious! Your time of victory: #. Press ESC to end.
+invest,Would you like to invest $# into Peninsula of Doom pension fund? You will receive 10% of your investment every day at midnight\,\ but this investment does not transfer to a clone\,\ friend\,\ family\,\ and is non-refundable. You currently have $# invested in the fund.

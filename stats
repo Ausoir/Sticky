@@ -306,3 +306,6 @@
 8/11 Beginner regions (1), Smooth vec on cell change for other units (1)
 8/12 Final castle (1), Victory condition (1)
 ---- PUSH
+8/13 Fixed oversize objects leaking out of shadow (1)
+8/14 Gateway spell (1), easier conjuration (1)
+---- PUSH

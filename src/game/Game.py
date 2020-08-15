@@ -125,13 +125,17 @@ class Game:
             self.character.tags.increment('hunger', 1000 * time)
             self.days += time
             self.character.location.on_sleep(time)
-            if self.is_hungry():
-                self.character.decay(time)
             self.npc.update(0, 0, force=True)
             event = Global.r.rand_list(Data.get_line('raw.txt', 'event')[1])
             if event:
                 Script.var['host'] = self
                 Script.execute_code(event)
+            investment = Global.player.character.tags.get('invest', 0)
+            if investment:
+                time = self.character.tags.increment('investt', time)
+                if time >= 24:
+                    Global.player.character.tags.increment('money', max(1, int(investment / 10)) * int(time / 24))
+                    self.character.tags.set('investt', self.days % 24)
         if blackout:
             Global.map_view.overlay.blackout()
         else:
@@ -197,9 +201,9 @@ class Game:
             else:
                 self.dead += 1
         elif self.character.action.delay > 0:
-            self.character.tags.increment('hunger', 10)
-            if self.is_hungry():
-                self.character.form.randomize_once(3)
+            self.character.tags.increment('hunger', 5)
+            if Global.r.rand_int(0, 16) == 0 and self.is_hungry():
+                self.character.action.knockdown(self.character, Global.r.rand_int(2, 16))
         self.character.location.sound.update_bgm()
         if Global.world.recenter(self.character.pos.x, self.character.pos.y):
             Global.map_view.turn()

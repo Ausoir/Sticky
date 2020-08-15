@@ -1,4 +1,4 @@
 -24
-[[7,1],Floodlight,Prop,g_25x4,[p:1,def:5,ob:0],[[Glow,-1,5]]],[[8,1],Chest,Container,g_22x4,[p:4,def:3,loot:#chest,#:>menu>container,have:1],[],[]],[[9,1],Floodlight,Prop,g_25x4,[p:1,def:5,ob:0],[[Glow,-1,5]]],[[2,8],Floodlight,Prop,g_25x4,[p:1,def:5,ob:0],[[Glow,-1,5]]]
-C.CCCC=====C.%..CCCC=====C.%..CCCC=====C.%..CCCC=====C.%..CCCC=====C.%CCCCCCmmmmmC.%=====CmmmmmC.%=====CmmmmmCC%=====mmmmmmCR%=====mmmmmmCR%=====CmmmmmCR%CCCCCCCCCCCCR%~~~~~~~~~~~~R
+[[8,2],Floodlight,Prop,g_25x4,[p:1,def:5,ob:0],[[Glow,-1,5]]],[[2,8],Floodlight,Prop,g_25x4,[p:1,def:5,ob:0],[[Glow,-1,5]]],[[8,8],Floodlight,Prop,g_25x4,[p:1,def:5,ob:0],[[Glow,-1,5]]]
+C.CCCC=====C=%..CCCC=====C=%..CCCC=====CC%..CCCC=======%..CCCC=======%CCCCCCCmmmCC=%=====CmmmmmC=%=====CmmmmmCC%=====mmmmmmCR%=====mmmmmmCR%=====CmmmmmCR%CCCCCCCCCCCCR%CCCCCCCCCCCCR
 1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111110%1111111111110%1111111111110%1111111111110%0000000000000

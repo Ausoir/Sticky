@@ -140,10 +140,8 @@ class Pilot:
 
     def lose(self, target):
         if self.task.target == target:
-            seen = self.host.location.collide_land(self.host.pos, self.task.target.pos, self.host.sight)
-            if seen != target.pos:
-                self.move.target = self.task.target.pos
-                self.set_task(self.move)
+            self.move.target = self.task.target.pos
+            self.set_task(self.move)
 
     def prioritize(self, targets):
         nearest_dist = 99
@@ -187,13 +185,13 @@ class Routes:
         for i in tile.things:
             if i.obstruct_type >= self.host.collision_type:
                 hp = i.tags.get('p')
-                if not hp or self.host.tags.get('dmg', 1) <= i.tags.get('def', 0)\
+                if not hp or self.host.tags.get('dmg', 0) + 1 <= i.tags.get('def', 0)\
                         or i.tags.get('team') == self.host.tags.get('team'):
                     return -1
                 else:
                     weight += hp
         if tile.get_yield() == -10 and self.host.collision_type <= Tile.COLLIDE_TERRAIN:
-            if self.host.tags.get('dmg', 1) > tile.get_hardness() and self.host.get_skill('crush'):
+            if self.host.tags.get('dmg', 0) + 1 > tile.get_hardness() and self.host.get_skill('crush'):
                 weight += 3
             else:
                 return -1

@@ -167,6 +167,8 @@ class Script:
             return Global.player.is_bright()
         elif condition[0] == 'day':
             return Global.player.is_daytime()
+        elif condition[0] == 'hungry':
+            return Global.player.is_hungry()
         elif condition[0] == 'bring':
             return Script.var['host'].pos == Global.player.character.pos
         elif condition[0] == 'delay':

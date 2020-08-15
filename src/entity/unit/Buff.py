@@ -52,6 +52,11 @@ class Buff:
         self.duration = 0
 
     def is_valid(self):
+        if 'magic' in self.get_tags():
+            deflect = self.host.states.get('Deflection')
+            if deflect:
+                deflect.trigger()
+                return False
         return not self.host.states.get('Immune')
 
     def on_start(self):
@@ -182,7 +187,7 @@ class Burn(Buff):
             return super().is_valid()
 
     def on_start(self):
-        self.duration += self.host.tags.get('fuel', 1) * 10
+        self.duration += min(120, self.host.tags.get('fuel', 1) * 10)
         if self.duration >= 90:
             self.host.location.sound.register(self.host.pos, 13, file='critical')
             for y in range(-1, 2):
@@ -275,19 +280,15 @@ class Invisible(Buff):
 
     def on_start(self):
         Particle.make('mist', self.host.pos)
-        self.on_load()
         if isinstance(self.host, Unit):
-            for unit in self.host.get_team(ally=False):
+            self.host.tags.increment('sth', 40)
+            for unit in self.host.location.population.get_units():
                 if unit.pilot.priority == 1:
                     unit.pilot.lose(self.host)
 
     def on_stack(self, duration, var):
         self.duration = duration
         self.var = var
-
-    def on_load(self):
-        if isinstance(self.host, Unit):
-            self.host.tags.increment('sth', 40)
 
     def on_finish(self):
         if isinstance(self.host, Unit):
@@ -367,22 +368,17 @@ class Concentration(Buff):
     def effect_on_load(self):
         if self.host.get_skill('deep sense') and not self.host.states.get('Vision'):
             self.host.states.add('Vision', 8)
+        if self.host.get_skill('iron will'):
+            self.host.states.add('Deflection', 40)
+        if self.host.get_skill('hide'):
+            self.host.states.add('Invisible', -1)
 
     def on_stack(self, duration, var):
         self.effect_on_load()
-        if self.host.get_skill('iron will'):
-            for i in self.host.states.buffs:
-                if 'harm' in i.get_tags():
-                    Particle.make('barrier', self.host.pos, offset=4)
-                    i.end()
-                    self.end()
-                    return
 
     def on_start(self):
         Particle.make('sweat', self.host.pos, offset=4)
         self.effect_on_load()
-        if self.host.get_skill('hide'):
-            self.host.states.add('Invisible', -1)
         if self.host.get_skill('weave'):
             for i in self.host.pos.things:
                 if i.name == 'Web':
@@ -587,8 +583,22 @@ class Barrier(Buff):
 
     def trigger(self, arg):
         if arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
+            self.host.location.sound.register(self.host.pos, 2, file='energy')
             Particle.make('barrier', self.host.pos)
             self.end()
+
+
+class Deflection(Buff):
+    def get_tags(self):
+        return ['magic', 'stack']
+
+    def on_stack(self, duration, var):
+        self.duration = duration
+
+    def trigger(self, arg):
+        self.host.location.sound.register(self.host.pos, 2, file='energy')
+        Particle.make('barrier2', self.host.pos)
+        self.end()
 
 
 class Nutrition(Buff):

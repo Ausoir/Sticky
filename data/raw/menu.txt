@@ -1,4 +1,15 @@
-birth,2,You started playing some strange video game when you were sucked into the computer... then you woke up in a different world. A stranger tells you that you can return home if you can get to the Northeastern Gate.,Enter Tutorial,>teleport>110>446
+birth,2,You are stranded in the Peninsula of Doom. The evil lord past the Northeastern Gate is blocking access to your freedom. Survival here will not be easy. Find food\,\ level up\,\ and fight your way out!,Enter Tutorial,>teleport>110>446
+tutorial1,1,Use the WASD keys to maneuver. Press the SPACE key to attack. Press TAB to close out of this dialog.
+tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1. You will gain experience if you kill an enemy in melee\,\ depending on level difference.
+tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
+tutorial4,1,In safe areas you will find useful services like buying and selling goods\,\ swords for hire\,\ and life insurance. Most friendlies can be interacted with WASD keys. The character to your right is a supplier. Sell your torch\,\ and from the equipment menu you can see that now you have some money.
+tutorial5,1,Some weapons provide special skills. If you wield the stick\,\ you will get access to a new skill called lunge. Press TAB to access your menu then press 4 to access your skills menu to read about the skill.
+tutorial6,1,Some enemies have special skills and should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description.
+tutorial7,1,If you are wielding something already\,\ you will notice that you cannot carry any more weight. That is because you only have 2 strength right now. Press Q on an empty tile to drop your current item then press Q on the stool while empty handed.
+tutorial8,1,If you examine the window you will notice it has an armor value of 1. That means you need at least 2 damage to break that window. The stool on your left gives you 1 damage. Pick it up and smash the window.
+tutorial9,1,You can check your current health from the menu. You should always travel with full health. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag.
+tutorial10,1,You cannot travel far away places empty handed. You need food to satiate your hunger or you will starve\,\ during which you will suffer from constant knockdowns. Hunger can be checked from TAB menu. Take some food from the crate and press SPACE to interact with it.
+tutorial11,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Start out with simple things like killing enemies without taking damage and paying attention to landscapes\,\ then move on to learning more advanced things like how to fight against lunge and using magical items. Good luck!
 pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
 resident,3,Yes?,[Move,#swap],[Talk,character],[Hire,!hire]
 trader,3,Buy something!,[Move,#swap],[Introduce,!intro_trader],[Buy,>menu>shop]
@@ -9,10 +20,11 @@ insurer,3,Do you require aid?,[Move,#swap],[Introduce,!intro_insurer],[Diagnose,
 intro_insurer,1,I am a insurance agent. This place is dangerous and sooner or later you will die. I cannot help you not die\,\ but I can help you revive!
 supply,3,Are you here to sell?,[Move,#swap],[Introduce,!intro_supplier],[Sell,>menu>supply]
 intro_supplier,1,I am a supplier. I buy doodads from public agents like you and sell them to merchants. Speak to me again if you want to earn some money.
-banker,3,How can I help you?,[Move,#swap],[Introduce,!intro_banker],[Store,>menu>store_item],[Retrieve,>menu>container]
-intro_banker,1,I am an banker. I can store your items so you can retrieve them later.
+banker,3,How can I help you?,[Move,#swap],[Introduce,!intro_banker],[Invest,>menu>invest],[Store,>menu>store_item],[Retrieve,>menu>container]
+banker2,3,How can I help you?,[Move,#swap],[Introduce,!intro_banker],[Store,>menu>store_item],[Retrieve,>menu>container]
+intro_banker,1,I am an banker. I can store your items so you can retrieve them later. I also take investments.
 blacksmith,3,What do you want?,[Move,#swap],[Introduce,!intro_blacksmith],[Buy,>menu>shop],[Repair,#repair],[Modify,>menu>storage]
-intro_blacksmith,1,I'm a blacksmith. I repair\,\ modify\,\ and sell metal things.
+intro_blacksmith,1,I'm a blacksmith. I repair\,\ modify\,\ and sell metalcraft.
 bookshelf,3,There are books here that can help you understand the world.,[Basic Functions,!controls],[More Functions,!adv_controls],[Life Pro Tips,!tip1],[Fighting Tips,!tip2],[Urban Living,!tip3]
 controls,1,Use the WASD keys to move\,\ Q key to pick up or drop items\,\ SPACE key to attack\,\ and TAB key to access the menu. Use R key to access the pocket. If using the mouse\,\ use the left mouse button to move and attack.
 adv_controls,1,Press R to access your pocket. Use the Arrow keys and the ENTER key to examine. You can also use the right mouse button to examine as well.
@@ -24,33 +36,22 @@ see saw2,3,Please\,\ take your time.,[Move,#swap],[Diagnose,>menu>effects],[Cure
 chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a chain restaurant around here... Which is not really a thing anymore since no ones enforcing laws these days. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
 chef moe2,3,Mhmm.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
 trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
-rando,3,I am gonna get the hell out of here\,\ I swear. I just need to farm one more manual...,,[Move,#swap],[Hire,>menu>hire]
-knightknight,2,Look at me mate\,\ I got full plate armor! Do you think I am prepared to breach the evil gates? I have not heard of any success stories...,Sure,!knightknight2
+rando,3,I'm a desperate resident surviving day to day looting from outlaws and wildlife... just like you.,[Move,#swap],[Hire,>menu>hire]
+knightknight,2,Look at me mate\,\ I got full plate armor! Do you think I am prepared to breach the evil gates? I heard the evil lord is pretty tough...,Sure,!knightknight2
 knightknight2,3,Maybe we can travel together. Maybe.,[Move,#swap],[Hire,>menu>hire]
 undeadj,2,Calm down man\,\ I'm no monster. The life insurance guy did a shoddy job at cloning me. You know?,That happens?,!undeadj2
 undeadj2,3,I'm a pretty good kicker. Are you are thinking what I'm thinking? maybe we should party up and kick a leper around!,[Move,#swap],[Join,#ally]
-humblebob,3,My name is bob.,[Move,#swap],[Hire,>menu>hire]
-macaroni,2,I don't know what's harder\,\ running from wildlife or running from outlaw maniacs. I'm starting to think breaching the Northeastern Gate may be better than waiting for a slow death down here.,Sure,!maryj2
+humblebob,3,My name is bob. I can fight.,[Move,#swap],[Hire,>menu>hire]
+macaroni,2,I don't know what's harder\,\ running from wildlife or running from outlaw maniacs. I'm starting to think breaching the Northeastern Gate may be better than waiting for a slow death down here.,Sure,!macaroni2
 macaroni2,3,Call me Macaroni.,[Move,#swap],[Join,#ally]
-maryj,2,There are many interesting plants around here. Just pay some attention to them and a whole new world might show itself.,Sure,!macaroni2
+maryj,2,There are many interesting plants around here. If you know some alchemy\,\ you could take advantage of them.,Sure,!maryj2
 maryj2,3,I am Mary. How may I be of service?,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
-stonefeller,2,I am Stonefeller. I break rocks. If you want to know where rare minerals can be used\,\ ask a wand crafter.,Ok,!stonefeller2
+stonefeller,2,I am Stonefeller. I break rocks. If you want to know what rare minerals are used for\,\ ask a wand crafter\,\ because I'm not interested.,Ok,!stonefeller2
 stonefeller,3,Dig dig dig.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
 masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young lad wielding a flaming blade on a field casting scorch on a slime. I took him in\,\ taught him the ways of fighting\,\ and soon he became the strongest fighter of this peninsula,Ok,!masterlee2
-masterlee2,3,Young people these days are so naive.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair]
-bobjoe,2,You were sucked in here too? Did you kill somebody too? Goddamn it\,\ I should've kept going to church...,Uh...,bobjoe2
+masterlee2,3,Young people like you know nothing of true breakfast cereal. Nothing!,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair]
+bobjoe,2,Northeastern Gate? Are you crazy? You'll be butchered and turned into a tasty slime! Look around\,\ where do you think all those slimes come from?,Nah,bobjoe2
 bobjoe2,3,I'm not going to that Northeastern Gate or whatever. There are things worse than death in this hell of a place.,[Move,#swap],[Sell,>menu>supply]
-janedoe,2,You were sucked in here too? From what I found out\,\ we are stranded in the Peninsula of Doom. This place is filled with monsters and looters. The natives told me we need to breach the Northeastern Gate if we wish to return home. It sounded like the natives wanted to leave too.,Ok,janedoe2
-janedoe2,3,We should travel together.,[Move,#swap],[Sell,>menu>supply]
+janedoe,2,Welcome\,\ fellow resident of the Peninsula of Doom. People say that anyone that doesn't escape this place will be butchered by monsters and maniacs\,\ but I find a good living here\,\ living off the land.,Ok,janedoe2
+janedoe2,3,You are leaving? Take me with you!,[Move,#swap],[Sell,>menu>supply]
 helper,3,Do you need help fighting?,[Move,#swap],[Get Help,#ally]
-tutorial1,1,Use the WASD keys to maneuver. Press the SPACE key to attack. Press TAB to close out of this dialog.
-tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1. You will gain experience if you kill an enemy in melee\,\ depending on level difference.
-tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
-tutorial4,1,In safe areas you will find useful services like buying and selling goods\,\ swords for hire\,\ and life insurance. Most friendlies can be interacted with WASD keys. The character to your right is a supplier.
-tutorial5,1,Some weapons provide special skills. If you wield the stick\,\ you will get access to a new skill called lunge. Press TAB to access your menu then press 4 to access your skills menu to read about the skill.
-tutorial6,1,Some enemies have special skills and should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description.
-tutorial7,1,If you are wielding something already\,\ you will notice that you cannot carry any more weight. That is because you only have 2 strength right now. Press Q on an empty tile to drop your current item then press Q on the stool while empty handed.
-tutorial8,1,If you examine the window you will notice it has an armor value of 1. That means you need at least 2 damage to break that window. The stool on your left gives you 1 damage. Pick it up and smash the window.
-tutorial9,1,You can check your current health from the menu. You should always travel with full health. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag.
-tutorial10,1,You cannot travel far away places empty handed. You need food to satiate your hunger or you will take starvation damage. Hunger can be checked from TAB menu. Take some food from the crate and press SPACE to interact with it.
-tutorial11,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!

@@ -1,4 +1,4 @@
 -24
-[[0,10],Window,Door,g_3x4,[p:1,ob:4,def:1,alt:g_4x4,loot:Glass],[]],[[2,12],Window,Door,g_3x4,[p:1,ob:4,def:1,alt:g_4x4,loot:Glass],[]]
-~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%CCCCCCCCC~~~~%mm......C~~~~%mm......C~~~~%mm......C~~~~%mCC.....C~~~~%..C.....C~~~~%:.......C~~~~
+[[5,7],Sack,Container,g_27x4,[p:2,ob:4,loot:#sack,#:>menu>container,have:3],[],[]],[[6,7],Sack,Container,g_27x4,[p:2,ob:4,loot:#sack,#:>menu>container,have:3],[],[]],[[7,7],Sack,Container,g_27x4,[p:2,ob:4,loot:#sack,#:>menu>container,have:3],[],[]],[[0,10],Window,Door,g_3x4,[p:1,ob:4,def:1,alt:g_4x4,loot:Glass],[]],[[5,10],Floodlight,Prop,g_25x4,[p:1,def:5,ob:0],[[Glow,-1,5]]],[[1,11],Goods,Container,g_2x7,[p:1,ob:4,loot:#goods,#:>menu>container,have:3],[],[]],[[1,12],Goods,Container,g_2x7,[p:1,ob:4,loot:#goods,#:>menu>container,have:3],[],[]]
+~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%CCCCCCCCC~~~~%mm......C~~~~%mm...==.C~~~~%mm...=..C~~~~%mCC..==.C~~~~%..C....=C~~~~%:.C.==..C~~~~
 0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%1111111110000%1111111110000%1111111110000%1111111110000%1111111110000%1111111110000%1111111110000

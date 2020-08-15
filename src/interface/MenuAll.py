@@ -70,11 +70,11 @@ class MenuAll(MenuPlayer):
         if host.inventory.items:
             seed = host.get_seed()
             Global.r_t.reset(seed + 777 + Global.player.days)
-            personality = seed % 3
+            personality = seed % 2
             for k in range(min(6, len(host.inventory.items))):
                 item = host.inventory.get_item(k)
                 if item:
-                    value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, 2))
+                    value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, 1))
                     param = [item.name, value, k]
                     lmb = self.get_prompt(Dialog.get('supply', param), Dialog.get('Sell'), buy, param)
                     self.window.add(Menu.make(item.name, lmb))
@@ -109,25 +109,19 @@ class MenuAll(MenuPlayer):
             self.history.pop()
             self.get_prompt(message, Dialog.get('Store'), store, count)()
 
-    def menu_train(self):
+    def menu_invest(self):
         # noinspection PyUnresolvedReferences
-        def train(arg):
+        def store(arg):
             if Global.player.pay(cost):
-                Global.player.character.tags.increment('lvl', 100)
-                Global.player.character.tags.increment(stat[1], stat[2])
+                Global.player.character.tags.increment('invest', cost)
+                Global.player.character.tags.set('investt', Global.player.days % 24)
                 Global.main.monologue.set(Dialog.get('transacted'))
-        cost = Global.player.character.get_level() ** 2
-        exp = Global.player.character.tags.get('lvl', 100) % 100
-        from src.tools.Data import Data
-        raw = Data.get_line('raw.txt', 'stat')[1]
-        stat = raw[self.var.get_seed() % len(raw)]
-        name = stat[0].title()
+        Global.r_t.reset(self.var.get_seed() + 777)
+        cost = Global.r_t.rand_int(7, 35)
+        text = Dialog.get('invest', [cost, Global.player.character.tags.get('invest', 0)])
+        self.var.tags.set('#', '!banker2')
         self.history.pop()
-        if exp == 99:
-            message = Dialog.get('train', [name, cost]) + '\n' + Dialog.get('dsc_' + stat[0])
-            self.get_prompt(message, Dialog.get('Train') + ' ' + name, train)()
-        else:
-            self.get_message(Dialog.get('!train', [99 - exp, name]))()
+        self.get_prompt(text, Dialog.get('Store'), store, 0)()
 
     def menu_insure(self):
         # noinspection PyUnresolvedReferences

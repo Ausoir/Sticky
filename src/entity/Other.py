@@ -260,27 +260,23 @@ class Marker(Prop):
                 self.states.add('Glow', 7, 5)
         elif glow.duration == 1:
             if self.tags.increment('stress', 1) > 12:
-                self.tags.increment('fuel', 1)
+                self.tags.increment('fuel', ord(self.pos.get_icon()) + self.tags.get('way', 1) % 10)
                 self.states.add('Burn', 12)
             routes = self.get_routes()
             for tile in routes:
-                interrupt = True
                 for thing in tile.things.copy():
-                    if isinstance(thing, Marker) and len(tile.things) == 1:
-                        Particle.make('fire', tile)
+                    if isinstance(thing, Marker):
+                        Particle.make('fire', tile, offset=4)
                         thing.states.add('Glow', 1, glow.var - thing.tags.get('ohm', 0))
-                        if glow.var >= 12 and len(thing.states.buffs) > 0:
+                        if glow.var >= 11 and len(thing.states.buffs) > 0:
                             thing_glow = thing.states.get('Glow')
                             if thing_glow:
                                 self.echo(1)
                                 self.states.add('Burn', 12)
                                 Particle.make('portal', self.pos)
-                                self.cast()
+                                self.cast(ord(self.pos.get_icon()))
                                 thing.remove()
                                 self.remove()
-                        interrupt = False
-                if interrupt:
-                    self.states.add('Burn', 12)
 
     def echo(self, val):
         self.tags.set('hold', val)
@@ -292,11 +288,10 @@ class Marker(Prop):
                     Particle.make('explode', thing.pos, glow=1, offset=4)
                     thing.remove()
 
-    def cast(self):
+    def cast(self, arg):
         data = Data.get_line('raw.txt', 'portals')[1]
         from src.entity.unit.item.Spell import Spell
-        world_seed = Global.player.tags.get('seed') + ord(self.pos.get_icon())
-        spell = data[world_seed % len(data)]
+        spell = data[arg % len(data)]
         Spell.get(spell, power=100).cast_on(self)
         # print('spell ' + spell)
 
@@ -462,12 +457,6 @@ class Manual(Item):
 
 
 class Potion(Food):
-    def get_display_name(self):
-        effect = self.tags.get('effect')
-        if effect:
-            return effect + ' ' + super().get_display_name()
-        return super().get_display_name()
-
     def describe(self):
         r = super().describe()
         arg = self.tags.get('dur')
@@ -574,6 +563,8 @@ class Ghost(Unit):
             for i in self.pos.things:
                 if i != self and isinstance(i, Unit) and i.pilot.priority > 3 and not i.states.get('Immune'):
                     Global.player.character.remove()
+                    if not i.tags.get('lvl'):
+                        i.tags.set('lvl', i.get_level() * 100)
                     Global.player.set_player(i)
                     i.center_camera()
                     break

@@ -1,3 +1,4 @@
+from src.entity.Particle import Particle
 from src.game import Global
 from src.game.Camera import Camera
 from src.game.Editor import Editor
@@ -11,6 +12,8 @@ from src.tools.Tag import Tag
 
 
 class Game:
+    HOUR_HUNGER = 500
+
     def __init__(self):
         Turn.add(Global.menu.turn)
         Turn.fast_queue.append(Global.map_view.update)
@@ -48,10 +51,10 @@ class Game:
             data3 = Global.r.rand_list(spawns)
             self.tags.set('c_x', data3[2])
             self.tags.set('c_y', data3[3])
-            self.npc.make()
             Global.world.initialize(data3[2], data3[3])
+            self.npc.make()
             from src.entity.Stock import Stock
-            self.character = Stock.get(Global.world.location, self.temporary[1][1], data=self.temporary[1]).add()
+            self.character = Stock.get(self.temporary[1][1], data=self.temporary[1]).add()
             self.character.pos.load(data3[0], data3[1])
             class_data = Data.get_line('raw.txt', 'class')[1]
             self.set_class(Global.r.rand_list(class_data))
@@ -59,19 +62,14 @@ class Game:
             self.npc.load(self.temporary[2:], self.tags.get('c_x'), self.tags.get('c_y'))
             Global.world.initialize(self.tags.get('c_x'), self.tags.get('c_y'))
             from src.entity.Stock import Stock
-            self.character = Stock.get(Global.world.location, self.temporary[1][1], data=self.temporary[1]).add()
+            self.character = Stock.get(self.temporary[1][1], data=self.temporary[1]).add()
         self.temporary = self.character.sight
         self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
         self.set_player(self.character)
         self.initialize_mode()
-        bgm = []
-        Global.r_t.reset(self.tags.get('seed'))
-        for i in [1, 2, 0, 0, 3, 4, 5, 6, 0, 0, 0]:
-            if i != 0:
-                bgm.append(Global.r_t.rand_list(['k_[', 'k_1', 'k_3', 'k_o']))
-        self.character.location.sound.set_bgm(bgm, 2)
+        Global.world.location.sound.make_bgm()
         if is_new:
-            Script.execute_code('!birth')
+            Script.execute_code('birth')
 
     def save(self):
         if not self.character.removed:
@@ -84,7 +82,7 @@ class Game:
             self.tags.set('c_y', Global.world.cells[chunk][1])
             r = self.tags.__str__() + '\n'
             r += self.character.__str__() + '\n'
-            r += self.npc.__str__()
+            r += self.npc.get_str()
             Data.write('save/player.char', r)
 
     def get_biomes(self, level):
@@ -122,9 +120,9 @@ class Game:
     def sleep(self, time, blackout=True):
         if time > 0:
             self.character.progress_level(time, mode='survive')
-            self.character.tags.increment('hunger', 1000 * time)
+            self.character.tags.increment('hunger', Game.HOUR_HUNGER * time)
             self.days += time
-            self.character.location.on_sleep(time)
+            Global.world.location.on_sleep(time)
             self.npc.update(0, 0, force=True)
             event = Global.r.rand_list(Data.get_line('raw.txt', 'event')[1])
             if event:
@@ -142,6 +140,13 @@ class Game:
             Global.map_view.overlay.fading = True
         self.set_darkness()
         return True
+
+    def try_sleep(self, arg):
+        if not self.is_hungry():
+            self.sleep(arg)
+            return True
+        else:
+            Global.main.monologue.set(Dialog.get('!eat'))
 
     def set_darkness(self):
         time = self.days % 24
@@ -196,15 +201,18 @@ class Game:
                         Global.world.travel(args[0], args[1])
                 else:
                     Script.execute_code('death')
-            elif self.dead == 20:
+            elif self.dead == 11:
                 Global.menu.direct(Global.menu.menu_victory)
             else:
                 self.dead += 1
         elif self.character.action.delay > 0:
             self.character.tags.increment('hunger', 5)
-            if Global.r.rand_int(0, 16) == 0 and self.is_hungry():
-                self.character.action.knockdown(self.character, Global.r.rand_int(2, 16))
-        self.character.location.sound.update_bgm()
+        elif self.character.action.current_action == 'idle':
+            if self.is_hungry():
+                self.character.form.set_state('grab')
+            if self.character.tags.get('p', 0) == 1 and self.character.tags.get('P'):
+                Particle.make('blood', self.character.pos, offset=8)
+        Global.world.location.sound.update_bgm()
         if Global.world.recenter(self.character.pos.x, self.character.pos.y):
             Global.map_view.turn()
             Camera.update()
@@ -228,36 +236,40 @@ class Game:
                     return False
         return True
 
-    def eat(self):
-        items = self.character.get_possessions()
-        from src.entity.Other import Food
-        for i in items:
-            if isinstance(i, Food):
-                if i.tags.get('hunger') > 0:
-                    return i.eat()
-        Global.main.monologue.set(Dialog.get('!eat'))
-
     def is_hungry(self):
         return self.character.tags.get('hunger') >= 10000
 
     def pay(self, amount):
-        if self.character.tags.require('money', amount):
+        if amount <= 0 or self.character.tags.require('money', amount):
             return True
         Global.main.monologue.set(Dialog.get('!pay', [amount]))
 
-    def is_sociable(self):
+    def is_sociable(self, arg):
         count = 0
-        for i in self.character.location.population.get_team(self.character.tags.get('team', 0)):
+        for i in Global.world.location.population.get_team(self.character.tags.get('team', 0)):
             if i.tags.get('ai', '') == 'ally' and i.pilot.task.target == self.character:
                 count += 1
-        if count < self.character.tags.get('cha', 0):
+        if count + arg <= self.character.tags.get('cha', 0):
             return True
         Global.main.monologue.set(Dialog.get('!sociable', [count, self.character.tags.get('cha', 0)]))
 
     def is_bright(self):
-        if self.is_daytime() or self.character.pos.light >= Turn.rounds:
+        if self.character.pos.light > 0:
             return True
         Global.main.monologue.set(Dialog.get('!bright'))
+
+    def is_learnable(self):
+        intelligence = self.character.tags.get('int', 0)
+        current = len(self.character.skills)
+        if self.character.tags.get('ab1'):
+            current += 1
+        if self.character.tags.get('ab2'):
+            current += 1
+        if self.character.tags.get('ab3'):
+            current += 1
+        if intelligence > current:
+            return True
+        Global.main.monologue.set(Dialog.get('!learn_int'))
 
     def describe_class(self):
         persona = self.character.tags.get('class', 'classless')

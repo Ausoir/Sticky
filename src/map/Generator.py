@@ -1,5 +1,5 @@
 from src.entity.Stock import Stock
-from src.map.Location import Location
+from src.game import Global
 from src.map.Tile import Tile
 from src.tools.Random import Random
 
@@ -8,66 +8,35 @@ class Generator:
     BLOCKED = ['D', 'S', 'X', 'W']
 
     @staticmethod
-    def generate_terrain(name, terrain):
-        rand = Random()
-        if terrain == 'woods':
-            gen = Generator.get(terrain)(rand.rand_int(20, 60), rand.rand_int(20, 60), random=rand)
-        elif terrain == 'residence':
-            gen = Generator.get(terrain)(rand.rand_int(60, 120), rand.rand_int(60, 120), random=rand)
-        elif terrain == 'beach residence':
-            gen = Generator.get('beach')(rand.rand_int(60, 120), rand.rand_int(60, 120), random=rand)
-        elif terrain == 'cove':
-            gen = Generator.get('cove')(rand.rand_int(20, 60), rand.rand_int(20, 60), random=rand)
-        elif terrain == 'cave':
-            gen = Generator.get('cave')(rand.rand_int(20, 60), rand.rand_int(20, 60), random=rand)
-        elif terrain == 'village':
-            return Generator.get_template(name, 'data/map/town/village', rand)
-        elif terrain == 'town':
-            return Generator.get_template(name, 'data/map/town/town', rand)
-        else:
-            gen = Generator.get('field')(40, 40, random=rand)
-        r = gen.run(name)
-        return r
-
-    @staticmethod
-    def get_template(name, directory, rand):
-        from src.tools.Data import Data
-        building = Data.process_raw(Data.read(directory + '.map'))
-        r = Location(name, building)
-        Generator.disorient(r, rand)
-        r.tags.set('edge', 'travel')
-        return r
-
-    @staticmethod
-    def get(generator):
+    def generate(generator):
+        size_x = 39
+        size_y = 39
         if generator == 'field':
             from src.map.GeneratePerlin import GenerateField
-            return GenerateField
+            GenerateField(size_x, size_y).run()
         elif generator == 'woods':
             from src.map.GeneratePerlin import GenerateWoods
-            return GenerateWoods
-        elif generator == 'residence':
+            GenerateWoods(size_x, size_y).run()
+        elif generator == 'residence':  # obsolete
             from src.map.GenerateBSPTree import GenerateResidence
-            return GenerateResidence
-        elif generator == 'beach':
+            GenerateResidence(size_x, size_y).run()
+        elif generator == 'beach':  # obsolete
             from src.map.GenerateBSPTree import GenerateBeach
-            return GenerateBeach
-        elif generator == 'cove':
+            GenerateBeach(size_x, size_y).run()
+        elif generator == 'cove':  # obsolete
             from src.map.GeneratePerlin import GenerateCove
-            return GenerateCove
+            GenerateCove(size_x, size_y).run()
         elif generator == 'cave':
             from src.map.GenerateTunneler import GenerateCave
-            return GenerateCave
-        elif generator == 'island':
-            from src.map.GeneratePerlin import GenerateIsland
-            return GenerateIsland
+            GenerateCave(size_x, size_y).run()
+        elif generator == 'mansion':
+            from src.map.GenerateTunneler import GenerateMansion
+            GenerateMansion(size_x, size_y).run()
         elif generator == 'warehouse':
             from src.map.GenerateWarehouse import GenerateWarehouse
-            return GenerateWarehouse
-
-    @staticmethod
-    def disorient(location, rand):
-        location.rotate(rand.rand_int(0, 3))
+            GenerateWarehouse(size_x, size_y).run()
+        Global.world.dirty_pos()
+        Global.world.location.process_terrain()
 
     @staticmethod
     def make_map(x, y, arg=None):
@@ -87,6 +56,7 @@ class Generator:
         self.background = {'!': '.'}
         self.str_map = Generator.make_map(x, y)
         self.fill_rect('.', 0, 0, x, y)
+        self.start = [32, 19]
 
     def __str__(self):
         r = []
@@ -104,16 +74,8 @@ class Generator:
             r.append(row)
         return '\n'.join(r)
 
-    def to_location(self, name):
-        location = Location(name, None)
-        req_height = max(self.get_height(), len(location.tiles))
-        for y in range(req_height):
-            if y >= len(location.tiles):
-                location.tiles.append([])
-            req_width = max(self.get_width(), len(location.tiles[0]))
-            for x in range(req_width):
-                if x >= len(location.tiles[y]):
-                    location.tiles[y].append(Tile(location, '?', x, y))
+    def to_location(self):
+        location = Global.world.location
         for self_y in range(self.get_height()):
             for self_x in range(self.get_width()):
                 terrain = self.theme.get(self.str_map[self_y][self_x])
@@ -129,18 +91,12 @@ class Generator:
                     location.tiles[self_y][self_x].set_terrain(terrain)
         return location
 
-    def run(self, name):
+    def run(self):
         self.process()
-        r = self.to_location(name)
-        return self.post_process(r)
+        return self.to_location()
 
     def process(self):
         pass
-
-    def post_process(self, location):
-        location.tags.set('edge', 'travel')
-        location.tags.set('thief', 2)
-        return location
 
     def fill_rect(self, terrain, x1, y1, x2, y2):
         for y in range(y1, y2):

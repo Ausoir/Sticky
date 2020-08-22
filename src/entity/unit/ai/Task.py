@@ -1,7 +1,7 @@
 from src.game import Global
 
 
-class Task:
+class Idle:
     def __init__(self, pilot):
         self.pilot = pilot
         self.host = self.pilot.host
@@ -17,6 +17,7 @@ class Task:
         pass
 
     def on_set(self):
+        self.pilot.priority = 5
         self.lifetime = -1
 
     def on_finish(self):
@@ -31,7 +32,7 @@ class Task:
         return True
 
 
-class TileTask(Task):
+class TileTask(Idle):
     def __init__(self, pilot):
         super().__init__(pilot)
         self.target = None
@@ -84,7 +85,7 @@ class TargetTask(TileTask):
             return True
 
 
-class Return(Task):
+class Return(Idle):
     def __init__(self, pilot, target):
         super().__init__(pilot)
         self.target = target
@@ -98,12 +99,6 @@ class Return(Task):
         else:
             self.pilot.set_task(self.pilot.default)
         self.pilot.task.load(self.target)
-
-
-class Idle(Task):
-    def on_set(self):
-        super().on_set()
-        self.pilot.priority = 5
 
 
 class Path(TileTask):  # path finding A*
@@ -196,7 +191,7 @@ class Path(TileTask):  # path finding A*
                     self.next_reset = 1
                 else:
                     self.next_reset += 1
-                for times in range(12):
+                for times in range(9):
                     if self.open:
                         done = self.iterate(self.open[0])
                         if done:
@@ -229,7 +224,7 @@ class Path(TileTask):  # path finding A*
             Particle.make('blood', draw.node, offset=6)
 
 
-class Wander(Task):
+class Wander(Idle):
     def __init__(self, pilot):
         super().__init__(pilot)
         self.target = None
@@ -261,7 +256,7 @@ class Wander(Task):
             if self.pilot.is_humanoid and not self.host.weapon:
                 for i in self.host.pos.things:
                     if i != self.host and i != self.host.armor and i != self.host.headgear\
-                            and i.tags.get('$', 1) > 1 and Global.r.rand_int(0, 2) == 0:
+                            and i.tags.get('$', 0) > 1 and Global.r.rand_int(0, 2) == 0:
                         self.host.input('grab')
                         return
             self.pilot.move.target = self.target
@@ -277,9 +272,9 @@ class Wander(Task):
 class Attack(TargetTask):
     def on_set(self):
         super().on_set()
-        self.lifetime = 360
+        self.lifetime = 500
         self.pilot.priority = 1
-        if self.pilot.is_humanoid:
+        if self.pilot.is_humanoid and not self.host.weapon:
             weapon = self.pilot.host.inventory.find_weapon()
             if weapon is not None:
                 self.pilot.host.unsheathe(weapon)
@@ -298,18 +293,23 @@ class Attack(TargetTask):
                 self.host.face(self.target.direction + 2)
                 self.host.input('walk')
             elif diff == 1:
-                self.host.face_toward(self.target.pos)
-                concentration = self.host.states.get('Concentration')
-                if concentration and self.host.get_skill('side step'):
+                if self.host.get_skill('reach'):
+                    self.host.face(self.target.direction + 2)
                     self.host.input('walk')
                 else:
-                    self.host.input('attack')
-            elif diff == 2 and (dist.x == 0 or dist.y == 0) and self.host.get_skill('lunge'):
+                    self.host.face_toward(self.target.pos)
+                    concentration = self.host.states.get('Concentration')
+                    if concentration and self.host.get_skill('side step'):
+                        self.host.input('walk')
+                    else:
+                        self.host.input('attack')
+            elif diff == 2 and (dist.x == 0 or dist.y == 0) and\
+                    (self.host.get_skill('lunge') or self.host.get_skill('reach')):
                 self.host.face_toward(self.target.pos)
                 self.host.input('attack')
             elif self.pilot.move.out_of_reach:
                 self.pilot.set_task(self.pilot.move)
-                self.pilot.priority = 3
+                self.pilot.priority = 2
                 self.pilot.move.target = self.target.pos
             else:
                 ability = self.host.tags.get('abi')

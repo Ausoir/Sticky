@@ -160,3 +160,10 @@ class Dialog:
                 return Dialog.get('Durability') + ': ' + str(hp) + ' (' + Dialog.get('Unrepairable') + ')'
         else:
             return Dialog.get('Indestructible')
+
+    @staticmethod
+    def duration(duration):
+        if duration == -1:
+            return Dialog.get('persistent')
+        else:
+            return str(duration)

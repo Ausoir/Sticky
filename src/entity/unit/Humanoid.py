@@ -5,8 +5,8 @@ from src.game import Global
 class Humanoid(Unit):
     faces = []
 
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.armor = None
         self.headgear = None
         self.weapon = None
@@ -32,10 +32,10 @@ class Humanoid(Unit):
         if p[index]:
             if isinstance(p[index], str):
                 start = False
-                armor = Stock.get(self.location, p[index])
+                armor = Stock.get(p[index])
             else:
                 start = True
-                armor = Stock.get(self.location, p[index][2], p[index])
+                armor = Stock.get(p[index][2], p[index])
             armor.host = self
             armor.wear(start=start)
         index += 1
@@ -44,10 +44,10 @@ class Humanoid(Unit):
         if p[index]:
             if isinstance(p[index], str):
                 start = False
-                headgear = Stock.get(self.location, p[index])
+                headgear = Stock.get(p[index])
             else:
                 start = True
-                headgear = Stock.get(self.location, p[index][2], p[index])
+                headgear = Stock.get(p[index][2], p[index])
             headgear.host = self
             headgear.wear(start=start)
         index += 1
@@ -55,12 +55,10 @@ class Humanoid(Unit):
             p[index] = Global.r.rand_list(Data.get_line('habitat.txt', e_weapon)[1])
         if p[index]:
             if isinstance(p[index], str):
-                start = False
-                weapon = Stock.get(self.location, p[index])
+                weapon = Stock.get(p[index])
             else:
-                start = True
-                weapon = Stock.get(self.location, p[index][2], p[index])
-            weapon.on_wield(self, start=start)
+                weapon = Stock.get(p[index][2], p[index])
+            weapon.on_wield(self)
         return index + 1
 
     def add(self):
@@ -104,11 +102,6 @@ class Humanoid(Unit):
         if self.headgear:
             self.headgear.bound(visible)
 
-    def get_possessions(self):
-        r = self.get_equipments()
-        r += self.inventory.get_all_items()
-        return r
-
     def get_equipments(self):
         r = []
         if self.weapon:
@@ -121,7 +114,8 @@ class Humanoid(Unit):
 
     def get_accessibles(self):
         r = super().get_accessibles()
-        r += self.inventory.get_all_items()
+        if self.weapon:
+            r.append(self.weapon)
         return r
 
     def get_skills(self):
@@ -146,7 +140,7 @@ class Humanoid(Unit):
 
     def get_equipment_weight(self):
         r = 0
-        for i in self.get_possessions():
+        for i in self.get_equipments() + self.inventory.get_all_items():
             r += i.get_weight()
         return r
 
@@ -158,9 +152,7 @@ class Humanoid(Unit):
 
     def turn(self):
         super().turn()
-        if self.tags.get('p', 0) == 1:
-            from src.entity.Particle import Particle
-            Particle.make('blood', self.pos, offset=8)
+        if self.tags.get('p', 0) == 1 and self.tags.get('P'):
             self.form.randomize_once(2)
 
     def use(self):
@@ -239,23 +231,9 @@ class Humanoid(Unit):
             self.headgear.face(direction)
         return super().face(direction)
 
-    def get_durability(self):
+    def display_hp(self):
         hp = self.tags.get('p', 0)
         mhp = self.tags.get('P', 0)
-        if self.armor:
-            a_hp = self.armor.tags.get('p') or 0
-            a_mhp = self.armor.tags.get('P') or 0
-        else:
-            a_hp = 0
-            a_mhp = 0
-        return a_hp, a_mhp, hp, mhp
-
-    def display_hp(self):
-        a_hp, a_mhp, hp, mhp = self.get_durability()
-        if a_mhp > 0:
-            self.healthbar.colorize(a_hp / a_mhp)
-        else:
-            self.healthbar.colorize(0)
         self.healthbar.appear(hp, mhp)
 
     def on_attack(self, target):
@@ -272,7 +250,7 @@ class Humanoid(Unit):
                         if weapon:
                             self.pick_up(weapon)
                     else:
-                        self.location.sound.register(self.pos, 0, file='wear', priority=2)
+                        self.pos.location.sound.register(self.pos, 0, file='wear', priority=2)
                         item = target.inventory.take_item(0)
                         if item:
                             self.pick_up(item)
@@ -285,11 +263,11 @@ class Humanoid(Unit):
             return r
 
     def unarmor(self):
-        if self.armor:
+        if self.armor and self.armor.removed == 0:
             return self.armor.unwear()
 
     def unheadgear(self):
-        if self.headgear:
+        if self.headgear and self.headgear.removed == 0:
             return self.headgear.unwear()
 
     def make_face(self):
@@ -312,7 +290,8 @@ class Humanoid(Unit):
             def change():
                 self.drop()
                 item.on_wield(self)
-            self.action.act('grab', 4)
+                self.pos.location.sound.register(self.pos, 0, file='wear')
+            self.action.act('grab', 2)
             self.action.on_finish = change
             self.action.delay = 4
             return item
@@ -338,3 +317,9 @@ class Humanoid(Unit):
             self.armor.on_sleep(time)
         if self.headgear:
             self.headgear.on_sleep(time)
+
+    def get_damage(self):
+        r = super().get_damage()
+        if self.weapon:
+            r += self.weapon.tags.get('dmg', 0)
+        return r

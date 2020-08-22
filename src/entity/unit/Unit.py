@@ -6,8 +6,8 @@ from src.map.Tile import Tile
 
 
 class Unit(Container):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         from src.entity.unit.Actions import Actions
         self.draw_frame = 0
         self.action = Actions(self)
@@ -43,7 +43,6 @@ class Unit(Container):
 
     def update_tags(self):
         super().update_tags()
-        self.form.randomize(self.get_seed())
         rare = self.tags.get('rare', 0)
         if rare > 0:
             from src.tools.Data import Data
@@ -55,6 +54,7 @@ class Unit(Container):
         from src.tools.Data import Data
         line = Data.get_line('model.txt', arg)
         self.form = Body(line[1])
+        self.form.randomize(self.get_seed())
         self.form.set_model(line[2])
 
     def draw_synchronize(self):
@@ -120,7 +120,7 @@ class Unit(Container):
     def progress_level(self, exp, mode='other', var=None):
         personality = self.tags.get('class', 'classless')
         current_level = self.get_level()
-        curve = int(3 / current_level)
+        curve = int(4 / current_level)
         if exp <= 0:
             if mode == 'sabotage' and personality == 'agent' and var.name in self.tags.get('mission').split('&'):
                 exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 2) + var.get_value()
@@ -137,7 +137,7 @@ class Unit(Container):
             exp *= 2
         elif mode == 'explore':
             if personality == 'explorer':
-                curve = int(curve * current_level / 5) * 2
+                curve = int(1 / curve)
             else:
                 return
         elif mode == 'observe' and personality == 'scholar':
@@ -151,28 +151,31 @@ class Unit(Container):
         self.action.idle_frame = 0
         backstab = False
         if hitter is not None and self.action.delay == 0:
-            if self.is_facing(hitter.pos):
-                if self.get_skill('block') and self.states.get('Concentration'):
-                    damage -= 1
-            else:
+            if not self.is_facing(hitter.pos):
                 backstab = True
-        if not backstab and self.action.current_action != 'fall':
-            damage -= self.tags.get('def', 0)
         if self.states.get('Barrier'):
             damage = 0
+        if not backstab and self.action.current_action != 'fall':
+            damage -= self.tags.get('def', 0)
+            if damage > 0:
+                if self.get_skill('block'):
+                    concentration = self.states.get('Concentration')
+                    if concentration:
+                        concentration.trigger(['spend'])
+                        damage -= 1
         self.states.trigger(['act', 'hit', damage])
         self.pilot.hit(hitter)
         if damage > 0:
-            self.location.field.unregister(self)
+            self.pos.location.field.unregister(self)
             if self.get_skill('fortitude'):
                 self.states.add('Invincible', 8)
-            if not backstab and self.get_skill('parry'):
+            if self.get_skill('parry') and hitter.pos == self.pos.get_cardinal(self.direction):
                 concentration = self.states.get('Concentration')
                 if concentration:
                     concentration.trigger(['spend'])
                     from src.entity.Particle import Particle
                     Particle.make('barrier', self.pos)
-                    self.location.sound.register(self.pos, 0, file='critical')
+                    self.pos.location.sound.register(self.pos, 0, file='critical')
                     return 0
             self.form.randomize_once(4)
             r = self.decay(damage)
@@ -209,7 +212,7 @@ class Unit(Container):
                         from src.entity.Particle import Particle
                         Particle.make('spin', target.pos)
                         target.skills.remove(i)
-                        self.location.sound.register(target.pos, 2, file='drain', priority=2)
+                        self.pos.location.sound.register(target.pos, 2, file='drain', priority=2)
                         break
         flurry = self.get_skill('flurry')
         if flurry:
@@ -231,11 +234,6 @@ class Unit(Container):
         r = super().decay(damage)
         self.display_hp()
         return r
-
-    def get_durability(self):
-        hp = self.tags.get('p', 0)
-        mhp = self.tags.get('P', 0)
-        return 0, 0, hp, mhp
 
     def display_hp(self):
         hp = self.tags.get('p')
@@ -274,6 +272,7 @@ class Unit(Container):
         for thing in self.pos.things:
             if isinstance(thing, Item):
                 r.append(thing)
+        r += self.inventory.get_all_items()
         return r
 
     def get_skills(self):
@@ -290,24 +289,24 @@ class Unit(Container):
         return r
 
     def critical_attack(self, target):
-        target.decay(1)
+        target.decay(4)
         from src.entity.Particle import Particle
         Particle.make('power', target.pos, offset=16)
-        self.location.sound.register(target.pos, 0, file='critical')
+        self.pos.location.sound.register(target.pos, 0, file='critical')
 
     def is_team(self, target):
         return self.tags.get('bad') == target.tags.get('bad')
 
     def get_team(self, ally=True):
         if ally:
-            teams = self.location.population.get_team(self.tags.get('team', 0))
+            teams = self.pos.location.population.get_team(self.tags.get('team', 0))
             r = []
             for i in teams:
                 if i != self:
                     r.append(i)
             return teams
         else:
-            return self.location.population.get_foe(self.tags.get('team', 0))
+            return self.pos.location.population.get_foe(self.tags.get('team', 0))
 
     def describe(self):
         r = super().describe()
@@ -326,15 +325,16 @@ class Unit(Container):
             r = int(level / 100)
         else:
             r = len(self.skills)
-            r += self.tags.get('P', 1) + self.tags.get('str', 1)
+            r += self.tags.get('P', 2) + self.tags.get('str', 2)
             r += self.tags.get('sth', 0) + self.tags.get('int', 0) + self.tags.get('cha', 0)
+            r += self.tags.get('def', 0) + self.tags.get('spd', 0)
             if self.tags.get('abi'):
                 r += 1
-            r -= 1
+            r -= 3
         return max(1, r)
 
     def get_weight(self):
         return super().get_weight() + self.get_seed() % 4 + 4
 
-    def get_value(self):
-        return 2
+    def get_damage(self):
+        return self.tags.get('dmg', 0) + 1

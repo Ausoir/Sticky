@@ -2,8 +2,8 @@ from src.entity.Prop import Prop
 
 
 class Container(Prop):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         from src.entity.unit.Inventory import Inventory
         self.inventory = Inventory(self)
 

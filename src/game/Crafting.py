@@ -45,7 +45,7 @@ class Crafting:
 
     @staticmethod
     def craft(host, item, resource):
-        resource = resource
+        resource = resource.copy()
         subjects = host.get_accessibles()
         for i in subjects:
             if i.name in resource:

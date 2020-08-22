@@ -1,4 +1,4 @@
 -24
-[[9,11],Window,Door,g_3x4,[p:1,ob:4,def:1,alt:g_4x4,loot:Glass],[]],[[10,11],Window,Door,g_3x4,[p:1,ob:4,def:1,alt:g_4x4,loot:Glass],[]],[[7,12],Barrel,Barrel,g_14x4,[p:3,def:1,ob:4],[]],[[8,12],Alchemy Table,Prop,g_19x4,[p:4,def:2,ob:4,#:#alchemy,loot:Plank],[[Glow,-1,2],[Effect,-1,fire]]],[[11,12],Shelf,Prop,g_6x4,[def:2,p:4,ob:4,mut:Shelf Full],[]]
+[[9,11],Window,Door,g_3x4,[p:1,ob:4,def:1,alt:g_4x4,loot:Glass],[]],[[10,11],Window,Door,g_3x4,[p:1,ob:4,def:1,alt:g_4x4,loot:Glass],[]],[[7,12],Barrel,Prop,g_14x4,[p:3,def:2,ob:4,!:barrel],[]],[[8,12],Alchemy Table,Prop,g_19x4,[p:4,def:2,ob:4,#:#alchemy,loot:Plank],[[Glow,-1,2],[Effect,-1,fire]]],[[11,12],Shelf Full,Prop,g_7x4,[p:4,loot:Shelf,mut:Shelf],[]]
 ..ccc~~~~~~~~%~~ccc~~~~~~~~%~~ccc~~~~~~~~%~~ccc~~~~~~~~%~~ccc~~~~~~~~%~~ccc~~~~~~~~%~~ccc~~~~~~~~%~~ccc~~~~~~~~%~~ccc~~~~~~~~%:~ccc~~~~~~~~%:.ccc~.....~~%:.ccc.WWWccWW%:.ccc.WwwwwwW
 0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000001111111%0000001111111

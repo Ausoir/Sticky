@@ -10,8 +10,8 @@ from src.tools.Dialog import Dialog
 
 
 class Scripter(Prop):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.script = Script()
 
     def __str__(self):
@@ -51,8 +51,8 @@ class Scripter(Prop):
 
 
 class Force(Prop):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.obstruct_type = 0
         self.save = False
 
@@ -67,14 +67,14 @@ class Force(Prop):
 
     def relocate(self, to=None, x=None, y=None, force=0):
         if to is None:
-            to = self.location.get_tile(x, y, limit=True)
+            to = Global.world.location.get_tile(x, y, limit=True)
         self.pos = to
         self.update_vec()
 
 
 class Door(Prop):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.form1 = None
         self.form2 = None
         self.orig_obstruct_type = None
@@ -154,7 +154,7 @@ class Specie(Item):
     def on_unwield(self):
         super().on_unwield()
         if Global.player.character.get_skill('herbalism'):
-            self.tags.set('$', 1)
+            self.tags.set('$', 0)
 
     def on_sleep(self, time):
         if time >= 12:
@@ -163,7 +163,7 @@ class Specie(Item):
                 for i in Global.cardinal_coord:
                     tile = self.pos.get_neighbor(i[0], i[1])
                     if tile.get_icon() == '*' and not tile.things:
-                        clone = Stock.get(self.location, self.name, data=Data.parse(self.__str__()))
+                        clone = Stock.get(self.name, data=Data.parse(self.__str__()))
                         clone.pos = tile
                         clone.add()
 
@@ -292,7 +292,7 @@ class Marker(Prop):
         data = Data.get_line('raw.txt', 'portals')[1]
         from src.entity.unit.item.Spell import Spell
         spell = data[arg % len(data)]
-        Spell.get(spell, power=100).cast_on(self)
+        Spell.get(spell).cast_on(self)
         # print('spell ' + spell)
 
 
@@ -343,7 +343,7 @@ class Food(Item):
         for i in self.states.buffs:
             self.host.states.add(i.name, i.duration, i.var)
         nutrition = -self.tags.get('hunger', 0)
-        self.location.sound.register(self.pos, 0, file='eat')
+        Global.world.location.sound.register(self.pos, 0, file='eat')
         self.host.tags.increment('hunger', nutrition)
         self.host.progress_level(self.tags.get('$', 1) - 1, mode='eat', var=self)
         self.decay(1)
@@ -351,8 +351,8 @@ class Food(Item):
 
 
 class Corpse(Prop):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.direction = 1
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.form = None
@@ -410,8 +410,8 @@ class Corpse(Prop):
 
 
 class Manual(Item):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.skill = None
 
     def __str__(self):
@@ -424,9 +424,6 @@ class Manual(Item):
             data = Data.get_line('raw.txt', 'skill')[1]
             self.skill = Global.r.rand_list(data)
         return index + 1
-
-    def get_display_name(self):
-        return '<' + self.skill.title() + '> ' + self.name
 
     def describe(self):
         r = super().describe() + '\n' + Dialog.get('manual_skill', [self.skill.title()])
@@ -444,14 +441,10 @@ class Manual(Item):
         if self.host and self.host == Global.player.character:
             skill = self.skill.lower()
             if skill not in self.host.skills:
-                intelligence = self.host.tags.get('int', 0)
-                if intelligence > len(self.host.skills):
-                    if Global.player.is_bright() and Global.player.sleep(1):
-                        Global.main.monologue.set(Dialog.get('learn', [self.skill]))
-                        self.host.skills.append(skill)
-                        self.die()
-                else:
-                    Global.main.monologue.set(Dialog.get('!learn_int', [intelligence, len(self.host.skills)]))
+                if Global.player.is_learnable() and Global.player.is_bright() and Global.player.sleep(1):
+                    Global.main.monologue.set(Dialog.get('learn', [self.skill]))
+                    self.host.skills.append(skill)
+                    self.die()
             else:
                 Global.main.monologue.set(Dialog.get('!learn_full', [self.skill]))
 
@@ -461,10 +454,10 @@ class Potion(Food):
         r = super().describe()
         arg = self.tags.get('dur')
         if arg:
-            r += '\n' + Dialog.get('Duration') + ': ' + str(arg)
+            r += '\n' + Dialog.get('Duration') + ': ' + Dialog.duration(arg)
         effect = self.tags.get('effect')
         if effect:
-            r += '\n' + Dialog.get('Effect') + ': ' + effect
+            r += '\n' + Dialog.get('Effect') + ': ' + effect.title()
             data = Data.get_line('descriptions.txt', effect)
             if data:
                 r += '\n' + data[1]
@@ -511,8 +504,8 @@ class Mine(Prop):
 
 
 class Phantom(Unit):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.host = None
 
@@ -523,7 +516,7 @@ class Phantom(Unit):
         index = super().load(p)
         if p[index]:
             from src.entity.Stock import Stock
-            self.set_host(Stock.get(self.location, p[index][2], p[index]))
+            self.set_host(Stock.get(p[index][2], p[index]))
         return index + 1
 
     def set_host(self, host):
@@ -570,35 +563,6 @@ class Ghost(Unit):
                     break
 
 
-class Pickaxe(Item):
-    def use(self):
-        self.host.action.attack()
-        self.host.action.on_finish = self.destroy
-
-    def destroy(self):
-        tile = self.host.pos.get_cardinal(self.host.direction, 1)
-        if tile and tile.terrain != '.':
-            self.location.sound.register(self.pos, 16, file='critical')
-            if tile.things:
-                for thing in tile.things:
-                    if thing.name == 'Break':
-                        thing.remove()
-                        tile.set_terrain('.')
-                        self.decay(1)
-                        return
-            else:
-                from src.entity.Stock import Stock
-                self.host.action.act('rest', 8)
-                Stock.make('Break', tile)
-                self.decay(1)
-
-
 class Ceiling(Prop):
     def set_row(self, row):
         self.form.z = row * 20 + 200
-
-
-class Barrel(Prop):
-    def die(self):
-        super().die()
-        self.pos.set_terrain('~')

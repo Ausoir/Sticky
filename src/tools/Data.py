@@ -163,6 +163,8 @@ class Data:
                 special = not special
             elif special:
                 raw += code
+            elif code == '|':
+                raw += '\n'
             elif code == '[':
                 data, result = Data.parse(data)
                 r.append(result)
@@ -217,3 +219,9 @@ class Data:
     def delete_all():
         for f in os.listdir('save/'):
             os.remove(Data.direct(f, 'save/'))
+
+    @staticmethod
+    def delete(directory):
+        f_dir = Data.direct(directory)
+        if Data.is_file(f_dir):
+            os.remove(Data.direct(f_dir))

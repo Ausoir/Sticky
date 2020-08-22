@@ -1,14 +1,14 @@
 from src.entity.Attribute import Attribute
 from src.entity.Object import Object
 from src.entity.Particle import Particle
+from src.entity.unit.Buffs import Buffs
 from src.game import Global
 from src.game.Turn import Turn
 
 
 class Prop(Object):
-    def __init__(self, location):
-        super().__init__(location)
-        from src.entity.unit.Buffs import Buffs
+    def __init__(self):
+        super().__init__()
         self.direction = 0
         self.hittable = 1
         self.states = Buffs(self)
@@ -71,6 +71,11 @@ class Prop(Object):
         if loot:
             from src.entity.Stock import Stock
             Stock.make(loot, self.pos)
+        on_death = self.tags.remove('!')
+        if on_death:
+            from src.game.Script import Script
+            Script.var['host'] = self
+            Script.execute_code(on_death)
         self.remove()
 
     def get_loot(self):
@@ -86,7 +91,11 @@ class Prop(Object):
     def decay(self, damage):
         hp = self.tags.get('p')
         if hp is not None:
-            self.tags.set('p', min(max(0, hp - damage), self.tags.get('P', 1)))
+            new = max(0, hp - damage)
+            mhp = self.tags.get('P')
+            if mhp is not None:
+                new = min(new, mhp)
+            self.tags.set('p', new)
             if self.tags.get('p') == 0:
                 self.die()
                 return 2
@@ -96,7 +105,7 @@ class Prop(Object):
         return self.tags.get('w', 1)
 
     def get_value(self):
-        return self.tags.get('$', 1)
+        return self.tags.get('$', 0)
 
     def on_natural_spawn(self):
         pass
@@ -114,7 +123,7 @@ class Prop(Object):
         return 0
 
     def on_hit(self, effect='batter', sound='hit_bash'):
-        self.location.sound.register(self.pos, 7, file=sound)
+        self.pos.location.sound.register(self.pos, 7, file=sound)
         Particle.make(effect, self.pos)
 
     def get_display_name(self):
@@ -125,7 +134,7 @@ class Prop(Object):
         from src.tools.Data import Data
         r = self.get_display_name()
         data = Data.get_line('descriptions.txt', r)
-        r += '  (' + Dialog.weight(self.tags.get('w', 1)) + ')'
+        r += '  (' + Dialog.weight(self.get_weight()) + ')'
         if data:
             r += '\n' + data[1]
         hp = self.tags.get('p')
@@ -141,8 +150,10 @@ class Prop(Object):
 
     def on_sleep(self, time):
         self.states.on_sleep(time)
+
+    def mutate(self):
         mut = self.tags.get('mut')
-        if mut and time >= 12 and Global.r.rand_bool():
+        if mut and Global.r.rand_bool():
             from src.entity.Stock import Stock
             Stock.make(mut, self.pos)
             self.remove()

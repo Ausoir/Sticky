@@ -1,20 +1,9 @@
-# noinspection PyUnresolvedReferences
-from src.entity.unit.item.Armor import Armor
-# noinspection PyUnresolvedReferences
-from src.entity.unit.item.Headgear import Headgear
-# noinspection PyUnresolvedReferences
-from src.entity.unit.item.Headgear import Talisman
-# noinspection PyUnresolvedReferences
-from src.entity.unit.item.Trinket import *
-# noinspection PyUnresolvedReferences
-from src.entity.unit.item.Focus import Focus
-# noinspection PyUnresolvedReferences
-from src.entity.unit.Unit import Unit
-# noinspection PyUnresolvedReferences
 from src.entity.Container import Container
-# noinspection PyUnresolvedReferences
 from src.entity.unit.Humanoid import Humanoid
-# noinspection PyUnresolvedReferences
+from src.entity.unit.item.Armor import Armor
+from src.entity.unit.item.Focus import Focus
+from src.entity.unit.item.Headgear import *
+from src.entity.unit.item.Trinket import *
 from src.entity.Other import *
 from src.tools.Data import Data
 
@@ -36,31 +25,84 @@ class Stock:
             Humanoid.faces.append(face)
 
     @staticmethod
+    def get_class_by_name(name):
+        if name == 'Prop':
+            return Prop
+        elif name == 'Container':
+            return Container
+        elif name == 'Item':
+            return Item
+        elif name == 'Armor':
+            return Armor
+        elif name == 'Headgear':
+            return Headgear
+        elif name == 'Talisman':
+            return Talisman
+        elif name == 'Focus':
+            return Focus
+        elif name == 'Unit':
+            return Unit
+        elif name == 'Humanoid':
+            return Humanoid
+        elif name == 'Telescope':
+            return Telescope
+        elif name == 'Porter':
+            return Porter
+        elif name == 'Lamp':
+            return Lamp
+        elif name == 'Scripter':
+            return Scripter
+        elif name == 'Force':
+            return Force
+        elif name == 'Door':
+            return Door
+        elif name == 'Specie':
+            return Specie
+        elif name == 'Marker':
+            return Marker
+        elif name == 'Food':
+            return Food
+        elif name == 'Corpse':
+            return Corpse
+        elif name == 'Manual':
+            return Manual
+        elif name == 'Potion':
+            return Potion
+        elif name == 'Mine':
+            return Mine
+        elif name == 'Phantom':
+            return Phantom
+        elif name == 'Ghost':
+            return Ghost
+        elif name == 'Ceiling':
+            return Ceiling
+
+    @staticmethod
     def check(name):
         if name in Stock.registry:
             record = Stock.registry[name]
-            if record[1] in globals():
+            if Stock.get_class_by_name(record[1]):
                 return True
 
     @staticmethod
-    def get(location, name, data=None):
+    def get(name, data=None):
         if not data:
             if name in Stock.registry:
                 record = Stock.registry[name]
                 data = [[0, 0]] + record
-                r = globals()[record[1]](location)
+                r = Stock.get_class_by_name(record[1])()
             else:
                 name = name or 'UNDEFINED'
                 print("Cannot load Stock Object " + name)
                 return None
         else:
-            r = globals()[data[2]](location)
+            r = Stock.get_class_by_name(data[2])()
         r.load(data)
         return r
 
     @staticmethod
     def make(name, pos):
-        r = Stock.get(pos.location, name)
+        r = Stock.get(name)
         r.pos = pos
         r.add()
         return r

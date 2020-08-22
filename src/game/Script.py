@@ -97,7 +97,7 @@ class Script:
 
     def get_rand(self):
         if not self.rand:
-            self.rand = Random(Script.var['host'].get_seed())
+            self.rand = Random()
         return self.rand
 
     def run_preposition(self, arg):
@@ -137,7 +137,9 @@ class Script:
             elif arg[2] == 'tag':
                 Script.var[str(arg[1])] = arg[3].tags.get(arg[4], Script.var['fail'])
             elif arg[2] == 'skill':
-                Script.var[str(arg[1])] = Script.var[str(arg[1])].get_skill(arg[3])
+                Script.var[str(arg[1])] = arg[3].get_skill(arg[4])
+            elif arg[2] == 'dialog':
+                Script.var[str(arg[1])] = Dialog.get(arg[3], arg[4:])
         else:
             return False
         return True
@@ -263,3 +265,10 @@ class Script:
             Data.delete_all()
         elif arg[0] == 'restart':
             Global.main.init_other()
+        elif arg[0] == 'gen':
+            from src.map.Generator import Generator
+            Generator.generate(arg[1])
+        elif arg[0] == 'regrow':
+            Global.world.regrow_all()
+        elif arg[0] == 'rotate':
+            Global.world.location.rotate(int(arg[1]))

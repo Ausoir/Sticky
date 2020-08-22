@@ -1,6 +1,7 @@
 ESCAPE,#exit
 F11,fullscreen
 GRAVE,switch
+F1,#!help
 TAB,#menu
 P,#test
 LMB,click
@@ -16,8 +17,10 @@ DOWN,down2
 ENTER,#examine
 SPACE,use
 Q,grab
-R,sheathe
-E,ability
+E,sheathe
+_1,ability1
+_2,ability2
+_3,ability3
 Z,#equipment
 X,#inventory
 C,#skill

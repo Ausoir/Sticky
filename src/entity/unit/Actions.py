@@ -45,14 +45,15 @@ class Actions:
             if victim.host:
                 victim = victim.host
         if isinstance(victim, Unit):
-            if victim.action.current_action != 'fall':
-                if victim.get_skill('constitution'):
-                    victim.action.hit()
-                else:
-                    if push:
-                        victim.action.move(push, check=victim.collision_type + 2)
+            if victim.get_skill('constitution'):
+                victim.action.hit()
+            else:
+                if push:
+                    victim.action.move(push, check=victim.collision_type + 2)
+                if victim.action.current_action != 'fall':
                     victim.action.fall()
-                    victim.action.delay = time
+                victim.action.delay = time
+            return True
 
     def idle(self):
         if self.idle_frame >= 12:
@@ -124,13 +125,13 @@ class Actions:
                 else:
                     self.make('walk', turn=max(0, 1 - speed))
                     sound = max(0, -self.host.tags.get('sth', 0))
-                    self.host.location.sound.register(self.host.pos, sound, file='step', priority=4)
+                    self.host.pos.location.sound.register(self.host.pos, sound, file='step', priority=4)
                 self.host.relocate(to=front)
                 self.host.states.trigger(['act', 'move'])
                 from src.map.Tile import Tile
                 if solidity == Tile.COLLIDE_UNIT:
                     for i in self.host.pos.things:
-                        if i != self.host and isinstance(i, Unit):
+                        if i != self.host and self.host.obstruct_type >= Tile.COLLIDE_UNIT and isinstance(i, Unit):
                             i.action.knockdown(i, 4)
                 return True
             else:
@@ -138,7 +139,7 @@ class Actions:
 
     def interact_on(self, tile):
         if self.host == Global.player.character and self.humanoid:
-            self.host.location.sound.register(self.host.pos, 1)
+            self.host.pos.location.sound.register(self.host.pos, 1)
             for thing in tile.things:
                 if thing != self.host.weapon and self.interact(thing):
                     return True
@@ -211,7 +212,7 @@ class Actions:
                     if thing not in [self.host.weapon, self.host.headgear, self.host.armor]:
                         targets.append(thing)
             if targets:
-                self.make('grab', turn=3)
+                self.make('grab', turn=2)
                 if len(targets) > 1 and self.host == Global.player.character:
                     Global.menu.var = targets
                     Global.menu.direct(Global.menu.menu_pickup)
@@ -229,7 +230,7 @@ class Actions:
                     self.host.unsheathe(0)
                     if weapon:
                         self.host.inventory.add_item(weapon, insert=True)
-                self.make('grab', turn=4)
+                self.make('grab', turn=2)
                 self.on_finish = change
             else:
                 self.host.unsheathe(0)
@@ -241,8 +242,16 @@ class Actions:
             self.move(front, self.host.collision_type)
         atk_spd = self.host.get_skill('deft')
         self.host.form.animation_ended = 1
-        front = self.host.pos.get_cardinal(self.host.direction, 1)
-        dmg = self.host.tags.get('dmg', 0) + 1
+        reach = self.host.get_skill('reach')
+        if reach > 0:
+            front = self.host.pos.get_cardinal(self.host.direction, 1 + reach)
+            land = self.host.pos.location.collide_land(self.host.pos, front, flag=self.host.collision_type + 2,
+                                                   return_prev=False)
+            if front != land:
+                front = self.host.pos.get_cardinal(self.host.direction, 1)
+        else:
+            front = self.host.pos.get_cardinal(self.host.direction, 1)
+        dmg = self.host.get_damage()
         if self.humanoid and not self.host.weapon:
             motion = 'kick'
         else:
@@ -251,12 +260,12 @@ class Actions:
             concentration = self.host.states.get('Concentration')
             if concentration:
                 concentration.trigger(['spend'])
-                self.host.location.field.register(dmg, front, delay=0)
+                self.host.pos.location.field.register(dmg, front, delay=0)
                 if self.humanoid:
                     motion = 'bash'
         self.make(motion, turn=6 - atk_spd)
         delay = 0 if self.host.tags.get('spd', 0) > 0 else 1
-        self.host.location.field.register(dmg, front, delay=delay, hitter=self.host,
+        self.host.pos.location.field.register(dmg, front, delay=delay, hitter=self.host,
                                           sound=['swing', 0], callback=self.host.on_attack)
         if self.host.get_skill('crush') and dmg >= front.get_hardness():
             self.on_finish = self.crush
@@ -266,24 +275,30 @@ class Actions:
         if front.get_yield() == -10:
             if self.host == Global.player.character:
                 self.host.tags.increment('hunger', 1000)
-            self.host.location.sound.register(self.host.pos, 16, file='critical')
+            self.host.pos.location.sound.register(self.host.pos, 16, file='critical')
             front.set_terrain('.')
             front.connect_connect()
             front.update_update_shader()
 
-    def ability(self):
-        ability = self.host.tags.get('abi')
+    def ability(self, ability):
         if ability:
             exhaustion = self.host.states.get('Exhaustion')
             if not exhaustion:
                 from src.entity.unit.item.Spell import Spell
-                power = self.host.tags.get('abp', 0)
-                spell = Spell.get(ability, power=power)
-                self.make('cast', turn=spell.get_delay())
-                cooldown = 100 - power + spell.get_cooldown()
+                spell = Spell.get(ability)
+                cooldown = spell.get_cooldown()
                 if cooldown > 0:
                     self.host.states.add('Exhaustion', cooldown)
                 spell.cast(self.host)
             elif self.host == Global.player.character:
                 from src.tools.Dialog import Dialog
                 Global.main.monologue.set(Dialog.get('wait', [exhaustion.duration]), time=20)
+
+    def ability1(self):
+        self.ability(self.host.tags.get('ab1'))
+
+    def ability2(self):
+        self.ability(self.host.tags.get('ab2'))
+
+    def ability3(self):
+        self.ability(self.host.tags.get('ab3'))

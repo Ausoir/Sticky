@@ -31,7 +31,7 @@ class Inventory:
                     if Stock.check(i):
                         self.items.append(i)
             else:
-                item = Stock.get(self.host.location, i[2], i)
+                item = Stock.get(i[2], i)
                 item.host = self.host
                 self.items.append(item)
 
@@ -79,7 +79,7 @@ class Inventory:
             from src.entity.Stock import Stock
             item = self.items[index]
             if isinstance(item, str):
-                item = Stock.get(self.host.location, item)
+                item = Stock.get(item)
                 if item:
                     self.items[index] = item
                 else:

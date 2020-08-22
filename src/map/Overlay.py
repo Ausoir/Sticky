@@ -19,9 +19,7 @@ class Overlay:
         self.colorize(Overlay.WEATHER[time])
 
     def colorize(self, color):
-        if not color:
-            self.weather = [0, 0, 0, 0]
-        else:
+        if color:
             self.weather_target = color
             self.blending = 20
 
@@ -34,18 +32,21 @@ class Overlay:
         self.turn()
 
     def turn(self):
+        if self.blending > 0:
+            for i in range(4):
+                self.weather[i] += int((self.weather_target[i] - self.weather[i]) / self.blending)
+            self.blending -= 1
         if self.fading:
             if self.fade[3] <= 10:
                 self.fading = False
                 self.fade[3] = 0
             else:
                 self.fade = [self.fade[0], self.fade[1], self.fade[2], self.fade[3] - 8]
-            self.on_sight_change()
-        if self.blending > 0:
             for i in range(4):
-                self.weather[i] += int((self.weather_target[i] - self.weather[i]) / self.blending)
-            self.blending -= 1
+                self.minimum[i] = max(self.weather[i], self.fade[i])
 
-    def on_sight_change(self):
+    def get_dim_light(self):
+        r = self.weather[:3] + [int(self.weather[3] * .7)]
         for i in range(4):
-            self.minimum[i] = max(self.weather[i], self.fade[i])
+            r[i] = max(r[i], self.fade[i])
+        return r

@@ -4,8 +4,8 @@ from src.tools.Dialog import Dialog
 
 
 class Item(Prop):
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self):
+        super().__init__()
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.host = None
 
@@ -35,9 +35,15 @@ class Item(Prop):
         end = self.tags.get('end', 0)
         if end > 0:
             r += '\n' + Dialog.get('equipment_end', [Dialog.sign(end)])
+        cha = self.tags.get('cha', 0)
+        if cha > 0:
+            r += '\n' + Dialog.get('equipment_cha', [Dialog.sign(cha)])
         defense = self.tags.get('DEF', 0)
         if defense > 0:
             r += '\n' + Dialog.get('equipment_def', [Dialog.sign(defense)])
+        team = self.tags.get('team')
+        if team:
+            r += '\n' + Dialog.get('equipment_disguise')
         skill = self.tags.get('skill')
         if skill:
             r += '\n' + Dialog.get('equipment_skill', [skill.title()])
@@ -46,26 +52,22 @@ class Item(Prop):
             r += '\n' + Dialog.get('equipment_abp')
         return r
 
-    def on_wield(self, host, start=False):
+    def on_wield(self, host):
         self.save = False
         self.host = host
         host.weapon = self
         self.host.face(self.host.direction)
-        if not start:
-            self.host.tags.increment('dmg', self.tags.get('dmg', 0), default=1)
 
     def on_unwield(self):
         self.update_vec()
         self.save = True
-        if self.host:
-            self.host.tags.increment('dmg', -self.tags.get('dmg', 0), remove=1)
-            self.host = None
+        self.host = None
 
     def use(self):
         spell = self.tags.get('spell')
         if spell:
             from src.entity.unit.item.Spell import Spell
-            spell_cast = Spell.get(spell, self.tags.get('power', 0))
+            spell_cast = Spell.get(spell)
             spell_cast.cast(self.host, self.tags.get('motion', 'cast'), self.tags.get('delay', 4))
         else:
             self.host.action.attack()
@@ -82,10 +84,10 @@ class Item(Prop):
             super().set_row(row)
 
     def enhance(self, rng):
-        if rng <= int(100 * (1 / max(1, self.tags.get('mod', 0) + 1))):
+        if rng <= int(100 * (1 / max(1, self.tags.get('mod', 0) + 2))):
             from src.entity.Particle import Particle
             Particle.make('shock', self.pos)
-            self.location.sound.register(self.pos, 1, file='heal', priority=2)
+            self.pos.location.sound.register(self.pos, 1, file='heal', priority=2)
             self.tags.increment('mod', 1)
             return True
         else:
@@ -111,7 +113,7 @@ class Item(Prop):
 
     def get_value(self):
         v = self.tags.get('$')
-        if v:
+        if v is not None:
             return v * (self.tags.get('rare', 0) + 1)
         else:
             r = 0
@@ -119,7 +121,11 @@ class Item(Prop):
                 r += self.tags.get(i, 0)
             r += min(8, int(self.tags.get('p', 32) / 4))
             if self.tags.get('skill'):
-                r += 8
+                r += 2
             if self.tags.get('spell'):
                 r += 10
-            return max(1, int((r - self.tags.get('w', 1)) / 2))
+            return max(0, int((r - self.tags.get('w', 1)) / 2))
+
+    def drown(self):
+        if not self.host:
+            super().drown()

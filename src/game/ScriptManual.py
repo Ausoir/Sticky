@@ -25,7 +25,7 @@ class ScriptManual:
 
     @staticmethod
     def ally(host, var):
-        if Global.player.is_sociable():
+        if Global.player.is_sociable(1):
             var.tags.set('team', Global.player.character.tags.get('team', 0))
             pos = Global.player.character.pos - var.pos
             var.tags.set('tgt', 'x' + str(pos.x) + 'y' + str(pos.y))
@@ -34,14 +34,19 @@ class ScriptManual:
 
     @staticmethod
     def repair(host, var):
-        from src.entity.unit.Humanoid import Humanoid
-        if isinstance(Global.player.character, Humanoid):
-            for i in [Global.player.character.armor, Global.player.character.headgear, Global.player.character.weapon]:
-                if i:
-                    full = i.tags.get('P')
-                    if full:
-                        i.tags.set('p', full)
-        Global.main.monologue.set(Dialog.get('repair'))
+        for item in host.get_accessibles():
+            if item.tags.get('iron', 0) == 1:
+                from src.entity.unit.Humanoid import Humanoid
+                if isinstance(host, Humanoid):
+                    for i in [host.armor, host.headgear, host.weapon]:
+                        if i:
+                            mhp = i.tags.get('P')
+                            if mhp:
+                                i.tags.set('p', mhp)
+                Global.main.monologue.set(Dialog.get('repair'))
+                item.remove()
+                return
+        Global.main.monologue.set(Dialog.get('req_item', ['Iron']))
 
     @staticmethod
     def alchemy(host, var):
@@ -108,22 +113,18 @@ class ScriptManual:
                 else:
                     spell = host.weapon.tags.get('spell')
                     if spell:
-                        power = host.weapon.tags.get('power', 0)
                         host.drop().remove()
                         host.location.sound.register(host.pos, 0, file='mix')
                         var.tags.set('spell', spell)
-                        var.tags.set('power', power)
                 if var.tags.get('stick') and var.tags.get('jewel') and var.tags.get('spell'):
                     var.tags.remove('stick')
                     jewel = var.tags.remove('jewel')
                     spell = var.tags.remove('spell')
-                    power = var.tags.remove('power')
                     from src.entity.Stock import Stock
                     wand = Stock.make('Wand', host.pos)
                     wand.tags.set('P', jewel)
                     wand.tags.set('p', jewel)
                     wand.tags.set('spell', spell)
-                    wand.tags.set('power', power)
                     if host.is_vacant(wand.get_weight()):
                         wand.on_wield(host)
             else:
@@ -154,7 +155,7 @@ class ScriptManual:
         if not host.tags.get('silver') and isinstance(host, Unit):
             from src.entity.Stock import Stock
             if data:
-                unit = Stock.get(host.location, var, data=data)
+                unit = Stock.get(var, data=data)
                 unit.add()
             else:
                 unit = Stock.make(var, host.pos)
@@ -188,6 +189,8 @@ class ScriptManual:
                     exp = i.get_level() - host.get_level()
                     Global.menu.get_message(i.describe() + '\n' + Dialog.get('observe', [max(0, exp)]))(0)
                     host.progress_level(exp, mode='observe')
+                    var.decay(1)
+                    return
 
     @staticmethod
     def reclaim(host, var):
@@ -216,7 +219,7 @@ class ScriptManual:
     def raid(host, var):
         direction = Global.r.rand_int(0, 3)
         from src.tools.Data import Data
-        for i in range(24):
+        for i in range(20):
             enemy = Global.r.rand_list(Data.get_line('habitat.txt', var)[1])
             if enemy:
                 host_pos = Global.player.character.pos

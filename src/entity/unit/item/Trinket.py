@@ -3,16 +3,6 @@ from src.game import Global
 from src.tools.Dialog import Dialog
 
 
-class Artifact(Item):
-    def use(self):
-        if self.tags.require('charge', 1):
-            super().use()
-
-    def on_sleep(self, time):
-        if time > 0:
-            self.tags.increment('charge', time)
-
-
 class Telescope(Item):
     def describe(self):
         r = super().describe()
@@ -37,12 +27,6 @@ class Telescope(Item):
 
 
 class Porter(Item):
-    def on_unwield(self):
-        light = self.host.states.get('Glow')
-        if light and light.duration == -1 and light.var == self.tags.get('level', 1):
-            light.end()
-        super().on_unwield()
-
     def activate(self):
         memory = self.tags.get('memory')
         if memory:

@@ -1,6 +1,7 @@
 import os
 
-from src.entity.Stock import Stock, Global
+from src.entity.Stock import Stock
+from src.game import Global
 from src.tools.Data import Data
 
 
@@ -9,10 +10,13 @@ class Mercenary:
         self.npc = []
         self.coords = []
 
-    def __str__(self):
+    def get_str(self):
         r = []
         for i in range(len(self.npc)):
             if self.coords[i]:
+                if not isinstance(self.npc[i], str):
+                    if self.npc[i].removed == 1:
+                        continue
                 coords = '[' + str(self.coords[i][0]) + ',' + str(self.coords[i][1]) + ']'
             else:
                 coords = '[]'
@@ -20,24 +24,26 @@ class Mercenary:
         return '\n'.join(r)
 
     def make(self):
-        return
         mercenaries = Data.read('Data/raw/mercenaries.txt').split('\n')
+        map_list = os.listdir(Data.direct('data/map'))
         for i in range(24):
             if len(mercenaries) == 0:
                 break
             else:
                 rand_merc = mercenaries.pop(Global.r.rand_int(0, len(mercenaries) - 1))
                 if rand_merc:
+                    new_coord = Global.r.rand_list(map_list)
+                    while not new_coord.startswith('x'):
+                        new_coord = Global.r.rand_list(map_list)
                     rand_merc = Data.parse(rand_merc)
-                    npc = Stock.get(Global.world.location, rand_merc[1], [[0, 0]] + rand_merc)
+                    npc = Stock.get(rand_merc[1], [[0, 0]] + rand_merc)
                     self.npc.append(npc.__str__())
                     npc.remove()
-                    new_coord = Global.r.rand_list(os.listdir(Data.direct('data/map')))
                     self.coords.append([int(x) for x in new_coord[1:-4].split('y')])
 
     def load(self, data, c_x, c_y):
         for line in data:
-            npc = Stock.get(Global.world.location, line[1][1], line[1])
+            npc = Stock.get(line[1][1], line[1])
             if abs(line[0][0] - c_x) < 2 and abs(line[0][1] - c_y) < 2:
                 self.npc.append(npc)
             else:
@@ -51,7 +57,7 @@ class Mercenary:
             if self.coords[i] and self.coords[i][0] == c_x and self.coords[i][1] == c_y:
                 if isinstance(self.npc[i], str):
                     data = Data.parse(self.npc[i])
-                    self.npc[i] = Stock.get(Global.world.location, data[1], data)
+                    self.npc[i] = Stock.get(data[1], data)
                     x = Global.r.rand_int(o_x, o_x + Global.world.CHUNK)
                     y = Global.r.rand_int(o_y, o_y + Global.world.CHUNK)
                     tile = Global.world.location.get_tile(x, y, limit=True)
@@ -60,6 +66,8 @@ class Mercenary:
                         self.npc[i].pos = tile
                         self.npc[i].add()
                 else:
+                    self.npc[i].pos = self.npc[i].pos.get_neighbor(o_x, o_y, limit=True)
+                    self.npc[i].pos_offset = [o_x, o_y]
                     self.npc[i].add()
                     r.append(self.npc[i])
                 self.npc[i].save = False

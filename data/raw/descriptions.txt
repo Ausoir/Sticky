@@ -1,47 +1,54 @@
+Clarity Scroll,Grants free experience.
 Chalk,Use to draw conjuration polygrams. Resulting spell is dependent on shape and terrain. Shine it to begin.
-Poison Vial,Drink from this vial to die.
-Jelly,A blob of slime goo. Edible\,\ but a lot more digestible when cooked with salt.
-Pudding,Is this pudding or is this jelly? Chewy\,\ juicy\,\ salty\,\ and delicious!
-Fiber,Some fibrous material
-Observer,Use on units with higher level than you to earn experience just as if you killed them. Usable once per 12 hours.
-Marker,This is part of a conjuration polygram. Make sure it is dark\,\ then bring a candle to begin ritual.
-Mirror,Use to mark a location and return there later
-Gold Mirror,Use to return home
-Telescope,Use to look farther
-Oil Lamp,Use to produce light
-Fade Charm,Imbues the owner with invisibility when destroyed
-Manual,Read to learn skills. You can only learn as many skills as your Intelligence.
+Poison Vial,Drop and break to create a poison puddle.
+Jelly,A blob of slime goo. Juicy and delicious\,\ but does not last long uncooked.
+Pudding,A sweet and salty slime pudding.
+Burger,Very fullfilling.
+Jerky,Long lasting ration commonly carried around for adventuring and dungeon crawling.
+Fiber,Some fibrous material.
+Observer,Use on units with higher level than you to gain experience just as if you killed them. Usable once per 12 hours.
+Marker,This is part of a conjuration polygram. In a dark area\,\ bring a candle on the polygram to begin ritual.
+Mirror,Use to mark a location and return there later.
+Gold Mirror,Use to return home.
+Telescope,Use to look farther.
+Airhorn,Use to draw attention.
+Oil Lamp,Use to produce light.
+Fade Charm,Imbues the owner with invisibility when destroyed.
+Manual,Read to learn skills.
 Ore,Break to obtain rare minerals.
-sk.block,Passive: Stand still to concentrate. Get +1 defense against frontal attacks when concentrated and standing still.
+sk.block,Passive: Stand still to concentrate. Use concentration to get +1 defense against non backstab attacks on hit.
 sk.fortitude,Passive: After taking damage\,\ gain damage immunity for a short while.
-sk.parry,Passive: Stand still to concentrate. On hit\,\ use concentration to dodge a non-backstab attack.
-sk.iron will,Passive: Stand still to concentrate. When affected by a harmful debuff\,\ spend concentration to deflect it.
+sk.parry,Passive: Stand still to concentrate. Use concentration to dodge an attack from the front on hit.
+sk.iron will,Passive: Stand still to concentrate. Use concentration to deflect next harmful debuff. Cancels on hit.
 sk.lunge,Passive: Move forward when attacking.
+sk.bash,Passive: Stand still to concentrate. Next attack hits twice.
 sk.flurry,Passive: After a successful attack\,\ quickly continue attacking adjacent hostiles if possible.
 sk.frenzy,Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
 sk.crush,Passive: Destroy walls when damage is higher than hardness of the wall.
-sk.assassinate,Passive: Attacks from behind silences target and deal double damage.
+sk.assassinate,Passive: Attacks from behind silences target and deal 4 extra damage.
 sk.side step,Passive: Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
 sk.hide,Passive: Stand still to concentrate\,\ becoming invisible until moving.
-sk.deep sense,Passive: When standing still\,\ obtain vision through obstacles.
-sk.alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers. Read from bookshelf to learn more.
+sk.deep sense,Passive: When standing still\,\ obtain vision through obstacles\,\ but not terrain.
+sk.alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers.
 sk.scribing,Create spell scrolls at a registry desk.
-sk.carving,Carve wands on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick. Read from bookshelf to learn more.
-sk.herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time. They continue to spread as long as you come check them.
-sk.conjuration,Draw conjuration polygrams using a chalk. Polygrams can be used to conjure items\,\ open portals\,\ and create simple spell effects at no cost.
-sk.steal,Passive: Stand still to concentrate\,\ next bare handed damage steals weapon from target. Steals from inventory if not concentrated.
+sk.carving,Carve wands on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick.
+sk.herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time.
+sk.conjuration,Draw conjuration polygrams using a chalk which can conjure things at virtually no cost.
+sk.reach,Passive: Basic attacks attack 2 tiles away instead of 1.
+sk.steal,Passive: Unarmed attacks steal items from the victim.
 sk.feed,Passive: When damaging any unit\,\ this skill is replaced by one skill that the victim knew.
 sk.rally,Passive: Nearby allies come to aid when damaged.
 sk.constitution,Passive: Immune to knockdown.
 sk.deft,Passive: Decreases post attack delay.
 sk.psychic,Passive: Always know where you are.
-Dispel,Purge all magical status effects of the target.
+Dispel,Purge all magical status effects in an area around the caster.
 Charm,Enslave target unit permanently. Target must be directly in front of the caster.
 Clone,Clone anything directly in front of the caster.
 Push,Push anything in front away.
-Glow,Makes target glow. Permanent at high power.
+Glow,Makes target glow permanently. Stacks.
 Scorch,Create a scorching flame on the target.
 Scry,Travel as a ghost to observe far away locations relatively safely.
+Disintegration,Deal 5 damage to target in a line\,\ ignoring armor.
 Passwall,Pass through a solid wall.
 Charm,Increase friendliness of target.
 Transience,Assume a spiritual form from which you may possess another living being. Possess by pressing attack key on top of a unit.
@@ -51,24 +58,38 @@ Phantom,Summon a phantom to possess any item laying underneath the caster.
 Transmogrify,Mutate target into a random creature.
 Evacuate,Teleport to a relatively safe location.
 Ghost Form,Turn into a ghost that can pass through walls but cannot interact with the world.
-Glow,You emit light.
-Revive,Revive on death.
-Health,Health is rapidly changing.
-Brand,Attacks cause special on-hit effects.
-Burn,Constantly take damage and spread to nearby flammables.
-Effect,Produces visual effect.
-Armoring,Provides armor.
-Speed,Movement speed is altered.
-Invisible,Become invisible.
-Invincible,Immune to physical damage.
-Immune,Immune to status effects.
-Concentration,Ready for special actions.
-Amnesia,A more popular alternative to brainsuckers.
-Exhaustion,Special ability cannot be performed while exhausted.
-Lignification,Incoming damage reduced by 2 but become immobile and vulnerable to fire.
-Vision,Gain vision through walls and objects.
-Levitation,Levitate off the ground.
+Earthquake,Knock down everything near the caster.
+Push,Push something in caster's way away from the caster.
+Jump,Jump 3 to 9 tiles.
+Blink,Randomly blink 9 tiles away.
+Corona,Light up objects near the caster.
+Torment,Conjure scorching flame to burn all enemies near the caster.
+Avatar,Summon a powerful golem to serve the caster for some time.
+Barrier,Defend the caster from physical harm once.
+Clone,Clone anything in front of the caster.
+Charge,Attack 4 tiles away.
+Stab,Attack without delay.
+Breeze,Travel like the wind for a few seconds.
+glow,You emit light.
+revive,Revive on death.
+health,Modifies health over time.
+knockout,Causes knockdown.
+brand,Attacks cause special on-hit effects.
+burn,Constantly take damage and spread to nearby flammables.
+effect,Produces visual effect.
+armoring,Provides armor.
+speed,Movement speed is altered.
+invisible,Become invisible.
+invincible,Immune to physical damage.
+immune,Immune to status effects.
+concentration,Ready for special actions.
+amnesia,A more popular alternative to brainsuckers.
+exhaustion,Special ability cannot be performed while exhausted.
+lignification,Incoming damage reduced by 2 but become immobile and vulnerable to fire.
+vision,Gain vision through walls and objects.
+levitation,Levitate off the ground.
 Slime,Here is a cute slime.
+Leper,A victim of slime pox.
 Venomous Spider,A venomous version of the common spider. Anyone bit will likely be dead in an hour.
 Snake,This snake is poisonous. Anyone bit will likely be dead in an hour.
 Killer Ivy,A man eating plant that ambush its prey from out of sight.
@@ -77,7 +98,10 @@ Moth,This is surprisingly a moth.
 Crab,This crab has 2 pairs of claws!
 Octopus,The skin of this octopus glows under the sun.
 Tiger,A striped version of the cat. Much more deadly.
+Zombie,Once dead\,\ now undead. Once dead again\,\ it will rise again.
 Foul Snack,Once a fulfilling cereal\,\ now a bringer of despair. You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
+Captain Knight,A wandering killing machine. Run!
+Reaper,An infamous undead known to hunt the peninsula. Be careful!
 Brainsucker,This vile creature steals the knowledge of its victims. For this reason this creature gets frequent visits from gurus who wish to start anew.
 Leper,A blighted fellow. Fortunately for him and unfortunately for you\,\This guy does not seem to feel pain anymore.
 Skeleton,In addition to being immune to pain\,\ this undead has some innate skeletal armor.

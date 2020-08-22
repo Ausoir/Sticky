@@ -48,7 +48,7 @@ class Talisman(Headgear):
             spell = self.tags.get('spell')
             if spell:
                 from src.entity.unit.item.Spell import Spell
-                Spell.get(spell, power=self.tags.get('power', 0)).cast_on(self.host)
+                Spell.get(spell).cast_on(self.host)
         if self.host:
             effect = self.tags.get('effect')
             if effect:

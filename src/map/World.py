@@ -49,7 +49,6 @@ class World:
             start_coord = World.get_chunk_coord(cell_num)
             if remove:
                 Global.player.npc.update(self.cells[cell_num][0], self.cells[cell_num][1])
-            is_blank = True
             remove_objs = []
             for y, row in enumerate(range(start_coord[1], start_coord[1] + World.CHUNK)):
                 tile_row = ''
@@ -57,12 +56,9 @@ class World:
                 for x, col in enumerate(range(start_coord[0], start_coord[0] + World.CHUNK)):
                     tile = self.location.tiles[row][col]
                     icon = tile.get_icon()
-                    if icon != '~':
-                        is_blank = False
                     tile_row += icon
                     roof_row += str(tile.roof)
                     for thing in tile.things:
-                        is_blank = False
                         if thing.save:
                             thing.pos_offset = start_coord
                             cell_objects.append('[' + thing.__str__() + ']')
@@ -72,8 +68,7 @@ class World:
             if remove:
                 for i in remove_objs:
                     i.remove()
-            if is_blank:
-                continue
+            map_name = World.coord_to_map_name(self.cells[cell_num])
             if Global.player.player_mode == 0:
                 line_1 = '0'
             else:
@@ -82,7 +77,6 @@ class World:
             line_3 = '%'.join(cell_tiles)
             line_4 = '%'.join(cell_roofs)
             write = '\n'.join([line_1, line_2, line_3, line_4])
-            map_name = World.coord_to_map_name(self.cells[cell_num])
             Data.write('save/' + map_name + '.map', write)
 
     def load_bubble(self, added, time=-1):
@@ -102,6 +96,7 @@ class World:
                         tile.roof = 0
                         tile.light = 0
                         obj += tile.things
+                        obj += tile.others
             else:
                 if map_is_save:
                     map_data = Data.process_raw(Data.read(map_save_name))
@@ -125,27 +120,41 @@ class World:
                 if cell_num in added:
                     renew = time_passed >= 8
                     # renew = False
-                    obj += Global.player.npc.spawn(cell_coord[0], cell_coord[1], start_coord[0], start_coord[1])
+                    if Global.player.player_mode != 0:
+                        obj += Global.player.npc.spawn(cell_coord[0], cell_coord[1], start_coord[0], start_coord[1])
                     for i in map_data[1]:
-                        prop = Stock.get(self.location, i[2], i)
-                        if not renew or prop.get_value() <= 1:
+                        prop = Stock.get(i[2], i)
+                        if not renew:
                             prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
                             prop.add()
                             prop.on_sleep(time_passed)
+                        elif prop.tags.get('$', 0) <= 0:
+                            prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
+                            prop.add()
+                            prop.on_sleep(time_passed)
+                            prop.mutate()
                     if renew:
-                        savageness = self.get_biome(cell_coord[0], cell_coord[1])
-                        for times in range(24):
-                            x = Global.r.rand_int(start_coord[0], start_coord[0] + World.CHUNK - 1)
-                            y = Global.r.rand_int(start_coord[1], start_coord[1] + World.CHUNK - 1)
-                            tile = self.location.get_tile(x, y)
-                            if tile.get_yield() > -8 and not tile.things:
-                                spawn = self.get_spawn(tile.get_name(), level=savageness)
-                                if spawn and spawn != 0:
-                                    made = Stock.make(spawn, tile)
-                                    made.on_natural_spawn()
-                                    if made.get_value() <= 1:
-                                        made.tags.set('$', 2)
+                        self.regrow(cell_coord, start_coord)
         return obj
+
+    def regrow(self, cell_coord, start_coord):
+        savageness = self.get_biome(cell_coord[0], cell_coord[1])
+        for times in range(24):
+            x = Global.r.rand_int(start_coord[0], start_coord[0] + World.CHUNK - 1)
+            y = Global.r.rand_int(start_coord[1], start_coord[1] + World.CHUNK - 1)
+            tile = self.location.get_tile(x, y)
+            if tile.get_yield() > -8 and not tile.things:
+                spawn = self.get_spawn(tile.get_name(), level=savageness)
+                if spawn and spawn != 0:
+                    made = Stock.make(spawn, tile)
+                    made.on_natural_spawn()
+                    if made.get_value() <= 0:
+                        made.tags.set('$', 1)
+
+    def regrow_all(self):
+        for cell_num, cell_coord in enumerate(self.cells):
+            start_coord = World.get_chunk_coord(cell_num)
+            self.regrow(cell_coord, start_coord)
 
     def get_spawn(self, habitat, coord_x=0, coord_y=0, level=None):
         if not Global.player.is_daytime():
@@ -162,13 +171,14 @@ class World:
 
     def load_cells(self, x, y):
         new = [[i[0] + x, i[1] + y] for i in World.DEFAULT]
-        abandoned = []
-        added = []
+        abandoned = self.dirty.copy()
+        added = self.dirty.copy()
         for i in range(9):
-            if new[i] not in self.cells:
+            if new[i] not in self.cells and i not in added:
                 added.append(i)
-            if self.cells[i] not in new:
+            if self.cells[i] not in new and i not in abandoned:
                 abandoned.append(i)
+        self.dirty = []
         self.save_cell(abandoned, remove=True)
         self.last_cells = self.cells
         self.cells = new
@@ -187,7 +197,6 @@ class World:
             offset_y = 1
         else:
             return False
-        self.save_cell(self.dirty)
         lights = []
         light_sources = []
         for row in self.location.tiles:

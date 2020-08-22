@@ -9,7 +9,7 @@ from src.tools.Data import Data
 class MapView:
     octant_flip = [[1, 0, 0, 1], [0, 1, 1, 0], [0, -1, 1, 0], [-1, 0, 0, 1],
                    [-1, 0, 0, -1], [0, -1, -1, 0], [0, 1, -1, 0], [1, 0, 0, -1]]
-    display_ratio = .75
+    display_ratio = .8
 
     def __init__(self):
         self.sight_frame = 0
@@ -37,11 +37,11 @@ class MapView:
 
     def set_view_range(self, arg):
         self.view_range = arg
-        self.view_range_y = MapView.ratio_y(arg)
+        self.view_range_y = self.ratio_y(arg)
 
     def set_sight_range(self, arg):
         self.sight_range = arg
-        self.sight_range_y = MapView.ratio_y(arg)
+        self.sight_range_y = self.ratio_y(arg)
 
     def on_sight_change(self):
         for pic in self.draw_tiles:
@@ -58,7 +58,6 @@ class MapView:
                 shade = Shade()
                 self.draw_tiles.append(pic)
                 self.shadows.append(shade)
-        self.overlay.on_sight_change()
         self.old_camera = Camera.target.pos
 
     def turn(self):
@@ -67,14 +66,14 @@ class MapView:
             self.brightness = brightness
             col_range = [Camera.target.pos.x - self.sight_range, Camera.target.pos.x + self.sight_range]
             row_range = [Camera.target.pos.y - self.sight_range_y, Camera.target.pos.y + self.sight_range_y]
-            edge_lights = []
-            for pos_x in range(col_range[0] - 6, col_range[1] + 7):
-                edge_lights.append(Global.world.location.get_tile(pos_x, row_range[0] - 6))
-                edge_lights.append(Global.world.location.get_tile(pos_x, row_range[1] + 6))
-            for pos_y in range(row_range[0] - 6, row_range[1] + 7):
-                edge_lights.append(Global.world.location.get_tile(col_range[0] - 6, pos_y))
-                edge_lights.append(Global.world.location.get_tile(col_range[1] + 6, pos_y))
-            for i in edge_lights:
+            tiles = []
+            for pos_x in range(col_range[0] - 1, col_range[1] + 2):
+                tiles.append(Global.world.location.get_tile(pos_x, Camera.target.pos.y-self.sight_range_y - 2))
+                tiles.append(Global.world.location.get_tile(pos_x, Camera.target.pos.y+self.sight_range_y + 2))
+            for pos_y in range(row_range[0] - 1, row_range[1] + 2):
+                tiles.append(Global.world.location.get_tile(Camera.target.pos.x-self.sight_range - 2, pos_y))
+                tiles.append(Global.world.location.get_tile(Camera.target.pos.x+self.sight_range + 2, pos_y))
+            for i in tiles:
                 if i:
                     i.light = 0
         self.update_fog()
@@ -100,7 +99,7 @@ class MapView:
         index = 0
         cam_x = self.old_camera.x
         cam_y = self.old_camera.y
-        dim_light = self.overlay.minimum[:3] + [int(self.overlay.minimum[3] * .7)]
+        dim_light = self.overlay.get_dim_light()
         col_range = [cam_x-self.sight_range, cam_x+self.sight_range]
         row_range = [cam_y-self.sight_range_y, cam_y+self.sight_range_y]
         for pos_y in range(row_range[0] - 1, row_range[1] + 2):

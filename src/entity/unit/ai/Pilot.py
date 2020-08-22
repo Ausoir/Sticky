@@ -35,11 +35,6 @@ class Pilot:
             self.move = Path(self)
             self.attack = Attack(self)
             self.route = Routes(self.host, False)
-        elif arg == 'travel':
-            self.default = Travel(self)
-            self.move = Path(self)
-            self.attack = Attack(self)
-            self.route = Routes(self.host, False)
         else:
             return
         self.host.tags.set('ai', arg)
@@ -95,7 +90,7 @@ class Pilot:
                         allies = self.host.get_team(ally=True)
                         for ally in allies:
                             if (ally.pos - self.host.pos).difference() <= 10:
-                                if ally.tags.get('ai') and ally.pilot.priority > 3:
+                                if ally.tags.get('ai') and ally.pilot.priority >= 2:
                                     ally.pilot.set_task(ally.pilot.attack)
                                     ally.pilot.task.target = hitter
                     self.set_task(self.attack)
@@ -126,7 +121,7 @@ class Pilot:
                 if not self.host.tags.get('deaf'):
                     if (pos - self.host.pos).difference() >= 1:
                         self.host.face_toward(pos)
-                        seen = self.host.location.collide_land(self.host.pos, pos, self.host.sight)
+                        seen = Global.world.location.collide_land(self.host.pos, pos, self.host.sight)
                         if seen == pos:
                             units = []
                             from src.entity.unit.Unit import Unit
@@ -156,7 +151,7 @@ class Pilot:
     def spot_enemy(self, targets):
         valids = []
         for thing in targets:
-            seen = self.host.location.collide_land(self.host.pos, thing.pos, self.host.sight, distance=13)
+            seen = Global.world.location.collide_land(self.host.pos, thing.pos, self.host.sight, distance=13)
             if seen == thing.pos:
                 valids.append(thing)
         if valids:
@@ -167,7 +162,7 @@ class Pilot:
                 if not self.host.tags.get('deaf'):
                     from src.entity.Particle import Particle
                     Particle.make('shout', self.host.pos)
-                    self.host.location.sound.register(self.host.pos, 9)
+                    Global.world.location.sound.register(self.host.pos, 9)
 
 
 class Routes:
@@ -185,13 +180,13 @@ class Routes:
         for i in tile.things:
             if i.obstruct_type >= self.host.collision_type:
                 hp = i.tags.get('p')
-                if not hp or self.host.tags.get('dmg', 0) + 1 <= i.tags.get('def', 0)\
+                if not hp or self.host.get_damage() <= i.tags.get('def', 0)\
                         or i.tags.get('team') == self.host.tags.get('team'):
                     return -1
                 else:
                     weight += hp
         if tile.get_yield() == -10 and self.host.collision_type <= Tile.COLLIDE_TERRAIN:
-            if self.host.tags.get('dmg', 0) + 1 > tile.get_hardness() and self.host.get_skill('crush'):
+            if self.host.get_damage() > tile.get_hardness() and self.host.get_skill('crush'):
                 weight += 3
             else:
                 return -1

@@ -1,4 +1,4 @@
 -24
-[[0,3],Stalagmite,Prop,g_5x6,[p:1,def:5,ob:4],[]]
-~~~~~~~~~~~~=%~~~~~~~~~~~~=%~~~~~~~~~~~~.%.&&RRR.....&.%=R&=........R%====RRRRRRRRR%R==RRRRRRRRRR%==RRRRRRRRRRR%==..RRRRRRRRR%.RR..RR......%.RRR.......^^%.RR.RRR....^.%====RRR^^^^^.
+[[11,0],Ore,Container,g_8x6,[$:2,p:4,def:2,ob:4,loot:#ore,have:1],[],[]],[[9,1],Ore,Container,g_8x6,[$:2,p:4,def:2,ob:4,loot:#ore,have:1],[],[]],[[0,3],Stalagmite,Prop,g_5x6,[p:1,def:5,ob:4],[]],[[7,9],Crate,Container,g2_4x0,[p:2,def:1,loot:#crate,#:>menu>container,have:4],[],[]],[[8,9],Crate,Container,g2_4x0,[p:2,def:1,loot:#crate,#:>menu>container,have:4],[],[]],[[9,9],Crate,Container,g2_4x0,[p:2,def:1,loot:#crate,#:>menu>container,have:4],[],[]],[[8,10],Pickaxe,Item,pickaxe,[P:4,p:4,def:3,pivx:14,w:2,dmg:3],[]],[[10,10],Pickaxe,Item,pickaxe,[P:4,p:4,def:3,pivx:14,w:2,dmg:3],[]],[[9,11],Pickaxe,Item,pickaxe,[P:4,p:4,def:3,pivx:14,w:2,dmg:3],[]],[[12,11],Barrel,Prop,g_14x4,[p:3,def:2,ob:4,!:barrel],[]],[[12,12],Barrel,Prop,g_14x4,[p:3,def:2,ob:4,!:barrel],[]]
+~~~~~~~~~~~.=%~~~~~~~~~...=%~~~~~~~......%.&&RRR.....&.%=R&=........R%====RRRRRRRRR%R==RRRRRRRRRR%==RRRRRRRRRRR%==..RRRRRRRRR%.RR..RR......%.RRR.......^^%.RR.RRR....^.%====RRR^^^^^.
 1111100000000%1111110000001%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111100000%1111110000000%1111110000000%1111110000000

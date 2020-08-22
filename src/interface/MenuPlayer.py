@@ -24,8 +24,28 @@ class MenuPlayer(Menu):
 
     def menu_main(self):
         def update():
-            a_hp, a_mhp, hp, mhp = host.get_durability()
-            rmb = self.get_message(Dialog.get('dsc_health', [hp, mhp, a_hp, a_mhp]))
+            hp = host.tags.get('p', 0)
+            mhp = host.tags.get('P', 0)
+            if isinstance(host, Humanoid):
+                if host.armor:
+                    avit = host.armor.tags.get('end', 0)
+                    ahp = host.armor.tags.get('p', 0)
+                    amhp = host.armor.tags.get('P', 0)
+                else:
+                    avit = 0
+                    ahp = 0
+                    amhp = 0
+                if host.headgear:
+                    hvit = host.headgear.tags.get('end', 0)
+                    hhp = host.headgear.tags.get('p', 0)
+                    hmhp = host.headgear.tags.get('P', 0)
+                else:
+                    hvit = 0
+                    hhp = 0
+                    hmhp = 0
+                rmb = self.get_message(Dialog.get('dsc_health2', [hp, mhp, avit, ahp, amhp, hvit, hhp, hmhp]))
+            else:
+                rmb = self.get_message(Dialog.get('dsc_health', [hp, mhp]))
             text = str(int(hp / mhp * 100)) + '% ' + Dialog.get('Health')
             hp_display.set_text(text)
             hp_display.on_click = rmb
@@ -34,7 +54,7 @@ class MenuPlayer(Menu):
             datetime = Dialog.date(Global.player.days)
             hunger_level = Global.player.is_hungry()
             if hunger_level == 1:
-                text = Dialog.get('Starving')
+                text = Dialog.get('Hungry')
                 rmb = self.get_message(Dialog.get('dsc_hunger', [datetime, hunger]))
             else:
                 text = str(int(hunger)) + '% ' + Dialog.get('Hunger')
@@ -50,7 +70,7 @@ class MenuPlayer(Menu):
         self.window.add(Menu.make(text, lambda _: self.direct(self.menu_character)))
         from src.entity.unit.Humanoid import Humanoid
         if isinstance(host, Humanoid):
-            if host.weapon or host.armor or host.headgear:
+            if host.weapon or host.armor or host.headgear or host.tags.get('money'):
                 self.window.add(Menu.make(Dialog.get('Equipment'), lambda _: self.direct(self.menu_equipment)))
             if host.get_equipment_weight() > 0:
                 self.window.add(Menu.make(Dialog.get('Inventory'), lambda _: self.direct(self.menu_inventory)))
@@ -63,12 +83,13 @@ class MenuPlayer(Menu):
 
     def menu_character(self):
         def stat(arg):
-            host.tags.increment(arg, 1)
-            host.tags.increment('lvl', 1)
-            Global.main.monologue.set(Dialog.get('stat_applied', [level + 1]))
-            from src.entity.Particle import Particle
-            Particle.make('barrier', host.pos)
-            host.location.sound.register(host.pos, 0, file='level', priority=1)
+            if Global.player.try_sleep(1):
+                host.tags.increment(arg, 1)
+                host.tags.increment('lvl', 1)
+                Global.main.monologue.set(Dialog.get('stat_applied', [level + 1]))
+                from src.entity.Particle import Particle
+                Particle.make('barrier', host.pos)
+                host.location.sound.register(host.pos, 0, file='level', priority=1)
         host = Global.player.character
         rmb = self.get_message(Dialog.get('dsc_level'))
         tag_level = host.tags.get('lvl', 0)
@@ -158,6 +179,8 @@ class MenuPlayer(Menu):
             host.unsheathe(index)
 
         def drop(index):
+            if host.weapon:
+                index -= 1
             host.location.sound.register(host.pos, 0, file='wear')
             host.inventory.take_item(index)
 
@@ -210,12 +233,12 @@ class MenuPlayer(Menu):
     def menu_effects(self):
         def update():
             for buff in buff_list:
-                buff[1].set_text(buff[0].describe_duration())
+                buff[1].set_text(Dialog.duration(buff[0].duration))
         self.update = update
         buff_list = []
         for i in Global.player.character.states.buffs:
             if 'hide' not in i.get_tags():
-                dur = i.describe_duration()
+                dur = Dialog.duration(i.duration)
                 rmb = self.get_message(i.describe())
                 first_col = Menu.make(i.get_display_name(), rmb, color=Window.fore_color_transparent)
                 second_col = Menu.make(dur, None, color=Window.fore_color_transparent)
@@ -230,22 +253,21 @@ class MenuPlayer(Menu):
 
     def menu_craft(self):
         def craft(arg):
-            if Global.player.sleep(1):
+            if Global.player.try_sleep(1):
                 Crafting.craft(Global.player.character, arg[0], arg[1])
                 Global.player.character.action.act('grab', 8)
         self.window.add(Menu.make(Dialog.get('craftables'), None, color=None))
         self.sub_window.add(Menu.make('', None, color=None))
         for k, item in enumerate(self.var):
             ingreds = Crafting.get_ingredients(item)
-            if ingreds:
-                if Crafting.is_craftable(Global.player.character, ingreds):
-                    fn = self.get_prompt(Crafting.describe(item, ingreds), Dialog.get('Craft'), craft, [item, ingreds])
-                else:
-                    fn = self.get_message(Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet'))
-                if k < 5:
-                    self.window.add(Menu.make(item, fn))
-                else:
-                    self.sub_window.add(Menu.make(item, fn))
+            if Crafting.is_craftable(Global.player.character, ingreds):
+                fn = self.get_prompt(Crafting.describe(item, ingreds), Dialog.get('Craft'), craft, [item, ingreds])
+            else:
+                fn = self.get_message(Crafting.describe(item, ingreds) + '\n' + Dialog.get('reqnotmet'))
+            if k < 5:
+                self.window.add(Menu.make(item, fn))
+            else:
+                self.sub_window.add(Menu.make(item, fn))
         self.sub_window.display(1)
 
     def menu_pickup(self):

@@ -309,3 +309,9 @@
 8/13 Fixed oversize objects leaking out of shadow (1)
 8/14 Gateway spell (1), easier conjuration (1)
 ---- PUSH
+8/15 Default damage and price is 0 (1), Fixed buff updating on removed host (1), Bookshelf information (1)
+8/16 Recipe being removed when crafting fix (1), Light outside screen update fix (1), Mercenary save and load pos (1)
+8/17 Map rebalance (1), Removed spell power (1), Added ability trainer (1), Fixed World.dirty (1), Death script (1)
+8/19 Fixed dim light fade (1), Skill reach (1), Single point start (1), Random gen start (1), Optimized Stock get (1)
+8/21 Multi channel sound (1), 50 fps (1), Mutation props randomly appearing on map (2)
+---- PUSH

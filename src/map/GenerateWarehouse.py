@@ -1,17 +1,14 @@
-from random import Random
-
 from src.map.Generator import Generator
 
 
 class GenerateWarehouse(Generator):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
-        self.floor = 'b'
-        self.display_floor = 'w'
+        self.display_floor = 'c'
         self.wall = 'B'
-        self.theme = {'.': 'c', 'D': 'Door', 'W': 'Window', 'E': 'Elevator', ':': 'Shelf Full', ';': 'Shelf'}
-        self.appliance = ['Bed', 'Sofa', 'Toilet', 'Sink', 'Kitchen', 'Crate', 'Workbench',
-                          'Oil Lamp', 'Chair', 'Machine', 'Register', 'Desk', 'Rack']
+        self.theme = {'.': 'f', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf'}
+        self.appliance = ['Bed', 'Seat', 'Stool', 'Desk', 'Alchemy Table', 'Crate', 'Workbench',
+                          'Lantern', 'Sack', 'Table', 'Register', 'Barrel', 'Basket']
         self.background = {'!': self.display_floor}
         self.divide = 8
         self.thickness = 4
@@ -50,7 +47,7 @@ class GenerateWarehouse(Generator):
     def iterate(self, px, py, px2, py2):
         estate = []
         garden = []
-        ratio = self.random.random() * .8 + .1
+        ratio = self.random.rand_float() * .8 + .1
         new_height = (py2 - py) * ratio
         new_height_iv = (py2 - py) * (1 - ratio)
         new_width = (px2 - px) * ratio
@@ -106,20 +103,20 @@ class GenerateWarehouse(Generator):
                     if x == 3:
                         self.str_map[y][x] = 'D'
                     else:
-                        rand = self.random.randint(1, 16)
+                        rand = self.random.rand_int(1, 16)
                         if rand == 1:
                             self.str_map[y][x] = 'W'
                         else:
                             self.str_map[y][x] = self.wall
                 else:
-                    self.str_map[y][x] = '*'
+                    self.str_map[y][x] = 'w'
 
     def build_display(self, estate):
-        item = self.appliance[self.random.randint(0, len(self.appliance) - 1)]
+        item = self.appliance[self.random.rand_int(0, len(self.appliance) - 1)]
         for y in range(estate[1], estate[3]):
             for x in range(estate[0], estate[2]):
                 if x == estate[0] or x == estate[2] - 1 or y == estate[1] or y == estate[3] - 1:
-                    rand = self.random.randint(1, 3)
+                    rand = self.random.rand_int(1, 3)
                     if rand != 1:
                         self.str_map[y][x] = item
                     else:
@@ -131,7 +128,7 @@ class GenerateWarehouse(Generator):
         for y in range(estate[1], estate[3]):
             for x in range(estate[0], estate[2]):
                 if x == estate[0] or x == estate[2] - 1 or y == estate[1] or y == estate[3] - 1:
-                    rand = self.random.randint(0, 28)
+                    rand = self.random.rand_int(0, 28)
                     if rand % 2 == 0:
                         self.str_map[y][x] = ':'
                     else:
@@ -143,11 +140,11 @@ class GenerateWarehouse(Generator):
         for y in range(estate[1] + 1, estate[3] - 1):
             for x in range(estate[0] + 1, estate[2] - 1):
                 self.str_map[y][x] = 'w'
-        buff = self.random.randint(0, 1)
+        buff = self.random.rand_int(0, 1)
         if buff == 1:
             for y in range(estate[1] + 1, estate[3] - 1):
                 for x in range(estate[0] + 1, estate[2] - 1):
-                    self.str_map[y][x] = self.appliance[self.random.randint(0, len(self.appliance) - 1)]
+                    self.str_map[y][x] = self.appliance[self.random.rand_int(0, len(self.appliance) - 1)]
         else:
             for y in range(estate[1] + 1, estate[3] - 1):
                 for x in range(estate[0] + 1, estate[2] - 1):
@@ -155,19 +152,19 @@ class GenerateWarehouse(Generator):
             return
         for x in range(estate[0], estate[2]):
             wall = self.wall
-            if estate[0] < x < estate[2] - 1 and self.random.randint(0, 3) == 1:
+            if estate[0] < x < estate[2] - 1 and self.random.rand_int(0, 3) == 1:
                 wall = 'W'
             self.str_map[estate[1]][x] = wall
             self.str_map[estate[3] - 1][x] = wall
         for y in range(estate[1], estate[3]):
             wall = self.wall
-            if estate[1] < y < estate[3] - 1 and self.random.randint(1, 12) == 1:
+            if estate[1] < y < estate[3] - 1 and self.random.rand_int(1, 12) == 1:
                 wall = 'W'
             self.str_map[y][estate[0]] = wall
             self.str_map[y][estate[2] - 1] = wall
-        door_pos = self.random.randint(0, 3)
-        door_ry = self.random.randint(estate[1] + 2, estate[3] - 2)
-        door_rx = self.random.randint(estate[0] + 2, estate[2] - 2)
+        door_pos = self.random.rand_int(0, 3)
+        door_ry = self.random.rand_int(estate[1] + 2, estate[3] - 2)
+        door_rx = self.random.rand_int(estate[0] + 2, estate[2] - 2)
         if door_pos == 1:
             self.str_map[door_ry][estate[0]] = 'D'
         elif door_pos == 2:

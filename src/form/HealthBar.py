@@ -30,7 +30,9 @@ class HealthBar:
         if hp and mhp:
             width = int(Global.BLOCK * min(1, hp / mhp)) - 2
             self.foreground.width = max(0, width)
-            if not self.displaying_health:
+            if self.foreground.width == 0:
+                self.displaying_health = False
+            elif not self.displaying_health:
                 self.displaying_health = True
                 self.background.add_batch()
                 self.foreground.add_batch()

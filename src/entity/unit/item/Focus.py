@@ -19,16 +19,19 @@ class Focus(Item):
         else:
             r = 2
             r += int(self.tags.get('p') / 2)
-            r += int(self.tags.get('power', 0) / 50)
             return max(1, r - self.tags.get('w', 1))
 
     def use(self):
         if self.host:
-            power = self.tags.get('power', 0)
             spell = self.tags.get('spell')
             from src.entity.unit.item.Spell import Spell
-            Spell.get(spell, power=power).cast(self.host)
+            Spell.get(spell).cast(self.host)
             self.decay(1)
 
     def consume(self):
         self.decay(1)
+
+    def on_sleep(self, time):
+        if time > 0:
+            if self.tags.get('P'):
+                self.decay(-1)

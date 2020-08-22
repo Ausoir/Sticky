@@ -27,7 +27,7 @@ class Execute(pyglet.window.Window):
         if abs(self.screen.width - self.setting['width']) + abs(self.screen.height - self.setting['height']) < 80:
             self.maximize()
         self.dt = 0
-        self.fps = 1 / 44.0
+        self.fps = 1 / 56.0
         self.init_other()
         self.monologue = Textbox(40, 40)
 
@@ -130,12 +130,12 @@ class Execute(pyglet.window.Window):
 
     def loop(self, dt):
         self.dt += dt
-        if self.dt > self.fps:
-            # print(str(1 / self.dt))
-            self.dt = 0
-            Camera.update()
-            Turn.update()
-            self.monologue.update()
+        # if self.dt > self.fps:
+        # print(str(1 / self.dt))
+        self.dt = 0
+        Camera.update()
+        Turn.update()
+        self.monologue.update()
         pyglet.clock.schedule_once(self.loop, self.fps - self.dt)
 
     def on_draw(self):

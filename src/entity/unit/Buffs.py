@@ -23,7 +23,7 @@ class Buffs:
             if i.update():
                 i.on_finish()
                 self.buffs.pop(k)
-            else:
+            elif self.host.removed == 0:
                 i.on_update()
                 done = False
         if done and not self.buffs:

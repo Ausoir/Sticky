@@ -14,25 +14,6 @@ class Tunneler(Generator):
         start_pos = [self.random.rand_int(1, self.get_width() - 2), self.random.rand_int(1, self.get_height() - 2)]
         return [self.random.rand_int(0, 3), start_pos]
 
-    def color(self):
-        nodes = []
-        self.fill_connect(nodes, 1, 1)
-        for i in nodes:
-            coords = i.split(',')
-            x = int(coords[0])
-            y = int(coords[1])
-            self.str_map[y][x] = '*'
-
-    def fill_connect(self, nodes, pos_x, pos_y):
-        for i in Global.cardinal_coord:
-            x = pos_x + i[0]
-            y = pos_y + i[1]
-            if not self.out_of_bound(x, y):
-                key = str(x) + ',' + str(y)
-                if key not in nodes and self.str_map[y][x] not in Generator.BLOCKED:
-                    nodes.append(key)
-                    self.fill_connect(nodes, x, y)
-
     def build_structure(self):
         for i in range(12):
             self.tunneler = self.initialize_tunneler()
@@ -77,12 +58,12 @@ class Tunneler(Generator):
         return self.str_map[pos[1]][pos[0]] in Generator.BLOCKED
 
     def get_front(self, direction, mag=1):
-        coord = Global.cardinal_coord[direction]
+        coord = Global.cardinal_coord[direction % 4]
         x = self.tunneler[1][0] + coord[0] * mag
         y = self.tunneler[1][1] + coord[1] * mag
         return [x, y]
 
-    def out_of_bound(self, x, y, margin=0):
+    def out_of_bound(self, x, y, margin=2):
         return x < margin or x >= self.get_width() - margin or y < margin or y >= self.get_height() - margin
 
     def change_direction(self, routes):
@@ -97,7 +78,7 @@ class Tunneler(Generator):
         elif route[1] < self.tunneler[1][1]:
             self.tunneler[0] = 2
         elif route[1] > self.tunneler[1][1]:
-            self.tunneler[0] = 4
+            self.tunneler[0] = 0
 
     def get_options(self, x, y):
         ways = []
@@ -121,19 +102,15 @@ class Tunneler(Generator):
 class GenerateMansion(Tunneler):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
-        self.theme = {'.': 'w', 'o': '.', 'X': 'B', 'D': 'Door', 'W': 'Window'}
+        self.theme = {'.': 'h', 'o': '.', 'X': 'B', 'D': 'Door', 'W': 'Window'}
 
     def process(self):
         self.build_structure()
-        self.color()
         self.adapt_tiles()
 
     def adapt_tiles(self):
         for y in range(1, self.get_height() - 1):
             for x in range(1, self.get_width() - 1):
-                if self.str_map[y][x] == '*':
-                    if self.random.rand_int(1, 8) == 1:
-                        self.str_map[y][x] = 'o'
                 if self.str_map[y][x] in ['X', 'D']:
                     blocked = []
                     for i in Global.cardinal_coord:
@@ -142,47 +119,38 @@ class GenerateMansion(Tunneler):
                         else:
                             blocked.append(0)
                     if self.str_map[y][x] == 'X':
-                        if self.random.rand_int(1, 15) == 1 and (blocked == [1, 0, 1, 0] or blocked == [0, 1, 0, 1]):
-                            self.str_map[y][x] = 'W'
+                        if self.random.rand_int(1, 8) == 1 and (blocked == [1, 0, 1, 0] or blocked == [0, 1, 0, 1]):
+                            if self.random.rand_int(1, 4) == 1:
+                                self.str_map[y][x] = 'Bead Door'
+                            else:
+                                self.str_map[y][x] = 'W'
                     if self.str_map[y][x] == 'D':
                         if blocked != [1, 0, 1, 0] and blocked != [0, 1, 0, 1]:
                             self.str_map[y][x] = 'X'
-
-    def post_process(self, location):
-        self.disorient(location, self.random)
-        entrance = self.find_entrance(location)
-        location.tags.set('enterx', entrance.x)
-        location.tags.set('entery', entrance.y)
-        return super().post_process(location)
 
 
 class GenerateCave(Tunneler):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
-        self.theme = {'.': 'R', 'o': 'R', 'X': '.', 'D': '.', 'W': 'R'}
+        self.theme = {'.': 'R', 'o': 'R', 'X': '=', 'D': '=', 'W': 'R'}
         self.pivots = []
 
     def process(self):
         self.tunneler = self.initialize_tunneler()
         self.iterate()
+        for x in range(self.get_width()):
+            for y in range(self.start[1] - 1, self.start[1] + 2):
+                self.str_map[y][x] = 'm'
 
     def initialize_tunneler(self):
-        start_pos = [self.random.rand_int(0, self.get_width() - 1), 0]
-        return [self.random.rand_int(0, 3), start_pos]
+        return [self.random.rand_int(0, 3), self.start]
 
     def step(self):
         pos = self.get_front(self.tunneler[0])
-        if not pos or self.out_of_bound(pos[0], pos[1], margin=1):
+        if not pos or self.out_of_bound(pos[0], pos[1]):
             self.tunneler[0] = self.random.rand_int(0, 3)
         elif self.random.rand_int(1, self.turning) == 1:
             self.tunneler[0] = self.random.rand_int(0, 3)
             self.pivots.append(self.tunneler[1])
         else:
             self.tunneler[1] = [pos[0], pos[1]]
-
-    def post_process(self, location):
-        location.rotate(self.random.rand_int(0, 3))
-        entrance = self.find_entrance(location)
-        location.tags.set('enterx', entrance.x)
-        location.tags.set('entery', entrance.y)
-        return super().post_process(location)

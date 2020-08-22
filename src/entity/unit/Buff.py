@@ -1,6 +1,4 @@
 from src.entity.Particle import Particle
-from src.entity.unit.Unit import Unit
-from src.entity.unit.item.Item import Item
 from src.game import Global
 from src.tools.Data import Data
 from src.tools.Dialog import Dialog
@@ -23,17 +21,11 @@ class Buff:
     def get_display_name(self):
         return self.name.title()
 
-    def describe_duration(self):
-        if self.duration == -1:
-            return Dialog.get('persistent')
-        else:
-            return str(self.duration)
-
     def describe(self):
         r = self.get_display_name()
-        r += '\n' + Dialog.get('Duration') + ': ' + self.describe_duration()
+        r += '\n' + Dialog.get('Duration') + ': ' + Dialog.duration(self.duration)
         from src.tools.Data import Data
-        data = Data.get_line('descriptions.txt', self.name)
+        data = Data.get_line('descriptions.txt', self.name.lower())
         if data:
             r += '\n' + data[1]
         return r
@@ -52,7 +44,7 @@ class Buff:
         self.duration = 0
 
     def is_valid(self):
-        if 'magic' in self.get_tags():
+        if 'magic' in self.get_tags() and 'harm' in self.get_tags():
             deflect = self.host.states.get('Deflection')
             if deflect:
                 deflect.trigger()
@@ -91,6 +83,7 @@ class StatBuff(Buff):
         return Dialog.sign(self.var) + ' ' + Dialog.get(self.get_stat()[1])
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -204,7 +197,7 @@ class Burn(Buff):
     def on_update(self):
         self.var += 1
         if not self.var % 4:
-            self.host.pos.glow(5)
+            self.host.pos.glow(8)
             Particle.make('burn', self.host.pos, glow=1, offset=12)
             if not self.var % 8:
                 self.var = 0
@@ -212,6 +205,7 @@ class Burn(Buff):
                 if self.host.pos.has_tag('wood') and Global.r.rand_int(1, 8) == 1:
                     Stock.make('Plank', self.host.pos)
                     self.host.pos.set_terrain('.')
+                    Global.world.dirty_pos(self.host.pos.x, self.host.pos.y)
                 else:
                     x = Global.r.rand_int(-1, 1)
                     y = Global.r.rand_int(-1, 1)
@@ -238,9 +232,10 @@ class Speed(StatBuff):
         return 'spd', 'Speed'
 
     def on_start(self):
-        if isinstance(self.host, Item):
+        from src.entity.unit.item.Item import Item
+        if self.var > 0 and isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
-                self.host.tags.increment('aspd', 1)
+                self.host.tags.set('skill', 'deft')
         super().on_start()
 
 
@@ -249,9 +244,13 @@ class Damage(StatBuff):
         return 'dmg', 'Strength'
 
     def on_start(self):
+        from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
-                self.host.tags.increment('dmg', 1)
+                if self.var > 0:
+                    self.host.tags.increment('dmg', 1)
+                elif self.var < 0:
+                    self.host.tags.increment('dmg', -1)
         super().on_start()
 
 
@@ -260,9 +259,13 @@ class Armoring(StatBuff):
         return 'def', 'Defense'
 
     def on_start(self):
+        from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
-                self.host.tags.increment('def', 1)
+                if self.var > 0:
+                    self.host.tags.increment('def', 1)
+                elif self.var < 0:
+                    self.host.tags.increment('def', -1)
         super().on_start()
 
 
@@ -280,6 +283,7 @@ class Invisible(Buff):
 
     def on_start(self):
         Particle.make('mist', self.host.pos)
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             self.host.tags.increment('sth', 40)
             for unit in self.host.location.population.get_units():
@@ -291,6 +295,7 @@ class Invisible(Buff):
         self.var = var
 
     def on_finish(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             self.host.tags.increment('sth', -40)
         self.host.show(True)
@@ -327,7 +332,7 @@ class Script(Buff):
 class Spell(Buff):
     def on_start(self):
         from src.entity.unit.item.Spell import Spell
-        Spell.get(self.var, power=self.duration).cast_on(self.host)
+        Spell.get(self.var).cast_on(self.host)
         self.end()
 
 
@@ -339,6 +344,7 @@ class Shapeshift(Buff):
         return '[' + self.name + ',' + str(self.duration) + ',\\' + self.var + '\\]'
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -362,6 +368,7 @@ class Concentration(Buff):
         return ['hide', 'stack']
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -369,7 +376,7 @@ class Concentration(Buff):
         if self.host.get_skill('deep sense') and not self.host.states.get('Vision'):
             self.host.states.add('Vision', 8)
         if self.host.get_skill('iron will'):
-            self.host.states.add('Deflection', 40)
+            self.host.states.add('Deflection', -1)
         if self.host.get_skill('hide'):
             self.host.states.add('Invisible', -1)
 
@@ -402,6 +409,7 @@ class Lignification(Buff):
 
     def on_start(self):
         Particle.make('mist', self.host.pos)
+        from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
                 rand_int = Global.r.rand_int(1, 4)
@@ -425,6 +433,7 @@ class Vision(Buff):
         return ['magic']
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -456,6 +465,7 @@ class Levitation(Buff):
 
     def on_start(self):
         Particle.make('zip', self.host.pos, offset=8)
+        from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             w = self.host.tags.get('w', 1)
             if w > 1:
@@ -516,6 +526,7 @@ class Knockout(Buff):
         return ['harm', 'stack']
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -538,6 +549,7 @@ class Amnesia(Buff):
         return ['harm']
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -554,6 +566,7 @@ class Safeguard(Buff):
         self.var = var
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -564,7 +577,7 @@ class Safeguard(Buff):
     def trigger(self, arg):
         if arg[0] == 'act' and arg[1] in ['hit'] and arg[2] > 0:
             from src.entity.unit.item.Spell import Spell
-            Spell.get('Evacuate', power=100).cast_on(self.host)
+            Spell.get('Evacuate').cast_on(self.host)
             self.end()
 
 
@@ -573,6 +586,7 @@ class Exhaustion(Buff):
         return ['harm']
 
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 
@@ -596,13 +610,18 @@ class Deflection(Buff):
         self.duration = duration
 
     def trigger(self, arg):
-        self.host.location.sound.register(self.host.pos, 2, file='energy')
-        Particle.make('barrier2', self.host.pos)
-        self.end()
+        if arg[0] == 'spend':
+            self.host.location.sound.register(self.host.pos, 2, file='energy')
+            Particle.make('barrier2', self.host.pos)
+            self.end()
+        elif arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
+            self.host.location.sound.register(self.host.pos, 2, file='void')
+            self.end()
 
 
 class Nutrition(Buff):
     def is_valid(self):
+        from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
 

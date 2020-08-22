@@ -6,9 +6,8 @@ from src.map.Tile import Tile
 class Object(Image):
     BLOCK = 40
 
-    def __init__(self, location):
+    def __init__(self):
         super().__init__()
-        self.location = location
         self.class_name = None
         self.pos = None
         self.pos_offset = (0, 0)
@@ -25,7 +24,7 @@ class Object(Image):
         index = 0
         if isinstance(p[index][0], list):
             p[index] = p[index][0]
-        self.pos = self.location.get_tile(p[index][0], p[index][1], limit=True)
+        self.pos = Global.world.location.get_tile(p[index][0], p[index][1], limit=True)
         index += 1
         self.name = p[index]
         index += 1
@@ -40,7 +39,7 @@ class Object(Image):
             self.removed = 0
             self.show(True)
             self.relocate(to=self.pos, force=True)
-            self.location.population.add(self)
+            Global.world.location.population.add(self)
             return self
 
     def remove(self):
@@ -48,7 +47,7 @@ class Object(Image):
             self.removed = 1
             self.bound(False)
             self.show(False)
-            self.location.population.remove(self)
+            Global.world.location.population.remove(self)
             self.pos.things.remove(self)
             del self
             return True
@@ -72,7 +71,7 @@ class Object(Image):
 
     def relocate(self, to=None, x=None, y=None, force=False):
         if to is None:
-            to = self.location.get_tile(x, y, limit=True)
+            to = Global.world.location.get_tile(x, y, limit=True)
         if force or to != self.pos:
             self.pos.things.remove(self)
             to.things.append(self)
@@ -94,7 +93,7 @@ class Object(Image):
     def move_line(self, to, flag=None):
         if flag is None:
             flag = self.collision_type
-        new_pos = self.location.collide_land(self.pos, to, flag=flag, distance=-1)
+        new_pos = Global.world.location.collide_land(self.pos, to, flag=flag, distance=-1)
         moved = self.pos != new_pos
         if moved:
             self.relocate(to=new_pos)

@@ -49,9 +49,9 @@ class Tag:
         else:
             self.set(tag, arg)
 
-    def sync(self, tag, target, ratio=1):
+    def sync(self, tag, target, ratio=1, remove=0):
         if target and target != 0:
-            self.increment(tag, target * ratio, remove=0)
+            self.increment(tag, target * ratio, remove=remove)
 
     def minmax(self, tag, minimum, maximum):
         if tag in self.attributes:

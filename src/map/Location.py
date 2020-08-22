@@ -91,7 +91,7 @@ class Location:
         y = math.floor(y / Global.BLOCK)
         return self.get_tile(x, y, limit=True)
 
-    def collide_line(self, x1, y1, x2, y2, function, distance=10):
+    def collide_line(self, x1, y1, x2, y2, function, distance=-1):
         degree = math.atan2(y2 - y1, x2 - x1)
         current = [x1 * Global.BLOCK + Global.HALF_BLOCK, y1 * Global.BLOCK + Global.HALF_BLOCK]
         prev_tile = self.get_tile(x1, y1, limit=True)
@@ -108,7 +108,7 @@ class Location:
             prev_tile = tile
         return prev_tile
 
-    def collide_land(self, pos1, pos2, flag, distance=10, return_prev=True):
+    def collide_land(self, pos1, pos2, flag, distance=-1, return_prev=True):
         def fn(prev, tile):
             if tile:
                 is_int = isinstance(flag, int)

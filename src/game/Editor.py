@@ -33,7 +33,7 @@ class Editor:
             tile.light = 4
         self.moving = [0, 0]
         time = Global.player.days
-        Global.player.days = 0
+        Global.player.days = -1
         offset = Global.world.recenter(Camera.target.pos.x, Camera.target.pos.y)
         Global.player.days = time
         if not offset:
@@ -156,6 +156,7 @@ class Editor:
         elif action == 'command':
             self.command()
         elif action == 'save':
+            Global.world.dirty_pos()
             self.tool.cancel()
             Global.world.save()
             self.display_text = 'saved map'
@@ -335,7 +336,7 @@ class ToolRoof(Tool):
 class ToolObject(Tool):
     def __init__(self, object_type):
         self.text = 'Door'
-        self.selection = Stock.get(Global.world.location, 'Door').add()
+        self.selection = Stock.get('Door').add()
         self.selection.save = False
         self.tile = Global.world.location.get_tile(0, 0)
         self.object_list = list(Data.process_raw(Data.read('data/raw/' + object_type + '.txt')))
@@ -360,7 +361,7 @@ class ToolObject(Tool):
         self.text = text
         self.last_data = data
         self.selection.remove()
-        self.selection = Stock.get(Global.world.location, self.text, data=data)
+        self.selection = Stock.get(self.text, data=data)
         if self.selection:
             self.selection.relocate(x=Global.player.control.cursor_tile[0], y=Global.player.control.cursor_tile[1])
             self.selection.add()
@@ -378,9 +379,9 @@ class ToolObject(Tool):
                     preexisting = 1
                     break
             if not preexisting:
-                self.selection = Stock.get(Global.world.location, self.text, self.last_data)
+                self.selection = Stock.get(self.text, self.last_data)
                 if not self.selection:
-                    self.selection = Stock.get(Global.world.location, 'Crate')
+                    self.selection = Stock.get('Crate')
                 self.selection.add()
                 self.selection.relocate(to=tile, force=1)
         else:

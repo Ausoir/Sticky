@@ -6,7 +6,7 @@ from src.tools.Dialog import Dialog
 class Telescope(Item):
     def describe(self):
         r = super().describe()
-        r += '\n' + Dialog.get('sight_range', [self.tags.get('level', 1)])
+        r += '\n' + Dialog.get(':sight_range', [self.tags.get('level', 1)])
         return r
 
     def use(self):
@@ -19,7 +19,7 @@ class Telescope(Item):
             coord = Global.cardinal_coord[self.host.direction]
             target = self.host.pos + [coord[0] * level, coord[1] * level]
             from src.map.Tile import Tile
-            pos = self.host.location.collide_land(self.host.pos, target, distance=level, flag=Tile.COLLIDE_OBJECT)
+            pos = self.pos.location.collide_land(self.host.pos, target, distance=level, flag=Tile.COLLIDE_OBJECT)
             from src.game.TempObject import TempObject
             viewer = TempObject(pos)
             from src.game.Camera import Camera
@@ -36,7 +36,7 @@ class Porter(Item):
             cell_coord = Global.world.get_tile_true_pos(self.pos.x, self.pos.y)
             memory = 'x' + str(cell_coord[0]) + 'y' + str(cell_coord[1])
             self.tags.set('memory', memory)
-        self.host.location.sound.register(self.host.pos, 0, file='energy')
+        self.pos.location.sound.register(self.host.pos, 0, file='energy')
         from src.entity.Particle import Particle
         Particle.make('portal', self.pos)
 
@@ -50,7 +50,7 @@ class Porter(Item):
 class Lamp(Item):
     def describe(self):
         r = super().describe()
-        r += '\n' + Dialog.get('light_range', [self.tags.get('level', 1)])
+        r += '\n' + Dialog.get(':light_range', [self.tags.get('level', 1)])
         return r
 
     def use(self):

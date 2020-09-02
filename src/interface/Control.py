@@ -30,7 +30,7 @@ class Control:
     def make_mark():
         from src.entity.Image import Image
         mark = Image()
-        mark.form = Data.get_form('g_9x0', group=Global.draw_group.group_object)
+        mark.form = Data.get_form('_g_9_0')
         mark.form.z = 900
         mark.form.bound(True)
         mark.vec += Global.HALF_BLOCK
@@ -214,6 +214,6 @@ class Control:
 
     def get_mark(self):
         vec = self.target_mark.vec
-        tile = Global.player.character.location.get_tile_from_vec(vec.x, vec.y)
+        tile = Global.world.location.get_tile_from_vec(vec.x, vec.y)
         if tile and tile.is_seen():
             return tile

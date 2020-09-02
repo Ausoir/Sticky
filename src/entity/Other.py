@@ -157,12 +157,12 @@ class Specie(Item):
             self.tags.set('$', 0)
 
     def on_sleep(self, time):
-        if time >= 12:
-            if self.pos.get_icon() == '*':
+        if time >= 4:
+            if self.pos.has_tag('farm'):
                 from src.entity.Stock import Stock
                 for i in Global.cardinal_coord:
                     tile = self.pos.get_neighbor(i[0], i[1])
-                    if tile.get_icon() == '*' and not tile.things:
+                    if tile.has_tag('farm') and not tile.things:
                         clone = Stock.get(self.name, data=Data.parse(self.__str__()))
                         clone.pos = tile
                         clone.add()
@@ -311,13 +311,14 @@ class Food(Item):
         return super().get_value()
 
     def describe(self):
-        r = super().describe()
+        r = super().describe().replace('Durability', 'Portions')
         r += '\n' + Dialog.get('Nutrition') + ': ' + str(int(self.tags.get('hunger', 0) / 100)) + '%'
         expire = self.get_expiration()
         if expire > 0:
-            r += '\n' + Dialog.get('food_expire', [Dialog.hours(expire)])
+            r += '\n' + Dialog.get(':food_expire', [Dialog.hours(expire)])
+            r += '\n' + Dialog.get(':experience', [self.get_exp()])
         elif expire == 0:
-            r += '\n' + Dialog.get('food_expired')
+            r += '\n' + Dialog.get(':food_expired')
         return r
 
     def get_expiration(self):
@@ -329,15 +330,16 @@ class Food(Item):
 
     def use(self):
         if self.get_expiration():
-            hunger = self.host.tags.get('hunger', 0)
-            if hunger >= self.tags.get('hunger', 0):
-                self.host.action.act('eat', 8)
-                self.host.action.on_finish = self.eat
-            else:
-                Global.main.monologue.set(Dialog.get('!hungry'))
+            self.host.action.act('eat', 8)
+            self.host.action.on_finish = self.eat
         else:
             Global.main.monologue.set(Dialog.get('!expire'))
+            from src.entity.Stock import Stock
+            Stock.make('Trash', self.pos)
             self.die()
+
+    def get_exp(self):
+        return int(self.tags.get('hunger', 0) / 1000)
 
     def eat(self):
         for i in self.states.buffs:
@@ -345,9 +347,16 @@ class Food(Item):
         nutrition = -self.tags.get('hunger', 0)
         Global.world.location.sound.register(self.pos, 0, file='eat')
         self.host.tags.increment('hunger', nutrition)
-        self.host.progress_level(self.tags.get('$', 1) - 1, mode='eat', var=self)
+        self.host.tags.minmax('hunger', 0, 100000)
+        self.host.progress_level(self.get_exp(), mode='eat', var=self)
         self.decay(1)
         return nutrition
+
+    def on_sleep(self, time):
+        if self.get_expiration() == 0:
+            from src.entity.Stock import Stock
+            Stock.make('Trash', self.pos)
+            self.remove()
 
 
 class Corpse(Prop):
@@ -357,6 +366,7 @@ class Corpse(Prop):
         self.obstruct_type = Tile.COLLIDE_ITEM
         self.form = None
         self.has_host = False
+        self.fade = 0
 
     def load(self, arg):
         r = super().load(arg)
@@ -383,14 +393,22 @@ class Corpse(Prop):
         self.form.set_state(dead)
         self.form.show(True)
         self.form.set_state = self.invalid
+        self.fade = 100
         return self
 
     def update(self):
-        super().update()
         if self.has_host:
             from src.game.Camera import Camera
             bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
             self.form.place(bound_x, bound_y)
+            self.fade -= 1
+            if self.fade <= 0:
+                self.form.show(False)
+                self.form = Data.get_form(self.form_name)
+                self.form.show(True)
+                self.has_host = False
+        else:
+            super().update()
 
     def hit(self, damage, hitter=None):
         r = super().hit(damage, hitter)
@@ -403,7 +421,7 @@ class Corpse(Prop):
         self.remove()
 
     def on_sleep(self, time):
-        if time >= 12:
+        if time >= 8:
             from src.entity.Stock import Stock
             Stock.make('Skull', self.pos)
             self.remove()
@@ -426,7 +444,7 @@ class Manual(Item):
         return index + 1
 
     def describe(self):
-        r = super().describe() + '\n' + Dialog.get('manual_skill', [self.skill.title()])
+        r = super().describe() + '\n' + Dialog.get(':manual_skill', [self.skill.title()])
         data = Data.get_line('descriptions.txt', 'sk.' + self.skill)
         if data:
             r += '\n' + data[1]
@@ -442,7 +460,7 @@ class Manual(Item):
             skill = self.skill.lower()
             if skill not in self.host.skills:
                 if Global.player.is_learnable() and Global.player.is_bright() and Global.player.sleep(1):
-                    Global.main.monologue.set(Dialog.get('learn', [self.skill]))
+                    Global.main.monologue.set(Dialog.get(':learn', [self.skill]))
                     self.host.skills.append(skill)
                     self.die()
             else:
@@ -520,16 +538,15 @@ class Phantom(Unit):
         return index + 1
 
     def set_host(self, host):
-        host.deregister()
         self.host = host
         self.tags.sync('spd', self.host.tags.get('spd'))
         self.tags.sync('dmg', self.host.tags.get('dmg'))
         self.tags.sync('def', self.host.tags.get('def'))
-        self.tags.set('p', self.host.tags.get('p', 4))
-        self.tags.set('P', self.host.tags.get('P', 4))
-        loot = self.host.tags.remove('loot')
-        if loot:
-            self.tags.set('loot', loot)
+        skill = self.host.tags.get('skill')
+        if skill:
+            self.skills.append(skill)
+        host.states.set_host(self)
+        host.deregister()
 
     def set_row(self, row):
         if self.host:
@@ -543,11 +560,12 @@ class Phantom(Unit):
             self.host.form.rotation = self.form.organs[0].lower_joint.get_atan()
             self.host.form.place(x, y)
 
-    def die(self):
-        super().die()
-        if self.host:
-            self.host.relocate(to=self.pos, force=True)
-            self.host.add()
+    def remove(self):
+        if super().remove():
+            if self.host:
+                self.host.relocate(to=self.pos, force=True)
+                self.states.set_host(self.host)
+            return True
 
 
 class Ghost(Unit):
@@ -559,6 +577,9 @@ class Ghost(Unit):
                     if not i.tags.get('lvl'):
                         i.tags.set('lvl', i.get_level() * 100)
                     Global.player.set_player(i)
+                    i.states.add('Script', 160, 'tame')
+                    if not i.get_skill('eject'):
+                        i.skills.append('eject')
                     i.center_camera()
                     break
 

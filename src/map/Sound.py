@@ -8,7 +8,7 @@ from src.tools.Data import Data
 class Sound:
     def __init__(self, location):
         self.location = location
-        self.play = [Player(), Player(), Player(), Player(), Player()]
+        self.play = [Player(), Player(), Player(), Player(), Player(), Player(), Player(), Player()]
         self.tab = []
         self.priority = 3
         self.frame = 0
@@ -54,7 +54,7 @@ class Sound:
                 if (unit.pos - pos).difference() <= min(magnitude, 13):
                     unit.pilot.hear(pos)
         if file:
-            if Camera.target and (pos - Camera.target.pos).difference() <= min(magnitude, 13):
+            if Camera.target and (pos - Camera.target.pos).difference() <= Global.SIGHT and pos.is_seen():
                 # print(str((pos - Camera.target.pos).difference()) + '/' + str(magnitude) + ' - ' + file)
                 for i in self.play:
                     if not i.playing:

@@ -51,8 +51,8 @@ class Execute(pyglet.window.Window):
         Attribute.ADD_ON = Dialog.to_dict(Data.process_raw(Data.read('data/raw/attributes.txt')))
         World.BIOME = Dialog.to_dict(Data.process_raw(Data.read('data/raw/habitat.txt')))
         Dialog.init()
-        Stock.init()
         Global.draw_group = DrawGroup()
+        Stock.init()
         pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
         Global.font = pyglet.font.load('Default Font', 18)
         Global.main = self

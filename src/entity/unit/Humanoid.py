@@ -29,10 +29,12 @@ class Humanoid(Unit):
         from src.tools.Data import Data
         if e_armor:
             p[index] = Global.r.rand_list(Data.get_line('habitat.txt', e_armor)[1])
+        sync_hp = 0
         if p[index]:
             if isinstance(p[index], str):
                 start = False
                 armor = Stock.get(p[index])
+                sync_hp += -armor.tags.get('end', 0)
             else:
                 start = True
                 armor = Stock.get(p[index][2], p[index])
@@ -45,6 +47,7 @@ class Humanoid(Unit):
             if isinstance(p[index], str):
                 start = False
                 headgear = Stock.get(p[index])
+                sync_hp += -headgear.tags.get('end', 0)
             else:
                 start = True
                 headgear = Stock.get(p[index][2], p[index])
@@ -59,6 +62,8 @@ class Humanoid(Unit):
             else:
                 weapon = Stock.get(p[index][2], p[index])
             weapon.on_wield(self)
+        if sync_hp:
+            self.decay(sync_hp)
         return index + 1
 
     def add(self):
@@ -67,6 +72,7 @@ class Humanoid(Unit):
             if self.armor:
                 self.armor.pos = self.pos
                 self.armor.add()
+                self.armor.show(False)
             if self.headgear:
                 self.headgear.pos = self.pos
                 self.headgear.add()
@@ -86,6 +92,7 @@ class Humanoid(Unit):
         from src.form.BodyHumanoid import BodyHumanoid
         line = Data.get_line('model.txt', arg)
         self.form = BodyHumanoid(line[1], self)
+        self.form.randomize(self.get_seed())
         self.form.set_model(line[2])
 
     def show(self, visible):
@@ -110,12 +117,6 @@ class Humanoid(Unit):
             r.append(self.armor)
         if self.headgear:
             r.append(self.headgear)
-        return r
-
-    def get_accessibles(self):
-        r = super().get_accessibles()
-        if self.weapon:
-            r.append(self.weapon)
         return r
 
     def get_skills(self):
@@ -194,8 +195,6 @@ class Humanoid(Unit):
 
     def die(self):
         self.drop()
-        self.unarmor()
-        self.unheadgear()
         super().die()
 
     def update(self):
@@ -246,9 +245,12 @@ class Humanoid(Unit):
                     concentration = self.states.get('Concentration')
                     if concentration:
                         concentration.trigger(['spend'])
-                        weapon = target.drop()
-                        if weapon:
-                            self.pick_up(weapon)
+                        if target.weapon:
+                            target.drop()
+                        elif target.headgear:
+                            target.unheadgear()
+                        elif target.armor:
+                            target.unarmor()
                     else:
                         self.pos.location.sound.register(self.pos, 0, file='wear', priority=2)
                         item = target.inventory.take_item(0)
@@ -277,7 +279,7 @@ class Humanoid(Unit):
             face = []
             from src.tools.Data import Data
             for image in heads:
-                face.append(Data.get_cache(image))
+                face.append(Data.get_graphics(image))
         else:
             face = Humanoid.faces[self.get_seed() % len(Humanoid.faces)]
         from src.form.Picture import Model
@@ -309,17 +311,19 @@ class Humanoid(Unit):
                 if self == Global.player.character:
                     Global.main.monologue.set(Dialog.get('!heavy', params))
 
-    def on_sleep(self, time):
-        super().on_sleep(time)
-        if self.weapon:
-            self.weapon.on_sleep(time)
-        if self.armor:
-            self.armor.on_sleep(time)
-        if self.headgear:
-            self.headgear.on_sleep(time)
-
     def get_damage(self):
         r = super().get_damage()
         if self.weapon:
             r += self.weapon.tags.get('dmg', 0)
         return r
+
+    def get_level(self):
+        level = super().get_level()
+        if self.tags.get('lvl'):
+            return level
+        else:
+            if self.armor:
+                level = max(1, level - self.armor.tags.get_level())
+            if self.headgear:
+                level = max(1, level - self.headgear.tags.get_level())
+            return level

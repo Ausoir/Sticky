@@ -5,7 +5,7 @@ class Overlay:
                DIM_LIGHT, DIM_LIGHT, DIM_LIGHT, DIM_LIGHT, DIM_LIGHT,  # 10 ~ 14
                DIM_LIGHT, DIM_LIGHT, DIM_LIGHT, [0, 0, 60, 120], [20, 0, 80, 120],  # 15 ~ 19]
                [0, 0, 60, 140], [0, 0, 40, 160], [0, 0, 30, 180], [0, 0, 30, 180]]  # 20 ~ 23
-    LIGHT = [0, 0, 0, 0, 0, 0, 1, 3, 6, 9, 9, 9, 9, 9, 9, 9, 9, 9, 5, 2, 0, 0, 0, 0]
+    LIGHT = [0, 0, 0, 0, 0, 0, 1, 3, 6, 8, 9, 9, 9, 9, 9, 9, 9, 8, 5, 2, 0, 0, 0, 0]
 
     def __init__(self):
         self.weather = [0, 0, 0, 0]

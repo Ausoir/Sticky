@@ -23,7 +23,7 @@ class Crafting:
                     i = Dialog.get('Any ') + i[1:].title()
                 r += ' [' + i + ']'
         else:
-            r += ' ' + Dialog.get('none')
+            r += ' ' + Dialog.get('None')
         data = Data.get_line('descriptions.txt', item)
         if data:
             return r + '\n' + data[1]

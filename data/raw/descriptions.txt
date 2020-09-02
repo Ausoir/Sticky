@@ -6,7 +6,7 @@ Pudding,A sweet and salty slime pudding.
 Burger,Very fullfilling.
 Jerky,Long lasting ration commonly carried around for adventuring and dungeon crawling.
 Fiber,Some fibrous material.
-Observer,Use on units with higher level than you to gain experience just as if you killed them. Usable once per 12 hours.
+Observer,Use on units to gain experience just as if you killed them. Usable once per 12 hours.
 Marker,This is part of a conjuration polygram. In a dark area\,\ bring a candle on the polygram to begin ritual.
 Mirror,Use to mark a location and return there later.
 Gold Mirror,Use to return home.
@@ -16,34 +16,39 @@ Oil Lamp,Use to produce light.
 Fade Charm,Imbues the owner with invisibility when destroyed.
 Manual,Read to learn skills.
 Ore,Break to obtain rare minerals.
-sk.block,Passive: Stand still to concentrate. Use concentration to get +1 defense against non backstab attacks on hit.
-sk.fortitude,Passive: After taking damage\,\ gain damage immunity for a short while.
-sk.parry,Passive: Stand still to concentrate. Use concentration to dodge an attack from the front on hit.
-sk.iron will,Passive: Stand still to concentrate. Use concentration to deflect next harmful debuff. Cancels on hit.
-sk.lunge,Passive: Move forward when attacking.
-sk.bash,Passive: Stand still to concentrate. Next attack hits twice.
-sk.flurry,Passive: After a successful attack\,\ quickly continue attacking adjacent hostiles if possible.
-sk.frenzy,Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
-sk.crush,Passive: Destroy walls when damage is higher than hardness of the wall.
-sk.assassinate,Passive: Attacks from behind silences target and deal 4 extra damage.
-sk.side step,Passive: Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
-sk.hide,Passive: Stand still to concentrate\,\ becoming invisible until moving.
-sk.deep sense,Passive: When standing still\,\ obtain vision through obstacles\,\ but not terrain.
-sk.alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers.
-sk.scribing,Create spell scrolls at a registry desk.
-sk.carving,Carve wands on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick.
-sk.herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time.
-sk.conjuration,Draw conjuration polygrams using a chalk which can conjure things at virtually no cost.
-sk.reach,Passive: Basic attacks attack 2 tiles away instead of 1.
-sk.steal,Passive: Unarmed attacks steal items from the victim.
-sk.feed,Passive: When damaging any unit\,\ this skill is replaced by one skill that the victim knew.
-sk.rally,Passive: Nearby allies come to aid when damaged.
-sk.constitution,Passive: Immune to knockdown.
-sk.deft,Passive: Decreases post attack delay.
-sk.psychic,Passive: Always know where you are.
+Block,Passive: Stand still to concentrate. Get +1 defense toward next non-backstab hit.
+Fortitude,Passive: After taking damage\,\ gain damage immunity for a short while.
+Parry,Passive: Stand still to concentrate. Dodge next attack from the front.
+Iron Will,Passive: Stand still to concentrate. Deflect next harmful debuff. Shielding cancels on taking damage.
+Constitution,Passive: Immune to knockdown.
+Perseverance,Passive: Heal 1 health every hour.
+Instinct,Passive: Attacks are performed instantly without pre attack delay.
+Lunge,Passive: Move forward when attacking. Stacks.
+Cleave,Passive: Stand still to concentrate. Attacks affect diagonals while concentrated.
+Flurry,Passive: Stand still to concentrate. Rapidly attack hostiles in reach up to 3 times.
+Frenzy,Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
+Crush,Passive: Destroy walls when damage is higher than hardness of the wall.
+Assassinate,Passive: Attacks from behind silences target and deal 7 extra damage.
+Side Step,Passive: Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
+Hide,Passive: Stand still to concentrate\,\ becoming invisible until moving.
+Deep Sense,Passive: When standing still\,\ obtain vision through obstacles\,\ but not terrain.
+Parkour,Passive: Stand still to concentrate. Spend concentration to move over obstacles.
+Alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers.
+Scribing,Create spell scrolls at a registry desk.
+Carving,Carve wands on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick.
+Herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time.
+Conjuration,Draw conjuration polygrams using a chalk which can conjure things at virtually no cost.
+Reach,Passive: Increase range of attacks by 1 tile. Stacks.
+Steal,Passive: Unarmed attacks steal items or equipment from the victim.
+Feed,Passive: When damaging any unit\,\ this skill is replaced by one skill that the victim knew.
+Rally,Passive: Nearby allies come to aid when under attack.
+Deft,Passive: Decreases post attack delay. Stacks.
+Disorient,Passive: On successful attack\,\ change face direction of the victim.
+Psychic,Passive: Always know where you are.
+Nocturnal,Passive: Gain night vision.
 Dispel,Purge all magical status effects in an area around the caster.
 Charm,Enslave target unit permanently. Target must be directly in front of the caster.
-Clone,Clone anything directly in front of the caster.
+Clone,Clone anything directly in front of the caster. 50% success rate.
 Push,Push anything in front away.
 Glow,Makes target glow permanently. Stacks.
 Scorch,Create a scorching flame on the target.
@@ -51,12 +56,13 @@ Scry,Travel as a ghost to observe far away locations relatively safely.
 Disintegration,Deal 5 damage to target in a line\,\ ignoring armor.
 Passwall,Pass through a solid wall.
 Charm,Increase friendliness of target.
-Transience,Assume a spiritual form from which you may possess another living being. Possess by pressing attack key on top of a unit.
+Transience,Assume a spiritual form from which you may possess another living being. Press attack key on top of a unit in ghost form.
 Wall,Create a spell wall to block out enemies.
-Zombie,Turn corpses into zombies.
-Phantom,Summon a phantom to possess any item laying underneath the caster.
+Zombie,Turn corpses into undead.
+Phantom,Summon a phantom to possess a target item.
 Transmogrify,Mutate target into a random creature.
-Evacuate,Teleport to a relatively safe location.
+Evacuate,Immediately teleport to a random location.
+Gateway,Create a one way teleport gate.
 Ghost Form,Turn into a ghost that can pass through walls but cannot interact with the world.
 Earthquake,Knock down everything near the caster.
 Push,Push something in caster's way away from the caster.
@@ -70,6 +76,7 @@ Clone,Clone anything in front of the caster.
 Charge,Attack 4 tiles away.
 Stab,Attack without delay.
 Breeze,Travel like the wind for a few seconds.
+Capture,Capture anything in front of the caster. Cast again to summon.
 glow,You emit light.
 revive,Revive on death.
 health,Modifies health over time.
@@ -86,9 +93,14 @@ concentration,Ready for special actions.
 amnesia,A more popular alternative to brainsuckers.
 exhaustion,Special ability cannot be performed while exhausted.
 lignification,Incoming damage reduced by 2 but become immobile and vulnerable to fire.
-vision,Gain vision through walls and objects.
+vision,Sharpens vision.
 levitation,Levitate off the ground.
 Slime,Here is a cute slime.
+Mud Slime,Aggressive breed of slimes. They slow you on hit.
+Cave Slime,This breed of slimes are made of tough gelatinous material. They cripple you on hit.
+Bamboo Slime,Once a cute slime\,\ now a practitioner of martial arts.
+Looter,These scavengers don't care if they loot from the dead or alive.
+Deer,A deer. Or is it a moose?
 Leper,A victim of slime pox.
 Venomous Spider,A venomous version of the common spider. Anyone bit will likely be dead in an hour.
 Snake,This snake is poisonous. Anyone bit will likely be dead in an hour.
@@ -96,12 +108,12 @@ Killer Ivy,A man eating plant that ambush its prey from out of sight.
 Deathtrap,A deadly plant that lobs fireball at its prey. How it does that is on a debate by scholars world wide.
 Moth,This is surprisingly a moth.
 Crab,This crab has 2 pairs of claws!
-Octopus,The skin of this octopus glows under the sun.
+Octopus,These beasts and their multiple appendages are particularly strong at fighting multiple opponents.
 Tiger,A striped version of the cat. Much more deadly.
 Zombie,Once dead\,\ now undead. Once dead again\,\ it will rise again.
-Foul Snack,Once a fulfilling cereal\,\ now a bringer of despair. You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
+Foul Snack,Once a snack\,\ now a bringer of despair. You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
 Captain Knight,A wandering killing machine. Run!
-Reaper,An infamous undead known to hunt the peninsula. Be careful!
+Reaper,A particularly infamous undead known to annoy the locals. Be careful!
 Brainsucker,This vile creature steals the knowledge of its victims. For this reason this creature gets frequent visits from gurus who wish to start anew.
 Leper,A blighted fellow. Fortunately for him and unfortunately for you\,\This guy does not seem to feel pain anymore.
 Skeleton,In addition to being immune to pain\,\ this undead has some innate skeletal armor.
@@ -110,7 +122,9 @@ Witch,A scholar of witchcraft who learned how to turn you into something disgust
 Master,A master of the martial arts.
 Shade,Spooky!
 Resident,This is a common resident who got stuck in this hell hole.
-Soldier,This poor guy was drafted into the army with no other option.
+Soldier,This poor guy was drafted into the army.
 Hireling,A member of the mercenary guild\,\ equipped with leather armor and wearing guild cap.
 Rando,A desperate resident surviving by looting from the outlaws and wildlife despite the danger\,\ just like you.
-Panda,This animal is educated in the ways of the martial arts.
+Panda,This animal is educated in the ways of the martial arts. Stay out of its way!
+Worm,Eww. At least they're harmless.
+Duelist,This guy is looking for a fight. You hear some coins in his pocket.

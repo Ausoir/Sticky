@@ -21,7 +21,7 @@ class Pilot:
 
     def load(self, arg):
         if arg == 'guard':
-            self.default = Idle(self)
+            self.default = Guard(self)
             self.move = Path(self)
             self.attack = Attack(self)
             self.route = Routes(self.host, False)
@@ -48,17 +48,15 @@ class Pilot:
         self.set_task(Return(self, target))
 
     def update(self):
-        old_task = self.task
-        self.task.update()
-        if self.host.action.delay == 0 and old_task == self.task:
+        if self.task.update() and self.host.action.delay == 0:
             self.act()
 
     def set_task(self, task):
         task.on_set()
         self.task = task
         if self.priority == 1:
-            interaction = self.host.tags.remove('#')
-            if interaction:
+            interaction = self.host.tags.get('#')
+            if interaction and interaction != 'busy':
                 self.host.tags.set('!#', interaction)
                 self.host.tags.set('#', 'busy')
         else:
@@ -67,34 +65,30 @@ class Pilot:
                 self.host.tags.set('#', interaction)
 
     def act(self):
-        if self.priority > 2:
+        if self.priority > 1:
             enemies = self.host.get_team(ally=False)
             targets = self.perceive(enemies)
             if targets:
                 self.spot_enemy(targets)
-        if self.task.perform():
-            self.task.on_finish()
+        self.task.perform()
 
     def hit(self, hitter):
         if self.host.tags.get('ai'):
             from src.entity.unit.item.Item import Item
-            from src.entity.Prop import Prop
-            if isinstance(hitter, Prop):
+            if hitter:
                 if isinstance(hitter, Item):
                     if hitter.host:
                         hitter = hitter.host
-                    else:
-                        return
                 if hitter != self.host:
+                    self.set_task(self.attack)
+                    self.task.target = hitter
                     if self.host.get_skill('rally'):
                         allies = self.host.get_team(ally=True)
                         for ally in allies:
-                            if (ally.pos - self.host.pos).difference() <= 10:
+                            if (ally.pos - self.host.pos).difference() <= 9:
                                 if ally.tags.get('ai') and ally.pilot.priority >= 2:
                                     ally.pilot.set_task(ally.pilot.attack)
                                     ally.pilot.task.target = hitter
-                    self.set_task(self.attack)
-                    self.task.target = hitter
 
     def perceive(self, enemies):
         perceived = []
@@ -103,11 +97,11 @@ class Pilot:
             diff_x = abs(thing.pos.x - self.host.pos.x)
             diff_y = abs(thing.pos.y - self.host.pos.y)
             if self.host.is_facing(thing.pos):
-                s = thing.tags.get('sth', 0)
+                s = thing.tags.get('sth', 0) + 1
                 if thing.pos.light or night_vision:
-                    in_range = diff_x <= Global.map_view.sight_range - s and diff_y <= Global.map_view.sight_range_y - s
+                    in_range = diff_x * s <= Global.map_view.sight_range and diff_y * s <= Global.map_view.sight_range_y
                 else:
-                    in_range = diff_x <= 3 - s and diff_y <= 3 - s
+                    in_range = diff_x <= 3 - s and diff_y <= 2 - s
                 if in_range:
                     perceived.append(thing)
         if self.host.get_skill('psychic'):
@@ -120,7 +114,7 @@ class Pilot:
             if self.priority > 3:
                 if not self.host.tags.get('deaf'):
                     if (pos - self.host.pos).difference() >= 1:
-                        self.host.face_toward(pos)
+                        self.face('idle', self.host.pos.get_face(pos))
                         seen = Global.world.location.collide_land(self.host.pos, pos, self.host.sight)
                         if seen == pos:
                             units = []
@@ -164,11 +158,33 @@ class Pilot:
                     Particle.make('shout', self.host.pos)
                     Global.world.location.sound.register(self.host.pos, 9)
 
+    def face(self, action, direction):
+        direction = direction % 4
+        if self.host.action.delay == 0:
+            if self.host.direction != direction:
+                if direction == 0:
+                    self.host.input('down')
+                elif direction == 1:
+                    self.host.input('left')
+                elif direction == 2:
+                    self.host.input('up')
+                elif direction == 3:
+                    self.host.input('right')
+            else:
+                self.host.input(action)
+
+    def adjust_pos(self, diff):
+        if self.task:
+            self.task.adjust_pos(diff)
+
 
 class Routes:
     def __init__(self, host, destroy):
         self.host = host
-        self.destroy = destroy
+        if host.get_skill('reach'):
+            self.destroy = False
+        else:
+            self.destroy = destroy
 
     def can_destroy(self, tile):
         if not self.destroy:

@@ -1,4 +1,4 @@
 -24
-[[3,8],Crate,Container,g2_4x0,[p:2,def:1,loot:#crate,#:>menu>container,have:4],[],[]],[[4,9],Body Bag,Prop,g_33x4,[p:1,ob:0,loot:Cloth,#:rest],[]],[[5,9],Campfire,Prop,g_8x4,[p:4,ob:4,#:campfire],[[Glow,-1,6],[Effect,-1,fire]]]
-RRRRR..RRRRRR%RRRRRR..RRRRR%RRRRR........%RRRRR..RRRRRR%RRRRR..RRRRRR%RRRRR..RRRRR.%RRRRR..RRRRRR%RRRRR..RRRRR~%RRR....RR~~~~%RRRR..^^~~~~~%RRRR^^^~~~~~~%RR~~~~~~~~~~~%RR~~~~~~~~~~~
+[[3,8],Crate,Container,_g2_4_0,[p:2,def:1,loot:#crate,#:>menu>container,have:4],[],[]],[[6,8],Goods,Container,_g_2_7,[p:1,ob:4,loot:#goods,#:>menu>container,have:3],[],[]],[[4,9],Body Bag,Prop,_g_33_4,[p:1,ob:0,loot:Cloth,#:rest],[]],[[5,9],Campfire,Prop,_g_8_4,[p:4,ob:4,#:campfire],[[Glow,-1,6],[Effect,-1,fire]]]
+RRRRRRR.RRRRR%RRRRRRR.RRRRR%RRRRR........%RRRRR..R.RRRR%RRRRR....RR..%RRRRR..RR....%RRRRR......RR%RRRRR..RRRRR~%RRR....RR~~~~%RRRR..^^~~~~~%RRRR^^^~~~~~~%RR~~~~~~~~~~~%RR~~~~~~~~~~~
 0000000000111%1100000011111%1100111111111%1101111111111%1101111111111%1101111111110%0001111111100%0001111111100%0001111110000%0001110000000%0000000000000%0000000000000%0000000000000

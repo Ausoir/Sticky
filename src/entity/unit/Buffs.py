@@ -21,8 +21,9 @@ class Buffs:
         for k, i in enumerate(self.buffs):
             self.current = i
             if i.update():
-                i.on_finish()
-                self.buffs.pop(k)
+                if not i.on_finish():
+                    if len(self.buffs) > k:
+                        self.buffs.pop(k)
             elif self.host.removed == 0:
                 i.on_update()
                 done = False
@@ -42,28 +43,29 @@ class Buffs:
                 return i
 
     def add(self, buff_name, duration, var=0, load=False, stack=True):
-        preexisting = self.get(buff_name)
-        if not stack or not preexisting or 'stack' not in preexisting.get_tags():
-            buff = None
-            for i in Buff.__subclasses__() + StatBuff.__subclasses__():
-                if i.__name__ == buff_name.title():
-                    buff = i(self.host, buff_name, duration, var)
-                    break
-            if buff:
-                if load:
-                    self.buffs.append(buff)
-                elif buff.is_valid():
-                    self.buffs.append(buff)
-                    buff.on_start()
-                    self.on_add()
+        if duration != 0:
+            preexisting = self.get(buff_name)
+            if not stack or not preexisting or 'stack' not in preexisting.get_tags():
+                buff = None
+                for i in Buff.__subclasses__() + StatBuff.__subclasses__():
+                    if i.__name__ == buff_name.title():
+                        buff = i(self.host, buff_name, duration, var)
+                        break
+                if buff:
+                    if load:
+                        self.buffs.append(buff)
+                    elif buff.is_valid():
+                        self.buffs.append(buff)
+                        buff.on_start()
+                        self.on_add()
+                    else:
+                        return None
+                    return buff
                 else:
                     return None
-                return buff
             else:
-                return None
-        else:
-            preexisting.on_stack(duration, var)
-            return preexisting
+                preexisting.on_stack(duration, var)
+                return preexisting
 
     def clear(self, fn):
         r = 0
@@ -86,9 +88,11 @@ class Buffs:
         self.on_add()
 
     def on_sleep(self, time):
+        hour_tick = int(Turn.HOUR_FRAME / Turn.rounds)
         for i in self.buffs:
             if i.duration > 0:
-                i.duration = max(0, i.duration - (time * Turn.HOUR_FRAME))
+                if time > 0:
+                    i.duration = max(0, i.duration - (time * hour_tick))
                 i.trigger(['time', time])
 
     def on_add(self):
@@ -100,3 +104,9 @@ class Buffs:
     def on_remove(self):
         from src.game.Turn import Turn
         Turn.remove(self.host.states.update)
+
+    def set_host(self, host):
+        for i in self.buffs:
+            host.states.add(i.name, i.duration, i.var)
+        self.buffs = []
+        self.on_remove()

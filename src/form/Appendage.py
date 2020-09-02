@@ -12,12 +12,8 @@ class Limb:
     def __str__(self):
         return self.upper_joint.__str__() + ',' + self.lower_joint.__str__()
 
-    def set(self, sprite):
-        pass
-
     def place(self, x, y):
-        diff = self.lower_joint - self.upper_joint
-        self.form.rotation = diff.get_atan() - 90
+        pass
 
     def set_parent(self, parent, joint):
         if joint == 'u':
@@ -48,12 +44,14 @@ class Appendage(Limb):
 
     def place(self, x, y):
         diff = self.lower_joint - self.upper_joint
-        self.form.rotation = diff.get_atan() - 90
+        rotation = diff.get_atan() - 90
         if self.resize:
-            length = int(diff.distance() * 1.1)
+            length = diff.distance()
             if abs(length) > 2:
-                self.form.resize(y=length)
-        self.form.place(x + self.upper_joint.x, y - self.upper_joint.y)
+                scale_y = length / (self.form.height / self.form.scale_y)
+                self.form.place(x + self.upper_joint.x, y - self.upper_joint.y, rotation=rotation, scale_y=scale_y)
+                return
+        self.form.place(x + self.upper_joint.x, y - self.upper_joint.y, rotation=rotation)
 
     def flip(self, side, direction):
         if side <= 0:

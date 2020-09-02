@@ -1,4 +1,4 @@
 -24
-[[8,4],Bead Door,Door,g_28x4,[p:1,ob:2,loot:Fiber,alt:g_29x4],[]],[[6,7],Crate,Container,g2_4x0,[p:2,def:1,loot:#crate,#:>menu>container,have:4],[],[]],[[7,7],Bed,Prop,g_13x4,[p:4,def:1,ob:4,loot:Cloth,#:rest],[]]
+[[8,4],Bead Door,Door,_g_28_4,[p:1,ob:2,loot:Fiber,alt:_g_29_4],[]],[[6,7],Crate,Container,_g2_4_0,[p:2,def:1,loot:#crate,#:>menu>container,have:4],[],[]],[[7,7],Bed,Prop,_g_13_4,[p:4,def:1,ob:4,loot:Cloth,#:rest],[]]
 ..p::::::::::%..ppppppppppp%.............%.............%.....WWWbWW..%.....WbbbbW..%.....WbbbbW..%.....WbbbbW..%.....WbbbbW..%.....WWWWWW..%.............%.............%.............
 0000000000000%0000000000000%0000000000000%0000000000000%0000011111100%0000011111100%0000011111100%0000011111100%0000011111100%0000011111100%0000000000000%0000000000000%0000000000000

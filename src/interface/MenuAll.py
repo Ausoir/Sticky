@@ -14,7 +14,7 @@ class MenuAll(MenuPlayer):
         host = self.var
         host.load_content()
         if not host.inventory.items:
-            self.var = [Dialog.get('empty')]
+            self.var = [Dialog.get('Empty')]
             self.menu_message()
         else:
             for i in host.inventory.get_range():
@@ -31,11 +31,11 @@ class MenuAll(MenuPlayer):
             if Global.player.pay(arg[1]):
                 sold = host.inventory.take_item(arg[0])
                 Global.player.character.pick_up(sold)
-                Global.main.monologue.set(Dialog.get('transacted'))
+                Global.main.monologue.set(Dialog.get(':transacted'))
         host = self.var
         host.load_content()
         if not host.inventory.items:
-            self.var = [Dialog.get('soldout')]
+            self.var = [Dialog.get(':soldout')]
             self.menu_message()
         else:
             count = 0
@@ -62,9 +62,9 @@ class MenuAll(MenuPlayer):
             if receipt > 0:
                 host.inventory.take_item(arg[2]).remove()
                 Global.player.character.tags.increment('money', receipt)
-                Global.main.monologue.set(Dialog.get('transacted'))
+                Global.main.monologue.set(Dialog.get(':transacted'))
             else:
-                Global.main.monologue.set(Dialog.get('reqnotmet'))
+                Global.main.monologue.set(Dialog.get(':reqnotmet'))
         host = self.var
         host.load_content()
         if host.inventory.items:
@@ -76,7 +76,7 @@ class MenuAll(MenuPlayer):
                 if item:
                     value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, 2))
                     param = [item.name, value, k]
-                    lmb = self.get_prompt(Dialog.get('supply', param), Dialog.get('Sell'), buy, param)
+                    lmb = self.get_prompt(Dialog.get(':supply', param), Dialog.get('Sell'), buy, param)
                     self.window.add(Menu.make(item.name, lmb))
                     self.sub_window.add(Menu.make('$' + str(value), lmb, color=None))
             self.sub_window.display(1)
@@ -90,21 +90,21 @@ class MenuAll(MenuPlayer):
                 host.tags.set('$', 0)
                 storing = Global.player.character.drop()
                 host.inventory.attempt_add(storing)
-                Global.main.monologue.set(Dialog.get('transacted'))
+                Global.main.monologue.set(Dialog.get(':transacted'))
         item = Global.player.character.weapon
         host = self.var
         host.load_content()
         if not item:
-            self.var = [Dialog.get('store_nothing')]
+            self.var = [Dialog.get(':store_nothing')]
             self.menu_message()
         elif not host.is_vacant(item.get_weight()):
-            self.var = [Dialog.get('invfull')]
+            self.var = [Dialog.get(':invfull')]
             self.menu_message()
         else:
             count = 0
             Global.r_t.reset(host.get_seed() + 333)
             cost = host.tags.get('cost', 0) + Global.r_t.rand_int(0, item.get_value())
-            message = item.describe() + '\n' + Dialog.get('store_item', [cost])
+            message = item.describe() + '\n' + Dialog.get(':store_item', [cost])
             self.history.pop()
             self.get_prompt(message, Dialog.get('Store'), store, count)()
 
@@ -114,9 +114,9 @@ class MenuAll(MenuPlayer):
             if Global.player.pay(cost):
                 Global.player.character.tags.increment('invest', cost)
                 Global.player.character.tags.set('investt', Global.player.days % 24)
-                Global.main.monologue.set(Dialog.get('transacted'))
+                Global.main.monologue.set(Dialog.get(':transacted'))
         cost = (self.var.get_seed() % 7 + 1) * self.var.tags.get('cost')
-        text = Dialog.get('invest', [cost, Global.player.character.tags.get('invest', 0)])
+        text = Dialog.get(':invest', [cost, Global.player.character.tags.get('invest', 0)])
         self.var.tags.set('#', '!banker2')
         self.history.pop()
         self.get_prompt(text, Dialog.get('Store'), store, 0)()
@@ -125,15 +125,22 @@ class MenuAll(MenuPlayer):
         # noinspection PyUnresolvedReferences
         def insure(arg):
             if Global.player.pay(cost):
-                player.states.add('Revive', duration)
-                Global.main.monologue.set(Dialog.get('transacted'))
+                player.states.add('Revive', -1)
+                Global.main.monologue.set(Dialog.get(':transacted'))
+
+        def cancel(arg):
+            revival.end()
+
         host = self.var
         player = Global.player.character
-        cost = host.tags.get('cost', 0) + player.get_level()
-        from src.game.Turn import Turn
-        duration = (host.get_seed() % 240 + 1) * Turn.HOUR_FRAME
-        self.history.pop()
-        self.get_prompt(Dialog.get('insure?', [cost, int(duration / Turn.HOUR_FRAME)]), Dialog.get('Insure'), insure)()
+        revival = player.states.get('Revive')
+        if revival:
+            self.history.pop()
+            self.get_prompt(Dialog.get(':insurecancel?'), Dialog.get('Cancel'), cancel)()
+        else:
+            cost = host.tags.get('cost', 0) + player.get_level()
+            self.history.pop()
+            self.get_prompt(Dialog.get(':insure?', [cost]), Dialog.get('Insure'), insure)()
 
     def menu_hire(self):
         # noinspection PyUnresolvedReferences
@@ -144,7 +151,7 @@ class MenuAll(MenuPlayer):
         host = self.var
         cost = host.tags.get('cost', 0)
         self.history.pop()
-        self.get_prompt(Dialog.get('hire?', [cost]), Dialog.get('Hire'), hire)()
+        self.get_prompt(Dialog.get(':hire?', [cost]), Dialog.get('Hire'), hire)()
 
     def menu_order(self):
         def order(arg):
@@ -167,24 +174,17 @@ class MenuAll(MenuPlayer):
         self.window.add(Menu.make(Dialog.get('Guard'), order, name=2, width=320))
         if Global.player.is_sociable(0):
             self.window.add(Menu.make(Dialog.get('Follow'), order, name=3, width=320))
-            self.window.add(Menu.make(Dialog.get('Wield'), order, name=4, width=320))
+            from src.entity.unit.Humanoid import Humanoid
+            if isinstance(host, Humanoid):
+                self.window.add(Menu.make(Dialog.get('Wield'), order, name=4, width=320))
         self.sub_window.display(1)
 
     def menu_learn(self):
         # noinspection PyUnresolvedReferences
         def learn(arg):
-            if Global.player.is_learnable():
-                count = 1
-                if Global.player.character.tags.get('ab1'):
-                    count = 2
-                if Global.player.character.tags.get('ab2'):
-                    count = 3
-                if Global.player.character.tags.get('ab3'):
-                    count = -1
-                    Global.main.monologue.set(Dialog.get('!learnfull'))
-                if count > 0 and Global.player.pay(cost):
-                    Global.player.character.tags.set('ab' + str(count), ability)
-                    Global.main.monologue.set(Dialog.get('transacted'))
+            if Global.player.is_learnable() and Global.player.pay(cost):
+                Global.player.character.tags.set('ab' + str(count), ability)
+                Global.main.monologue.set(Dialog.get(':transacted'))
         host = self.var
         cost = host.tags.get('cost', 0)
         ability = host.tags.get('ab1')
@@ -192,11 +192,30 @@ class MenuAll(MenuPlayer):
         if ability:
             threshold = host.get_level()
             if Global.player.character.get_level() >= threshold:
-                self.get_prompt(Dialog.get('learnab?', [ability, cost]), Dialog.get('Learn'), learn)()
+                if not Global.player.character.tags.get('ab1'):
+                    count = 1
+                elif not Global.player.character.tags.get('ab2'):
+                    count = 2
+                elif not Global.player.character.tags.get('ab3'):
+                    count = 3
+                else:
+                    Global.main.monologue.set(Dialog.get('!learnfull'))
+                    return
+                self.get_prompt(Dialog.get(':learnab?', [ability, cost, count]), Dialog.get('Learn'), learn)()
             else:
-                self.get_message(Dialog.get('req_level', [threshold]))()
+                self.get_message(Dialog.get(':req_level', [threshold]))()
         else:
             self.get_message(Dialog.get('!learnab'))()
+
+    def menu_transport(self):
+        def transport(arg):
+            if Global.player.pay(cost):
+                Global.map_view.overlay.blackout()
+                Global.world.travel(host.tags.get('tox'), host.tags.get('toy'))
+        host = self.var
+        cost = host.tags.get('cost', 0)
+        self.history.pop()
+        self.get_prompt(Dialog.get(':travel?', [host.tags.get('to'), cost]), Dialog.get('Proceed'), transport)()
 
     def menu_victory(self):
         datetime = Dialog.date(Global.player.days)

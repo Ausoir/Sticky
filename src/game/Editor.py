@@ -83,7 +83,7 @@ class Editor:
         elif action == 'fill':
             tile = Global.world.location.get_tile(m[0], m[1], limit=True)
             self.tool.fill(tile)
-            Global.world.dirty_pos()
+            Global.world.dirty = True
             self.control.clear_press()
         elif action == 'sample':
             if action != self.prev_action:
@@ -156,7 +156,7 @@ class Editor:
         elif action == 'command':
             self.command()
         elif action == 'save':
-            Global.world.dirty_pos()
+            Global.world.dirty = True
             self.tool.cancel()
             Global.world.save()
             self.display_text = 'saved map'
@@ -188,13 +188,10 @@ class Editor:
                     if i[0] == params[1]:
                         self.tool.select(i[0])
                         return
-        elif params[0] in ['tp', 'gate']:
+        elif params[0] == 'dest':
             self.tool.cancel()
             self.tool = ToolObject('miscellaneous')
-            if params[0] == 'tp':
-                self.tool.select('Teleport')
-            else:
-                self.tool.select('Gate')
+            self.tool.select(params[1])
             to = Global.world.get_tile_true_pos(self.control.cursor_tile[0], self.control.cursor_tile[1])
             self.tool.selection.tags.set('tox', to[0])
             self.tool.selection.tags.set('toy', to[1])
@@ -271,19 +268,19 @@ class ToolTerrain(Tool):
 
     def input(self, button, tile):
         if button == 4:
-            Global.world.dirty_pos(self.tile.x, self.tile.y)
+            Global.world.dirty = True
             for y in range(-2, 3):
                 for x in range(-2, 3):
                     neighbor = tile.get_neighbor(x, y)
                     if neighbor:
                         self.input(1, neighbor)
         elif button == 2:
-            Global.world.dirty_pos(self.tile.x, self.tile.y)
+            Global.world.dirty = True
             self.tile.set_terrain(self.prev_tile.get_icon())
             self.tile.update_update_shader()
         elif button == 1:
             if tile != self.tile:
-                Global.world.dirty_pos(tile.x, tile.y)
+                Global.world.dirty = True
                 self.tile = tile
                 self.prev_tile = self.tile
                 self.tile.set_index(self.terrain)
@@ -305,7 +302,7 @@ class ToolTerrain(Tool):
 
 class ToolRoof(Tool):
     def input(self, button, tile):
-        Global.world.dirty_pos()
+        Global.world.dirty = True
         if button == 4:
             for y in range(-2, 3):
                 for x in range(-2, 3):

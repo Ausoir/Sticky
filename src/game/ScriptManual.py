@@ -25,9 +25,10 @@ class ScriptManual:
 
     @staticmethod
     def ally(host, var):
-        if Global.player.is_sociable(1):
-            var.tags.set('team', Global.player.character.tags.get('team', 0))
-            pos = Global.player.character.pos - var.pos
+        if host != Global.player.character or Global.player.is_sociable(1):
+            var.tags.set('team', host.tags.get('team', 0))
+            Global.world.location.population.adjust(var)
+            pos = host.pos - var.pos
             var.tags.set('tgt', 'x' + str(pos.x) + 'y' + str(pos.y))
             var.pilot.load('ally')
             var.tags.set('#', '>menu>order')
@@ -43,16 +44,16 @@ class ScriptManual:
                             mhp = i.tags.get('P')
                             if mhp:
                                 i.tags.set('p', mhp)
-                Global.main.monologue.set(Dialog.get('repair'))
+                Global.main.monologue.set(Dialog.get(':repair'))
                 item.remove()
                 return
-        Global.main.monologue.set(Dialog.get('req_item', ['Iron']))
+        Global.main.monologue.set(Dialog.get(':req_item', ['Iron']))
 
     @staticmethod
     def alchemy(host, var):
         if host.get_skill('alchemy'):
             if host.weapon and host.weapon.tags.get('alchemy'):
-                host.location.sound.register(host.pos, 0, file='mix')
+                Global.world.location.sound.register(host.pos, 0, file='mix')
                 seed = host.weapon.tags.get('seed')
                 density = seed % 100
                 acidity = density - (abs(math.sin(seed % 101)) * density)
@@ -62,7 +63,7 @@ class ScriptManual:
                 var.tags.increment('toxicity', int(toxicity))
                 host.drop().remove()
             elif host.weapon and var.tags.get('density') and host.weapon.tags.get('container'):
-                host.location.sound.register(host.pos, 0, file='drain')
+                Global.world.location.sound.register(host.pos, 0, file='drain')
                 host.drop().remove()
                 from src.entity.Stock import Stock
                 potion = Stock.make('Potion', host.pos)
@@ -93,20 +94,20 @@ class ScriptManual:
                     require.append('<' + Dialog.get('Container') + '>')
                 else:
                     require.append('<' + Dialog.get('Ingredients') + '>')
-                Global.menu.get_message(Dialog.get('req_item', [','.join(require)]))()
+                Global.menu.get_message(Dialog.get(':req_item', [','.join(require)]))()
         else:
-            Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Alchemy')]))()
+            Global.menu.get_message(Dialog.get(':req_skill', [Dialog.get('Alchemy')]))()
 
     @staticmethod
     def carve(host, var):
         if host.get_skill('carving'):
             if host.weapon:
                 if host.weapon.tags.get('wood') == 1:
-                    host.location.sound.register(host.pos, 0, file='mix')
+                    Global.world.location.sound.register(host.pos, 0, file='mix')
                     host.drop().remove()
                     var.tags.set('stick', 1)
                 elif host.weapon.tags.get('jewel'):
-                    host.location.sound.register(host.pos, 0, file='mix')
+                    Global.world.location.sound.register(host.pos, 0, file='mix')
                     jewel = host.weapon.tags.get('jewel')
                     host.drop().remove()
                     var.tags.set('jewel', jewel)
@@ -114,7 +115,7 @@ class ScriptManual:
                     spell = host.weapon.tags.get('spell')
                     if spell:
                         host.drop().remove()
-                        host.location.sound.register(host.pos, 0, file='mix')
+                        Global.world.location.sound.register(host.pos, 0, file='mix')
                         var.tags.set('spell', spell)
                 if var.tags.get('stick') and var.tags.get('jewel') and var.tags.get('spell'):
                     var.tags.remove('stick')
@@ -135,9 +136,9 @@ class ScriptManual:
                     require.append('<' + Dialog.get('Jewel') + '>')
                 if not var.tags.get('spell'):
                     require.append('<' + Dialog.get('Spell') + '>')
-                Global.menu.get_message(Dialog.get('req_item', [','.join(require)]))()
+                Global.menu.get_message(Dialog.get(':req_item', [','.join(require)]))()
         else:
-            Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Carving')]))()
+            Global.menu.get_message(Dialog.get(':req_skill', [Dialog.get('Carving')]))()
 
     @staticmethod
     def draw(host, var):
@@ -147,33 +148,28 @@ class ScriptManual:
             marker.tags.set('seed', var.get_seed())
             marker.trigger()
         else:
-            Global.menu.get_message(Dialog.get('req_skill', [Dialog.get('Conjuration')]))()
+            Global.menu.get_message(Dialog.get(':req_skill', [Dialog.get('Conjuration')]))()
 
     @staticmethod
     def shapeshift(host, var, data=None):
         from src.entity.unit.Unit import Unit
         if not host.tags.get('silver') and isinstance(host, Unit):
+            old_host = host
             from src.entity.Stock import Stock
             if data:
                 unit = Stock.get(var, data=data)
                 unit.add()
             else:
                 unit = Stock.make(var, host.pos)
-            if isinstance(unit, Unit):
-                old_host = host
-                if old_host == Global.player.character:
-                    unit.tags.remove('ai')
-                for i in host.states.buffs:
-                    i.host = unit
-                unit.states = old_host.states
-                unit.states.host = unit
-                unit.states.on_add()
-                unit.face(old_host.direction)
-                old_host.remove()
-                if old_host == Global.player.character:
-                    Global.player.set_player(unit)
-                host.location.sound.register(host.pos, 8, file='void')
-                return unit
+                old_host.states.set_host(unit)
+            if old_host == Global.player.character:
+                unit.tags.remove('ai')
+            unit.face(old_host.direction)
+            old_host.remove()
+            if old_host == Global.player.character:
+                Global.player.set_player(unit)
+            Global.world.location.sound.register(host.pos, 8, file='void')
+            return unit
         else:
             from src.entity.Particle import Particle
             Particle.make('sonic', host.pos)
@@ -187,7 +183,7 @@ class ScriptManual:
                 if isinstance(i, Unit):
                     host.tags.set('observe', Global.player.days)
                     exp = i.get_level() - host.get_level()
-                    Global.menu.get_message(i.describe() + '\n' + Dialog.get('observe', [max(0, exp)]))(0)
+                    Global.menu.get_message(i.describe() + '\n' + Dialog.get(':observe', [max(0, exp)]))(0)
                     host.progress_level(exp, mode='observe')
                     var.decay(1)
                     return
@@ -199,7 +195,7 @@ class ScriptManual:
         Global.world.travel(x, y)
         candidates = []
         from src.entity.unit.Unit import Unit
-        for i in host.location.population.get_units():
+        for i in Global.world.location.population.get_units():
             if i != host and isinstance(i, Unit) and i.tags.get('husk'):
                 candidates.append(i)
         closest = None
@@ -236,7 +232,7 @@ class ScriptManual:
                 else:
                     from_x = host_pos.x + Global.r.rand_int(-distance, distance)
                     from_y = host_pos.y + distance + Global.r.rand_int(0, 3)
-                tile = Global.player.character.location.get_tile(from_x, from_y)
+                tile = Global.world.location.get_tile(from_x, from_y)
                 if tile and tile.get_solidity() == 0:
                     from src.entity.Stock import Stock
                     enemy = Stock.make(enemy, tile)

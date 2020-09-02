@@ -6,6 +6,8 @@ from src.map.Tile import Tile
 
 
 class Unit(Container):
+    SHADOW = None
+
     def __init__(self):
         super().__init__()
         from src.entity.unit.Actions import Actions
@@ -19,7 +21,7 @@ class Unit(Container):
         self.healthbar = HealthBar()
         self.sight = Tile.CHECK_SIGHT
         from src.tools.Data import Data
-        self.shadow = Data.get_form('g_7x0')
+        self.shadow = Data.get_form('_g_7_0')
 
     def __str__(self):
         self.tags.set('dir', self.direction)
@@ -83,6 +85,8 @@ class Unit(Container):
         elif self.action.delay == 0:
             self.action.set(self.next_action)
             self.next_action = 'idle'
+        if self.pos.get_icon() == '~':
+            self.drown()
 
     def on_natural_spawn(self):
         self.face(Global.r.rand_int(0, 3))
@@ -120,7 +124,7 @@ class Unit(Container):
     def progress_level(self, exp, mode='other', var=None):
         personality = self.tags.get('class', 'classless')
         current_level = self.get_level()
-        curve = int(4 / current_level)
+        curve = int(5 / current_level)
         if exp <= 0:
             if mode == 'sabotage' and personality == 'agent' and var.name in self.tags.get('mission').split('&'):
                 exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 2) + var.get_value()
@@ -131,28 +135,33 @@ class Unit(Container):
                 exp *= 3
             elif personality == 'avenger' and var.name == self.tags.get('revenge'):
                 exp += var.get_level()
-        elif mode == 'eat' and personality == 'gourmet' and var.name == self.tags.get('favorite'):
-            exp *= 4
+        elif mode == 'eat':
+            if personality == 'gourmet':
+                exp *= 2
+                if var.name == self.tags.get('favorite'):
+                    exp *= 4
         elif mode == 'survive' and personality == 'survivor':
             exp *= 2
         elif mode == 'explore':
-            if personality == 'explorer':
-                curve = int(1 / curve)
-            else:
+            if personality != 'explorer':
                 return
         elif mode == 'observe' and personality == 'scholar':
             exp *= 4
         current_experience = self.tags.get('lvl', 100) % 100
-        current_experience = min(99, exp * curve + current_experience)
-        self.tags.set('lvl', current_level * 100 + current_experience)
+        new_experience = min(99, exp * curve + current_experience)
+        if current_experience < 99 and new_experience == 99:
+            from src.entity.Particle import Particle
+            Particle.make('barrier3', self.pos)
+            Global.world.location.sound.register(self.pos, 0, file='level', priority=1)
+        self.tags.set('lvl', current_level * 100 + new_experience)
 
     def hit(self, damage, hitter=None):
         r = 0
         self.action.idle_frame = 0
-        backstab = False
-        if hitter is not None and self.action.delay == 0:
-            if not self.is_facing(hitter.pos):
-                backstab = True
+        if hitter is not None and not self.is_facing(hitter.pos):
+            backstab = True
+        else:
+            backstab = False
         if self.states.get('Barrier'):
             damage = 0
         if not backstab and self.action.current_action != 'fall':
@@ -198,6 +207,8 @@ class Unit(Container):
     def on_attack(self, target):
         self.states.trigger(['attack', target])
         if isinstance(target, Unit):
+            if self.get_skill('disorient'):
+                target.face(Global.r.rand_int(0, 3))
             if self.get_skill('frenzy'):
                 self.states.add('Damage', 40, 1)
             if not target.is_facing(self.pos):
@@ -217,21 +228,29 @@ class Unit(Container):
         flurry = self.get_skill('flurry')
         if flurry:
             valid_sides = []
-            for sides in [1, -1, 2]:
-                front = self.pos.get_cardinal(self.direction + sides)
+            for sides in [0, 1, -1, 2]:
+                attack_range = 1 + self.get_skill('reach') + self.get_skill('lunge')
+                front = self.pos.get_cardinal(self.direction + sides, distance=attack_range)
                 if front:
                     for i in front.things:
                         if isinstance(i, Unit) and i.tags.get('team') != self.tags.get('team'):
                             valid_sides.append(sides)
                             break
             if valid_sides:
-                self.face(self.direction + valid_sides[0])
-                self.action.attack()
-                self.form.set_state('flurry')
-                self.form.timer.set(4)
+                concentration = self.states.get('Concentration')
+                if concentration:
+                    concentration.trigger(['spend'])
+                    concentration.var += 1
+                    if concentration.var <= 2:
+                        self.face(self.direction + valid_sides[0])
+                        self.action.attack()
+                        self.form.set_state('flurry')
+                        self.form.timer.set(4)
+                        concentration.duration = self.action.delay
 
     def decay(self, damage):
         r = super().decay(damage)
+        self.form.colorize([255, 0, 0])
         self.display_hp()
         return r
 
@@ -277,8 +296,10 @@ class Unit(Container):
 
     def get_skills(self):
         r = self.skills.copy()
-        if self.tags.get('abi'):
-            r.append(self.tags.get('abi'))
+        for i in ['ab1', 'ab2', 'ab3']:
+            ability = self.tags.get(i)
+            if ability:
+                r.append(ability)
         return r
 
     def get_skill(self, skill):
@@ -289,7 +310,7 @@ class Unit(Container):
         return r
 
     def critical_attack(self, target):
-        target.decay(4)
+        target.decay(7)
         from src.entity.Particle import Particle
         Particle.make('power', target.pos, offset=16)
         self.pos.location.sound.register(target.pos, 0, file='critical')
@@ -325,10 +346,8 @@ class Unit(Container):
             r = int(level / 100)
         else:
             r = len(self.skills)
-            r += self.tags.get('P', 2) + self.tags.get('str', 2)
-            r += self.tags.get('sth', 0) + self.tags.get('int', 0) + self.tags.get('cha', 0)
-            r += self.tags.get('def', 0) + self.tags.get('spd', 0)
-            if self.tags.get('abi'):
+            r += self.tags.get_level() + self.tags.get('P', 2)
+            if self.tags.get('ab1'):
                 r += 1
             r -= 3
         return max(1, r)
@@ -338,3 +357,25 @@ class Unit(Container):
 
     def get_damage(self):
         return self.tags.get('dmg', 0) + 1
+
+    def adjust_pos(self, x, y):
+        old = self.pos
+        super().adjust_pos(x, y)
+        self.pilot.adjust_pos(self.pos - old)
+
+    def on_sleep(self, time):
+        super().on_sleep(time)
+        hunger = self.tags.get('hunger')
+        if hunger:
+            self.tags.set('hunger', min(100000, hunger + (500 * abs(time))))
+        if not self.is_hungry():
+            if time >= 4:
+                mhp = self.tags.get('P')
+                if mhp:
+                    self.tags.set('p', mhp)
+            elif time > 0 and self.get_skill('perseverance'):
+                self.decay(-time)
+
+    def is_hungry(self):
+        hunger = self.tags.get('hunger')
+        return hunger and hunger >= 10000

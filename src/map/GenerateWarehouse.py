@@ -6,9 +6,10 @@ class GenerateWarehouse(Generator):
         super().__init__(x, y, random)
         self.display_floor = 'c'
         self.wall = 'B'
-        self.theme = {'.': 'f', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf'}
-        self.appliance = ['Bed', 'Seat', 'Stool', 'Desk', 'Alchemy Table', 'Crate', 'Workbench',
-                          'Lantern', 'Sack', 'Table', 'Register', 'Barrel', 'Basket']
+        self.theme = {'.': 'k', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf'}
+        self.appliance = ['Bed', 'Seat', 'Stool', 'Desk', 'Alchemy Table', 'Crate', 'Workbench', 'Sign', 'Window',
+                          'Lantern', 'Sack', 'Table', 'Register', 'Barrel', 'Basket', 'Loom', 'Bookshelf', 'Throne',
+                          'Rack', 'Armor Stand', 'Showcase']
         self.background = {'!': self.display_floor}
         self.divide = 8
         self.thickness = 4
@@ -117,10 +118,10 @@ class GenerateWarehouse(Generator):
             for x in range(estate[0], estate[2]):
                 if x == estate[0] or x == estate[2] - 1 or y == estate[1] or y == estate[3] - 1:
                     rand = self.random.rand_int(1, 3)
-                    if rand != 1:
-                        self.str_map[y][x] = item
-                    else:
-                        self.str_map[y][x] = self.display_floor
+                    # if rand != 1:
+                    self.str_map[y][x] = item
+                    # else:
+                    #     self.str_map[y][x] = self.display_floor
                 else:
                     self.str_map[y][x] = self.wall
 

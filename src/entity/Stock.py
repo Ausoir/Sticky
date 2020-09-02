@@ -21,7 +21,7 @@ class Stock:
         for model in Data.get_line('raw.txt', 'face')[1]:
             face = []
             for image in model:
-                face.append(Data.get_cache(image))
+                face.append(Data.get_graphics(image))
             Humanoid.faces.append(face)
 
     @staticmethod

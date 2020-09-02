@@ -34,12 +34,8 @@ class Equipment(Item):
         self.host.tags.sync('cha', self.tags.get('cha'))
         self.host.tags.sync('spd', self.tags.get('spd'))
         self.host.tags.sync('P', self.tags.get('end'))
-        self.host.tags.sync('p', self.tags.get('end'))
         self.host.tags.sync('abp', self.tags.get('abp'))
-        team = self.tags.get('team')
-        if team:
-            self.tags.set('team', self.host.tags.get('team', 0))
-            self.host.tags.set('team', team)
+        self.host.tags.sync('cdr', self.tags.get('cdr'))
 
     def on_unwear(self):
         self.pos.location.sound.register(self.pos, 3, file='wear')
@@ -49,10 +45,5 @@ class Equipment(Item):
         self.host.tags.sync('cha', self.tags.get('cha'), ratio=-1)
         self.host.tags.sync('spd', self.tags.get('spd'), ratio=-1)
         self.host.tags.sync('P', self.tags.get('end'), ratio=-1)
-        self.host.tags.sync('p', self.tags.get('end'), ratio=-1, remove=None)
         self.host.tags.sync('abp', self.tags.get('abp'), ratio=-1)
-        team = self.tags.get('team')
-        if team:
-            self.tags.set('team', self.host.tags.get('team', 0))
-            self.host.tags.set('team', team)
-        self.host.decay(0)
+        self.host.tags.sync('cdr', self.tags.get('cdr'), ratio=-1)

@@ -315,3 +315,14 @@
 8/19 Fixed dim light fade (1), Skill reach (1), Single point start (1), Random gen start (1), Optimized Stock get (1)
 8/21 Multi channel sound (1), 50 fps (1), Mutation props randomly appearing on map (2)
 ---- PUSH
+8/22 Drawgroup decreased to 3 (1), Fixed Editor terrain change removing objects (1), Infinite dungeons (2)
+8/23 Level balance (1), AI various fix (1), Units face turn (1), Deer (1)
+8/24 Object not removing from population on removal (1), Pos.load disaster (2)
+8/25 Npc chunk save fix (1), Light off screen residue (1), Static mercenary (1)
+8/26 Particle cell translation (1), AI guard (1), Spell capture (1), Corpse ragdoll fade (1)
+8/27 Phantom fix (1), Time change blinking (1)
+8/29 Pickup menu (1), Npc placement (1), Guard targets before unit add (1)
+8/30 AI target tile change on recenter (1), Items interacted when under obstacles (1), Equipment on sleep twice (1)
+8/30 Buff on sleep twice (1), Shapeshift with buff add/remove synchro (2), Parkour (1), Flurry (1), Lower difficulty (1)
+8/31 Spawn in town (1), Optimized model read (1), Optimized cache (1)
+---- PUSH

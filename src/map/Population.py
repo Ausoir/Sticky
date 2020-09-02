@@ -28,14 +28,21 @@ class Population:
         if not isinstance(unit, Unit):
             if unit.removed == 0:
                 self.other.remove(unit)
+                return True
         else:
             team = unit.tags.get('team', 0)
             if unit in self.teams[team]:
                 self.teams[team].remove(unit)
+                return True
             else:
                 for k, i in enumerate(self.teams):
                     if k != team and unit in i:
                         i.remove(unit)
+                        return True
+
+    def adjust(self, unit):
+        if self.remove(unit):
+            self.add(unit)
 
     def get_units(self):
         r = []

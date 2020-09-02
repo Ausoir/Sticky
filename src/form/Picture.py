@@ -43,17 +43,18 @@ class Picture(Sprite):
     def face(self, direction):
         self.rotation = 90 * direction
 
-    def resize(self, x=1, y=1):
-        if x != 1 and self.width:
-            self.scale_x = x / (self.width / self.scale_x)
-        if y != 1 and self.height:
-            self.scale_y = y / (self.height / self.scale_y)
-
-    def place(self, x, y):
-        self.update(x=Global.OFFSET[0] + x, y=Global.OFFSET[1] + y)
+    def place(self, x, y, **kwargs):
+        self.update(x=Global.OFFSET[0] + x, y=Global.OFFSET[1] + y, **kwargs)
 
     def switch(self, index):
         pass
+
+    def colorize(self, color):
+        self.color = color
+
+    def delete(self):
+        if self._vertex_list is not None:
+            super().delete()
 
 
 class Model(Picture):

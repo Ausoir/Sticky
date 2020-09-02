@@ -40,7 +40,7 @@ class Talisman(Headgear):
         r = super().describe()
         spell = self.tags.get('spell')
         if spell:
-            r += '\n' + Dialog.get('artifact', [spell.title()])
+            r += '\n' + Dialog.get(':artifact', [spell.title()])
         return r
 
     def die(self):

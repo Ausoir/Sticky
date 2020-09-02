@@ -60,8 +60,11 @@ class Particle(Image):
         super().set_form(arg)
         self.form.z = 800
 
-    def bound(self, arg):
-        pass
+    def show(self, visible):
+        self.form.show(visible)
+
+    def bound(self, visible):
+        self.form.bound(visible)
 
     def update(self):
         bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)

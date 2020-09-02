@@ -182,13 +182,16 @@ class Burn(Buff):
     def on_start(self):
         self.duration += min(120, self.host.tags.get('fuel', 1) * 10)
         if self.duration >= 90:
-            self.host.location.sound.register(self.host.pos, 13, file='critical')
+            Global.world.location.sound.register(self.host.pos, 13, file='critical')
+            from src.entity.Stock import Stock
             for y in range(-1, 2):
                 for x in range(-1, 2):
                     tile = self.host.pos.get_neighbor(x, y)
                     if tile:
                         Particle.make('explode', tile, glow=1, offset=4)
                         for i in tile.things:
+                            if Global.r.rand_bool():
+                                Stock.make('Flame', i.pos)
                             if i.hit(1, hitter=None) != 2:
                                 i.decay(1)
         else:
@@ -197,7 +200,7 @@ class Burn(Buff):
     def on_update(self):
         self.var += 1
         if not self.var % 4:
-            self.host.pos.glow(8)
+            self.host.pos.glow(9)
             Particle.make('burn', self.host.pos, glow=1, offset=12)
             if not self.var % 8:
                 self.var = 0
@@ -205,7 +208,7 @@ class Burn(Buff):
                 if self.host.pos.has_tag('wood') and Global.r.rand_int(1, 8) == 1:
                     Stock.make('Plank', self.host.pos)
                     self.host.pos.set_terrain('.')
-                    Global.world.dirty_pos(self.host.pos.x, self.host.pos.y)
+                    Global.world.dirty = True
                 else:
                     x = Global.r.rand_int(-1, 1)
                     y = Global.r.rand_int(-1, 1)
@@ -286,7 +289,7 @@ class Invisible(Buff):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             self.host.tags.increment('sth', 40)
-            for unit in self.host.location.population.get_units():
+            for unit in Global.world.location.population.get_units():
                 if unit.pilot.priority == 1:
                     unit.pilot.lose(self.host)
 
@@ -349,18 +352,21 @@ class Shapeshift(Buff):
             return super().is_valid()
 
     def on_start(self):
-        var = self.var
-        self.host.states.buffs.remove(self)
-        self.var = self.host.__str__()
-        self.host.states.buffs.append(self)
-        from src.game.ScriptManual import ScriptManual
-        ScriptManual.shapeshift(self.host, var)
+        if ',' not in self.var:
+            var = self.var
+            buffs = self.host.states.buffs
+            self.host.states.buffs = []
+            self.var = self.host.__str__()
+            self.host.states.buffs = buffs
+            from src.game.ScriptManual import ScriptManual
+            ScriptManual.shapeshift(self.host, var)
 
     def on_finish(self):
         data = Data.parse(self.var)
         from src.game.ScriptManual import ScriptManual
         old_pos = self.host.pos
         ScriptManual.shapeshift(self.host, data[1], data=data).relocate(to=old_pos, force=True)
+        return True
 
 
 class Concentration(Buff):
@@ -374,7 +380,7 @@ class Concentration(Buff):
 
     def effect_on_load(self):
         if self.host.get_skill('deep sense') and not self.host.states.get('Vision'):
-            self.host.states.add('Vision', 8)
+            self.host.states.add('Vision', 10)
         if self.host.get_skill('iron will'):
             self.host.states.add('Deflection', -1)
         if self.host.get_skill('hide'):
@@ -418,8 +424,10 @@ class Lignification(Buff):
         self.host.tags.increment('fuel', 2)
         self.host.tags.increment('def', 2)
         self.host.tags.increment('spd', -12)
+        self.host.form.colorize([120, 80, 0])
 
     def on_finish(self):
+        self.host.form.colorize([255, 255, 255])
         self.host.tags.increment('fuel', -2, remove=1)
         self.host.tags.increment('def', -2, remove=0)
         self.host.tags.increment('spd', 12, remove=0)
@@ -430,7 +438,7 @@ class Vision(Buff):
         return '[' + self.name + ',' + str(self.duration) + ',\\' + self.var + '\\]'
 
     def get_tags(self):
-        return ['magic']
+        return ['magic', 'stack']
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -442,6 +450,8 @@ class Vision(Buff):
         self.var = Dialog.nonstrlist(self.host.sight)
         from src.map.Tile import Tile
         self.host.sight = [Tile.COLLIDE_TERRAIN]
+        if self.host == Global.player.character:
+            Global.player.set_darkness()
 
     def on_load(self):
         from src.map.Tile import Tile
@@ -449,6 +459,8 @@ class Vision(Buff):
 
     def on_finish(self):
         self.host.sight = Data.parse(self.var)[0]
+        if self.host == Global.player.character:
+            Global.player.set_darkness()
 
     def trigger(self, arg):
         super().trigger(arg)
@@ -511,14 +523,12 @@ class Poison(Buff):
         if self.effect(12):
             Particle.make('poison', self.host.pos, offset=8)
 
-    def update(self):
-        if self.duration == 0:
-            return 1
+    def on_finish(self):
+        self.host.decay(self.var)
 
-    def trigger(self, arg):
-        if arg[0] == 'time':
-            self.host.decay(arg[1] * self.var)
-            self.duration = max(0, self.duration - arg[1])
+    def end(self):
+        super().end()
+        self.var = 0
 
 
 class Knockout(Buff):
@@ -597,7 +607,7 @@ class Barrier(Buff):
 
     def trigger(self, arg):
         if arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
-            self.host.location.sound.register(self.host.pos, 2, file='energy')
+            Global.world.location.sound.register(self.host.pos, 2, file='energy')
             Particle.make('barrier', self.host.pos)
             self.end()
 
@@ -611,11 +621,11 @@ class Deflection(Buff):
 
     def trigger(self, arg):
         if arg[0] == 'spend':
-            self.host.location.sound.register(self.host.pos, 2, file='energy')
+            Global.world.location.sound.register(self.host.pos, 2, file='energy')
             Particle.make('barrier2', self.host.pos)
             self.end()
         elif arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
-            self.host.location.sound.register(self.host.pos, 2, file='void')
+            Global.world.location.sound.register(self.host.pos, 2, file='void')
             self.end()
 
 
@@ -630,3 +640,20 @@ class Nutrition(Buff):
 
     def on_start(self):
         self.host.tags.increment('hunger', -self.var)
+
+
+class Ego(Buff):
+    def get_tags(self):
+        return ['stack']
+
+    def __str__(self):
+        return '[' + self.name + ',' + str(self.duration) + ',\\' + self.var + '\\]'
+
+    def on_finish(self):
+        data = Data.parse(self.var)
+        from src.entity.Stock import Stock
+        unit = Stock.get(data[1], data=data)
+        unit.pos = self.host.pos
+        unit.add()
+        Global.world.location.sound.register(self.host.pos, 0, file='drain')
+        Particle.make('portal', self.host.pos)

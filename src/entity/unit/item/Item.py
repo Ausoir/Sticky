@@ -28,28 +28,28 @@ class Item(Prop):
         r = super().describe()
         stat = self.tags.get('sth')
         if stat:
-            r += '\n' + Dialog.get('equipment_sth', [Dialog.sign(stat)])
+            r += '\n' + Dialog.get(':equipment_sth', [Dialog.sign(stat)])
         space = self.tags.get('str', 0)
         if space > 0:
-            r += '\n' + Dialog.get('equipment_inv', [Dialog.sign(space)])
+            r += '\n' + Dialog.get(':equipment_inv', [Dialog.sign(space)])
         end = self.tags.get('end', 0)
         if end > 0:
-            r += '\n' + Dialog.get('equipment_end', [Dialog.sign(end)])
+            r += '\n' + Dialog.get(':equipment_end', [Dialog.sign(end)])
         cha = self.tags.get('cha', 0)
         if cha > 0:
-            r += '\n' + Dialog.get('equipment_cha', [Dialog.sign(cha)])
+            r += '\n' + Dialog.get(':equipment_cha', [Dialog.sign(cha)])
         defense = self.tags.get('DEF', 0)
         if defense > 0:
-            r += '\n' + Dialog.get('equipment_def', [Dialog.sign(defense)])
-        team = self.tags.get('team')
-        if team:
-            r += '\n' + Dialog.get('equipment_disguise')
+            r += '\n' + Dialog.get(':equipment_def', [Dialog.sign(defense)])
         skill = self.tags.get('skill')
         if skill:
-            r += '\n' + Dialog.get('equipment_skill', [skill.title()])
-        abp = self.tags.get('abp')
-        if abp:
-            r += '\n' + Dialog.get('equipment_abp')
+            r += '\n' + Dialog.get(':equipment_skill', [skill.title()])
+        spd = self.tags.get('spd')
+        if spd:
+            r += '\n' + Dialog.get(':equipment_spd', [Dialog.sign(spd)])
+        cdr = self.tags.get('cdr')
+        if cdr:
+            r += '\n' + Dialog.get(':equipment_cdr', [Dialog.sign(cdr)])
         return r
 
     def on_wield(self, host):
@@ -117,14 +117,15 @@ class Item(Prop):
             return v * (self.tags.get('rare', 0) + 1)
         else:
             r = 0
-            for i in ['def', 'DEF', 'dmg', 'str', 'sth']:
+            for i in ['def', 'DEF', 'dmg', 'str', 'sth', 'cha', 'end']:
                 r += self.tags.get(i, 0)
-            r += min(8, int(self.tags.get('p', 32) / 4))
+            if not self.tags.get('p'):
+                r += 1
             if self.tags.get('skill'):
-                r += 2
+                r += 1
             if self.tags.get('spell'):
-                r += 10
-            return max(0, int((r - self.tags.get('w', 1)) / 2))
+                r += 2
+            return max(0, r - self.tags.get('w', 1))
 
     def drown(self):
         if not self.host:

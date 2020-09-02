@@ -1,4 +1,4 @@
 -24
-[[1,1],Hole,Prop,g_9x4,[ob:0],[]],[[1,4],Chest,Container,g_22x4,[p:4,def:3,loot:#chest,have:1,#:die],[],[]],[[3,4],Seat,Item,g_23x5,[p:2],[]],[[4,4],Seat,Item,g_23x5,[p:2],[]],[[4,6],Candle,Item,g_24x5,[p:1],[[Glow,-1,5],[Effect,-1,fire]]],[[0,8],Stool,Item,g_22x5,[$:0,p:1,dmg:1],[]],[[5,8],Seat,Item,g_23x5,[p:2],[]],[[0,9],Stool,Item,g_22x5,[$:0,p:1,dmg:1],[]],[[5,9],Seat,Item,g_23x5,[p:2],[]]
+[[1,1],Hole,Prop,_g_9_4,[ob:0],[]],[[1,4],Chest,Container,_g_22_4,[p:4,def:3,loot:#chest,have:1,#:die],[],[]],[[3,4],Seat,Item,_g_23_5,[p:2],[]],[[4,4],Seat,Item,_g_23_5,[p:2],[]],[[4,6],Candle,Item,_g_24_5,[p:1],[[Glow,-1,5],[Effect,-1,fire]]],[[0,8],Stool,Item,_g_22_5,[$:0,p:1,dmg:1],[]],[[5,8],Seat,Item,_g_23_5,[p:2],[]],[[0,9],Stool,Item,_g_22_5,[$:0,p:1,dmg:1],[]],[[5,9],Seat,Item,_g_23_5,[p:2],[]]
 RRRRRRRRR:...%R...RRRRR:::.%RRR.:::RRR:::%RR.::::RRRR::%bbbbbb::RRRR:%bbbbbb:::RRRR%bbbbbb:::RRRR%bbbbbb::::RRR%bbbbbb:::RRRR%bbbbbb.:::RRR%bbbbbb.:::RRR%bbbbbb.::RRRR%bbbbbb.:::RRR
 1111111110000%1111111110000%1111111111000%1111111111100%0000111111110%0000111111111%0000000111111%0000000111111%0000000011111%0000000011111%0000000011111%0000011111111%0111111111111

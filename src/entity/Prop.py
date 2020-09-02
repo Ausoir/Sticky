@@ -92,9 +92,8 @@ class Prop(Object):
         hp = self.tags.get('p')
         if hp is not None:
             new = max(0, hp - damage)
-            mhp = self.tags.get('P')
-            if mhp is not None:
-                new = min(new, mhp)
+            mhp = self.tags.get('P') or hp
+            new = min(new, mhp)
             self.tags.set('p', new)
             if self.tags.get('p') == 0:
                 self.die()
@@ -123,7 +122,7 @@ class Prop(Object):
         return 0
 
     def on_hit(self, effect='batter', sound='hit_bash'):
-        self.pos.location.sound.register(self.pos, 7, file=sound)
+        self.pos.location.sound.register(self.pos, 5, file=sound)
         Particle.make(effect, self.pos)
 
     def get_display_name(self):
@@ -132,7 +131,7 @@ class Prop(Object):
     def describe(self):
         from src.tools.Dialog import Dialog
         from src.tools.Data import Data
-        r = self.get_display_name()
+        r = Dialog.get(self.get_display_name())
         data = Data.get_line('descriptions.txt', r)
         r += '  (' + Dialog.weight(self.get_weight()) + ')'
         if data:

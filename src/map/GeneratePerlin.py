@@ -7,6 +7,7 @@ class GeneratePerlin(Generator):
     def __init__(self, x, y, random=None):
         super().__init__(x, y, random)
         self.background = {'!': ':'}
+        self.disposition = [[0, '.']]
         self.layers = 6
 
     @staticmethod
@@ -61,7 +62,15 @@ class GeneratePerlin(Generator):
         return base
 
     def process(self):
-        pass
+        r = self.make_perlin(self.get_width(), self.get_height())
+        r = self.normalize(r)
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
+                value = r[y][x] + self.random.rand_float() * .2
+                for i in self.disposition:
+                    if value > i[0]:
+                        self.str_map[y][x] = i[1]
+                        break
 
     def make_base(self, x, y):
         noise = []
@@ -82,42 +91,6 @@ class GeneratePerlin(Generator):
                 for j in range(width):
                     r[i][j] += graph[i][j] * (1 / level)
         return r
-
-
-class GenerateWoods(GeneratePerlin):
-    def process(self):
-        r = self.make_perlin(self.get_width(), self.get_height())
-        r = self.normalize(r)
-        for y in range(self.get_height()):
-            for x in range(self.get_width()):
-                value = r[y][x] + self.random.rand_float() * .2
-                if value > .78:
-                    self.str_map[y][x] = 'Tree'
-                elif value > .76:
-                    self.str_map[y][x] = 'Weed'
-                elif value > .72:
-                    self.str_map[y][x] = 'Bush'
-                elif value > .4:
-                    self.str_map[y][x] = ':'
-                else:
-                    self.str_map[y][x] = '.'
-
-
-class GenerateField(GeneratePerlin):
-    def __init__(self, x, y, random=None):
-        super().__init__(x, y, random)
-        self.background = {'!': ':', 'Rock': '.'}
-
-    def process(self):
-        r = self.make_perlin(self.get_width(), self.get_height())
-        r = self.normalize(r)
-        for y in range(self.get_height()):
-            for x in range(self.get_width()):
-                value = r[y][x]
-                if value > .55:
-                    self.str_map[y][x] = ':'
-                else:
-                    self.str_map[y][x] = '.'
 
 
 class GenerateCove(GeneratePerlin):

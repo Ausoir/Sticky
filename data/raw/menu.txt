@@ -1,21 +1,22 @@
 help,1,Move using WASD. Attack with SPACE. Q to grab or drop items. E to access pocket. TAB to access menu. END key to die. F11 to enter fullscreen.
-birth,2,You are stranded in the Peninsula of Doom. The evil lord past the Northeastern Gate is blocking access to your freedom. Survival here will not be easy. Find food\,\ level up\,\ and fight your way out! Reading from a bookshelf might help.,Enter Tutorial,entertutorial
+birth,2,The president has put up a bounty on the local evil lord. Kill the evil lord and buy your freedom!,Enter Tutorial,entertutorial
 tutorial1,1,Use the WASD keys to maneuver. Press the SPACE key to attack. Press TAB to close out of this dialog. You may press the END key to suicide and end tutorial at any time. You can always come back to tutorial area after you die\,\ so you don't have to memorize everything taught here.
 tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1. You will gain experience if you kill an enemy in melee\,\ depending on level difference.
 tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
-tutorial4,1,In safe areas you will find useful services like buying and selling goods\,\ swords for hire\,\ and life insurance. Most friendlies can be interacted with WASD keys. The character to your right is a supplier. Sell your torch\,\ and from the equipment menu you can see that now you have some money.
-tutorial5,1,Some weapons provide special skills. If you wield the stick\,\ you will get access to a new skill called lunge. Press TAB to access your menu then press 4 to access your skills menu to read about the skill.
-tutorial6,1,Some enemies have special skills and should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description.
-tutorial7,1,If you attempt to pick up something while already wielding something\,\ the item will go straight to your inventory. Press Q on an empty tile to drop your current item then press Q on the stool while empty handed to wield it.
-tutorial8,1,If you examine the window you will notice it has an armor value of 1. That means you need at least 2 damage to break that window. The stool on your left gives you 1 damage. Pick it up and smash the window.
+tutorial4,1,In safe areas you will find useful services like buying and selling goods\,\ swords for hire\,\ and life insurance. Most friendlies can be interacted with WASD keys. The character to your right is a supplier. Sell your torch\,\ and from the equipment menu you can check how much money you have.
+tutorial5,1,Some enemies have skills that should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description. You can also right click target to get description.
+tutorial6,1,Some weapons provide martial skills. Press Q to wield the stick. You will get access to a new skill called lunge. Press TAB to access your menu then press 4 to enter skills menu to read about the skill.
+tutorial7,1,If you attempt to pick up the stool on your left\,\ the item will go into your inventory. To wield the stool\,\ enter the inventory menu or press E to quick swap. If you want to drop your current weapon\,\ press Q on an empty tile.
+tutorial8,1,If you examine the window you will notice it has an armor value of 1. That means the window decreases incoming damage by 1. That means you need more than 1 damage to break that window. The stool you picked up provides +1 damage\,\ so if you wield it you would deal 2 damage in total. Smash the window with the stool.
 tutorial9,1,You can check your current health from the menu. You should always travel with full health. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag or use WASD keys to interact with the bed.
-tutorial10,1,You cannot travel far away places empty handed. You need to eat or you will not be able to perform any time consuming actions. Hunger can be checked from TAB menu. Take some food from the crate and press SPACE to interact with it.
-tutorial11,1,You can't access the menu while in combat\,\ but you can press E to pull out the first item from your inventory during combat. Also\,\ you can press F11 to enter fullscreen mode.
-tutorial12,1,You can also use the mouse to play this game. Click on your character to access the menu or click adjacent to your character to attack. Right click to examine tile.
+tutorial10,1,You cannot perform time consuming actions like resting or leveling up when hungry. Hunger can be checked from TAB menu. Take some food from the crate. Wield the food then press SPACE to interact with it. If your inventory is full\,\ drop some items on the ground.
+tutorial11,1,You can press F11 to enter fullscreen mode.
+tutorial12,1,You can also use the mouse to play this game. Click on your character to access the menu and click adjacent to your character to attack.
 tutorial13,1,Even the easiest enemies can be difficult in some environments. You might find it difficult fighting an enemy against the wall or fighting multiple enemies at once.
 tutorial14,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!
 pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
-resident,3,Yes?,[Move,#swap],[Talk,character],[Hire,!hire]
+resident,3,What?,[Move,#swap],[Introduce,!intro_resident],[Join,#ally]
+intro_resident,1,I'm just a resident of this region. You got something to do?
 trader,3,Buy something!,[Move,#swap],[Introduce,!intro_trader],[Buy,>menu>shop]
 intro_trader,1,I can sell you things. What more can I say? Browse my wares!
 mercenary,3,What do you want?,[Move,#swap],[Introduce,!intro_merc],[Hire,>menu>hire]
@@ -31,13 +32,16 @@ blacksmith,3,What do you want?,[Move,#swap],[Introduce,!intro_blacksmith],[Buy,>
 intro_blacksmith,1,I'm a blacksmith. I can repair your equipment and sell metalcraft.
 trainer,3,You are weak! learn from me\,\ young grass-hopper.,[Move,#swap],[Introduce,!intro_trainer],[Buy,>menu>shop],[Learn,>menu>learn]
 intro_trainer,1,You may be strong\,\ but without special abilities you will never overpower the thousands of fighters out in this world. I can help you become the best.
+transporter,3,The roads are a battlefield. Save yourself death with some money.,[Move,#swap],[Introduce,!intro_transporter],[Transport,>menu>transport]
+intro_transporter,1,The roads are dangerous. I can teleport you to a certain destination. Travel takes no time. Are you sold?
 bookshelf,3,There are books here that can help you understand the world.,[Directions,!directions],[Martial Arts,!skills],[The Outlaws,!outlaws],[The Wildlife,!wildlife],[Enchanting,!enchanting]
-directions,3,Here are directions to the regions of the peninsula.,[Town,!d.town],[Slums,!d.slums],[Marsh,!d.marsh],[Mines,!d.mines],[Gates,!d.gates]
-d.town,1,To understand the general directions you must know where the town is located. This can be easy if you come across crossroads with signposts pointing toward the town. The town is walled in with a river flowing from the west to east. You may find the town filled with hostiles save for a few buildings with merchants providing useful services.
-d.slums,1,From the town\,\ exit through the south and walking past the grass to the west you will see the brick complex known as the slums. To the west of the slums you will find the warehouse\,\ workshop\,\ and to the north of the workshop you will find the trader's hub.
-d.marsh,1,From the town\,\ exit through the south and walk southeast. To the south of the tailoring workshop you will find the marshes. There are not much to see there\,\ unless you are a gravedigger. The graveyard is just to the west of the marshes.
-d.mines,1,From the town\,\ exit through the west and walk northwest. You may have to walk quite a while. Past the cove you will find a fishing village where you may take a rest and use services.
-d.gates,1,From the town\,\ exit through the east and keep walking east. Past the factory you will find a dangerous cliff path. Follow the path into the bamboo forest and keep moving east.
+directions,3,Here are directions to the various regions.,[Beach,!d.beach],[Town,!d.town],[Slums,!d.slums],[Marsh,!d.marsh],[Mines,!d.mines],[Gates,!d.gates]
+d.beach,1,The beach passage is located south of downtown. Go southwest to downtown\,\ then exit downtown towards south. Hike past the rocks and you will see the passage. At the end of the beach lies the bamboo dungeon where manuals are found.
+d.town,1,The town lies in the northwest part of the world. The walled section is the uptown. Southwest of uptown is the downtown.
+d.slums,1,To get to downtown slums\,\ exit through the south from uptown and go southwest. You will see a giant brick complex.
+d.marsh,1,From uptown\,\ exit through the south and walk southeast. To the south of the tailor workshop you will find the marshes. To the west of the marshes lies the graveyard\,\ a popular place scavengers go to hunt for manuals.
+d.mines,1,From uptown\,\ exit through the west and walk northwest. You may have to walk quite a while. Past the cove you will find a fishing village where you may take a rest and use services.
+d.gates,1,From uptown\,\ exit through the east and keep walking east. Past the factory you will find a dangerous cliff path. Follow the path into the bamboo forest and keep moving east into the Mountain Pass. The eastern gates of the Mountain Pass is the gate known as the evil gates.
 skills,3,Here are listings of few martial techniques that should be approached with caution.,[Reach,!sk.reach],[Lunge,!sk.lunge],[Parry,!sk.parry],[Constitution,!sk.constitution],[Side Step,!sk.side step],[Hide,!sk.hide]
 sk.reach,1,Foes with reach can attack you from 2 tiles away. Try to lure them into a closed area\,\ because they cannot attack directly in front of them. After a successful knockdown\,\ move directly into them\,\ because they will retaliate faster than you can attack them again. Reach is usually provided by spear type weapons.
 sk.lunge,1,Foes using lunge will move forward when attacking\,\ so it is important to approach them from the diagonals. Do not attempt to attack in succession. When knocked down\,\ step away as soon as you get up. Lunge is usually provided by sword type weapons like Sticks.
@@ -45,11 +49,11 @@ sk.parry,1,Foes using parry will ignore the first direct attack hit. Attacks fro
 sk.constitution,1,Foes with constitution\,\ such as lepers and the undead\,\ will not get knocked down. If you want to avoid taking damage\,\ try to one shot them.
 sk.side step,1,Foes using side step will knock you down on contact and swap places. This can be lethal when facing more than one foe or if the foe has the assassination skill\,\ which deals 2 extra damage from behind.
 sk.hide,1,Foes with the hide skill will become invisible when standing still. For example\,\ the killer ivy in the woods are invisible until you get too close. This effect can be dispelled.
-outlaws,3,This tourist pamphlet describes the various outlaws of Peninsula of Doom. Visit now!,[The Homeless,!o.hobo],[The Slums,!o.slum],[The Warehouses,!o.workshop],[The Fanatics,!o.fanatic]
+outlaws,3,This tourist pamphlet identifies the various types of outlaws by region. Visit now!,[The Homeless,!o.hobo],[The Outlaws,!o.outlaws],[The Rogues,!o.rogue],[The Fanatics,!o.fanatic]
 o.hobo,1,In derelict houses and grassy fields you will commonly spot people wearing rags. These desperate homeless people will kill and eat you.
-o.slum,1,South of the central town of the peninsula lies the great brick complex. This place is full of criminals and homeless outlaws. Notable enemies are the thieves who steal your weapon\,\ lepers who don't feel pain\,\ outlaws who wield the stick and lunge at you\,\ and callers who summon bugs to attack you.
-o.workshop,1,West of the slums and to the East of the town are the warehouses and workshops\,\ which act as base for criminal activity. Beware the hunters who ensnare the running victims\,\ the robbers who quickly surround their victim\,\ and many other lethal enemies.
-o.fanatic,1,Past the Northeastern Gate are the fanatics of evil. They are psychic and will always know where you are. They also possess strange abilities and should be approached with extreme caution.
+o.outlaws,1,Most buildings are filled with outlaws. Notable outlaws are the thieves who steal your weapon\,\ lepers who don't feel pain\,\ and looters who poke at you with their spear.
+o.rogue,1,Some places like the warehouse and workshop are filled with powerful vagrants and marauders. Beware the hunters who ensnare the running victims\,\ the robbers who quickly surround their victim\,\ and other rogues with martial expertise.
+o.fanatic,1,Past the mountain pass lies the corruption\,\ with all those fanatics of evil. They possess strange abilities and should be approached with extreme caution.
 enchanting,3,This book describes the various potions that can enchant items.,[Basics,!e.basics],[Speed,!e.speed],[Damage,!e.damage],[Armor,!e.armor],[Health,!e.health],[Weight,!e.weight]
 e.basics,1,To enchant an item\,\ place a potion on top of an item and break it. Items have 50% chance to be enchanted at +0\,\ but chances halve with each upgrade.
 e.speed,1,The speed enchantment imbues items with the skill <Deft>\,\ but this does not stack. This enchantment can be imbued via the Speed potion.
@@ -57,18 +61,18 @@ e.damage,1,The damage enchantment increases the damage of the item by 1. This en
 e.armor,1,The armor enchantment increases the armor of the item by 1. This enchantment can be imbued via the Armoring potion.
 e.health,1,The health enchantment increases the maximum and current health of the item by 1. This enchantment can be imbued via the Lignification potion.
 e.weight,1,The weight enchantment decreases the weight of the item by 1. This enchantment can be imbued via the Levitation potion.
-wildlife,3,This book contains information about the various wildlife creatures of Peninsula of Doom.,[Mud and Marsh,!w.marsh],[Danger Gardens,!w.grass],[Cave Ecology,!w.crust],[The Undead,!w.undead],[Corruption,!w.corrupt]
+wildlife,3,This book contains information about wildlife creatures by region.,[Mud and Marsh,!w.marsh],[Danger Gardens,!w.grass],[Cave Ecology,!w.crust],[The Undead,!w.undead],[Corruption,!w.corrupt]
 w.marsh,1,In muddy areas breed the Mud Slime\,\ which are a breed of slimes with a taste for human blood. In even wetter areas reside the Octopus\,\ dangerous sea animals possessing tough skin.
 w.grass,1,Normally the grassy area is home to green slimes\,\ which are not hostile by default but will occasionally devour anything nearby. At night you might find snakes on the grasslands\,\ which possess lethal venom dealing extra damage after an hour.
-w.crust,1,The caverns of this peninsula is home to rats\,\ bats\,\ spiders\,\ and various rare minerals. Note that bats possess night vision and spiders may weave webs to block passages. Bring a torch\,\ and avoid open area to avoid getting surrounded.
-w.undead,1,Every native resident of this peninsula knows that the graveyards at night are patrolled by the undead. The undead do not feel pain\,\ and skeletal undead possess natural armor.
+w.crust,1,The caverns are home to rats\,\ bats\,\ spiders\,\ and various rare minerals. Note that bats possess night vision and spiders may weave webs to block passages. Bring a torch\,\ and avoid open area to avoid getting surrounded.
+w.undead,1,Every civilian knows that the graveyards at night are patrolled by the undead. The undead do not feel pain\,\ and skeletal undead possess natural armor.
 w.corrupt,1,Places that the evil lord have corrupted have become home to many strange creatures. For example\,\ the corruption moles can summon their running victims to bring them to attack range. Not much else is known about the ecology of the corruption.
-tourguide,3,Hello. Are you coming into town?,[Directions,!tourguide2],[Tips,!tourguide3]
-tourguide2,1,You are looking for the big bad evil guy? You will first have to get to town. Follow this road west to the passage past the beach. You will find a signpost pointing towards the town from there.
-tourguide3,1,When you get to the beach passage\,\ find a life insurance agent. The roads are dangerous and it's no shame to die\,\ really.
-see saw,2,Hello fellow. I am a rather famous public servant known as Doctor See Saw. While many are desperate to leave this hell of a place\,\ I live here voluntarily\,\ where my services are needed the most. Do you require my assistance?,Proceed,!see saw2
-see saw2,3,Please\,\ take your time.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Hire,>menu>hire]
-chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a chain restaurant around here... Which is not really a thing anymore since no ones enforcing laws these days. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
+tourguide,3,Hello. Do you need help?,[Directions,!tourguide2],[Tips,!tourguide3]
+tourguide2,1,You are looking for the big bad evil guy? Your destination should be the Mountain Pass. Exit through this east gate out of uptown. Keep going east\,\ through the workshop and the cliff road. The mountain pass is near the bamboo forest.
+tourguide3,1,Many people gather around for the grand reward\,\ but most don't even make it to the Mountain Pass. The roads are dangerous\,\ at least get yourself some life insurance.
+wordie,2,What do words mean in this deafening orderly presense?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!wordie2
+wordie2,3,I would tell you how blue the sky was a night ago\,\ but have no words to show for it.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
+chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a restaurant... But honestly\,\ honest work seems to be out of order. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
 chef moe2,3,Mhmm.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
 trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
 rando,3,I'm a desperate resident surviving day to day looting from outlaws and wildlife... just like you.,[Move,#swap],[Hire,>menu>hire]
@@ -77,22 +81,22 @@ knightknight2,3,Maybe we can travel together. Maybe.,[Move,#swap],[Hire,>menu>hi
 undeadj,2,Calm down man\,\ I'm no monster. The life insurance guy did a shoddy job at cloning me. You know?,That happens?,!undeadj2
 undeadj2,3,I'm a pretty good kicker. Are you are thinking what I'm thinking? maybe we should party up and kick a leper around!,[Move,#swap],[Join,#ally]
 humblebob,3,My name is bob. I can fight.,[Move,#swap],[Hire,>menu>hire]
-macaroni,2,I don't know what's harder\,\ running from wildlife or running from outlaw maniacs. I'm starting to think breaching the Northeastern Gate may be better than waiting for a slow death down here.,Sure,!macaroni2
-macaroni2,3,Call me Macaroni.,[Move,#swap],[Join,#ally]
+macaroni,2,Ay yo flesh boy! I drank the soul elixir and found this delicious gelatinous body. I ain't going back again!,Good for you!,!macaroni2
+macaroni2,3,Call me Macaroni. I'm your new best friend.,[Move,#swap],[Join,#ally]
 maryj,2,There are many interesting plants around here. If you know some alchemy\,\ you could take advantage of them.,Sure,!maryj2
 maryj2,3,I am Mary J. How may I be of service?,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
-brock,2,I am Brock. I break rocks. If you want to know what rare minerals are used for\,\ ask a wand crafter\,\ because I'm not interested.,Ok,!brock2
+brock,2,I am Brock. I break rocks. If you want to know what rare minerals are used for\,\ ask a wand carver\,\ because I don't care.,Ok,!brock2
 brock2,3,Dig dig dig.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
-masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young lad wielding a flaming blade on a field casting scorch on a slime. I took him in\,\ taught him the ways of fighting\,\ and soon he became the strongest fighter of this peninsula,Ok,!masterlee2
-masterlee2,3,Young people like you know nothing of true breakfast cereal. Nothing!,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair]
-jane,2,Welcome\,\ fellow resident of the Peninsula of Doom. People say that anyone that doesn't escape this place will be butchered by monsters and maniacs\,\ but I find a good living here\,\ living off the land.,Ok,!jane2
-jane2,3,Are you leaving? Maybe I'll come with.,[Move,#swap],[Join,#ally]
-john,2,Northeastern Gate? Are you crazy? You'll be butchered and turned into a tasty slime! Look around\,\ where do you think all those slimes come from?,Nah,!john2
-john2,3,I'm not going to the gates. There are things worse than death in this hell of a place.,[Move,#swap],[Sell,>menu>supply]
+masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young'un wielding a flaming blade on a field casting scorch on a slime. I took her in\,\ taught her the ways of fighting\,\ and soon she went off to make her own world past the mountains.,Ok,!masterlee2
+masterlee2,3,Young grass hopper?,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair]
+jane,2,Welcome\,\ fellow civilian. I find good living here\,\ living day to day looting off one another and eating jelly off slimes.,Ok,!jane2
+jane2,3,You are going for the evil lord? You know\,\ I also have nothing better to do.,[Move,#swap],[Join,#ally]
+john,2,Kill the evil lord? Are you crazy? You won't even make it to the castle. You'll be butchered and turned into a tasty slime the moment you pass the gates. Look around\,\ where do you think all those slimes come from?,Nah,!john2
+john2,3,I'm not going to the gates. There are things worse than death in this hell of a world.,[Move,#swap],[Sell,>menu>supply]
 jackstab,2,Hey there good fellow\,\ I am also a good fellow. How do you do?,I'm fine.,!jackstab2
 jackstab2,1,My name is Jack Stab. Do you know what rhymes with Jack Stab? Back step\,\ of course.
-rogue,2,I am just a wandering rogue. I've been wandering this place for few months and it seems the stronger I become\,\ the more ambushes I get.,Hmm.,!rogue2
-rogue2,3,Do you have business with me?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
-chairking,2,I am the chair king. I wield the stool\,\ so that I may smite down the insolent with its might.,Me too!,!chairking2
-chairking2,3,Say\,\ will you join me in my quest to conquer the gates and free my people?,[Move,#swap],[Kneel,kneel]
-helper,3,Do you need help fighting?,[Move,#swap],[Get Help,#ally]
+rogue,2,I am just a wandering rogue. I've been wandering... it seems the stronger I become\,\ the more ambushes I get.,Hmm.,!rogue2
+rogue2,3,I'm wandering... do you have business with me?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
+stoolking,2,I am the stool king. I wield the stool\,\ so that I may smite down the insolent with its might.,Me too!,!chairking2
+stoolking2,3,Say\,\ will you join me in my quest to conquer the gates and free my people?,[Move,#swap],[Kneel,kneel]
+helper,3,Do you require assistance?,[Move,#swap],[Get Help,#ally]

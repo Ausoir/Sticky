@@ -12,8 +12,6 @@ from src.tools.Tag import Tag
 
 
 class Game:
-    HOUR_HUNGER = 500
-
     def __init__(self):
         Turn.add(Global.menu.turn)
         Turn.fast_queue.append(Global.map_view.update)
@@ -55,11 +53,11 @@ class Game:
             self.npc.make()
             from src.entity.Stock import Stock
             self.character = Stock.get(self.temporary[1][1], data=self.temporary[1]).add()
-            self.character.pos.load(data3[0], data3[1])
+            self.character.relocate(x=data3[0], y=data3[1], force=True)
             class_data = Data.get_line('raw.txt', 'class')[1]
             self.set_class(Global.r.rand_list(class_data))
         else:
-            self.npc.load(self.temporary[2:], self.tags.get('c_x'), self.tags.get('c_y'))
+            self.npc.load(self.temporary[2])
             Global.world.initialize(self.tags.get('c_x'), self.tags.get('c_y'))
             from src.entity.Stock import Stock
             self.character = Stock.get(self.temporary[1][1], data=self.temporary[1]).add()
@@ -82,7 +80,7 @@ class Game:
             self.tags.set('c_y', Global.world.cells[chunk][1])
             r = self.tags.__str__() + '\n'
             r += self.character.__str__() + '\n'
-            r += self.npc.get_str()
+            r += self.npc.__str__()
             Data.write('save/player.char', r)
 
     def get_biomes(self, level):
@@ -117,23 +115,25 @@ class Game:
     def is_daytime(self):
         return 5 < self.days % 24 < 20
 
+    def on_hour_change(self):
+        self.sleep(-1, blackout=False)
+
     def sleep(self, time, blackout=True):
-        if time > 0:
-            self.character.progress_level(time, mode='survive')
-            self.character.tags.increment('hunger', Game.HOUR_HUNGER * time)
-            self.days += time
+        if time != 0:
+            self.character.progress_level(abs(time), mode='survive')
             Global.world.location.on_sleep(time)
-            self.npc.update(0, 0, force=True)
             event = Global.r.rand_list(Data.get_line('raw.txt', 'event')[1])
             if event:
                 Script.var['host'] = self
                 Script.execute_code(event)
-            investment = Global.player.character.tags.get('invest', 0)
-            if investment:
-                time = self.character.tags.increment('investt', time)
-                if time >= 24:
-                    Global.player.character.tags.increment('money', max(1, int(investment / 10)) * int(time / 24))
-                    self.character.tags.set('investt', self.days % 24)
+            if time > 0:
+                self.days += time
+                investment = Global.player.character.tags.get('invest', 0)
+                if investment:
+                    time = self.character.tags.increment('investt', time)
+                    if time >= 24:
+                        Global.player.character.tags.increment('money', max(1, int(investment / 10)) * int(time / 24))
+                        self.character.tags.set('investt', self.days % 24)
         if blackout:
             Global.map_view.overlay.blackout()
         else:
@@ -142,7 +142,7 @@ class Game:
         return True
 
     def try_sleep(self, arg):
-        if not self.is_hungry():
+        if not self.character.is_hungry():
             self.sleep(arg)
             return True
         else:
@@ -152,7 +152,7 @@ class Game:
         time = self.days % 24
         Global.map_view.overlay.set_time(time)
         Global.map_view.set_sight_range(Global.SIGHT)
-        if self.character.get_skill('nocturnal'):
+        if self.character.get_skill('nocturnal') or self.character.states.get('Vision'):
             Global.map_view.set_view_range(Global.map_view.sight_range)
         else:
             Global.map_view.set_view_range(self.character.tags.get('view', 3))
@@ -193,12 +193,8 @@ class Game:
                     revive.end()
                     args = [int(x) for x in revive.var.split('&')]
                     self.character.add()
-                    self.character.tags.set('money', 0)
                     self.character.tags.set('hunger', 0)
-                    if self.character.tags.get('P', 0) <= 0:
-                        Script.execute_code('death')
-                    else:
-                        Global.world.travel(args[0], args[1])
+                    Global.world.travel(args[0], args[1])
                 else:
                     Script.execute_code('death')
             elif self.dead == 11:
@@ -206,10 +202,10 @@ class Game:
             else:
                 self.dead += 1
         elif self.character.action.delay > 0:
-            self.character.tags.increment('hunger', 5)
+            self.character.tags.increment('hunger', 3)
         elif self.character.action.current_action == 'idle':
-            if self.is_hungry():
-                self.character.form.set_state('grab')
+            if self.character.is_hungry():
+                self.character.form.set_state('hunger')
             if self.character.tags.get('p', 0) == 1 and self.character.tags.get('P'):
                 Particle.make('blood', self.character.pos, offset=8)
         Global.world.location.sound.update_bgm()
@@ -220,9 +216,6 @@ class Game:
         else:
             Global.map_view.update_region()
             Global.map_view.turn()
-
-    def on_hour_change(self):
-        self.sleep(1, blackout=False)
 
     def is_safe(self):
         for unit in self.character.get_team(ally=False):
@@ -235,9 +228,6 @@ class Game:
                     Global.main.monologue.set(Dialog.get('!safe'))
                     return False
         return True
-
-    def is_hungry(self):
-        return self.character.tags.get('hunger') >= 10000
 
     def pay(self, amount):
         if amount <= 0 or self.character.tags.require('money', amount):
@@ -275,11 +265,11 @@ class Game:
         persona = self.character.tags.get('class', 'classless')
         if persona == 'avenger':
             arg = self.character.tags.get('revenge')
-            return Dialog.get(persona, [arg])
+            return Dialog.get(':' + persona, [arg])
         elif persona == 'gourmet':
             arg = self.character.tags.get('favorite')
-            return Dialog.get(persona, [arg])
+            return Dialog.get(':' + persona, [arg])
         elif persona == 'agent':
             arg = ', '.join(self.character.tags.get('mission').split('&'))
-            return Dialog.get(persona, [arg])
-        return Dialog.get(persona)
+            return Dialog.get(':' + persona, [arg])
+        return Dialog.get(':' + persona)

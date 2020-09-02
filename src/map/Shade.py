@@ -16,7 +16,7 @@ class Shade:
         self.shades = []
         quarter = int(Global.BLOCK / 8)
         for i in [(-quarter, Global.BLOCK), (Global.BLOCK, -quarter), (quarter, Global.BLOCK), (Global.BLOCK, quarter)]:
-            shade = Shape(0, 0, 0, Global.draw_group.group_shade, width=i[0], height=i[1], color=Shade.zero)
+            shade = Shape(0, 0, 0, Global.draw_group.group_object, width=i[0], height=i[1], color=Shade.zero)
             self.shades.append(shade)
         self.wall_shaders = [0, 0, 0, 0]
         self.overlay.add_batch()

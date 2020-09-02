@@ -122,16 +122,16 @@ class Dialog:
 
     @staticmethod
     def describe_terrain(tile):
-        r = tile.get_name().title()
+        r = Dialog.get(tile.get_name().title())
         speed = tile.get_move_speed()
         if tile.get_yield() <= -10:
-            r += '\n' + Dialog.get('terrain wall')
+            r += '\n' + Dialog.get(':terrain wall')
         elif speed != 0:
-            r += '\n' + Dialog.get('terrain speed', [speed])
+            r += '\n' + Dialog.get(':terrain speed', [Dialog.sign(speed)])
         if tile.light > 0:
-            r += '\n' + Dialog.get('terrain lit')
+            r += '\n' + Dialog.get(':terrain lit')
         if tile.roof > 0:
-            r += '\n' + Dialog.get('terrain roof')
+            r += '\n' + Dialog.get(':terrain roof')
         if tile.get_hardness() > 0:
             r += '\n' + Dialog.get('Hardness') + ': ' + str(tile.get_hardness())
         return r
@@ -145,7 +145,7 @@ class Dialog:
 
     @staticmethod
     def weight(measure):
-        return str(measure) + Dialog.get('kg')
+        return str(measure * 10) + Dialog.get('kg')
 
     @staticmethod
     def armor(measure):
@@ -157,7 +157,7 @@ class Dialog:
             if max_hp:
                 return Dialog.get('Durability') + ': ' + str(hp) + '/' + str(max_hp)
             else:
-                return Dialog.get('Durability') + ': ' + str(hp) + ' (' + Dialog.get('Unrepairable') + ')'
+                return Dialog.get('Durability') + ': ' + str(hp)
         else:
             return Dialog.get('Indestructible')
 

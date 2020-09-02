@@ -132,8 +132,6 @@ class Script:
                 Script.var[str(arg[1])] = int(arg[3])
             elif arg[2] == 'time':
                 Script.var[str(arg[1])] = Global.player.days
-            elif arg[2] == 'map':
-                Script.var[str(arg[1])] = arg[3].location
             elif arg[2] == 'tag':
                 Script.var[str(arg[1])] = arg[3].tags.get(arg[4], Script.var['fail'])
             elif arg[2] == 'skill':
@@ -170,11 +168,11 @@ class Script:
         elif condition[0] == 'day':
             return Global.player.is_daytime()
         elif condition[0] == 'hungry':
-            return Global.player.is_hungry()
+            return Global.player.character.is_hungry()
         elif condition[0] == 'bring':
-            return Script.var['host'].pos == Global.player.character.pos
+            return condition[1].pos == condition[2].pos
         elif condition[0] == 'delay':
-            return Script.var['1'].action.delay == 0
+            return condition[1].action.delay == 0
         elif condition[0] == 'inmenu':
             return Global.menu.visible == 1
         elif condition[0] == 'ask':
@@ -202,9 +200,9 @@ class Script:
             from src.entity.Stock import Stock
             Script.var['1'] = Stock.make(arg[1], Script.var['host'].pos)
         elif arg[0] == 'effect':
-            Particle.make(arg[1], Script.var['host'].pos, offset=8)
+            Particle.make(arg[1], Script.var['host'].pos, offset=4)
         elif arg[0] == 'sound':
-            Script.var['host'].location.sound.register(Script.var['host'].pos, arg[1], file=arg[2])
+            Global.world.location.sound.register(Script.var['host'].pos, arg[1], file=arg[2])
         elif arg[0] == 'closemenu':
             Global.menu.display(-1)
         elif arg[0] == 'message':
@@ -218,15 +216,13 @@ class Script:
         elif arg[0] == 'buff':
             arg[1].states.add(arg[2], arg[3], var=arg[4])
         elif arg[0] == 'settag':
-            Script.var['host'].tags.set(arg[1], arg[2])
+            arg[1].tags.set(arg[2], arg[3])
         elif arg[0] == 'addtag':
-            Script.var['host'].tags.increment(arg[1], arg[2])
+            arg[1].tags.increment(arg[2], arg[3])
         elif arg[0] == 'deltag':
-            Script.var['host'].tags.remove(arg[1])
+            arg[1].tags.remove(arg[2])
         elif arg[0] == 'time':
-            Global.player.days = arg[1]
-            Global.map_view.overlay.blackout()
-            Global.player.sleep(0)
+            Global.player.sleep(arg[1] - Global.player.days)
         elif arg[0] == 'menu':
             Global.menu.var = Script.var['1']
             Global.menu.direct(getattr(Global.menu, 'menu_' + arg[1].lower()))
@@ -270,5 +266,12 @@ class Script:
             Generator.generate(arg[1])
         elif arg[0] == 'regrow':
             Global.world.regrow_all()
+        elif arg[0] == 'spell':
+            from src.entity.unit.item.Spell import Spell
+            Spell.get(arg[1]).cast_on(arg[2])
         elif arg[0] == 'rotate':
             Global.world.location.rotate(int(arg[1]))
+        elif arg[0] == 'clear':
+            Global.world.location.clear()
+        elif arg[0] == 'clearbuffs':
+            arg[1].states.clear(lambda _: True)

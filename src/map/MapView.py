@@ -26,7 +26,7 @@ class MapView:
         self.old_camera = None
         self.overlay = Overlay()
         from src.form.Shape import Shape
-        self.tape = Shape(-Global.CENTER[0], 160, 800, Global.draw_group.group_overlay,
+        self.tape = Shape(-Global.CENTER[0], 160, 800, Global.draw_group.group_gui,
                           width=Global.DISPLAY[0] - Global.BLOCK * 2, height=Global.BLOCK, color=[0, 0, 0, 255])
         self.tape.add_batch()
         self.tape.show(True)
@@ -53,7 +53,7 @@ class MapView:
         self.draw_tiles.clear()
         for y in range(-self.sight_range_y, self.sight_range_y + 1):
             for x in range(-self.sight_range, self.sight_range + 1):
-                pic = Picture(Data.get_cache('g_0x0'), z=-1, group=Global.draw_group.group_tile)
+                pic = Picture(Data.graphics['g'][0][0], z=-1, group=Global.draw_group.group_tile)
                 pic.bound(True)
                 shade = Shade()
                 self.draw_tiles.append(pic)
@@ -64,20 +64,18 @@ class MapView:
         brightness = Global.map_view.overlay.LIGHT[Global.player.days % 24]
         if self.brightness != brightness:
             self.brightness = brightness
-            col_range = [Camera.target.pos.x - self.sight_range, Camera.target.pos.x + self.sight_range]
-            row_range = [Camera.target.pos.y - self.sight_range_y, Camera.target.pos.y + self.sight_range_y]
-            tiles = []
-            for pos_x in range(col_range[0] - 1, col_range[1] + 2):
-                tiles.append(Global.world.location.get_tile(pos_x, Camera.target.pos.y-self.sight_range_y - 2))
-                tiles.append(Global.world.location.get_tile(pos_x, Camera.target.pos.y+self.sight_range_y + 2))
-            for pos_y in range(row_range[0] - 1, row_range[1] + 2):
-                tiles.append(Global.world.location.get_tile(Camera.target.pos.x-self.sight_range - 2, pos_y))
-                tiles.append(Global.world.location.get_tile(Camera.target.pos.x+self.sight_range + 2, pos_y))
-            for i in tiles:
-                if i:
-                    i.light = 0
+            self.reset_lighting()
         self.update_fog()
         self.overlay.turn()
+
+    def reset_lighting(self):
+        for rows in Global.world.location.tiles:
+            for cell in rows:
+                if cell.light_source == 0:
+                    if cell.roof == 0:
+                        cell.light = self.brightness
+                    else:
+                        cell.light = 0
 
     def update_region_editor(self):
         cam_x = Camera.target.pos.x
@@ -151,7 +149,7 @@ class MapView:
                         self.shadows[index].shade_walls(this_tile.joint_neighbors)
                     else:
                         self.shadows[index].remove_shades()
-                    self.draw_tiles[index].set(Data.get_cache(this_tile.get_image()))
+                    self.draw_tiles[index].set(Data.get_graphics(this_tile.get_image()))
                     self.draw_tiles[index].face(this_tile.direction)
                     self.draw_tiles[index].show(True)
                     self.shadows[index].show(True)

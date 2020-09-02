@@ -43,6 +43,10 @@ class Attribute(Tag):
                         self.increment(tag_parts[0], Data.parse(tag_parts[1])[0])
             self.add_tag(host)
 
-    def get_carry_over(self):
-        permanent = ['money', 'seed', 'full']
-        return (lambda keys: {x: self.attributes[x] for x in keys})(permanent)
+    def get_level(self):
+        r = 0
+        r += self.get('str', 2) + self.get('sth', 0) + self.get('int', 0) + self.get('cha', 0)
+        r += self.get('def', 0) + self.get('spd', 0)
+        if self.get('skill'):
+            r += 1
+        return r

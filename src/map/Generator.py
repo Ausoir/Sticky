@@ -11,31 +11,37 @@ class Generator:
     def generate(generator):
         size_x = 39
         size_y = 39
-        if generator == 'field':
-            from src.map.GeneratePerlin import GenerateField
-            GenerateField(size_x, size_y).run()
-        elif generator == 'woods':
-            from src.map.GeneratePerlin import GenerateWoods
-            GenerateWoods(size_x, size_y).run()
-        elif generator == 'residence':  # obsolete
-            from src.map.GenerateBSPTree import GenerateResidence
-            GenerateResidence(size_x, size_y).run()
-        elif generator == 'beach':  # obsolete
-            from src.map.GenerateBSPTree import GenerateBeach
-            GenerateBeach(size_x, size_y).run()
-        elif generator == 'cove':  # obsolete
-            from src.map.GeneratePerlin import GenerateCove
-            GenerateCove(size_x, size_y).run()
+        if generator in ['bamboo', 'forest', 'woods', 'field']:
+            from src.map.GeneratePerlin import GeneratePerlin
+            r = GeneratePerlin(size_x, size_y)
+            if generator == 'bamboo':
+                r.background['!'] = ';'
+                r.disposition = [[.7, 'Bamboo'], [.4, '\"'], [0, ';']]
+            elif generator == 'woods':
+                r.background['!'] = ';'
+                r.disposition = [[.85, 'Tree'], [.84, 'Fruit Tree'], [.75, '\"'], [.4, ';'], [0, '.']]
+            elif generator == 'forest':
+                r.disposition = [[.85, 'Tree'], [.84, 'Weed'], [.8, 'Bush'], [.75, '#'], [.25, ':'], [0, '.']]
+            elif generator == 'field':
+                r.background['Rock'] = '.'
+                r.disposition = [[.75, '#'], [.5, ':'], [0, '.']]
+            r.run()
         elif generator == 'cave':
             from src.map.GenerateTunneler import GenerateCave
             GenerateCave(size_x, size_y).run()
         elif generator == 'mansion':
             from src.map.GenerateTunneler import GenerateMansion
             GenerateMansion(size_x, size_y).run()
+        elif generator == 'temple':
+            from src.map.GenerateTunneler import GenerateMansion
+            r = GenerateMansion(size_x, size_y)
+            r.theme['.'] = 'H'
+            r.theme['X'] = 'W'
+            r.run()
         elif generator == 'warehouse':
             from src.map.GenerateWarehouse import GenerateWarehouse
             GenerateWarehouse(size_x, size_y).run()
-        Global.world.dirty_pos()
+        Global.world.dirty = True
         Global.world.location.process_terrain()
 
     @staticmethod

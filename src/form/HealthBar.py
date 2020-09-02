@@ -17,6 +17,7 @@ class HealthBar:
         self.display = False
         self.visible = False
         self.displaying_health = False
+        self.removed = False
 
     def show(self, visible):
         self.display = visible
@@ -27,7 +28,7 @@ class HealthBar:
         self.visible = self.inbound and self.display
 
     def appear(self, hp, mhp):
-        if hp and mhp:
+        if not self.removed and hp and mhp:
             width = int(Global.BLOCK * min(1, hp / mhp)) - 2
             self.foreground.width = max(0, width)
             if self.foreground.width == 0:
@@ -44,6 +45,7 @@ class HealthBar:
 
     def turn(self):
         if self.displaying_health:
+            self.removed = False
             self.foreground.show(self.visible)
             self.background.show(self.visible)
             self.foreground.update()
@@ -59,8 +61,8 @@ class HealthBar:
                 self.remove()
 
     def remove(self):
-        if self.displaying_health:
-            self.displaying_health = False
-            self.background.remove_batch()
-            self.foreground.remove_batch()
-            return True
+        self.removed = True
+        self.displaying_health = False
+        self.background.remove_batch()
+        self.foreground.remove_batch()
+        return True

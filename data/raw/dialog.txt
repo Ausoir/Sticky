@@ -1,85 +1,80 @@
-none,None
-proceed,Proceed
-dsc_health,You die when your health reaches 0. Health: # / #
-dsc_health2,You die when your health reaches 0. Health: # / #|Vitality from armor: #|Worn armor durability: # / #|Vitality from headgear: #|Worn headgear durability: # / #
-dsc_date,Date and Time: #. Current Hunger: #%
-dsc_hunger,Date and Time: #. Current Hunger: #%|You are hungry and you cannot perform time consuming actions such as resting\,\ crafting\,\ or leveling up
-dsc_money,You can use money to buy things from vendors or hire mercenaries. You currently have $# invested
-classless,You are classless
-avenger,You are an Avenger. When you slay <#> you gain their level as extra experience
-psycho,You are a Psycho. You get 3 times more experience from killing friendlies
-gourmet,You are a Gourmet. You get 4 times more experience from eating #
-survivor,You are a Survivor. Your passive experience gain from things like resting is doubled
-agent,You are an Agent. You gain experience when you sabotage your targets. Your targets are: #
-explorer,You are an Explorer. You gain experience from exploring new area
-scholar,You are a Scholar. Using the observer item gives you 4 times more experience
-no_status,No abnormal status effect found
-dsc_location,Your current location
-stat_applied,Level up! You are now level #!
-dsc_level,You progress in level by doing things like eating\,\ killing units of higher level\,\ resting\,\ or performing class missions. Experience gain diminishes with level increase
-dsc_vitality,Vitality determines your maximum health. Humanoids have 2 health by default
-dsc_strength,Strength determines how much weight you can carry and wield
-dsc_stealth,Stealth determines how close enemies have to be to detect you. Normally enemies see you when you see them
-dsc_intelligence,Intelligence determines how many skills you can learn
-dsc_charisma,Charisma determines how many companions you can have. This also applies to charmed enemies and summoned creatures
-travelto?,Travel to <#>?
-travelto,Travel to <#>
-empty,Empty
-soldout,I am all out of goods to sell.
-invfull,You cannot store any more items.
-reqnotmet,Requirements not met
-equipment_end,Provides # vitality
-equipment_def,Provides # armor
-equipment_inv,Provides # strength
-equipment_sth,Provides # stealth
-equipment_cha,Provides # charisma
-equipment_disguise,Provides disguise
-equipment_skill,Grants skill <#>
-equipment_abp,Amplifies special ability
+:dsc_health,You die when your health reaches 0. Health: # / #
+:dsc_health2,You die when your health reaches 0. Health: # / #|Vitality from armor: #|Worn armor durability: # / #|Vitality from headgear: #|Worn headgear durability: # / #
+:dsc_date,Date and Time: #. Current Hunger: #%
+:dsc_hunger,Date and Time: #. Current Hunger: #%|You are hungry and you cannot perform time consuming actions such as resting\,\ crafting\,\ or leveling up.
+:dsc_money,You can use money to buy things from vendors or hire mercenaries. You currently have $# invested.
+:classless,You are classless.
+:avenger,You are an Avenger. When you slay <#> you gain their level as extra experience.
+:psycho,You are a Psycho. You get 3 times more experience from killing friendlies.
+:gourmet,You are a Gourmet. You get 2 times more experience from eating food and 4 times more when eating #.
+:survivor,You are a Survivor. Your passive experience gain from things like resting is doubled.
+:agent,You are an Agent. You gain experience when you sabotage your targets. Your targets are: #.
+:explorer,You are an Explorer. You gain experience from exploring new area.
+:scholar,You are a Scholar. Using the observer item gives you 4 times more experience.
+:no_status,No abnormal status effect found.
+:stat_applied,Level up! You are now level #!
+dsc_level,You progress in level by doing things like eating\,\ killing units of higher level\,\ resting\,\ or performing class missions. Experience gain diminishes with level increase.
+dsc_vitality,Vitality determines your maximum health. Humanoids have 2 health by default.
+dsc_strength,Strength determines how much weight you can carry.
+dsc_stealth,Stealth determines how close enemies have to be to detect you.
+dsc_intelligence,Intelligence determines how many skills you can learn.
+dsc_charisma,Charisma determines how many allies can follow you at a time. This also applies to charmed enemies and summoned creatures.
+:travel?,Travel to <#> for $#?
+:soldout,I am all out of goods to sell.
+:invfull,You cannot store any more items.
+:reqnotmet,Requirements not met
+:equipment_end,Grants # vitality
+:equipment_def,Grants # armor
+:equipment_inv,Grants # strength
+:equipment_sth,Grants # stealth
+:equipment_cha,Grants # charisma
+:equipment_spd,Grants # speed
+:equipment_cdr,Grants # cooldown reduction
+:equipment_skill,Grants skill <#>
 !heavy,Too heavy! #/# + #kg
 !bright,Too dark!
 !safe,Not safe!
 !tag,Not enough #!
 !eat,Too hungry!
-!hungry,Not hungry!
 !expire,Food has expired!
 !sociable,Not enough charisma! #/# companions
 ?learn,Learn #?
-manual_skill,Teaches skill <#>
-learn,Learned skill <#>!
+:manual_skill,Teaches skill <#>
+:learn,Learned skill <#>!
 !learn_full,<#> is already mastered
 !learn_int,Not enough intelligence!
-food_expire,Expires in #
-food_expired,Expired
+:food_expire,Expires in #
+:food_expired,Expired
+:experience,Provides # experience
 !pay,Not enough money! Requires $#.
-sight_range,Sight Range: #
-sight_type,Sight blocked by: #
-pickup,Pick up #?
-!dsc_skill,No skill information provided
-item_skill,This skill was granted by an item
-light_range,Light Radius: #
-artifact,Enchanted with spell: #
-terrain wall,This terrain is impassible
-terrain lit,This terrain is bright
-terrain roof,This terrain has a roof
-obtain,Obtained #
-req_skill,Requires <#> skill
-req_item,Requires items: #
-req_level,You need to be at least level #!
-supply,Would you like to sell # for $#?
+:sight_range,Sight Range: #
+!dsc_skill,No skill information provided.
+:item_skill,This skill was granted by an item.
+:light_range,Light Radius: #
+:artifact,Enchanted with spell: #
+:terrain wall,This terrain is impassible
+:terrain lit,This terrain is bright
+:terrain roof,This terrain has a roof
+:terrain speed,Terrain speed: #
+:req_skill,Requires <#> skill
+:req_item,Requires items: #
+:req_level,You need to be at least level #!
+:supply,Would you like to sell # for $#?
 !supply,I am not buying anything right now.
-transacted,Transaction successful!
-store_item,Storage of this item would cost $#.
-store_nothing,You are not holding anything that can be stored.
-hire?,Hire for $#?
-learnab?,Learn <#> ability for $#? This ability can be used with number keys 1 or 2 or 3.
+:transacted,Transaction successful!
+:store_item,Storage of this item would cost $#.
+:store_nothing,You are not holding anything that can be stored.
+:hire?,Hire for $#?
+:learnab?,Learn <#> ability for $#? This ability can be used by pressing <#>.
 !learnab,I have nothing to teach for now.
 !learnfull,You cannot learn more than 3 abilities.
-insure?,I can clone your body so you can be revived even if you die. Will you take this life insurance for $#? This life insurance lasts # hours
-observe,You gained # experience from this observation
-repair,All your equipment have been repaired
-wait,Wait # seconds!
-craftables,Click an item to view recipe
+:insure?,I can clone your body so you can be revived even if you die. Will you take this life insurance for $#? Note that insurance does not apply to clones or shapeshifts.
+:insurecancel?,You are already under revival contract. Would you like to cancel it?
+:observe,You gained # experience from this observation
+:repair,All your equipment have been repaired
+:wait,Wait # seconds!
+:craftables,Click an item to view recipe
 dsc_examine,Use the arrow keys then press Enter to examine target
-dsc_victory,You have returned home from the Peninsula of Doom! You are victorious!|Your time of victory: #.|Press ESC to end.
-invest,Would you like to invest $# into Peninsula of Doom pension fund? You will receive 10% of your investment every day at midnight\,\ but this investment does not transfer to your clone\,\ shapeshifter\,\ and is non-refundable. You currently have $# invested in the fund.
+dsc_victory,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life. You are victorious!|Your time of victory: #.|Press ESC to end.
+:invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day at midnight\,\ but this investment does not transfer to your clone\,\ shapeshifts\,\ and is non-refundable. You currently have $# invested.
+:pickone,Choose an item to grab

@@ -52,7 +52,7 @@ class Actions:
                     victim.action.move(push, check=victim.collision_type + 2)
                 if victim.action.current_action != 'fall':
                     victim.action.fall()
-                victim.action.delay = time
+                victim.action.delay = max(victim.action.delay, time)
             return True
 
     def idle(self):
@@ -71,7 +71,10 @@ class Actions:
         self.make(action, turn=time)
 
     def turn_direction(self, direction):
-        speed = min(1, max(0, 3 - self.host.tags.get('spd', 0)))
+        if self.host.tags.get('spd', 0) > 0:
+            speed = 0
+        else:
+            speed = 1
         self.make('default', turn=speed)
         self.host.face(direction)
 
@@ -104,11 +107,12 @@ class Actions:
         if front:
             solid = front.get_solidity()
             if solid >= self.host.collision_type:
-                if self.interact_on(front):
+                if self.host.get_skill('parkour') and self.parkour(front):
                     return
-                elif self.host.get_skill('side step'):
-                    if self.side_step(front):
-                        return
+                elif self.interact_on(front, self.host.collision_type):
+                    return
+                elif self.host.get_skill('side step') and self.side_step(front):
+                    return
             else:
                 self.move(front)
 
@@ -137,16 +141,17 @@ class Actions:
             else:
                 self.idle()
 
-    def interact_on(self, tile):
+    def interact_on(self, tile, col=0):
         if self.host == Global.player.character and self.humanoid:
             self.host.pos.location.sound.register(self.host.pos, 1)
             for thing in tile.things:
-                if thing != self.host.weapon and self.interact(thing):
+                if thing != self.host.weapon and thing.obstruct_type >= col and self.interact(thing):
                     return True
 
     def interact(self, target):
         def fn():
             Script.var['host'] = self.host
+            Script.var['menu'] = target
             Script.var['1'] = target
             Script.execute_code(code)
         code = target.tags.get('#')
@@ -167,8 +172,18 @@ class Actions:
                     self.move(old)
                     return True
 
+    def parkour(self, tile):
+        if tile.get_yield() > -8:
+            for thing in tile.things:
+                if not isinstance(thing, Unit) and thing.obstruct_type <= 4:
+                    if self.host.states.get('Concentration'):
+                        old = thing.pos
+                        self.move(old)
+                        self.make('fly', turn=self.delay + 2)
+                        return True
+
     def fall(self):
-        self.make('fall', turn=18)
+        self.make('fall', turn=0)
         self.on_finish = self.stand
 
     def hit(self):
@@ -209,13 +224,14 @@ class Actions:
             targets = []
             for thing in self.host.pos.things:
                 if isinstance(thing, Item):
-                    if thing not in [self.host.weapon, self.host.headgear, self.host.armor]:
+                    if not thing.host:
                         targets.append(thing)
             if targets:
                 self.make('grab', turn=2)
                 if len(targets) > 1 and self.host == Global.player.character:
                     Global.menu.var = targets
                     Global.menu.direct(Global.menu.menu_pickup)
+                    Global.player.control.clear_press()
                 else:
                     self.host.pick_up(targets[0])
             elif not self.interact_on(self.host.pos):
@@ -246,7 +262,7 @@ class Actions:
         if reach > 0:
             front = self.host.pos.get_cardinal(self.host.direction, 1 + reach)
             land = self.host.pos.location.collide_land(self.host.pos, front, flag=self.host.collision_type + 2,
-                                                   return_prev=False)
+                                                       return_prev=False)
             if front != land:
                 front = self.host.pos.get_cardinal(self.host.direction, 1)
         else:
@@ -256,18 +272,10 @@ class Actions:
             motion = 'kick'
         else:
             motion = 'attack'
-        if self.host.get_skill('bash'):
-            concentration = self.host.states.get('Concentration')
-            if concentration:
-                concentration.trigger(['spend'])
-                self.host.pos.location.field.register(dmg, front, delay=0)
-                if self.humanoid:
-                    motion = 'bash'
         self.make(motion, turn=6 - atk_spd)
-        delay = 0 if self.host.tags.get('spd', 0) > 0 else 1
-        self.host.pos.location.field.register(dmg, front, delay=delay, hitter=self.host,
-                                          sound=['swing', 0], callback=self.host.on_attack)
-        if self.host.get_skill('crush') and dmg >= front.get_hardness():
+        self.host.pos.location.field.register(dmg, front, delay=1 - self.host.get_skill('instinct'), hitter=self.host,
+                                              sound=['swing', 0], callback=self.host.on_attack)
+        if self.host.get_skill('crush') and dmg > front.get_hardness():
             self.on_finish = self.crush
 
     def crush(self):
@@ -287,12 +295,17 @@ class Actions:
                 from src.entity.unit.item.Spell import Spell
                 spell = Spell.get(ability)
                 cooldown = spell.get_cooldown()
+                cdr = self.host.tags.get('cdr', 0) + 1
+                if cdr > 1:
+                    cooldown = int(cooldown / cdr)
+                elif cdr <= 0:
+                    cooldown = cooldown * (-cdr + 2)
                 if cooldown > 0:
                     self.host.states.add('Exhaustion', cooldown)
                 spell.cast(self.host)
             elif self.host == Global.player.character:
                 from src.tools.Dialog import Dialog
-                Global.main.monologue.set(Dialog.get('wait', [exhaustion.duration]), time=20)
+                Global.main.monologue.set(Dialog.get(':wait', [exhaustion.duration]), time=20)
 
     def ability1(self):
         self.ability(self.host.tags.get('ab1'))

@@ -1,6 +1,5 @@
 import math
 
-from src.entity.Stock import Stock
 from src.game import Global
 from src.game.Turn import Turn
 from src.map.Field import Field
@@ -10,15 +9,13 @@ from src.map.Tile import Tile
 
 
 class Location:
-    def __init__(self, data, make=False):
+    def __init__(self):
         self.field = Field(self)
         self.sound = Sound(self)
         self.population = Population()
         self.tiles = [[]]
         self.push_status = [0, 0]
         self.header = None
-        if data:
-            self.load(data, make)
         Turn.add(self.field.turn)
 
     def __str__(self):
@@ -31,37 +28,6 @@ class Location:
         tiles = '%'.join(rt)
         objects = self.population.__str__()
         return tiles + '\n' + objects + '\n'
-
-    def load(self, arg, make=True, offset=(0, 0)):
-        while len(arg) < 3:
-            arg.append([])
-        rows = arg[1][0].split('%')
-        row_num = 0
-        if make:
-            resize_x = max(len(rows[0]) + offset[0], self.get_width())
-            resize_y = max(len(rows) + offset[1], self.get_height())
-        else:
-            resize_x = len(rows[0]) + offset[0]
-            resize_y = len(rows) + offset[1]
-        self.resize(resize_x, resize_y)
-        for y in rows:
-            col_num = 0
-            for terrain in y:
-                self.tiles[row_num + offset[1]][col_num + offset[0]].set_terrain(terrain)
-                col_num += 1
-            row_num += 1
-        if make:
-            for prop in self.population.get_all():
-                if offset[0] <= prop.pos.x < offset[0] + len(rows[0])\
-                        and offset[1] <= prop.pos.y < offset[1] + len(rows):
-                    prop.remove()
-        objects = []
-        for i in arg[2]:
-            obj = Stock.get(self, i[2], i)
-            obj.relocate(to=obj.pos.get_neighbor(offset[0], offset[1]), force=True)
-            obj.add()
-            objects.append(obj)
-        return objects
 
     def process_terrain(self):
         for y in self.tiles:
@@ -173,3 +139,13 @@ class Location:
     def on_sleep(self, time):
         for i in self.population.get_all():
             i.on_sleep(time)
+
+    def clear(self):
+        Global.player.character.deregister()
+        objs = []
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
+                objs += self.tiles[y][x].things
+        while objs:
+            objs.pop().remove()
+        Global.player.character.relocate(to=Global.player.character.pos, force=True)

@@ -11,7 +11,7 @@ class Body:
 
     def __init__(self, model_name):
         super().__init__()
-        data = Data.get_cache_clip(model_name).copy()
+        data = Data.get_cache(model_name)
         self.model_name = model_name
         self.texture_count = 0
         self.seed = 1
@@ -29,6 +29,8 @@ class Body:
         self.state_name = 'default'
         self.animation_ended = 0
         self.root = None
+        self.tint = [255, 255, 255]
+        self.blend = 0
 
         for x in data[2]:
             self.motion[x[0]] = x[1]
@@ -91,6 +93,11 @@ class Body:
             dy = (self.current_animation[k][1] + diff.y) / timer
             organ.lower_joint += (dx, dy)
             organ.place(x, y)
+        if self.blend > 0:
+            for i in range(3):
+                self.tint[i] = int(self.tint[i] + ((255 - self.tint[i]) / self.blend))
+            self.colorize(self.tint)
+            self.blend -= 1
 
     def force_set_animation(self, motion):
         self.current_animation = self.animation[self.motion[motion][0]]
@@ -200,3 +207,9 @@ class Body:
                     else:
                         r.append(i)
                 self.animation[clip] = r
+
+    def colorize(self, color):
+        self.tint = color
+        self.blend = 16
+        for i in self.organs:
+            i.form.color = color

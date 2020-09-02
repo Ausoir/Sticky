@@ -9,7 +9,8 @@ from src.form.Picture import Picture, Model
 
 class Data:
     cache = {}
-    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'miscellaneous']
+    graphics = {}
+    registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'miscellaneous', 'mercenaries']
     atlas = None
 
     @staticmethod
@@ -24,13 +25,15 @@ class Data:
         for i in animation:
             sequence = []
             for sprite in i[1]:
-                image = Data.get_cache(sprite)
+                image = Data.get_graphics(sprite)
                 sequence.append(image)
             loop = bool(i[3])
             if not loop:
                 sequence.append(Data.get_cache('none'))
             ani = pyglet.image.Animation.from_image_sequence(sequence, float(i[2]), loop=loop)
             Data.set_cache(i[0], ani)
+        for i in Data.get_files('data/unit', lambda f: f.endswith('.2d')):
+            Data.set_cache(i, Data.get_cache_clip('data/unit/' + i))
 
     @staticmethod
     def direct(fdir, path=''):
@@ -64,6 +67,13 @@ class Data:
         return Data.cache[fdir]
 
     @staticmethod
+    def get_graphics(fdir):
+        if fdir[0] == '_':
+            args = fdir.split('_')
+            return Data.graphics[args[1]][int(args[3])][int(args[2])]
+        return Data.get_cache(fdir)
+
+    @staticmethod
     def set_cache(fdir, arg):
         if fdir not in Data.cache:
             Data.cache[fdir] = arg
@@ -88,7 +98,7 @@ class Data:
 
     @staticmethod
     def get_form(fdir, form=None, **kwargs):
-        cache = Data.get_cache(fdir)
+        cache = Data.get_graphics(fdir)
         if not cache:
             cache = Data.get_image(fdir, True)
         if not form:
@@ -128,12 +138,14 @@ class Data:
 
     @staticmethod
     def initialize_image(name, texture, subset_size, anchor=None):
+        Data.graphics[name] = []
         image = Data.atlas.add(pyglet.image.load(Data.direct('data/image/' + texture + '.png')))
         # image = pyglet.image.load(Data.direct('data/image/' + texture + '.png'))
         image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
         seq = pyglet.image.TextureGrid(image_grid)
         i = 0
         for y in range(subset_size[1]):
+            row = []
             for x in range(subset_size[0]):
                 if anchor:
                     seq[i].anchor_x = anchor[0]
@@ -141,8 +153,9 @@ class Data:
                 else:
                     seq[i].anchor_x = int(seq[i].width / 2)
                     seq[i].anchor_y = int(seq[i].height / 2)
-                Data.cache[name + '_' + str(x) + 'x' + str(subset_size[1] - y - 1)] = seq[i]
+                row.append(seq[i])
                 i += 1
+            Data.graphics[name].insert(0, row)
 
     @staticmethod
     def process_raw(data):
@@ -208,7 +221,7 @@ class Data:
     @staticmethod
     def get_cache_clip(fdir):
         r = []
-        clip = Data.read(fdir + '.2d')
+        clip = Data.read(Data.direct(fdir))
         lines = clip.split('\n\n')
         r.append(Data.process_raw(lines[0]))
         r.append(Data.process_raw(lines[1]))

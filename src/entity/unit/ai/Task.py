@@ -18,10 +18,7 @@ class Idle:
 
     def on_set(self):
         self.pilot.priority = 5
-        self.lifetime = -1
-
-    def on_finish(self):
-        self.pilot.set_task(self.pilot.default)
+        self.lifetime = 100
 
     def update(self):
         if self.lifetime > 0:
@@ -30,6 +27,9 @@ class Idle:
             self.pilot.set_task(self.pilot.default)
             return False
         return True
+
+    def adjust_pos(self, arg):
+        pass
 
 
 class TileTask(Idle):
@@ -57,6 +57,10 @@ class TileTask(Idle):
                 return False
             return True
 
+    def adjust_pos(self, arg):
+        if self.target:
+            self.target = self.target.get_neighbor(arg.x, arg.y)
+
 
 class TargetTask(TileTask):
     def record(self):
@@ -79,10 +83,13 @@ class TargetTask(TileTask):
 
     def update(self):
         if super().update():
-            if not self.target or self.target.removed == 1:
+            if self.target.removed == 1:
                 self.pilot.set_task(self.pilot.default)
                 return False
             return True
+
+    def adjust_pos(self, arg):
+        pass
 
 
 class Return(Idle):
@@ -118,7 +125,7 @@ class Path(TileTask):  # path finding A*
 
     def __init__(self, pilot):
         super().__init__(pilot)
-        self.chase = 12
+        self.chase = 11
         self.open = None
         self.closed = []
         self.closest = None
@@ -146,7 +153,7 @@ class Path(TileTask):  # path finding A*
             self.closest = node
         options = self.pilot.route.get(node.node)
         for i in options:
-            pos = node.node.get_neighbor(i[0], i[1])
+            pos = node.node.get_neighbor(i[0], i[1], limit=True)
             if self.check_loop(self.closed, pos):
                 continue
             conflict = self.check_loop(self.open, pos)
@@ -172,14 +179,14 @@ class Path(TileTask):  # path finding A*
 
     def perform(self):
         if self.result:
-            self.host.face_toward(self.result[0])
+            direction = self.host.pos.get_face(self.result[0])
             front = self.host.pos.get_cardinal(self.host.direction, 1)
             if front.get_solidity() >= self.host.collision_type and self.pilot.route.can_destroy(front) != -1:
-                self.host.input('attack')
+                self.pilot.face('attack', direction)
             else:
-                self.host.input('walk')
+                self.pilot.face('walk', direction)
             self.result = []
-        if (self.host.pos - self.target).difference() <= 1:
+        if not self.target or (self.host.pos - self.target).difference() <= 1:
             return True
 
     def update(self):
@@ -191,7 +198,7 @@ class Path(TileTask):  # path finding A*
                     self.next_reset = 1
                 else:
                     self.next_reset += 1
-                for times in range(9):
+                for times in range(10):
                     if self.open:
                         done = self.iterate(self.open[0])
                         if done:
@@ -242,20 +249,21 @@ class Wander(Idle):
         if rand == 0:
             self.find_destination()
         elif rand == 1:
-            self.host.face(Global.r.rand_int(0, 3))
+            self.pilot.face('walk', Global.r.rand_int(0, 3))
 
     def find_destination(self):
         self.target = self.host.pos
         for i in range(9):
             option = Global.r.rand_list(self.pilot.route.get(self.target))
             if option:
-                self.target = self.target.get_neighbor(option[0], option[1])
+                self.target = self.target.get_neighbor(option[0], option[1], limit=True)
 
     def perform(self):
         if self.target:
             if self.pilot.is_humanoid and not self.host.weapon:
+                from src.entity.unit.item.Item import Item
                 for i in self.host.pos.things:
-                    if i != self.host and i != self.host.armor and i != self.host.headgear\
+                    if isinstance(i, Item) and i != self.host and i != self.host.armor and i != self.host.headgear\
                             and i.tags.get('$', 0) > 1 and Global.r.rand_int(0, 2) == 0:
                         self.host.input('grab')
                         return
@@ -290,31 +298,30 @@ class Attack(TargetTask):
             dist = self.target.pos - self.host.pos
             diff = dist.difference()
             if diff == 0:
-                self.host.face(self.target.direction + 2)
-                self.host.input('walk')
+                self.pilot.face('walk', self.target.direction + 2)
             elif diff == 1:
                 if self.host.get_skill('reach'):
-                    self.host.face(self.target.direction + 2)
-                    self.host.input('walk')
+                    direction = self.host.pos.get_face(self.target.pos)
+                    self.pilot.face('walk', direction + 2)
                 else:
-                    self.host.face_toward(self.target.pos)
+                    direction = self.host.pos.get_face(self.target.pos)
                     concentration = self.host.states.get('Concentration')
                     if concentration and self.host.get_skill('side step'):
-                        self.host.input('walk')
+                        self.pilot.face('walk', direction)
                     else:
-                        self.host.input('attack')
+                        self.pilot.face('attack', direction)
             elif diff == 2 and (dist.x == 0 or dist.y == 0) and\
                     (self.host.get_skill('lunge') or self.host.get_skill('reach')):
-                self.host.face_toward(self.target.pos)
-                self.host.input('attack')
+                direction = self.host.pos.get_face(self.target.pos)
+                self.pilot.face('attack', direction)
             elif self.pilot.move.out_of_reach:
                 self.pilot.set_task(self.pilot.move)
                 self.pilot.priority = 2
                 self.pilot.move.target = self.target.pos
             else:
-                ability = self.host.tags.get('abi')
+                ability = self.host.tags.get('ab1')
                 if ability and Global.r.rand_int(0, 6) == 0:
-                    self.host.action.set('ability')
+                    self.host.action.set('ability1')
                 else:
                     self.pilot.move.target = self.target.pos
                     self.pilot.move.perform()
@@ -354,3 +361,18 @@ class Follow(TargetTask):
         if self.target:
             self.pilot.move.target = self.target.pos
             self.pilot.move.perform()
+
+
+class Guard(Path):
+    def update(self):
+        if not self.target:
+            guard = self.host.tags.get('guard')
+            host_pos = Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)
+            if guard:
+                pos = guard[1:].split('y')
+                tile = self.host.pos.get_neighbor(int(pos[0]) - host_pos[0], int(pos[1]) - host_pos[1], limit=True)
+            else:
+                self.host.tags.set('guard', 'x' + str(host_pos[0]) + 'y' + str(host_pos[1]))
+                tile = self.host.pos
+            self.target = tile
+        return super().update()

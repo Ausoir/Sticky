@@ -29,6 +29,7 @@ class World:
         self.last_cells = self.cells
         self.dirty = False
         self.map_biome = None
+        self.cache = {}
 
     def set_seed(self, seed):
         self.map_biome = Biome(seed)
@@ -67,6 +68,8 @@ class World:
                 for i in remove_objs:
                     i.remove()
             map_name = World.coord_to_map_name(self.cells[cell_num])
+            if map_name in self.cache:
+                del self.cache[map_name]
             if Global.player.player_mode == 0:
                 line_1 = '0'
             else:
@@ -76,6 +79,26 @@ class World:
             line_4 = '%'.join(cell_roofs)
             write = '\n'.join([line_1, line_2, line_3, line_4])
             Data.write('save/' + map_name + '.map', write)
+
+    def load_cells(self, x, y):
+        new = [[i[0] + x, i[1] + y] for i in World.DEFAULT]
+        abandoned = []
+        added = []
+        if self.dirty:
+            self.cache = {}
+            added = World.ALL
+            abandoned = World.ALL
+            self.dirty = False
+        else:
+            for i in range(9):
+                if new[i] not in self.cells:
+                    added.append(i)
+                if self.cells[i] not in new:
+                    abandoned.append(i)
+        self.save_cell(abandoned, remove=True)
+        self.last_cells = self.cells
+        self.cells = new
+        return added
 
     def load_bubble(self, added, time=-1):
         obj = []
@@ -91,17 +114,23 @@ class World:
                     for x, col in enumerate(range(start_coord[0], start_coord[0] + World.CHUNK)):
                         tile = self.location.tiles[row][col]
                         tile.set_terrain('~')
-                        tile.light_source = 0
                         tile.roof = 0
+                        tile.light_source = 0
                         tile.light = 0
                         obj += tile.things
                         others += tile.others
             else:
-                if map_is_save:
+                cache_key = World.coord_to_map_name(cell_coord)
+                if cache_key in self.cache:
+                    map_data = self.cache[cache_key]
+                    time_passed = max(0, time - int(map_data[0][0]))
+                elif map_is_save:
                     map_data = Data.process_raw(Data.read(map_save_name))
+                    self.cache[cache_key] = map_data
                     time_passed = max(0, time - int(map_data[0][0]))
                 else:
                     map_data = Data.process_raw(Data.read(map_data_name))
+                    self.cache[cache_key] = map_data
                     time_passed = 8
                 if Global.player.player_mode == 0:
                     time_passed = 0
@@ -172,25 +201,6 @@ class World:
             if spawn_list[level]:
                 return Global.r.rand_list(spawn_list[level])
 
-    def load_cells(self, x, y):
-        new = [[i[0] + x, i[1] + y] for i in World.DEFAULT]
-        abandoned = []
-        added = []
-        if self.dirty:
-            added = World.ALL
-            abandoned = World.ALL
-            self.dirty = False
-        else:
-            for i in range(9):
-                if new[i] not in self.cells:
-                    added.append(i)
-                if self.cells[i] not in new:
-                    abandoned.append(i)
-        self.save_cell(abandoned, remove=True)
-        self.last_cells = self.cells
-        self.cells = new
-        return added
-
     def recenter(self, x, y):
         offset_x = 0
         offset_y = 0
@@ -243,17 +253,11 @@ class World:
             Global.player.character.relocate(to=pos, force=True)
             for i in self.location.population.get_all():
                 i.bound(False)
-        elif abs(diff_x) <= 2 and abs(diff_y) <= 2:
+        else:
             Global.player.character.deregister()
             self.save_cell(World.ALL, remove=True)
             self.cells = [[i[0] + args[2], i[1] + args[3]] for i in World.DEFAULT]
             self.load_bubble(World.ALL, time=Global.player.days)
-            Global.player.character.relocate(x=args[0] + World.CHUNK, y=args[1] + World.CHUNK, force=True)
-            self.location.process_terrain()
-        else:
-            Global.player.character.deregister()
-            added = self.load_cells(args[2], args[3])
-            self.load_bubble(added, time=Global.player.days)
             Global.player.character.relocate(x=args[0] + World.CHUNK, y=args[1] + World.CHUNK, force=True)
             self.location.process_terrain()
 

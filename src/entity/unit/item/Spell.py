@@ -293,7 +293,7 @@ class Pester(Spell):
         target = self.auto_target(2)
         if target:
             Global.world.location.sound.register(target.pos, 8, file='void')
-            for i in range(Global.r.rand_int(1, 5)):
+            for i in range(Global.r.rand_int(2, 4)):
                 space = target.pos.get_neighbor(Global.r.rand_int(-3, 3), Global.r.rand_int(-3, 3), limit=True)
                 summon = Stock.make('Moth', space)
                 Particle.make('zwip', space)
@@ -601,10 +601,13 @@ class Earthquake(Spell):
 
 class Charge(Spell):
     def get_delay(self):
-        return 2
+        return 0
 
     def get_cooldown(self):
         return 20
+
+    def get_motion(self):
+        return 'bash'
 
     def perform(self):
         front = self.host.pos.get_cardinal(self.host.direction, distance=3)
@@ -612,19 +615,6 @@ class Charge(Spell):
         front = self.host.pos.get_cardinal(self.host.direction)
         Global.world.location.field.register(1, front, delay=0, hitter=self.host)
         self.host.action.make('bash', 8)
-
-
-class Stab(Spell):
-    def get_delay(self):
-        return 0
-
-    def get_cooldown(self):
-        return 20
-
-    def perform(self):
-        front = self.host.pos.get_cardinal(self.host.direction)
-        Global.world.location.field.register(1, front, delay=0, hitter=self.host)
-        self.host.action.make('bash', 2)
 
 
 class Sanctuary(Spell):
@@ -686,8 +676,22 @@ class Capture(Spell):
             ego.end()
         else:
             target = self.auto_target(0)
-            if target:
+            if target and target != Global.player.character:
                 Global.world.location.sound.register(self.host.pos, 0, file='drain')
                 Particle.make('portal', target.pos)
                 self.host.states.add('Ego', -1, target.__str__())
                 target.remove()
+
+
+class Timesave(Spell):
+    def get_delay(self):
+        return 24
+
+    def get_cooldown(self):
+        return 200
+
+    def perform(self):
+        targets = self.host.pos.get_area(4, 4)
+        for i in targets:
+            for thing in i.things:
+                thing.states.add('Revive', 160, 0)

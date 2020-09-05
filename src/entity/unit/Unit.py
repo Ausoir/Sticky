@@ -31,7 +31,7 @@ class Unit(Container):
 
     def load(self, p):
         index = super().load(p)
-        self.skills = p[index]
+        self.skills = p[index].copy()
         from src.entity.unit.ai import Pilot
         ai = self.tags.get('ai')
         self.pilot = Pilot.Pilot(self)
@@ -124,7 +124,7 @@ class Unit(Container):
     def progress_level(self, exp, mode='other', var=None):
         personality = self.tags.get('class', 'classless')
         current_level = self.get_level()
-        curve = int(5 / current_level)
+        curve = max(1, int(5 / current_level))
         if exp <= 0:
             if mode == 'sabotage' and personality == 'agent' and var.name in self.tags.get('mission').split('&'):
                 exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 2) + var.get_value()
@@ -143,11 +143,14 @@ class Unit(Container):
         elif mode == 'survive' and personality == 'survivor':
             exp *= 2
         elif mode == 'explore':
-            if personality != 'explorer':
+            if personality == 'explorer':
+                exp = int(exp / curve)
+            else:
                 return
         elif mode == 'observe' and personality == 'scholar':
             exp *= 4
         current_experience = self.tags.get('lvl', 100) % 100
+        exp += self.get_skill('clairvoyance')
         new_experience = min(99, exp * curve + current_experience)
         if current_experience < 99 and new_experience == 99:
             from src.entity.Particle import Particle
@@ -158,7 +161,8 @@ class Unit(Container):
     def hit(self, damage, hitter=None):
         r = 0
         self.action.idle_frame = 0
-        if hitter is not None and not self.is_facing(hitter.pos):
+        has_hitter = hitter is not None
+        if has_hitter and not self.is_facing(hitter.pos):
             backstab = True
         else:
             backstab = False
@@ -166,37 +170,44 @@ class Unit(Container):
             damage = 0
         if not backstab and self.action.current_action != 'fall':
             damage -= self.tags.get('def', 0)
-            if damage > 0:
-                if self.get_skill('block'):
-                    concentration = self.states.get('Concentration')
-                    if concentration:
-                        concentration.trigger(['spend'])
-                        damage -= 1
         self.states.trigger(['act', 'hit', damage])
         self.pilot.hit(hitter)
         if damage > 0:
             self.pos.location.field.unregister(self)
             if self.get_skill('fortitude'):
                 self.states.add('Invincible', 8)
-            if self.get_skill('parry') and hitter.pos == self.pos.get_cardinal(self.direction):
-                concentration = self.states.get('Concentration')
-                if concentration:
-                    concentration.trigger(['spend'])
-                    from src.entity.Particle import Particle
-                    Particle.make('barrier', self.pos)
-                    self.pos.location.sound.register(self.pos, 0, file='critical')
-                    return 0
+            hitter_direction = self.pos.get_face(hitter.pos)
+            if has_hitter:
+                if self.get_skill('parry'):
+                    concentration = self.states.get('Concentration')
+                    if concentration:
+                        damage = 1
+                        attack_range = 1 + self.get_skill('reach') + self.get_skill('lunge')
+                        if (hitter.pos - self.pos).difference() <= attack_range:
+                            self.face(hitter_direction)
+                            self.action.attack()
+                            self.form.set_state('flurry')
+                            self.form.timer.set(4)
+                if self.direction == hitter_direction and self.get_skill('block'):
+                    concentration = self.states.get('Concentration')
+                    if concentration:
+                        concentration.trigger(['spend'])
+                        from src.entity.Particle import Particle
+                        Particle.make('barrier', self.pos)
+                        self.pos.location.sound.register(self.pos, 0, file='critical')
+                        self.action.hit()
+                        return 0
             self.form.randomize_once(4)
             r = self.decay(damage)
             if r == 2:
-                if hitter:
+                if has_hitter:
                     exp = self.get_level() - hitter.get_level() + 1
                     hitter.progress_level(exp, mode='kill', var=self)
                 self.on_hit(effect='splat', sound='hit_cut')
             else:
                 self.on_hit()
-                if hitter and not self.removed:
-                    front = self.pos.get_cardinal(hitter.pos.get_face(self.pos))
+                if has_hitter and not self.removed:
+                    front = self.pos.get_cardinal(hitter_direction + 2)
                     self.action.knockdown(self, 4, push=front)
                 else:
                     self.action.knockdown(self, 4)
@@ -204,13 +215,11 @@ class Unit(Container):
             self.on_hit(effect='slash', sound='hit_armor')
         return r
 
-    def on_attack(self, target):
+    def on_attack(self, result, target):
         self.states.trigger(['attack', target])
         if isinstance(target, Unit):
             if self.get_skill('disorient'):
                 target.face(Global.r.rand_int(0, 3))
-            if self.get_skill('frenzy'):
-                self.states.add('Damage', 40, 1)
             if not target.is_facing(self.pos):
                 if self.get_skill('assassinate'):
                     target.tags.set('deaf', 1)
@@ -225,28 +234,40 @@ class Unit(Container):
                         target.skills.remove(i)
                         self.pos.location.sound.register(target.pos, 2, file='drain', priority=2)
                         break
-        flurry = self.get_skill('flurry')
-        if flurry:
-            valid_sides = []
-            for sides in [0, 1, -1, 2]:
-                attack_range = 1 + self.get_skill('reach') + self.get_skill('lunge')
-                front = self.pos.get_cardinal(self.direction + sides, distance=attack_range)
-                if front:
-                    for i in front.things:
-                        if isinstance(i, Unit) and i.tags.get('team') != self.tags.get('team'):
-                            valid_sides.append(sides)
-                            break
-            if valid_sides:
-                concentration = self.states.get('Concentration')
-                if concentration:
-                    concentration.trigger(['spend'])
-                    concentration.var += 1
-                    if concentration.var <= 2:
-                        self.face(self.direction + valid_sides[0])
-                        self.action.attack()
-                        self.form.set_state('flurry')
-                        self.form.timer.set(4)
-                        concentration.duration = self.action.delay
+            if result > 0:
+                if self.get_skill('frenzy'):
+                    self.states.add('Damage', 40, 1)
+        if result == 0 and self.get_skill('crush'):
+            concentration = self.states.get('Concentration')
+            if concentration:
+                concentration.trigger(['spend'])
+                defense = target.tags.get('def')
+                target.tags.set('def', 0)
+                target.hit(self.get_damage(), hitter=self)
+                target.tags.set('def', defense)
+        if result > 0:
+            flurry = self.get_skill('flurry')
+            if flurry:
+                valid_sides = []
+                for sides in [0, 1, -1, 2]:
+                    attack_range = 1 + self.get_skill('reach') + self.get_skill('lunge')
+                    front = self.pos.get_cardinal(self.direction + sides, distance=attack_range)
+                    if front:
+                        for i in front.things:
+                            if isinstance(i, Unit) and i.tags.get('team') != self.tags.get('team'):
+                                valid_sides.append(sides)
+                                break
+                if valid_sides:
+                    concentration = self.states.get('Concentration')
+                    if concentration:
+                        concentration.trigger(['spend'])
+                        concentration.var += 1
+                        if concentration.var <= flurry:
+                            self.face(self.direction + valid_sides[0])
+                            self.action.attack()
+                            self.form.set_state('flurry')
+                            self.form.timer.set(4)
+                            concentration.duration = self.action.delay
 
     def decay(self, damage):
         r = super().decay(damage)
@@ -332,6 +353,8 @@ class Unit(Container):
     def describe(self):
         r = super().describe()
         from src.tools.Dialog import Dialog
+        if self.tags.get('team', 1) <= 1:
+            r += '\n' + Dialog.get(':neutral')
         r += '\n' + Dialog.get('Level') + ': ' + str(self.get_level())
         spd = self.tags.get('spd')
         if spd:
@@ -365,9 +388,6 @@ class Unit(Container):
 
     def on_sleep(self, time):
         super().on_sleep(time)
-        hunger = self.tags.get('hunger')
-        if hunger:
-            self.tags.set('hunger', min(100000, hunger + (500 * abs(time))))
         if not self.is_hungry():
             if time >= 4:
                 mhp = self.tags.get('P')
@@ -375,6 +395,12 @@ class Unit(Container):
                     self.tags.set('p', mhp)
             elif time > 0 and self.get_skill('perseverance'):
                 self.decay(-time)
+        hunger = self.tags.get('hunger')
+        if hunger:
+            new = min(100000, hunger + (500 * abs(time)))
+            self.tags.set('hunger', new)
+            if new >= 100000:
+                self.decay(time)
 
     def is_hungry(self):
         hunger = self.tags.get('hunger')

@@ -26,30 +26,9 @@ class Item(Prop):
 
     def describe(self):
         r = super().describe()
-        stat = self.tags.get('sth')
-        if stat:
-            r += '\n' + Dialog.get(':equipment_sth', [Dialog.sign(stat)])
-        space = self.tags.get('str', 0)
-        if space > 0:
-            r += '\n' + Dialog.get(':equipment_inv', [Dialog.sign(space)])
-        end = self.tags.get('end', 0)
-        if end > 0:
-            r += '\n' + Dialog.get(':equipment_end', [Dialog.sign(end)])
-        cha = self.tags.get('cha', 0)
-        if cha > 0:
-            r += '\n' + Dialog.get(':equipment_cha', [Dialog.sign(cha)])
-        defense = self.tags.get('DEF', 0)
-        if defense > 0:
-            r += '\n' + Dialog.get(':equipment_def', [Dialog.sign(defense)])
         skill = self.tags.get('skill')
         if skill:
             r += '\n' + Dialog.get(':equipment_skill', [skill.title()])
-        spd = self.tags.get('spd')
-        if spd:
-            r += '\n' + Dialog.get(':equipment_spd', [Dialog.sign(spd)])
-        cdr = self.tags.get('cdr')
-        if cdr:
-            r += '\n' + Dialog.get(':equipment_cdr', [Dialog.sign(cdr)])
         return r
 
     def on_wield(self, host):
@@ -84,13 +63,15 @@ class Item(Prop):
             super().set_row(row)
 
     def enhance(self, rng):
+        from src.entity.Particle import Particle
         if rng <= int(100 * (1 / max(1, self.tags.get('mod', 0) + 2))):
-            from src.entity.Particle import Particle
-            Particle.make('shock', self.pos)
+            Particle.make('shine', self.pos)
             self.pos.location.sound.register(self.pos, 1, file='heal', priority=2)
             self.tags.increment('mod', 1)
             return True
         else:
+            Particle.make('shock', self.pos)
+            self.pos.location.sound.register(self.pos, 1, file='down', priority=2)
             self.die()
         return False
 

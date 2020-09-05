@@ -35,6 +35,6 @@ class Field:
         if data[2]:
             for thing in data[2].things.copy():
                 if thing.hittable:
-                    if thing.hit(data[3], hitter=data[0]) > 0:
-                        if data[5]:
-                            data[5](thing)
+                    hit = thing.hit(data[3], hitter=data[0])
+                    if data[5]:
+                        data[5](hit, thing)

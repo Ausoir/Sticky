@@ -3,7 +3,6 @@ F11,fullscreen
 GRAVE,switch
 F1,#!help
 TAB,#menu
-P,#test
 LMB,click
 RMB,#>menu>examine
 A,left

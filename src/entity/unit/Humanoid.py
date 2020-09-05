@@ -85,6 +85,7 @@ class Humanoid(Unit):
         super().update_tags()
         self.form.organs[0].set(self.make_face())
         self.form.organs[0].form.show(True)
+        self.form.randomize(self.get_seed())
 
     def set_form(self, arg):
         self.form_name = arg
@@ -92,7 +93,6 @@ class Humanoid(Unit):
         from src.form.BodyHumanoid import BodyHumanoid
         line = Data.get_line('model.txt', arg)
         self.form = BodyHumanoid(line[1], self)
-        self.form.randomize(self.get_seed())
         self.form.set_model(line[2])
 
     def show(self, visible):
@@ -201,18 +201,18 @@ class Humanoid(Unit):
         bound_x, bound_y = super().update()
         if self.weapon:
             if self.direction == 2:
-                x = bound_x + self.form.organs[3].lower_joint.x
-                y = bound_y - self.form.organs[3].lower_joint.y
+                x = bound_x + self.form.organs[3].lower_joint.x - 1
+                y = bound_y - self.form.organs[3].lower_joint.y - 2
                 arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
                 self.weapon.form.rotation = arm - 15
             elif self.direction == 0:
                 x = bound_x + self.form.organs[3].lower_joint.x
-                y = bound_y - self.form.organs[3].lower_joint.y
+                y = bound_y - self.form.organs[3].lower_joint.y + 4
                 arm = (self.form.organs[3].lower_joint - self.form.organs[3].upper_joint).get_atan()
                 self.weapon.form.rotation = arm - 30
             else:
                 x = bound_x + self.form.organs[2].lower_joint.x
-                y = bound_y - self.form.organs[2].lower_joint.y
+                y = bound_y - self.form.organs[2].lower_joint.y + 2
                 arm = (self.form.organs[2].lower_joint - self.form.organs[2].upper_joint).get_atan()
                 self.weapon.form.rotation = arm - 90 + (15 * self.form.side)
             self.weapon.form.scale_x = self.form.side
@@ -235,8 +235,8 @@ class Humanoid(Unit):
         mhp = self.tags.get('P', 0)
         self.healthbar.appear(hp, mhp)
 
-    def on_attack(self, target):
-        super().on_attack(target)
+    def on_attack(self, result, target):
+        super().on_attack(result, target)
         if self.weapon:
             self.weapon.on_attack(target)
         else:

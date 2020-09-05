@@ -16,7 +16,7 @@ class Generator:
             r = GeneratePerlin(size_x, size_y)
             if generator == 'bamboo':
                 r.background['!'] = ';'
-                r.disposition = [[.7, 'Bamboo'], [.4, '\"'], [0, ';']]
+                r.disposition = [[.7, 'Bamboo'], [.695, 'Fruit Tree'], [.69, 'Tree'], [.4, '\"'], [0, ';']]
             elif generator == 'woods':
                 r.background['!'] = ';'
                 r.disposition = [[.85, 'Tree'], [.84, 'Fruit Tree'], [.75, '\"'], [.4, ';'], [0, '.']]

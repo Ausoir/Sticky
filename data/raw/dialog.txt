@@ -1,7 +1,7 @@
 :dsc_health,You die when your health reaches 0. Health: # / #
 :dsc_health2,You die when your health reaches 0. Health: # / #|Vitality from armor: #|Worn armor durability: # / #|Vitality from headgear: #|Worn headgear durability: # / #
 :dsc_date,Date and Time: #. Current Hunger: #%
-:dsc_hunger,Date and Time: #. Current Hunger: #%|You are hungry and you cannot perform time consuming actions such as resting\,\ crafting\,\ or leveling up.
+:dsc_hunger,Date and Time: #. Current Hunger: #%|You are hungry and you cannot perform time consuming actions such as resting\,\ crafting\,\ or leveling up. You will take 1 damage each hour if hunger reaches 1000%.
 :dsc_money,You can use money to buy things from vendors or hire mercenaries. You currently have $# invested.
 :classless,You are classless.
 :avenger,You are an Avenger. When you slay <#> you gain their level as extra experience.
@@ -31,6 +31,7 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 :equipment_spd,Grants # speed
 :equipment_cdr,Grants # cooldown reduction
 :equipment_skill,Grants skill <#>
+:equipment_fire,Grants fire protection
 !heavy,Too heavy! #/# + #kg
 !bright,Too dark!
 !safe,Not safe!
@@ -39,7 +40,6 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 !expire,Food has expired!
 !sociable,Not enough charisma! #/# companions
 ?learn,Learn #?
-:manual_skill,Teaches skill <#>
 :learn,Learned skill <#>!
 !learn_full,<#> is already mastered
 !learn_int,Not enough intelligence!
@@ -61,6 +61,9 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 :req_level,You need to be at least level #!
 :supply,Would you like to sell # for $#?
 !supply,I am not buying anything right now.
+:pawn,Would you like to pawn your #?
+:pawned,Pawned item for $#.
+!pawn,You are not holding anything that can be pawned.
 :transacted,Transaction successful!
 :store_item,Storage of this item would cost $#.
 :store_nothing,You are not holding anything that can be stored.
@@ -75,6 +78,8 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 :wait,Wait # seconds!
 :craftables,Click an item to view recipe
 dsc_examine,Use the arrow keys then press Enter to examine target
-dsc_victory,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life. You are victorious!|Your time of victory: #.|Press ESC to end.
 :invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day at midnight\,\ but this investment does not transfer to your clone\,\ shapeshifts\,\ and is non-refundable. You currently have $# invested.
 :pickone,Choose an item to grab
+:neutral,This unit is not hostile.
+:death,You die...|Time: #|Your Level: #|Press ESC to exit.
+:victory,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life. You are victorious!|Time of victory: #|Your Level: #|Press ESC to end.

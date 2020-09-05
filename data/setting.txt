@@ -1,7 +1,7 @@
 fullscreen,0
-width,787
+width,786
 height,801
-x,749
-y,31
+x,680
+y,36
 res_x,1024
 res_y,768

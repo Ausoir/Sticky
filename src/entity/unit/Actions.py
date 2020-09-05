@@ -58,7 +58,8 @@ class Actions:
     def idle(self):
         if self.idle_frame >= 12:
             self.idle_frame = 0
-            self.host.states.add('Concentration', -1)
+            if self.host.get_skills():
+                self.host.states.add('Concentration', -1)
         else:
             self.idle_frame += 1
         self.make('idle', turn=0)
@@ -142,10 +143,12 @@ class Actions:
                 self.idle()
 
     def interact_on(self, tile, col=0):
-        if self.host == Global.player.character and self.humanoid:
-            self.host.pos.location.sound.register(self.host.pos, 1)
+        if self.host == Global.player.character:
+            from src.entity.unit.item.Item import Item
             for thing in tile.things:
-                if thing != self.host.weapon and thing.obstruct_type >= col and self.interact(thing):
+                if thing != self.host and (not isinstance(thing, Item) or thing.host != self.host) and\
+                        thing.obstruct_type >= col and self.interact(thing):
+                    self.host.pos.location.sound.register(self.host.pos, 1)
                     return True
 
     def interact(self, target):
@@ -154,8 +157,12 @@ class Actions:
             Script.var['menu'] = target
             Script.var['1'] = target
             Script.execute_code(code)
-        code = target.tags.get('#')
-        if code:
+        code = None
+        if self.humanoid:
+            code = target.tags.get('#')
+        if code is None:
+            code = target.tags.get('##')
+        if code and Global.player.is_safe():
             self.make('interact', turn=1)
             self.on_finish = fn
             return True
@@ -246,7 +253,7 @@ class Actions:
                     self.host.unsheathe(0)
                     if weapon:
                         self.host.inventory.add_item(weapon, insert=True)
-                self.make('grab', turn=2)
+                self.make('grab', turn=1)
                 self.on_finish = change
             else:
                 self.host.unsheathe(0)
@@ -261,10 +268,9 @@ class Actions:
         reach = self.host.get_skill('reach')
         if reach > 0:
             front = self.host.pos.get_cardinal(self.host.direction, 1 + reach)
-            land = self.host.pos.location.collide_land(self.host.pos, front, flag=self.host.collision_type + 2,
-                                                       return_prev=False)
-            if front != land:
-                front = self.host.pos.get_cardinal(self.host.direction, 1)
+            from src.map.Tile import Tile
+            front = self.host.pos.location.collide_land(self.host.pos, front, flag=Tile.CHECK_FIRM,
+                                                        return_prev=False)
         else:
             front = self.host.pos.get_cardinal(self.host.direction, 1)
         dmg = self.host.get_damage()
@@ -275,7 +281,7 @@ class Actions:
         self.make(motion, turn=6 - atk_spd)
         self.host.pos.location.field.register(dmg, front, delay=1 - self.host.get_skill('instinct'), hitter=self.host,
                                               sound=['swing', 0], callback=self.host.on_attack)
-        if self.host.get_skill('crush') and dmg > front.get_hardness():
+        if self.host.get_skill('destroy') and dmg > front.get_hardness():
             self.on_finish = self.crush
 
     def crush(self):
@@ -287,14 +293,16 @@ class Actions:
             front.set_terrain('.')
             front.connect_connect()
             front.update_update_shader()
+            Global.world.dirty = True
 
     def ability(self, ability):
         if ability:
             exhaustion = self.host.states.get('Exhaustion')
+            from src.game.Turn import Turn
             if not exhaustion:
                 from src.entity.unit.item.Spell import Spell
                 spell = Spell.get(ability)
-                cooldown = spell.get_cooldown()
+                cooldown = spell.get_cooldown() * Turn.rounds
                 cdr = self.host.tags.get('cdr', 0) + 1
                 if cdr > 1:
                     cooldown = int(cooldown / cdr)

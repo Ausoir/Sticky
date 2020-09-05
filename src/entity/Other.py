@@ -312,7 +312,9 @@ class Food(Item):
 
     def describe(self):
         r = super().describe().replace('Durability', 'Portions')
-        r += '\n' + Dialog.get('Nutrition') + ': ' + str(int(self.tags.get('hunger', 0) / 100)) + '%'
+        hunger = self.tags.get('hunger', 0)
+        if hunger != 0:
+            r += '\n' + Dialog.get('Nutrition') + ': ' + str(int(hunger / 100)) + '%'
         expire = self.get_expiration()
         if expire > 0:
             r += '\n' + Dialog.get(':food_expire', [Dialog.hours(expire)])
@@ -406,6 +408,7 @@ class Corpse(Prop):
                 self.form.show(False)
                 self.form = Data.get_form(self.form_name)
                 self.form.show(True)
+                self.form.bound(self.pos.is_seen())
                 self.has_host = False
         else:
             super().update()
@@ -428,27 +431,12 @@ class Corpse(Prop):
 
 
 class Manual(Item):
-    def __init__(self):
-        super().__init__()
-        self.skill = None
-
-    def __str__(self):
-        return super().__str__() + ',' + self.skill
-
     def load(self, arg):
         index = super().load(arg)
-        self.skill = arg[index]
-        if not self.skill:
+        if not self.tags.get('skill'):
             data = Data.get_line('raw.txt', 'skill')[1]
-            self.skill = Global.r.rand_list(data)
+            self.tags.set('skill', Global.r.rand_list(data))
         return index + 1
-
-    def describe(self):
-        r = super().describe() + '\n' + Dialog.get(':manual_skill', [self.skill.title()])
-        data = Data.get_line('descriptions.txt', 'sk.' + self.skill)
-        if data:
-            r += '\n' + data[1]
-        return r
 
     def use(self):
         if self.host == Global.player.character:
@@ -457,28 +445,26 @@ class Manual(Item):
 
     def learn(self):
         if self.host and self.host == Global.player.character:
-            skill = self.skill.lower()
+            skill = self.tags.get('skill').lower()
             if skill not in self.host.skills:
                 if Global.player.is_learnable() and Global.player.is_bright() and Global.player.sleep(1):
-                    Global.main.monologue.set(Dialog.get(':learn', [self.skill]))
+                    Global.main.monologue.set(Dialog.get(':learn', [skill]))
                     self.host.skills.append(skill)
                     self.die()
             else:
-                Global.main.monologue.set(Dialog.get('!learn_full', [self.skill]))
+                Global.main.monologue.set(Dialog.get('!learn_full', [skill]))
 
 
 class Potion(Food):
     def describe(self):
         r = super().describe()
-        arg = self.tags.get('dur')
-        if arg:
-            r += '\n' + Dialog.get('Duration') + ': ' + Dialog.duration(arg)
         effect = self.tags.get('effect')
         if effect:
-            r += '\n' + Dialog.get('Effect') + ': ' + effect.title()
-            data = Data.get_line('descriptions.txt', effect)
-            if data:
-                r += '\n' + data[1]
+            arg = self.tags.get('dur', 0)
+            from src.entity.unit.Buffs import Buffs
+            buff = Buffs.get_buff(effect.title(), self.host, arg, self.tags.get('var', 0))
+            if buff:
+                r += '\n' + buff.describe()
         return r
 
     def eat(self):
@@ -573,15 +559,19 @@ class Ghost(Unit):
         if self == Global.player.character:
             for i in self.pos.things:
                 if i != self and isinstance(i, Unit) and i.pilot.priority > 3 and not i.states.get('Immune'):
-                    Global.player.character.remove()
-                    if not i.tags.get('lvl'):
-                        i.tags.set('lvl', i.get_level() * 100)
-                    Global.player.set_player(i)
-                    i.states.add('Script', 160, 'tame')
-                    if not i.get_skill('eject'):
-                        i.skills.append('eject')
-                    i.center_camera()
-                    break
+                    safeguard = i.states.get('Safeguard')
+                    if safeguard:
+                        safeguard.trigger(['act', 'hit'])
+                    else:
+                        Global.player.character.remove()
+                        if not i.tags.get('lvl'):
+                            i.tags.set('lvl', i.get_level() * 100)
+                        Global.player.set_player(i)
+                        i.states.add('Script', 160, 'tame')
+                        if not i.get_skill('eject'):
+                            i.skills.append('eject')
+                        i.center_camera()
+                        break
 
 
 class Ceiling(Prop):

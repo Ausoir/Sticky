@@ -43,14 +43,13 @@ class Talisman(Headgear):
             r += '\n' + Dialog.get(':artifact', [spell.title()])
         return r
 
-    def die(self):
+    def on_hit(self, effect=None, sound=None):
         if self.host:
             spell = self.tags.get('spell')
             if spell:
                 from src.entity.unit.item.Spell import Spell
                 Spell.get(spell).cast_on(self.host)
-        if self.host:
             effect = self.tags.get('effect')
             if effect:
                 self.host.states.add(effect, self.tags.get('dur', 0), self.tags.get('var', 0))
-        super().die()
+        super().on_hit()

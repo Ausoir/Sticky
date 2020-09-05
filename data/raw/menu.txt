@@ -25,6 +25,9 @@ insurer,3,Do you require aid?,[Move,#swap],[Introduce,!intro_insurer],[Diagnose,
 intro_insurer,1,I am a insurance agent. This place is dangerous and sooner or later you will die. I cannot help you not die\,\ but I can help you revive!
 supply,3,Are you here to sell?,[Move,#swap],[Introduce,!intro_supplier],[Sell,>menu>supply]
 intro_supplier,1,I am a supplier. I buy doodads from public agents like you and sell them to merchants. Speak to me again if you want to earn some money.
+pawnbroker,3,Are you selling?,[Move,#swap],[Introduce,!intro_pawn],[Sell,>menu>pawn]
+pawnbroker2,3,Thanks for the business.,[Move,#swap],[Introduce,!intro_pawn]
+intro_pawn,1,I am a pawnbroker. I will take whatever item that you are holding and I will give you the money that I think it was worth.
 banker,3,How can I help you?,[Move,#swap],[Introduce,!intro_banker],[Invest,>menu>invest],[Store,>menu>store_item],[Retrieve,>menu>container]
 banker2,3,How can I help you?,[Move,#swap],[Introduce,!intro_banker],[Store,>menu>store_item],[Retrieve,>menu>container]
 intro_banker,1,I am an banker. I can store your items so you can retrieve them later. I also take investments.
@@ -69,7 +72,7 @@ w.undead,1,Every civilian knows that the graveyards at night are patrolled by th
 w.corrupt,1,Places that the evil lord have corrupted have become home to many strange creatures. For example\,\ the corruption moles can summon their running victims to bring them to attack range. Not much else is known about the ecology of the corruption.
 tourguide,3,Hello. Do you need help?,[Directions,!tourguide2],[Tips,!tourguide3]
 tourguide2,1,You are looking for the big bad evil guy? Your destination should be the Mountain Pass. Exit through this east gate out of uptown. Keep going east\,\ through the workshop and the cliff road. The mountain pass is near the bamboo forest.
-tourguide3,1,Many people gather around for the grand reward\,\ but most don't even make it to the Mountain Pass. The roads are dangerous\,\ at least get yourself some life insurance.
+tourguide3,1,Many people gather around for the grand reward\,\ but most don't even make it to the Mountain Pass. If you want a chance\,\ get a life insurance at the brick building near the west gate.
 wordie,2,What do words mean in this deafening orderly presense?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!wordie2
 wordie2,3,I would tell you how blue the sky was a night ago\,\ but have no words to show for it.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
 chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a restaurant... But honestly\,\ honest work seems to be out of order. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
@@ -97,6 +100,6 @@ jackstab,2,Hey there good fellow\,\ I am also a good fellow. How do you do?,I'm 
 jackstab2,1,My name is Jack Stab. Do you know what rhymes with Jack Stab? Back step\,\ of course.
 rogue,2,I am just a wandering rogue. I've been wandering... it seems the stronger I become\,\ the more ambushes I get.,Hmm.,!rogue2
 rogue2,3,I'm wandering... do you have business with me?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
-stoolking,2,I am the stool king. I wield the stool\,\ so that I may smite down the insolent with its might.,Me too!,!chairking2
+stoolking,2,I am the stool king. I wield the stool\,\ so that I may smite down the insolent with its might.,Me too!,!stoolking2
 stoolking2,3,Say\,\ will you join me in my quest to conquer the gates and free my people?,[Move,#swap],[Kneel,kneel]
 helper,3,Do you require assistance?,[Move,#swap],[Get Help,#ally]

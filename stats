@@ -326,3 +326,8 @@
 8/30 Buff on sleep twice (1), Shapeshift with buff add/remove synchro (2), Parkour (1), Flurry (1), Lower difficulty (1)
 8/31 Spawn in town (1), Optimized model read (1), Optimized cache (1)
 ---- PUSH
+9/02 StatBuff on items (1), Dirty map on crush (1), Unit random skill fix (1), Buffed reach (1), Warehouse (1)
+9/03 Body randomize after tag load (1), Skill clairvoyance (1), World Cache (1), Body load perfect position (2)
+9/04 Unit randomly stuck on infinite shout mode (1), Pawnbroker (1), Parry and block reach (1), Buff description (1)
+9/05 Corpse change latency (1), Pierce (1), Tile dynamic lighting improvement (1)
+---- PUSH - Alpha v1.00

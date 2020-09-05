@@ -275,3 +275,5 @@ class Script:
             Global.world.location.clear()
         elif arg[0] == 'clearbuffs':
             arg[1].states.clear(lambda _: True)
+        elif arg[0] == 'clearmagic':
+            arg[1].states.clear(lambda x: 'magic' in x.get_tags())

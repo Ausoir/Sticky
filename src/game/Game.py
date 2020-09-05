@@ -195,14 +195,15 @@ class Game:
                     self.character.add()
                     self.character.tags.set('hunger', 0)
                     Global.world.travel(args[0], args[1])
+                    self.dead = -1
                 else:
                     Script.execute_code('death')
             elif self.dead == 11:
-                Global.menu.direct(Global.menu.menu_victory)
+                Global.menu.display(1)
             else:
                 self.dead += 1
         elif self.character.action.delay > 0:
-            self.character.tags.increment('hunger', 3)
+            self.character.tags.increment('hunger', 2)
         elif self.character.action.current_action == 'idle':
             if self.character.is_hungry():
                 self.character.form.set_state('hunger')

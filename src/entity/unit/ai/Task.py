@@ -5,7 +5,6 @@ class Idle:
     def __init__(self, pilot):
         self.pilot = pilot
         self.host = self.pilot.host
-        self.lifetime = -1
 
     def load(self, arg):
         pass
@@ -18,12 +17,12 @@ class Idle:
 
     def on_set(self):
         self.pilot.priority = 5
-        self.lifetime = 100
+        self.pilot.lifetime = 100
 
     def update(self):
-        if self.lifetime > 0:
-            self.lifetime -= 1
-        elif self.lifetime == 0:
+        if self.pilot.lifetime > 0:
+            self.pilot.lifetime -= 1
+        elif self.pilot.lifetime == 0:
             self.pilot.set_task(self.pilot.default)
             return False
         return True
@@ -239,13 +238,13 @@ class Wander(Idle):
     def on_set(self):
         super().on_set()
         self.target = None
-        self.lifetime = 20
+        self.pilot.lifetime = 100
         self.pilot.priority = 4
         self.random_state()
 
     def random_state(self):
         rand = Global.r.rand_int(0, 3)
-        self.lifetime = Global.r.rand_int(20, 100)
+        self.pilot.lifetime = Global.r.rand_int(50, 200)
         if rand == 0:
             self.find_destination()
         elif rand == 1:
@@ -280,7 +279,7 @@ class Wander(Idle):
 class Attack(TargetTask):
     def on_set(self):
         super().on_set()
-        self.lifetime = 500
+        self.pilot.lifetime = 500
         self.pilot.priority = 1
         if self.pilot.is_humanoid and not self.host.weapon:
             weapon = self.pilot.host.inventory.find_weapon()
@@ -297,12 +296,17 @@ class Attack(TargetTask):
         if self.target:
             dist = self.target.pos - self.host.pos
             diff = dist.difference()
+            reach = self.host.get_skill('reach')
+            attack_range = reach + self.host.get_skill('lunge') + 1
             if diff == 0:
                 self.pilot.face('walk', self.target.direction + 2)
             elif diff == 1:
-                if self.host.get_skill('reach'):
+                if reach > 0:
                     direction = self.host.pos.get_face(self.target.pos)
-                    self.pilot.face('walk', direction + 2)
+                    if self.host.pos.get_cardinal(direction + 2).get_solidity() >= self.host.collision_type:
+                        self.pilot.face('attack', direction)
+                    else:
+                        self.pilot.face('walk', direction + 2)
                 else:
                     direction = self.host.pos.get_face(self.target.pos)
                     concentration = self.host.states.get('Concentration')
@@ -310,8 +314,9 @@ class Attack(TargetTask):
                         self.pilot.face('walk', direction)
                     else:
                         self.pilot.face('attack', direction)
-            elif diff == 2 and (dist.x == 0 or dist.y == 0) and\
-                    (self.host.get_skill('lunge') or self.host.get_skill('reach')):
+            elif diff <= attack_range and (dist.x == 0 or dist.y == 0) and\
+                    self.host.pos.location.collide_land(self.host.pos, self.target.pos, flag=self.host.collision_type+2,
+                                                        return_prev=False) == self.target.pos:
                 direction = self.host.pos.get_face(self.target.pos)
                 self.pilot.face('attack', direction)
             elif self.pilot.move.out_of_reach:

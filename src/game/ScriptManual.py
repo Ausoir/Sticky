@@ -108,9 +108,9 @@ class ScriptManual:
                     var.tags.set('stick', 1)
                 elif host.weapon.tags.get('jewel'):
                     Global.world.location.sound.register(host.pos, 0, file='mix')
-                    jewel = host.weapon.tags.get('jewel')
                     host.drop().remove()
-                    var.tags.set('jewel', jewel)
+                    var.tags.set('jewel', host.weapon.tags.get('jewel'))
+                    var.tags.set('jewelt', host.weapon.tags.get('jewelt'))
                 else:
                     spell = host.weapon.tags.get('spell')
                     if spell:
@@ -120,9 +120,10 @@ class ScriptManual:
                 if var.tags.get('stick') and var.tags.get('jewel') and var.tags.get('spell'):
                     var.tags.remove('stick')
                     jewel = var.tags.remove('jewel')
+                    jewelt = var.tags.remove('jewelt')
                     spell = var.tags.remove('spell')
                     from src.entity.Stock import Stock
-                    wand = Stock.make('Wand', host.pos)
+                    wand = Stock.make(jewelt.title(), host.pos)
                     wand.tags.set('P', jewel)
                     wand.tags.set('p', jewel)
                     wand.tags.set('spell', spell)

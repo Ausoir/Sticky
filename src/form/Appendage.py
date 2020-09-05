@@ -4,10 +4,12 @@ from src.game import Global
 
 class Limb:
     def __init__(self):
+        self.index = -1
         self.form = Global.blank_form
         self.texture_num = -1
         self.upper_joint = Space()
         self.lower_joint = Space()
+        self.child = None
 
     def __str__(self):
         return self.upper_joint.__str__() + ',' + self.lower_joint.__str__()
@@ -16,6 +18,7 @@ class Limb:
         pass
 
     def set_parent(self, parent, joint):
+        parent.child = self
         if joint == 'u':
             self.upper_joint = parent.lower_joint
         elif joint == 'd':

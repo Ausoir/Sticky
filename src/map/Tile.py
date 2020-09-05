@@ -140,16 +140,15 @@ class Tile(Space):
     def update_light(self):
         if self.light_source > 0:
             self.light_source -= 1
-        else:
-            if self.light > 0:
-                self.light -= 1
-            for coord in Global.cardinal_coord:
-                tile = self.get_neighbor(coord[0], coord[1])
-                if tile:
-                    diminish = tile.light - 1
-                    if diminish > self.light:
-                        if not tile.is_land(Tile.CHECK_SIGHT):
-                            self.light = diminish
+        elif self.light > 0:
+            self.light -= 1
+        for coord in Global.cardinal_coord:
+            tile = self.get_neighbor(coord[0], coord[1])
+            if tile:
+                diminish = tile.light - 1
+                if diminish > self.light:
+                    if not tile.is_land(Tile.CHECK_SIGHT):
+                        self.light = diminish
 
     def glow(self, mag):
         self.light = min(13, max(mag, self.light))
@@ -173,14 +172,14 @@ class Tile(Space):
                             tile.update_light()
                             tile.glow_reach(current_diff)
 
-    def glow_stop(self):
-        if self.light > 7:
-            radius = min(7, self.light - 7)
-            for neighbor in self.get_area(radius, radius):
-                neighbor.light = 0
-                neighbor.light_source = 0
-        self.light_source = 0
-        self.light = 0
+    def glow_stop(self, limit, iteration):
+        if iteration > 0 and 5 <= self.light <= limit:
+            for coord in Global.cardinal_coord:
+                tile = self.get_neighbor(coord[0], coord[1])
+                if tile:
+                    tile.light = min(5, tile.light)
+                    tile.glow_stop(limit, iteration - 1)
+            self.light = 0
 
     def get_neighbor(self, x, y, limit=False):
         return self.location.get_tile(self.x + x, self.y + y, limit=limit)

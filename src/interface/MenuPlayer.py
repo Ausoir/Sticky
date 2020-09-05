@@ -182,7 +182,10 @@ class MenuPlayer(Menu):
         def click(index):
             if host.weapon:
                 index -= 1
+            weapon = host.weapon
             host.unsheathe(index)
+            if weapon:
+                host.inventory.add_item(weapon, insert=True)
 
         def drop(index):
             if host.weapon:

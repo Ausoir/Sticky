@@ -25,7 +25,7 @@ class Buff:
         r = self.get_display_name()
         r += '\n' + Dialog.get('Duration') + ': ' + Dialog.duration(self.duration)
         from src.tools.Data import Data
-        data = Data.get_line('descriptions.txt', self.name.lower())
+        data = Data.get_line('descriptions.txt', self.name.title())
         if data:
             r += '\n' + data[1]
         return r
@@ -82,11 +82,6 @@ class StatBuff(Buff):
     def get_display_name(self):
         return Dialog.sign(self.var) + ' ' + Dialog.get(self.get_stat()[1])
 
-    def is_valid(self):
-        from src.entity.unit.Unit import Unit
-        if isinstance(self.host, Unit):
-            return super().is_valid()
-
     def on_start(self):
         self.host.tags.increment(self.get_stat()[0], self.var)
 
@@ -100,6 +95,10 @@ class StatBuff(Buff):
 
 
 class Glow(Buff):
+    def __init__(self, host, name, duration, var):
+        super().__init__(host, name, duration, var)
+        self.old_pos = host.pos
+
     def get_tags(self):
         return ['magic', 'stack']
 
@@ -108,7 +107,12 @@ class Glow(Buff):
         self.var = max(self.var, var)
 
     def on_update(self):
-        self.host.pos.glow(self.var)
+        if self.old_pos != self.host.pos:
+            self.old_pos.glow_stop(self.var, max(1, self.var - 7))
+            self.host.pos.glow(self.var)
+            self.old_pos = self.host.pos
+        else:
+            self.host.pos.glow(self.var)
 
     def on_finish(self):
         self.host.pos.glow_stop()
@@ -125,11 +129,22 @@ class Revive(Buff):
         Particle.make('barrier3', self.host.pos, glow=4)
 
     def on_stack(self, duration, var):
-        self.duration = max(self.duration, duration)
-        self.var = var
+        Global.world.location.sound.register(self.host.pos, 0, file='down')
+        Particle.make('spin', self.host.pos, glow=4)
 
     def on_finish(self):
         self.host.tags.remove('corpse')
+
+    def trigger(self, arg):
+        if arg[0] == 'die':
+            if self.host != Global.player.character:
+                self.duration = 0
+                data = Data.parse(self.host.__str__())
+                from src.entity.Stock import Stock
+                unit = Stock.get(data[1], data=data)
+                unit.pos = self.host.pos
+                unit.add()
+                unit.decay(-1)
 
 
 class Health(Buff):
@@ -180,7 +195,8 @@ class Burn(Buff):
             return super().is_valid()
 
     def on_start(self):
-        self.duration += min(120, self.host.tags.get('fuel', 1) * 10)
+        fuel = self.host.tags.get('fuel', 1)
+        self.duration += min(120, fuel * 10)
         if self.duration >= 90:
             Global.world.location.sound.register(self.host.pos, 13, file='critical')
             from src.entity.Stock import Stock
@@ -195,7 +211,8 @@ class Burn(Buff):
                             if i.hit(1, hitter=None) != 2:
                                 i.decay(1)
         else:
-            self.host.decay(1)
+            if fuel > 0:
+                self.host.decay(1)
 
     def on_update(self):
         self.var += 1
@@ -272,6 +289,18 @@ class Armoring(StatBuff):
         super().on_start()
 
 
+class Insulation(StatBuff):
+    def get_stat(self):
+        return 'fuel', 'Insulation'
+
+    def on_start(self):
+        from src.entity.unit.item.Item import Item
+        if isinstance(self.host, Item):
+            if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
+                self.host.tags.increment('fuel', self.var)
+        super().on_start()
+
+
 class Invisible(Buff):
     def __init__(self, host, name, duration, var):
         super().__init__(host, name, duration, var)
@@ -333,6 +362,24 @@ class Script(Buff):
 
 
 class Spell(Buff):
+    def describe(self):
+        r = self.get_display_name()
+        r += '\n' + Dialog.get('Duration') + ': ' + Dialog.duration(self.duration)
+        from src.tools.Data import Data
+        data = Data.get_line('descriptions.txt', self.name.title())
+        if data:
+            r += '\n' + data[1]
+        from src.tools.Data import Data
+        line = Data.get_line('descriptions.txt', self.var.title())
+        if line:
+            r += '\n' + line[1]
+        return r
+
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return super().is_valid()
+
     def on_start(self):
         from src.entity.unit.item.Spell import Spell
         Spell.get(self.var).cast_on(self.host)
@@ -341,7 +388,7 @@ class Spell(Buff):
 
 class Shapeshift(Buff):
     def get_tags(self):
-        return ['stack', 'harm']
+        return ['stack', 'harm', 'magic']
 
     def __str__(self):
         return '[' + self.name + ',' + str(self.duration) + ',\\' + self.var + '\\]'
@@ -390,6 +437,7 @@ class Concentration(Buff):
         self.effect_on_load()
 
     def on_start(self):
+        self.host.form.colorize([120, 120, 255])
         Particle.make('sweat', self.host.pos, offset=4)
         self.effect_on_load()
         if self.host.get_skill('weave'):
@@ -418,19 +466,21 @@ class Lignification(Buff):
         from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
-                rand_int = Global.r.rand_int(1, 4)
+                rand_int = Global.r.rand_int(2, 3)
                 self.host.tags.increment('P', rand_int)
                 self.host.tags.increment('p', rand_int)
         self.host.tags.increment('fuel', 2)
         self.host.tags.increment('def', 2)
         self.host.tags.increment('spd', -12)
-        self.host.form.colorize([120, 80, 0])
 
     def on_finish(self):
-        self.host.form.colorize([255, 255, 255])
         self.host.tags.increment('fuel', -2, remove=1)
         self.host.tags.increment('def', -2, remove=0)
         self.host.tags.increment('spd', 12, remove=0)
+
+    def on_update(self):
+        if self.effect(3):
+            self.host.form.colorize([180, 120, 80])
 
 
 class Vision(Buff):
@@ -585,7 +635,7 @@ class Safeguard(Buff):
             Particle.make('barrier', self.host.pos)
 
     def trigger(self, arg):
-        if arg[0] == 'act' and arg[1] in ['hit'] and arg[2] > 0:
+        if arg[0] == 'act' and arg[1] == 'hit':
             from src.entity.unit.item.Spell import Spell
             Spell.get('Evacuate').cast_on(self.host)
             self.end()
@@ -599,6 +649,9 @@ class Exhaustion(Buff):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
+
+    def on_stack(self, duration, var):
+        self.duration += duration
 
 
 class Barrier(Buff):

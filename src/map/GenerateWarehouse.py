@@ -6,10 +6,10 @@ class GenerateWarehouse(Generator):
         super().__init__(x, y, random)
         self.display_floor = 'c'
         self.wall = 'B'
-        self.theme = {'.': 'k', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf'}
+        self.theme = {'.': 'K', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf'}
         self.appliance = ['Bed', 'Seat', 'Stool', 'Desk', 'Alchemy Table', 'Crate', 'Workbench', 'Sign', 'Window',
                           'Lantern', 'Sack', 'Table', 'Register', 'Barrel', 'Basket', 'Loom', 'Bookshelf', 'Throne',
-                          'Rack', 'Armor Stand', 'Showcase']
+                          'Rack', 'Armor Stand']
         self.background = {'!': self.display_floor}
         self.divide = 8
         self.thickness = 4

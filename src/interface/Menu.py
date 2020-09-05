@@ -127,7 +127,8 @@ class Menu:
     def execute_code(self, arg):
         self.display(-1)
         Script.var['host'] = Global.player.character
-        Script.var['1'] = Script.var['menu']
+        if 'menu' in Script.var:
+            Script.var['1'] = Script.var['menu']
         Script.execute_code(arg)
 
     def menu_prompt(self):

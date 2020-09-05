@@ -65,6 +65,7 @@ class Prop(Object):
         self.form.face(self.direction)
 
     def die(self):
+        self.states.trigger(['die'])
         from src.entity.Particle import Particle
         Particle.make('disintegrate', self.pos, offset=0)
         loot = self.get_loot()
@@ -121,7 +122,11 @@ class Prop(Object):
         self.on_hit(effect='slash', sound='hit_armor')
         return 0
 
-    def on_hit(self, effect='batter', sound='hit_bash'):
+    def on_hit(self, effect=None, sound=None):
+        if effect is None:
+            effect = 'batter'
+        if sound is None:
+            sound = 'hit_bash'
         self.pos.location.sound.register(self.pos, 5, file=sound)
         Particle.make(effect, self.pos)
 

@@ -12,6 +12,7 @@ class Pilot:
         self.task = None
         self.priority = 5
         self.is_humanoid = False
+        self.task_lifetime = 500
 
     def record(self):
         if self.host.tags.get('ai'):
@@ -73,9 +74,9 @@ class Pilot:
         self.task.perform()
 
     def hit(self, hitter):
-        if self.host.tags.get('ai'):
-            from src.entity.unit.item.Item import Item
-            if hitter:
+        if hitter is not None:
+            if self.host.tags.get('ai'):
+                from src.entity.unit.item.Item import Item
                 if isinstance(hitter, Item):
                     if hitter.host:
                         hitter = hitter.host
@@ -202,7 +203,7 @@ class Routes:
                 else:
                     weight += hp
         if tile.get_yield() == -10 and self.host.collision_type <= Tile.COLLIDE_TERRAIN:
-            if self.host.get_damage() > tile.get_hardness() and self.host.get_skill('crush'):
+            if self.host.get_damage() > tile.get_hardness() and self.host.get_skill('destroy'):
                 weight += 3
             else:
                 return -1

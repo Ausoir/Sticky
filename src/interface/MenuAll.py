@@ -74,7 +74,7 @@ class MenuAll(MenuPlayer):
             for k in range(min(6, len(host.inventory.items))):
                 item = host.inventory.get_item(k)
                 if item:
-                    value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, 2))
+                    value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, item.get_value() * 2))
                     param = [item.name, value, k]
                     lmb = self.get_prompt(Dialog.get(':supply', param), Dialog.get('Sell'), buy, param)
                     self.window.add(Menu.make(item.name, lmb))
@@ -82,6 +82,28 @@ class MenuAll(MenuPlayer):
             self.sub_window.display(1)
         else:
             self.get_message(Dialog.get('!supply'))()
+
+    def menu_pawn(self):
+        def pawn(arg):
+            if Global.player.character.weapon == arg[0]:
+                Global.player.character.drop().remove()
+                Global.player.character.tags.increment('money', arg[1])
+                Global.main.monologue.set(Dialog.get(':pawned', [arg[1]]))
+                host.tags.set('#', '!pawnbroker2')
+            else:
+                Global.main.monologue.set(Dialog.get(':reqnotmet'))
+        host = self.var
+        item = Global.player.character.weapon
+        if item and item.get_value() > 1:
+            Global.r_t.reset(host.get_seed() + 7711 + Global.player.days)
+            personality = host.tags.get('cost', 0)
+            value = max(1, item.get_value() + personality + Global.r_t.rand_int(0, item.get_value()))
+            param = [item, value]
+            self.history.pop()
+            self.get_prompt(Dialog.get(':pawn', [item.get_display_name()]), Dialog.get('Pawn'), pawn, param)()
+            self.sub_window.display(1)
+        else:
+            self.get_message(Dialog.get('!pawn'))()
 
     def menu_store_item(self):
         # noinspection PyUnresolvedReferences
@@ -217,9 +239,16 @@ class MenuAll(MenuPlayer):
         self.history.pop()
         self.get_prompt(Dialog.get(':travel?', [host.tags.get('to'), cost]), Dialog.get('Proceed'), transport)()
 
-    def menu_victory(self):
-        datetime = Dialog.date(Global.player.days)
-        self.get_message(Dialog.get('dsc_victory', [datetime]))()
-        self.sub_window.display(1)
-        Global.player.character.remove()
+    def menu_death(self):
         Global.player.dead = 11
+        datetime = Dialog.date(Global.player.days)
+        level = Global.player.character.get_level()
+        self.get_prompt(Dialog.get(':death', [datetime, level]), Dialog.get('Restart'), self.execute_code, 'restart')()
+        self.sub_window.display(1)
+
+    def menu_victory(self):
+        Global.player.dead = 11
+        datetime = Dialog.date(Global.player.days)
+        level = Global.player.character.get_level()
+        self.get_message(Dialog.get(':victory', [datetime]))()
+        self.sub_window.display(1)

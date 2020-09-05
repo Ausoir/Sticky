@@ -80,9 +80,7 @@ class Stock:
     @staticmethod
     def check(name):
         if name in Stock.registry:
-            record = Stock.registry[name]
-            if Stock.get_class_by_name(record[1]):
-                return True
+            return True
 
     @staticmethod
     def get(name, data=None):

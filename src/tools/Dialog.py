@@ -166,4 +166,4 @@ class Dialog:
         if duration == -1:
             return Dialog.get('persistent')
         else:
-            return str(duration)
+            return str(duration) + ' ticks'

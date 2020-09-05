@@ -31,13 +31,11 @@ class HealthBar:
         if not self.removed and hp and mhp:
             width = int(Global.BLOCK * min(1, hp / mhp)) - 2
             self.foreground.width = max(0, width)
-            if self.foreground.width == 0:
-                self.displaying_health = False
-            elif not self.displaying_health:
+            if not self.displaying_health:
                 self.displaying_health = True
                 self.background.add_batch()
                 self.foreground.add_batch()
-                self.timer.set(80)
+            self.timer.set(80)
 
     def colorize(self, percent):
         val = int(250 * percent ** 2)
@@ -58,11 +56,13 @@ class HealthBar:
             self.background.update(bound_x - Global.HALF_BLOCK, bound_y)
             self.foreground.update(bound_x + 1 - Global.HALF_BLOCK, bound_y + 1)
             if self.timer.update():
-                self.remove()
+                self.hide()
 
-    def remove(self):
-        self.removed = True
+    def hide(self):
         self.displaying_health = False
         self.background.remove_batch()
         self.foreground.remove_batch()
-        return True
+
+    def remove(self):
+        self.removed = True
+        self.hide()

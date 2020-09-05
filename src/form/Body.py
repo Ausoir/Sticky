@@ -44,6 +44,7 @@ class Body:
                 organ = Appendage(x[2], x[3], x[4], x[5])
             self.organs.append(organ)
         for k, x in enumerate(self.organs):
+            x.index = k
             if parent[k][0] == 'r':
                 self.root = x
             else:
@@ -101,13 +102,14 @@ class Body:
 
     def force_set_animation(self, motion):
         self.current_animation = self.animation[self.motion[motion][0]]
-        for k in self.order[self.direction]:
-            if k >= 0:
-                organ = self.organs[k]
-                x = self.current_animation[k][0]
-                x *= self.side
-                y = self.current_animation[k][1]
-                organ.lower_joint.load(organ.upper_joint.x + x, organ.upper_joint.y + y)
+        root = self.current_animation[len(self.current_animation) - 2]
+        self.root.upper_joint.load(root[0], root[1])
+        current = self.root
+        while current is not None:
+            x = current.upper_joint.x + (self.current_animation[current.index][0] * self.side)
+            y = current.upper_joint.y + self.current_animation[current.index][1]
+            current.lower_joint.load(x, y)
+            current = current.child
 
     def set_state(self, state):
         if state in self.motion:
@@ -176,7 +178,7 @@ class Body:
     def randomize(self, seed):
         self.seed = seed
         random.seed(seed)
-        mag = random.gauss(.8, .1)
+        mag = random.gauss(.9, .1)
         r = []
         for clip in self.animation:
             r1 = []

@@ -1,6 +1,12 @@
+Chest,Contains treasures like gold\,\ manual\,\ or enchanting potions.
 Clarity Scroll,Grants free experience.
-Chalk,Use to draw conjuration polygrams. Resulting spell is dependent on shape and terrain. Shine it to begin.
-Poison Vial,Drop and break to create a poison puddle.
+Glass,Ingredient for various crafts. Also a cheap ingredient for wands.
+Silver,Ingredient for various crafts and wands. Can be used to obtain money.
+Gold,Rare ingredient for wands. Can be used to obtain money.
+Pearl,Cheap ingredient for charms. Can be used to obtain money.
+Jet,Ingredient for charms. Can be used to obtain money.
+Amber,Rare ingredient for charms. Can be used to obtain money.
+Chalk,Use to draw conjuration polygrams. Result depends on shape and terrain. Shine it to begin. Requires <Conjuration> skill.
 Jelly,A blob of slime goo. Juicy and delicious\,\ but does not last long uncooked.
 Pudding,A sweet and salty slime pudding.
 Burger,Very fullfilling.
@@ -14,38 +20,40 @@ Telescope,Use to look farther.
 Airhorn,Use to draw attention.
 Oil Lamp,Use to produce light.
 Fade Charm,Imbues the owner with invisibility when destroyed.
-Manual,Read to learn skills.
+Manual,Read to learn skill.
 Ore,Break to obtain rare minerals.
-Block,Passive: Stand still to concentrate. Get +1 defense toward next non-backstab hit.
-Fortitude,Passive: After taking damage\,\ gain damage immunity for a short while.
-Parry,Passive: Stand still to concentrate. Dodge next attack from the front.
-Iron Will,Passive: Stand still to concentrate. Deflect next harmful debuff. Shielding cancels on taking damage.
-Constitution,Passive: Immune to knockdown.
-Perseverance,Passive: Heal 1 health every hour.
-Instinct,Passive: Attacks are performed instantly without pre attack delay.
-Lunge,Passive: Move forward when attacking. Stacks.
-Cleave,Passive: Stand still to concentrate. Attacks affect diagonals while concentrated.
-Flurry,Passive: Stand still to concentrate. Rapidly attack hostiles in reach up to 3 times.
-Frenzy,Passive: Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
-Crush,Passive: Destroy walls when damage is higher than hardness of the wall.
-Assassinate,Passive: Attacks from behind silences target and deal 7 extra damage.
-Side Step,Passive: Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
-Hide,Passive: Stand still to concentrate\,\ becoming invisible until moving.
-Deep Sense,Passive: When standing still\,\ obtain vision through obstacles\,\ but not terrain.
-Parkour,Passive: Stand still to concentrate. Spend concentration to move over obstacles.
+Fortitude,After taking damage\,\ gain damage immunity for a short while.
+Block,Stand still to concentrate. Dodge next attack from the front.
+Parry,Stand still to concentrate. While concentrated\,\ incoming damage is reduced to 1 and auto retaliate.
+Iron Will,Stand still to concentrate. Deflect next harmful debuff. Shielding cancels on taking damage.
+Constitution,Immune to knockdown.
+Perseverance,Heal 1 health every hour when not hungry.
+Instinct,Attacks are performed instantly without pre attack delay.
+Lunge,Move forward when attacking. Stacks.
+Cleave,Stand still to concentrate. Attacks affect diagonals while concentrated.
+Flurry,Stand still to concentrate. Rapidly attack hostiles in reach up to 3 times. Stacks.
+Frenzy,Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
+Crush,Stand still to concentrate. Attacks while concentrated deal 1 damage ignoring defense.
+Assassinate,Attacks from behind silences target and deal 7 extra damage.
+Side Step,Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
+Hide,Stand still to concentrate\,\ becoming invisible until moving.
+Deep Sense,When standing still\,\ obtain vision through obstacles\,\ but not terrain.
+Parkour,Stand still to concentrate. Spend concentration to move over obstacles.
 Alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers.
 Scribing,Create spell scrolls at a registry desk.
-Carving,Carve wands on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick.
+Carving,Carve wands and charms on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick.
 Herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time.
-Conjuration,Draw conjuration polygrams using a chalk which can conjure things at virtually no cost.
-Reach,Passive: Increase range of attacks by 1 tile. Stacks.
-Steal,Passive: Unarmed attacks steal items or equipment from the victim.
-Feed,Passive: When damaging any unit\,\ this skill is replaced by one skill that the victim knew.
-Rally,Passive: Nearby allies come to aid when under attack.
-Deft,Passive: Decreases post attack delay. Stacks.
-Disorient,Passive: On successful attack\,\ change face direction of the victim.
-Psychic,Passive: Always know where you are.
-Nocturnal,Passive: Gain night vision.
+Conjuration,Draw conjuration polygrams using a chalk to conjure things at virtually no cost.
+Reach,Increase range of attacks by 1 tile. Stacks.
+Steal,Unarmed attacks steal items or equipment from the victim.
+Feed,When damaging any unit\,\ this skill is replaced by one skill that the victim knew.
+Rally,Nearby allies come to aid when under attack.
+Deft,Decreases post attack delay. Stacks.
+Disorient,On successful attack\,\ change face direction of the victim.
+Destroy,Destroy walls when damage is higher than hardness of the wall.
+Psychic,Always know where you are.
+Nocturnal,Gain night vision.
+Clairvoyance,Increases experience gain by 1. Stacks.
 Dispel,Purge all magical status effects in an area around the caster.
 Charm,Enslave target unit permanently. Target must be directly in front of the caster.
 Clone,Clone anything directly in front of the caster. 50% success rate.
@@ -53,7 +61,7 @@ Push,Push anything in front away.
 Glow,Makes target glow permanently. Stacks.
 Scorch,Create a scorching flame on the target.
 Scry,Travel as a ghost to observe far away locations relatively safely.
-Disintegration,Deal 5 damage to target in a line\,\ ignoring armor.
+Disintegrate,Deal 5 damage to target in a line\,\ ignoring armor.
 Passwall,Pass through a solid wall.
 Charm,Increase friendliness of target.
 Transience,Assume a spiritual form from which you may possess another living being. Press attack key on top of a unit in ghost form.
@@ -74,30 +82,33 @@ Avatar,Summon a powerful golem to serve the caster for some time.
 Barrier,Defend the caster from physical harm once.
 Clone,Clone anything in front of the caster.
 Charge,Attack 4 tiles away.
-Stab,Attack without delay.
 Breeze,Travel like the wind for a few seconds.
+Sanctuary,Changes landscape near the caster to make it safe.
 Capture,Capture anything in front of the caster. Cast again to summon.
-glow,You emit light.
-revive,Revive on death.
-health,Modifies health over time.
-knockout,Causes knockdown.
-brand,Attacks cause special on-hit effects.
-burn,Constantly take damage and spread to nearby flammables.
-effect,Produces visual effect.
-armoring,Provides armor.
-speed,Movement speed is altered.
-invisible,Become invisible.
-invincible,Immune to physical damage.
-immune,Immune to status effects.
-concentration,Ready for special actions.
-amnesia,A more popular alternative to brainsuckers.
-exhaustion,Special ability cannot be performed while exhausted.
-lignification,Incoming damage reduced by 2 but become immobile and vulnerable to fire.
-vision,Sharpens vision.
-levitation,Levitate off the ground.
+Timesave,Everything near the caster will be recreated if destroyed within 200 ticks. Does not stack with insurance.
+Glow,You emit light.
+Revive,Revive on death.
+Health,Modifies health over time.
+Knockout,Causes knockdown.
+Brand,Attacks cause special on-hit effects.
+Burn,Constantly take damage and spread to nearby flammables.
+Effect,Produces visual effect.
+Damage,Modifies damage. Enchantable.
+Armoring,Provides armor. Enchantable.
+Speed,Movement speed is altered. Enchantable.
+Insulation,Provides fire resistance. Enchantable.
+Invisible,Become invisible.
+Invincible,Immune to physical damage.
+Immune,Immune to status effects.
+Concentration,Ready for special actions.
+Amnesia,A more popular alternative to brainsuckers.
+Exhaustion,Special ability cannot be performed while exhausted.
+Lignification,Incoming damage reduced by 2 but become immobile and vulnerable to fire. Enchantable.
+Vision,Sharpens vision.
+Levitation,Levitate off the ground. Enchantable.
 Slime,Here is a cute slime.
 Mud Slime,Aggressive breed of slimes. They slow you on hit.
-Cave Slime,This breed of slimes are made of tough gelatinous material. They cripple you on hit.
+Cave Slime,This breed of slimes are made of tough gelatinous material. They decrease the victim's damage on hit.
 Bamboo Slime,Once a cute slime\,\ now a practitioner of martial arts.
 Looter,These scavengers don't care if they loot from the dead or alive.
 Deer,A deer. Or is it a moose?
@@ -106,9 +117,9 @@ Venomous Spider,A venomous version of the common spider. Anyone bit will likely 
 Snake,This snake is poisonous. Anyone bit will likely be dead in an hour.
 Killer Ivy,A man eating plant that ambush its prey from out of sight.
 Deathtrap,A deadly plant that lobs fireball at its prey. How it does that is on a debate by scholars world wide.
-Moth,This is surprisingly a moth.
+Moth,This thing is a moth?
 Crab,This crab has 2 pairs of claws!
-Octopus,These beasts and their multiple appendages are particularly strong at fighting multiple opponents.
+Octopus,These beasts and their multiple appendages are specialized for fighting multiple opponents at once.
 Tiger,A striped version of the cat. Much more deadly.
 Zombie,Once dead\,\ now undead. Once dead again\,\ it will rise again.
 Foul Snack,Once a snack\,\ now a bringer of despair. You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
@@ -121,10 +132,11 @@ Caller,A scholar of the arcane arts who learned to summon moths.
 Witch,A scholar of witchcraft who learned how to turn you into something disgusting.
 Master,A master of the martial arts.
 Shade,Spooky!
-Resident,This is a common resident who got stuck in this hell hole.
+Player,A common peasant living day to day in fear of death.
+Resident,This is a common resident living day to day apathetically.
 Soldier,This poor guy was drafted into the army.
 Hireling,A member of the mercenary guild\,\ equipped with leather armor and wearing guild cap.
 Rando,A desperate resident surviving by looting from the outlaws and wildlife despite the danger\,\ just like you.
 Panda,This animal is educated in the ways of the martial arts. Stay out of its way!
-Worm,Eww. At least they're harmless.
-Duelist,This guy is looking for a fight. You hear some coins in his pocket.
+Worm,Their attacks exhaust their victims\,\ preventing them from using special abilities.
+Duelist,This guy is looking for a fight.

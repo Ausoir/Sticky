@@ -39,7 +39,9 @@ class Object(Image):
             self.removed = 0
             Global.world.location.population.add(self)
             self.show(True)
-            self.relocate(to=self.pos, force=True)
+            if self not in self.pos.things:
+                self.pos.things.append(self)
+            self.update_vec()
             return self
 
     def remove(self):

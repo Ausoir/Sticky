@@ -9,11 +9,11 @@ class Population:
     def __str__(self):
         r = []
         for i in self.other:
-            if i.save:
+            if i.is_save:
                 r.append('['+i.__str__()+']')
         for team in self.teams:
             for i in team:
-                if i.save:
+                if i.is_save:
                     r.append('['+i.__str__()+']')
         return ','.join(r)
 

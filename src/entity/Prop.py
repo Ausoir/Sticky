@@ -15,6 +15,7 @@ class Prop(Object):
         self.tags = Attribute(self)
 
     def __str__(self):
+        self.tags.set('dir', self.direction)
         return ','.join([super().__str__(), self.tags.__str__(), '[' + self.states.__str__() + ']'])
 
     def load(self, arg):
@@ -131,13 +132,14 @@ class Prop(Object):
         Particle.make(effect, self.pos)
 
     def get_display_name(self):
-        return self.name
+        from src.tools.Dialog import Dialog
+        return Dialog.get(self.name)
 
     def describe(self):
         from src.tools.Dialog import Dialog
         from src.tools.Data import Data
-        r = Dialog.get(self.get_display_name())
-        data = Data.get_line('descriptions.txt', r)
+        r = self.get_display_name()
+        data = Data.get_line('descriptions.txt', self.name)
         r += '  (' + Dialog.weight(self.get_weight()) + ')'
         if data:
             r += '\n' + data[1]

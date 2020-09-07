@@ -104,7 +104,10 @@ class Glow(Buff):
 
     def on_stack(self, duration, var):
         self.duration = max(self.duration, duration)
-        self.var = max(self.var, var)
+        if self.var < 12:
+            self.var = min(12, self.var + var)
+        if self.var <= 0:
+            self.end()
 
     def on_update(self):
         if self.old_pos != self.host.pos:
@@ -115,7 +118,7 @@ class Glow(Buff):
             self.host.pos.glow(self.var)
 
     def on_finish(self):
-        self.host.pos.glow_stop()
+        self.host.pos.glow_stop(self.var, max(1, self.var - 7))
 
 
 class Revive(Buff):
@@ -191,11 +194,11 @@ class Burn(Buff):
         return ['magic', 'harm', 'stack']
 
     def is_valid(self):
-        if self.host.tags.get('fuel', 1) > 0:
+        if self.host.tags.get('fuel', 0) >= 0:
             return super().is_valid()
 
     def on_start(self):
-        fuel = self.host.tags.get('fuel', 1)
+        fuel = self.host.tags.get('fuel', 0) + 1
         self.duration += min(120, fuel * 10)
         if self.duration >= 90:
             Global.world.location.sound.register(self.host.pos, 13, file='critical')
@@ -319,8 +322,7 @@ class Invisible(Buff):
         if isinstance(self.host, Unit):
             self.host.tags.increment('sth', 40)
             for unit in Global.world.location.population.get_units():
-                if unit.pilot.priority == 1:
-                    unit.pilot.lose(self.host)
+                unit.pilot.lose(self.host)
 
     def on_stack(self, duration, var):
         self.duration = duration
@@ -427,7 +429,7 @@ class Concentration(Buff):
 
     def effect_on_load(self):
         if self.host.get_skill('deep sense') and not self.host.states.get('Vision'):
-            self.host.states.add('Vision', 10)
+            self.host.states.add('Vision', 12)
         if self.host.get_skill('iron will'):
             self.host.states.add('Deflection', -1)
         if self.host.get_skill('hide'):
@@ -496,12 +498,19 @@ class Vision(Buff):
             return super().is_valid()
 
     def on_start(self):
-        Particle.make('portal', self.host.pos)
+        Particle.make('eye', self.host.pos)
         self.var = Dialog.nonstrlist(self.host.sight)
         from src.map.Tile import Tile
         self.host.sight = [Tile.COLLIDE_TERRAIN]
         if self.host == Global.player.character:
             Global.player.set_darkness()
+
+    def on_stack(self, duration, var):
+        if self.duration != -1:
+            if duration == -1:
+                self.duration = -1
+            else:
+                self.duration += duration
 
     def on_load(self):
         from src.map.Tile import Tile
@@ -569,6 +578,11 @@ class Poison(Buff):
     def get_display_name(self):
         return super().get_display_name() + ' (' + str(self.var) + ')'
 
+    def is_valid(self):
+        from src.entity.unit.Unit import Unit
+        if isinstance(self.host, Unit):
+            return super().is_valid()
+
     def on_update(self):
         if self.effect(12):
             Particle.make('poison', self.host.pos, offset=8)
@@ -591,17 +605,12 @@ class Knockout(Buff):
             return super().is_valid()
 
     def on_start(self):
+        Particle.make('shock', self.host.pos)
         self.host.action.set('fall')
         self.host.action.delay = self.duration
 
     def on_load(self):
         self.on_start()
-
-    def trigger(self, arg):
-        if arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
-            self.end()
-            if self.host.action.current_action == 'fall':
-                self.host.action.delay = 1
 
 
 class Amnesia(Buff):
@@ -629,10 +638,6 @@ class Safeguard(Buff):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
-
-    def on_update(self):
-        if self.effect(12):
-            Particle.make('barrier', self.host.pos)
 
     def trigger(self, arg):
         if arg[0] == 'act' and arg[1] == 'hit':
@@ -664,6 +669,10 @@ class Barrier(Buff):
             Particle.make('barrier', self.host.pos)
             self.end()
 
+    def on_update(self):
+        if self.effect(12):
+            Particle.make('barrier', self.host.pos)
+
 
 class Deflection(Buff):
     def get_tags(self):
@@ -680,6 +689,10 @@ class Deflection(Buff):
         elif arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
             Global.world.location.sound.register(self.host.pos, 2, file='void')
             self.end()
+
+    def on_update(self):
+        if self.effect(14):
+            Particle.make('barrier2', self.host.pos)
 
 
 class Nutrition(Buff):

@@ -54,7 +54,7 @@ class Force(Prop):
     def __init__(self):
         super().__init__()
         self.obstruct_type = 0
-        self.save = False
+        self.is_save = False
 
     def add(self):
         self.removed = 0
@@ -143,7 +143,7 @@ class Specie(Item):
 
     def get_display_name(self):
         cue = Data.get_line('raw.txt', 'plant_cue')[1]
-        return cue[self.get_seed() % len(cue)].title() + ' ' + self.name
+        return cue[self.get_seed() % len(cue)].title() + ' ' + super().get_display_name()
 
     def describe(self):
         r = super().describe()
@@ -358,75 +358,6 @@ class Food(Item):
         if self.get_expiration() == 0:
             from src.entity.Stock import Stock
             Stock.make('Trash', self.pos)
-            self.remove()
-
-
-class Corpse(Prop):
-    def __init__(self):
-        super().__init__()
-        self.direction = 1
-        self.obstruct_type = Tile.COLLIDE_ITEM
-        self.form = None
-        self.has_host = False
-        self.fade = 0
-
-    def load(self, arg):
-        r = super().load(arg)
-        self.form = Data.get_form(self.form_name)
-        return r
-
-    def invalid(self, state):
-        pass
-
-    def set_form(self, arg):
-        self.form_name = arg
-
-    def set_row(self, row):
-        if self.has_host:
-            self.form.set_row(row)
-        else:
-            super().set_row(row)
-
-    def set(self, form):
-        self.has_host = True
-        self.form = form
-        dead = 'dead'
-        self.form.randomize_clip(dead, 8)
-        self.form.set_state(dead)
-        self.form.show(True)
-        self.form.set_state = self.invalid
-        self.fade = 100
-        return self
-
-    def update(self):
-        if self.has_host:
-            from src.game.Camera import Camera
-            bound_x, bound_y = Camera.get_relative_pos(self.vec.x, self.vec.y)
-            self.form.place(bound_x, bound_y)
-            self.fade -= 1
-            if self.fade <= 0:
-                self.form.show(False)
-                self.form = Data.get_form(self.form_name)
-                self.form.show(True)
-                self.form.bound(self.pos.is_seen())
-                self.has_host = False
-        else:
-            super().update()
-
-    def hit(self, damage, hitter=None):
-        r = super().hit(damage, hitter)
-        if r != 2:
-            if self.has_host:
-                self.form.randomize_once(4)
-        return r
-
-    def die(self):
-        self.remove()
-
-    def on_sleep(self, time):
-        if time >= 8:
-            from src.entity.Stock import Stock
-            Stock.make('Skull', self.pos)
             self.remove()
 
 

@@ -4,16 +4,15 @@
 :dsc_hunger,Date and Time: #. Current Hunger: #%|You are hungry and you cannot perform time consuming actions such as resting\,\ crafting\,\ or leveling up. You will take 1 damage each hour if hunger reaches 1000%.
 :dsc_money,You can use money to buy things from vendors or hire mercenaries. You currently have $# invested.
 :classless,You are classless.
-:avenger,You are an Avenger. When you slay <#> you gain their level as extra experience.
+:avenger,You are an Avenger. You get +1 experience from killing. When you slay <#> you gain double experience.
 :psycho,You are a Psycho. You get 3 times more experience from killing friendlies.
 :gourmet,You are a Gourmet. You get 2 times more experience from eating food and 4 times more when eating #.
-:survivor,You are a Survivor. Your passive experience gain from things like resting is doubled.
+:survivor,You are a Survivor. You passively gain experience when you perform time consuming actions. You also gain experience from exploring new area.
 :agent,You are an Agent. You gain experience when you sabotage your targets. Your targets are: #.
-:explorer,You are an Explorer. You gain experience from exploring new area.
-:scholar,You are a Scholar. Using the observer item gives you 4 times more experience.
+:scholar,You are a Scholar. You can use the observer item indefinitely and 3 times more frequently.
 :no_status,No abnormal status effect found.
 :stat_applied,Level up! You are now level #!
-dsc_level,You progress in level by doing things like eating\,\ killing units of higher level\,\ resting\,\ or performing class missions. Experience gain diminishes with level increase.
+dsc_level,You progress in level by doing things like eating\,\ killing units of higher level\,\ or performing class missions. Experience gain diminishes with level increase.
 dsc_vitality,Vitality determines your maximum health. Humanoids have 2 health by default.
 dsc_strength,Strength determines how much weight you can carry.
 dsc_stealth,Stealth determines how close enemies have to be to detect you.
@@ -31,7 +30,7 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 :equipment_spd,Grants # speed
 :equipment_cdr,Grants # cooldown reduction
 :equipment_skill,Grants skill <#>
-:equipment_fire,Grants fire protection
+:equipment_fire,# fire resistance
 !heavy,Too heavy! #/# + #kg
 !bright,Too dark!
 !safe,Not safe!
@@ -73,13 +72,16 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 !learnfull,You cannot learn more than 3 abilities.
 :insure?,I can clone your body so you can be revived even if you die. Will you take this life insurance for $#? Note that insurance does not apply to clones or shapeshifts.
 :insurecancel?,You are already under revival contract. Would you like to cancel it?
-:observe,You gained # experience from this observation
+:observe,You gained # experience from this observation.
+!observe,You must wait # hours before observing again.
 :repair,All your equipment have been repaired
 :wait,Wait # seconds!
 :craftables,Click an item to view recipe
 dsc_examine,Use the arrow keys then press Enter to examine target
 :invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day at midnight\,\ but this investment does not transfer to your clone\,\ shapeshifts\,\ and is non-refundable. You currently have $# invested.
 :pickone,Choose an item to grab
+:join,# joins the party.
 :neutral,This unit is not hostile.
 :death,You die...|Time: #|Your Level: #|Press ESC to exit.
-:victory,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life. You are victorious!|Time of victory: #|Your Level: #|Press ESC to end.
+:victory1,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life.|Time of victory: #|Your Level: #|Press ESC to end.
+:victory2,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life. You have achieved freedom!|Time of victory: #|Your Level: #|Press ESC to end.

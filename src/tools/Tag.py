@@ -18,16 +18,10 @@ class Tag:
                     self.attributes[strings[0]] = strings[1]
 
     def remove(self, tag, default=None):
-        if tag in self.attributes:
-            r = self.attributes[tag]
-            del self.attributes[tag]
-            return r
-        return default
+        return self.attributes.pop(tag, default)
 
     def get(self, tag, default=None):
-        if tag in self.attributes:
-            return self.attributes[tag]
-        return default
+        return self.attributes.get(tag, default)
 
     def set(self, tag, arg, add=True):
         if tag in self.attributes or add:

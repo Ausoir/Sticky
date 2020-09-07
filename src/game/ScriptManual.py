@@ -32,6 +32,7 @@ class ScriptManual:
             var.tags.set('tgt', 'x' + str(pos.x) + 'y' + str(pos.y))
             var.pilot.load('ally')
             var.tags.set('#', '>menu>order')
+            Global.main.monologue.set(Dialog.get(':join', [var.get_display_name()]))
 
     @staticmethod
     def repair(host, var):
@@ -177,17 +178,32 @@ class ScriptManual:
 
     @staticmethod
     def observe(host, var):
-        if Global.player.days - host.tags.get('observe', -12) >= 12:
+        scholar = host.tags.get('class', 'classless') == 'scholar'
+        wait = Global.player.days - host.tags.get('observe', -12)
+        if scholar:
+            wait -= 4
+        else:
+            wait -= 12
+        if wait >= 0:
             front = host.pos.get_cardinal(host.direction)
             for i in front.things:
                 from src.entity.unit.Unit import Unit
-                if isinstance(i, Unit):
+                if isinstance(i, Unit) and i.name != host.tags.get('observed', ''):
                     host.tags.set('observe', Global.player.days)
-                    exp = i.get_level() - host.get_level()
+                    host.tags.set('observed', i.name)
+                    exp = i.get_level()
+                    unit_team = i.tags.get('team', 0)
+                    if unit_team == host.tags.get('team', 0):
+                        exp = int(exp / 3)
+                    elif unit_team == 0:
+                        exp = int(exp / 2)
                     Global.menu.get_message(i.describe() + '\n' + Dialog.get(':observe', [max(0, exp)]))(0)
                     host.progress_level(exp, mode='observe')
-                    var.decay(1)
+                    if not scholar:
+                        var.decay(1)
                     return
+        else:
+            Global.main.monologue.set(Dialog.get('!observe', [-wait]))
 
     @staticmethod
     def reclaim(host, var):

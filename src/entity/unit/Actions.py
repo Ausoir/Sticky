@@ -46,11 +46,12 @@ class Actions:
                 victim = victim.host
         if isinstance(victim, Unit):
             if victim.get_skill('constitution'):
-                victim.action.hit()
+                if victim.action.current_action not in ['fall', 'die']:
+                    victim.action.hit()
             else:
                 if push:
                     victim.action.move(push, check=victim.collision_type + 2)
-                if victim.action.current_action != 'fall':
+                if victim.action.current_action not in ['fall', 'die']:
                     victim.action.fall()
                 victim.action.delay = max(victim.action.delay, time)
             return True
@@ -68,8 +69,9 @@ class Actions:
         pass
 
     def act(self, action, time):
-        self.set('nothing')  # calls the set function
-        self.make(action, turn=time)
+        if self.current_action != 'die':
+            self.set('nothing')  # calls the set function
+            self.make(action, turn=time)
 
     def turn_direction(self, direction):
         if self.host.tags.get('spd', 0) > 0:
@@ -151,7 +153,7 @@ class Actions:
                     self.host.pos.location.sound.register(self.host.pos, 1)
                     return True
 
-    def interact(self, target):
+    def interact(self, target, held=False):
         def fn():
             Script.var['host'] = self.host
             Script.var['menu'] = target
@@ -162,7 +164,7 @@ class Actions:
             code = target.tags.get('#')
         if code is None:
             code = target.tags.get('##')
-        if code and Global.player.is_safe():
+        if code and (held or Global.player.is_safe()):
             self.make('interact', turn=1)
             self.on_finish = fn
             return True
@@ -181,13 +183,17 @@ class Actions:
 
     def parkour(self, tile):
         if tile.get_yield() > -8:
+            target = None
             for thing in tile.things:
-                if not isinstance(thing, Unit) and thing.obstruct_type <= 4:
-                    if self.host.states.get('Concentration'):
-                        old = thing.pos
-                        self.move(old)
-                        self.make('fly', turn=self.delay + 2)
-                        return True
+                if isinstance(thing, Unit):
+                    return
+                elif 2 < thing.obstruct_type <= 4:
+                    target = thing
+            if target is not None and self.host.states.get('Concentration'):
+                old = target.pos
+                self.move(old)
+                self.make('fly', turn=self.delay + 2)
+                return True
 
     def fall(self):
         self.make('fall', turn=0)
@@ -196,6 +202,15 @@ class Actions:
     def hit(self):
         self.make('idle', turn=4)
         self.host.form.randomize_once(4)
+
+    def die(self):
+        if self.host.form.state_name != 'dead':
+            self.current_action = 'die'
+            self.make('dead', turn=8)
+            self.on_finish = self.host.death
+        else:
+            self.on_finish = None
+            self.host.death()
 
     def stand(self):
         for i in self.host.pos.things:
@@ -279,8 +294,15 @@ class Actions:
         else:
             motion = 'attack'
         self.make(motion, turn=6 - atk_spd)
-        self.host.pos.location.field.register(dmg, front, delay=1 - self.host.get_skill('instinct'), hitter=self.host,
-                                              sound=['swing', 0], callback=self.host.on_attack)
+        self.host.pos.location.field.register(dmg, front, delay=1 - self.host.get_skill('instinct'),
+                                              hitter=self.host, sound=['swing', 0], callback=self.host.on_attack)
+        if self.host.get_skill('cleave'):
+            side = front.get_cardinal(self.host.direction + 1)
+            self.host.pos.location.field.register(dmg, side, delay=1 - self.host.get_skill('instinct'),
+                                                  hitter=self.host, sound=['swing', 0], callback=self.host.on_attack)
+            side = front.get_cardinal(self.host.direction - 1)
+            self.host.pos.location.field.register(dmg, side, delay=1 - self.host.get_skill('instinct'),
+                                                  hitter=self.host, sound=['swing', 0], callback=self.host.on_attack)
         if self.host.get_skill('destroy') and dmg > front.get_hardness():
             self.on_finish = self.crush
 

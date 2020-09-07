@@ -74,6 +74,8 @@ class Menu:
             self.current_state = self.state
             self.state()
             self.window.display(1)
+            self.window.height = 300
+            self.sub_window.height = 300
 
     def direct(self, page):
         self.history.append([page, self.var])

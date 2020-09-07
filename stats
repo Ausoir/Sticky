@@ -331,3 +331,8 @@
 9/04 Unit randomly stuck on infinite shout mode (1), Pawnbroker (1), Parry and block reach (1), Buff description (1)
 9/05 Corpse change latency (1), Pierce (1), Tile dynamic lighting improvement (1)
 ---- PUSH - Alpha v1.00
+9/06 Safe check area 3 -> 2 tiles. Examine prioritizes by obstruction. Inventory menu dynamic height. Added labs.
+9/06 Exp and class balance. Parkour fix. ! Humanoid dropping inventory on map move fix. Smooth corpse. Save actions.
+9/07 Fly units optimize path. Fixed follow. Attack range AI fix. ! Map cache object duplication fix.
+9/07 ! Pos assignment disaster fix. Class balancing.
+---- PUSH - Alpha v1.1

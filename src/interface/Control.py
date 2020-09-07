@@ -82,7 +82,7 @@ class Control:
 
     def on_text(self, key):
         if self.text_mode:
-            Global.main.monologue.set(Global.main.monologue.document.text + key)
+            Global.main.monologue.set(Global.main.monologue.text.text + key)
 
     def input(self, code):
         if self.text_mode:
@@ -93,7 +93,7 @@ class Control:
                 Global.main.monologue.set('')
             elif code > 5:
                 if code == pyglet.window.key.BACKSPACE:
-                    Global.main.monologue.set(Global.main.monologue.document.text[:-1])
+                    Global.main.monologue.set(Global.main.monologue.text.text[:-1])
         else:
             if Global.menu.visible == 1:
                 if Global.menu.input(code):

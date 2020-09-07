@@ -30,6 +30,7 @@ bat,bug.2d,unit/bat,unit/bat2
 crab,spider.2d,unit/crab
 spider,spider.2d,unit/spider
 spider2,spider.2d,unit/spider2,unit/spider3
+robot,spider.2d,unit/robot
 octopus,spider.2d,unit/octopus
 ghost,slime.2d,_g_8_0
 phantom,phantom.2d,none

@@ -1,5 +1,6 @@
 from src.entity.unit.Unit import Unit
 from src.game import Global
+from src.tools.Data import Data
 
 
 class Humanoid(Unit):
@@ -26,7 +27,6 @@ class Humanoid(Unit):
         e_armor = self.tags.remove('e_armor')
         e_head = self.tags.remove('e_head')
         from src.entity.Stock import Stock
-        from src.tools.Data import Data
         if e_armor:
             p[index] = Global.r.rand_list(Data.get_line('habitat.txt', e_armor)[1])
         sync_hp = 0
@@ -89,7 +89,6 @@ class Humanoid(Unit):
 
     def set_form(self, arg):
         self.form_name = arg
-        from src.tools.Data import Data
         from src.form.BodyHumanoid import BodyHumanoid
         line = Data.get_line('model.txt', arg)
         self.form = BodyHumanoid(line[1], self)
@@ -159,7 +158,7 @@ class Humanoid(Unit):
     def use(self):
         if self.weapon:
             self.states.trigger(['act', 'use'])
-            if not self.action.interact(self.weapon):
+            if not self.action.interact(self.weapon, held=True):
                 self.weapon.use()
         else:
             self.action.attack()
@@ -185,7 +184,6 @@ class Humanoid(Unit):
     def remove(self):
         if super().remove():
             if self.armor:
-                self.armor.host = None
                 self.armor.remove()
             if self.weapon:
                 self.weapon.remove()
@@ -277,7 +275,6 @@ class Humanoid(Unit):
         if heads:
             heads = heads.split('&')
             face = []
-            from src.tools.Data import Data
             for image in heads:
                 face.append(Data.get_graphics(image))
         else:
@@ -318,12 +315,13 @@ class Humanoid(Unit):
         return r
 
     def get_level(self):
-        level = super().get_level()
-        if self.tags.get('lvl'):
-            return level
+        level = self.tags.get('lvl')
+        if level:
+            r = int(level / 100)
         else:
+            r = self.tags.get_level() + self.tags.get('P', 2) - 3
             if self.armor:
-                level = max(1, level - self.armor.tags.get_level())
+                r -= self.armor.tags.get_level()
             if self.headgear:
-                level = max(1, level - self.headgear.tags.get_level())
-            return level
+                r -= self.headgear.tags.get_level()
+        return max(1, r)

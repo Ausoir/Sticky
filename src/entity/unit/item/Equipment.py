@@ -5,30 +5,30 @@ from src.tools.Dialog import Dialog
 class Equipment(Item):
     def describe(self):
         r = super().describe()
-        stat = self.tags.get('sth')
-        if stat:
+        stat = self.tags.get('sth', 0)
+        if stat != 0:
             r += '\n' + Dialog.get(':equipment_sth', [Dialog.sign(stat)])
         space = self.tags.get('str', 0)
-        if space > 0:
+        if space != 0:
             r += '\n' + Dialog.get(':equipment_inv', [Dialog.sign(space)])
         end = self.tags.get('end', 0)
-        if end > 0:
+        if end != 0:
             r += '\n' + Dialog.get(':equipment_end', [Dialog.sign(end)])
         cha = self.tags.get('cha', 0)
-        if cha > 0:
+        if cha != 0:
             r += '\n' + Dialog.get(':equipment_cha', [Dialog.sign(cha)])
         defense = self.tags.get('DEF', 0)
-        if defense > 0:
+        if defense != 0:
             r += '\n' + Dialog.get(':equipment_def', [Dialog.sign(defense)])
-        spd = self.tags.get('spd')
-        if spd:
+        spd = self.tags.get('spd', 0)
+        if spd != 0:
             r += '\n' + Dialog.get(':equipment_spd', [Dialog.sign(spd)])
-        cdr = self.tags.get('cdr')
-        if cdr:
+        cdr = self.tags.get('cdr', 0)
+        if cdr != 0:
             r += '\n' + Dialog.get(':equipment_cdr', [Dialog.sign(cdr)])
-        fuel = self.tags.get('fuel')
-        if fuel and fuel < 0:
-            r += '\n' + Dialog.get(':equipment_fire')
+        fuel = self.tags.get('fuel', 0)
+        if fuel != 0:
+            r += '\n' + Dialog.get(':equipment_fire', [Dialog.sign(-fuel)])
         return r
 
     def use(self):
@@ -46,7 +46,7 @@ class Equipment(Item):
         host = self.host
         if self.host.weapon == self:
             self.host.drop()
-        self.save = False
+        self.is_save = False
         self.host = host
         self.host.face(self.host.direction)
 
@@ -66,6 +66,8 @@ class Equipment(Item):
         self.host.tags.sync('abp', self.tags.get('abp'))
         self.host.tags.sync('cdr', self.tags.get('cdr'))
         self.host.tags.sync('fuel', self.tags.get('fuel'))
+        if self.host.removed == 0:
+            self.host.inventory.update_capacity()
 
     def on_unwear(self):
         self.host.tags.sync('str', self.tags.get('str'), ratio=-1)
@@ -77,6 +79,10 @@ class Equipment(Item):
         self.host.tags.sync('abp', self.tags.get('abp'), ratio=-1)
         self.host.tags.sync('cdr', self.tags.get('cdr'), ratio=-1)
         self.host.tags.sync('fuel', self.tags.get('fuel'), ratio=-1)
+        if self.host.tags.get('p', 0) > self.host.tags.get('P', 9999):
+            self.host.tags.set('p', self.host.tags.get('P', 1))
+        if self.host.removed == 0:
+            self.host.inventory.update_capacity()
 
     def on_hit(self, effect=None, sound=None):
         if self.host:

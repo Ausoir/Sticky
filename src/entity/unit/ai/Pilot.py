@@ -94,11 +94,14 @@ class Pilot:
     def perceive(self, enemies):
         perceived = []
         night_vision = self.host.get_skill('nocturnal')
+        vision = self.host.tags.get('sth', 0)
         for thing in enemies:
             diff_x = abs(thing.pos.x - self.host.pos.x)
             diff_y = abs(thing.pos.y - self.host.pos.y)
             if self.host.is_facing(thing.pos):
                 s = thing.tags.get('sth', 0) + 1
+                if s >= 1:
+                    s = max(1, s - vision - night_vision)
                 if thing.pos.light or night_vision:
                     in_range = diff_x * s <= Global.map_view.sight_range and diff_y * s <= Global.map_view.sight_range_y
                 else:
@@ -129,7 +132,7 @@ class Pilot:
                             self.set_task(self.move)
 
     def lose(self, target):
-        if self.task.target == target:
+        if self.task.__class__.__name__ == 'Attack' and self.task.target == target:
             self.move.target = self.task.target.pos
             self.set_task(self.move)
 

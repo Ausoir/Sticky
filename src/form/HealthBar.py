@@ -28,7 +28,7 @@ class HealthBar:
         self.visible = self.inbound and self.display
 
     def appear(self, hp, mhp):
-        if not self.removed and hp and mhp:
+        if not self.removed and hp is not None and mhp:
             width = int(Global.BLOCK * min(1, hp / mhp)) - 2
             self.foreground.width = max(0, width)
             if not self.displaying_health:

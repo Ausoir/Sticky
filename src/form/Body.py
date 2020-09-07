@@ -50,7 +50,7 @@ class Body:
             else:
                 int_parent = int(parent[k][1])
                 x.set_parent(self.organs[int_parent], parent[k][0])
-        self.force_set_animation('default')
+        self.force_set_animation(self.state_name)
 
     def show(self, visible):
         for i in self.organs:
@@ -189,6 +189,11 @@ class Body:
                     r1.append(i)
             r.append(r1)
         self.animation = r
+        return mag
+
+    def get_height(self, seed):
+        random.seed(seed)
+        return random.gauss(.9, .1)
 
     def randomize_once(self, mag):
         r = []

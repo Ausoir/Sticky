@@ -103,6 +103,7 @@ class MenuAll(MenuPlayer):
             self.get_prompt(Dialog.get(':pawn', [item.get_display_name()]), Dialog.get('Pawn'), pawn, param)()
             self.sub_window.display(1)
         else:
+            self.history.pop()
             self.get_message(Dialog.get('!pawn'))()
 
     def menu_store_item(self):
@@ -146,12 +147,17 @@ class MenuAll(MenuPlayer):
     def menu_insure(self):
         # noinspection PyUnresolvedReferences
         def insure(arg):
-            if Global.player.pay(cost):
-                player.states.add('Revive', -1)
-                Global.main.monologue.set(Dialog.get(':transacted'))
+            if not Global.player.character.is_hungry():
+                if Global.player.pay(cost) and Global.player.try_sleep(1):
+                    player.states.add('Revive', -1)
+                    Global.main.monologue.set(Dialog.get(':transacted'))
+                    Global.player.tags.set('brained', 1)
+            else:
+                Global.main.monologue.set(Dialog.get('!eat'))
 
         def cancel(arg):
             revival.end()
+            Global.main.monologue.set(Dialog.get(':transacted'))
 
         host = self.var
         player = Global.player.character
@@ -177,15 +183,14 @@ class MenuAll(MenuPlayer):
 
     def menu_order(self):
         def order(arg):
+            host.tags.remove('tgt')
             if arg == 1:
                 host.face_toward(Global.player.character.pos)
                 from src.game.ScriptManual import ScriptManual
                 ScriptManual.swap(Global.player.character, host)
             elif arg == 2:
-                host.tags.remove('tgt')
                 host.pilot.load('guard')
             elif arg == 3:
-                host.tags.remove('tgt')
                 host.pilot.load('ally')
             elif arg == 4:
                 host.action.set('grab')
@@ -250,5 +255,8 @@ class MenuAll(MenuPlayer):
         Global.player.dead = 11
         datetime = Dialog.date(Global.player.days)
         level = Global.player.character.get_level()
-        self.get_message(Dialog.get(':victory', [datetime]))()
+        if Global.player.tags.get('brained', 0) == 1:
+            self.get_message(Dialog.get(':victory1', [datetime, level]))()
+        else:
+            self.get_message(Dialog.get(':victory2', [datetime, level]))()
         self.sub_window.display(1)

@@ -32,14 +32,14 @@ class Item(Prop):
         return r
 
     def on_wield(self, host):
-        self.save = False
+        self.is_save = False
         self.host = host
         host.weapon = self
         self.host.face(self.host.direction)
 
     def on_unwield(self):
         self.update_vec()
-        self.save = True
+        self.is_save = True
         self.host = None
 
     def use(self):
@@ -72,7 +72,8 @@ class Item(Prop):
         else:
             Particle.make('shock', self.pos)
             self.pos.location.sound.register(self.pos, 1, file='down', priority=2)
-            self.die()
+            if rng >= 75:
+                self.die()
         return False
 
     def relocate(self, to=None, x=None, y=None, force=False):
@@ -97,9 +98,8 @@ class Item(Prop):
         if v is not None:
             return v * (self.tags.get('rare', 0) + 1)
         else:
-            r = 0
-            for i in ['def', 'DEF', 'dmg', 'str', 'sth', 'cha', 'end']:
-                r += self.tags.get(i, 0)
+            r = self.tags.get_level()
+            r += self.tags.get('DEF', 0)
             if not self.tags.get('p'):
                 r += 1
             if self.tags.get('skill'):

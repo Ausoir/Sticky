@@ -79,7 +79,7 @@ class Game:
             self.tags.set('c_x', Global.world.cells[chunk][0])
             self.tags.set('c_y', Global.world.cells[chunk][1])
             r = self.tags.__str__() + '\n'
-            r += self.character.__str__() + '\n'
+            r += self.character.save() + '\n'
             r += self.npc.__str__()
             Data.write('save/player.char', r)
 
@@ -94,17 +94,17 @@ class Game:
     def set_class(self, arg):
         self.character.tags.set('class', arg)
         if arg == 'avenger':
-            self.character.tags.set('revenge', Global.r.rand_list(Data.get_line('raw.txt', 'revenge')[1]))
+            self.character.tags.set('classg', Global.r.rand_list(Data.get_line('raw.txt', 'revenge')[1]))
         elif arg == 'gourmet':
-            self.character.tags.set('favorite', Global.r.rand_list(Data.get_line('raw.txt', 'favorite')[1]))
+            self.character.tags.set('classg', Global.r.rand_list(Data.get_line('raw.txt', 'favorite')[1]))
         elif arg == 'agent':
             mission = Global.r.rand_list(Data.get_line('raw.txt', 'mission')[1])
-            self.character.tags.set('mission', '&'.join(mission))
+            self.character.tags.set('classg', '&'.join(mission))
 
     def set_player(self, player):
         player.tags.set('hunger', player.tags.get('hunger', 0))
         player.center_camera()
-        player.save = False
+        player.is_save = False
         self.character = player
         self.player = player
         Script.var['game'] = self
@@ -120,7 +120,8 @@ class Game:
 
     def sleep(self, time, blackout=True):
         if time != 0:
-            self.character.progress_level(abs(time), mode='survive')
+            self.save()
+            self.character.progress_level(time, mode='survive')
             Global.world.location.on_sleep(time)
             event = Global.r.rand_list(Data.get_line('raw.txt', 'event')[1])
             if event:
@@ -193,7 +194,10 @@ class Game:
                     revive.end()
                     args = [int(x) for x in revive.var.split('&')]
                     self.character.add()
+                    self.character.tags.set('p', self.character.tags.get('P', 1))
                     self.character.tags.set('hunger', 0)
+                    self.character.tags.remove('invest')
+                    self.character.tags.remove('investt')
                     Global.world.travel(args[0], args[1])
                     self.dead = -1
                 else:
@@ -222,7 +226,7 @@ class Game:
         for unit in self.character.get_team(ally=False):
             if unit.tags.get('ai'):
                 diff = (unit.pos - self.character.pos).difference()
-                if diff <= 3:
+                if diff <= 2:
                     Global.main.monologue.set(Dialog.get('!safe'))
                     return False
                 elif diff <= 13 and unit.pilot.task == unit.pilot.attack and unit.pilot.task.target == self.character:
@@ -265,12 +269,12 @@ class Game:
     def describe_class(self):
         persona = self.character.tags.get('class', 'classless')
         if persona == 'avenger':
-            arg = self.character.tags.get('revenge')
+            arg = self.character.tags.get('classg')
             return Dialog.get(':' + persona, [arg])
         elif persona == 'gourmet':
-            arg = self.character.tags.get('favorite')
+            arg = self.character.tags.get('classg')
             return Dialog.get(':' + persona, [arg])
         elif persona == 'agent':
-            arg = ', '.join(self.character.tags.get('mission').split('&'))
+            arg = ', '.join(self.character.tags.get('classg').split('&'))
             return Dialog.get(':' + persona, [arg])
         return Dialog.get(':' + persona)

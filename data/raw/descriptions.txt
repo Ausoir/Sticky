@@ -4,6 +4,7 @@ Glass,Ingredient for various crafts. Also a cheap ingredient for wands.
 Silver,Ingredient for various crafts and wands. Can be used to obtain money.
 Gold,Rare ingredient for wands. Can be used to obtain money.
 Pearl,Cheap ingredient for charms. Can be used to obtain money.
+Clam,Might have a pearl inside.
 Jet,Ingredient for charms. Can be used to obtain money.
 Amber,Rare ingredient for charms. Can be used to obtain money.
 Chalk,Use to draw conjuration polygrams. Result depends on shape and terrain. Shine it to begin. Requires <Conjuration> skill.
@@ -22,9 +23,10 @@ Oil Lamp,Use to produce light.
 Fade Charm,Imbues the owner with invisibility when destroyed.
 Manual,Read to learn skill.
 Ore,Break to obtain rare minerals.
+Plant,Used in alchemy.
 Fortitude,After taking damage\,\ gain damage immunity for a short while.
-Block,Stand still to concentrate. Dodge next attack from the front.
-Parry,Stand still to concentrate. While concentrated\,\ incoming damage is reduced to 1 and auto retaliate.
+Block,Stand still to concentrate. Next incoming damage is reduced by 1.
+Parry,Stand still to concentrate. Ignore next attack from the front.
 Iron Will,Stand still to concentrate. Deflect next harmful debuff. Shielding cancels on taking damage.
 Constitution,Immune to knockdown.
 Perseverance,Heal 1 health every hour when not hungry.
@@ -33,12 +35,12 @@ Lunge,Move forward when attacking. Stacks.
 Cleave,Stand still to concentrate. Attacks affect diagonals while concentrated.
 Flurry,Stand still to concentrate. Rapidly attack hostiles in reach up to 3 times. Stacks.
 Frenzy,Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
-Crush,Stand still to concentrate. Attacks while concentrated deal 1 damage ignoring defense.
+Crush,Stand still to concentrate. Next attack briefly decreases target armor by 1.
 Assassinate,Attacks from behind silences target and deal 7 extra damage.
 Side Step,Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
 Hide,Stand still to concentrate\,\ becoming invisible until moving.
 Deep Sense,When standing still\,\ obtain vision through obstacles\,\ but not terrain.
-Parkour,Stand still to concentrate. Spend concentration to move over obstacles.
+Parkour,Stand still to concentrate. While concentrated\,\ move over obstacles freely.
 Alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers.
 Scribing,Create spell scrolls at a registry desk.
 Carving,Carve wands and charms on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick.
@@ -53,7 +55,7 @@ Disorient,On successful attack\,\ change face direction of the victim.
 Destroy,Destroy walls when damage is higher than hardness of the wall.
 Psychic,Always know where you are.
 Nocturnal,Gain night vision.
-Clairvoyance,Increases experience gain by 1. Stacks.
+Clairvoyance,Doubles experience gain. Stacks.
 Dispel,Purge all magical status effects in an area around the caster.
 Charm,Enslave target unit permanently. Target must be directly in front of the caster.
 Clone,Clone anything directly in front of the caster. 50% success rate.
@@ -61,12 +63,12 @@ Push,Push anything in front away.
 Glow,Makes target glow permanently. Stacks.
 Scorch,Create a scorching flame on the target.
 Scry,Travel as a ghost to observe far away locations relatively safely.
-Disintegrate,Deal 5 damage to target in a line\,\ ignoring armor.
+Disintegrate,Deal massive damage to target in a line\,\ ignoring armor. Destroys terrain if cast directly in front of it.
 Passwall,Pass through a solid wall.
 Charm,Increase friendliness of target.
 Transience,Assume a spiritual form from which you may possess another living being. Press attack key on top of a unit in ghost form.
 Wall,Create a spell wall to block out enemies.
-Zombie,Turn corpses into undead.
+Reanimate,Turn corpses into undead.
 Phantom,Summon a phantom to possess a target item.
 Transmogrify,Mutate target into a random creature.
 Evacuate,Immediately teleport to a random location.
@@ -108,7 +110,7 @@ Vision,Sharpens vision.
 Levitation,Levitate off the ground. Enchantable.
 Slime,Here is a cute slime.
 Mud Slime,Aggressive breed of slimes. They slow you on hit.
-Cave Slime,This breed of slimes are made of tough gelatinous material. They decrease the victim's damage on hit.
+Cave Slime,This breed of slimes are made of tough gelatinous material. Their acid cripple the victim and their equipment.
 Bamboo Slime,Once a cute slime\,\ now a practitioner of martial arts.
 Looter,These scavengers don't care if they loot from the dead or alive.
 Deer,A deer. Or is it a moose?
@@ -134,9 +136,11 @@ Master,A master of the martial arts.
 Shade,Spooky!
 Player,A common peasant living day to day in fear of death.
 Resident,This is a common resident living day to day apathetically.
-Soldier,This poor guy was drafted into the army.
+Soldier,This poor guy was drafted.
 Hireling,A member of the mercenary guild\,\ equipped with leather armor and wearing guild cap.
 Rando,A desperate resident surviving by looting from the outlaws and wildlife despite the danger\,\ just like you.
 Panda,This animal is educated in the ways of the martial arts. Stay out of its way!
 Worm,Their attacks exhaust their victims\,\ preventing them from using special abilities.
 Duelist,This guy is looking for a fight.
+Robot,A non lethal robot that can electrocute their victims.
+Hunter,These hunters typically hunt by paralyzing their victim and poking from a distance.

@@ -29,7 +29,7 @@ class Execute(pyglet.window.Window):
         self.dt = 0
         self.fps = 1 / 56.0
         self.init_other()
-        self.monologue = Textbox(40, 40)
+        self.monologue = Textbox()
 
         glEnable(pyglet.gl.GL_BLEND)
         glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)

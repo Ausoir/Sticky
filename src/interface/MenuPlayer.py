@@ -13,7 +13,11 @@ class MenuPlayer(Menu):
             tile = Global.player.control.get_mark()
             if tile:
                 if tile.things:
-                    self.get_message(tile.things[0].describe())(0)
+                    highest = [-1, None]
+                    for i in tile.things:
+                        if i.obstruct_type > highest[0]:
+                            highest = [i.obstruct_type, i]
+                    self.get_message(highest[1].describe())(0)
                 else:
                     self.get_message(Dialog.describe_terrain(tile))(0)
             else:
@@ -77,7 +81,7 @@ class MenuPlayer(Menu):
         if isinstance(host, Humanoid):
             if host.weapon or host.armor or host.headgear or host.tags.get('money'):
                 self.window.add(Menu.make(Dialog.get('Equipment'), lambda _: self.direct(self.menu_equipment)))
-            if host.get_equipment_weight() > 0:
+            if host.weapon is not None or host.inventory.items:
                 self.window.add(Menu.make(Dialog.get('Inventory'), lambda _: self.direct(self.menu_inventory)))
         if host.get_skills():
             self.window.add(Menu.make(Dialog.get('Skills'), lambda _: self.direct(self.menu_skill)))
@@ -235,6 +239,9 @@ class MenuPlayer(Menu):
             self.window.add(button)
             self.sub_window.add(label)
             count += 1
+        if capacity > 10:
+            self.window.height = 600
+            self.sub_window.height = 600
         self.sub_window.display(1)
         self.window.margin.y = temp
         self.sub_window.margin.y = temp2

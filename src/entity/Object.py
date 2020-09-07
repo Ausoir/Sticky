@@ -11,7 +11,7 @@ class Object(Image):
         self.class_name = None
         self.pos = None
         self.pos_offset = (0, 0)
-        self.save = True
+        self.is_save = True
         self.obstruct_type = Tile.COLLIDE_OBJECT
         self.collision_type = Tile.COLLIDE_UNIT
         self.removed = 1
@@ -19,6 +19,9 @@ class Object(Image):
     def __str__(self):
         space = '[' + str(self.pos.x - self.pos_offset[0]) + ',' + str(self.pos.y - self.pos_offset[1]) + ']'
         return space + ',' + self.name + ',' + self.class_name + ',' + self.form_name
+
+    def save(self):
+        return self.__str__()
 
     def load(self, p):
         index = 0

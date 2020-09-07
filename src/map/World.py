@@ -58,18 +58,16 @@ class World:
                     tile_row += icon
                     roof_row += str(tile.roof)
                     for thing in tile.things:
-                        if thing.save:
+                        if thing.is_save:
                             thing.pos_offset = start_coord
-                            cell_objects.append('[' + thing.__str__() + ']')
+                            cell_objects.append('[' + thing.save() + ']')
                             remove_objs.append(thing)
                 cell_tiles.append(tile_row)
                 cell_roofs.append(roof_row)
+            map_name = World.coord_to_map_name(self.cells[cell_num])
             if remove:
                 for i in remove_objs:
                     i.remove()
-            map_name = World.coord_to_map_name(self.cells[cell_num])
-            if map_name in self.cache:
-                del self.cache[map_name]
             if Global.player.player_mode == 0:
                 line_1 = '0'
             else:
@@ -78,6 +76,11 @@ class World:
             line_3 = '%'.join(cell_tiles)
             line_4 = '%'.join(cell_roofs)
             write = '\n'.join([line_1, line_2, line_3, line_4])
+            if map_name in self.cache:
+                if remove:
+                    del self.cache[map_name]
+                else:
+                    self.cache[map_name] = Data.process_raw(write)
             Data.write('save/' + map_name + '.map', write)
 
     def load_cells(self, x, y):
@@ -93,7 +96,7 @@ class World:
             for i in range(9):
                 if new[i] not in self.cells:
                     added.append(i)
-                if self.cells[i] not in new:
+                elif self.cells[i] not in new:
                     abandoned.append(i)
         self.save_cell(abandoned, remove=True)
         self.last_cells = self.cells
@@ -103,6 +106,7 @@ class World:
     def load_bubble(self, added, time=-1):
         obj = []
         others = []
+        explore = 0
         for cell_num, cell_coord in enumerate(self.cells):
             map_save_name = 'save/' + World.coord_to_map_name(cell_coord) + '.map'
             map_data_name = 'data/map/' + World.coord_to_map_name(cell_coord) + '.map'
@@ -150,13 +154,12 @@ class World:
                     # renew = False
                     if renew:
                         if not map_is_save:
-                            if Global.player.character:
-                                Global.player.character.progress_level(1, mode='explore')
+                            explore += 1
                             Global.player.npc.spawn(start_coord[0], start_coord[1])
                         for i in map_data[1]:
                             prop = Stock.get(i[2], i)
                             if prop.tags.get('$', 0) <= 0:
-                                prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
+                                prop.relocate(x=prop.pos.x + start_coord[0], y=prop.pos.y + start_coord[1], force=True)
                                 prop.add()
                                 prop.on_sleep(time_passed)
                                 prop.mutate()
@@ -164,9 +167,11 @@ class World:
                     else:
                         for i in map_data[1]:
                             prop = Stock.get(i[2], i)
-                            prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
+                            prop.relocate(x=prop.pos.x + start_coord[0], y=prop.pos.y + start_coord[1], force=True)
                             prop.add()
                             prop.on_sleep(time_passed)
+        if Global.player.character:
+            Global.player.character.progress_level(1, mode='explore')
         return obj, others
 
     def regrow(self, cell_coord, start_coord):
@@ -175,7 +180,7 @@ class World:
             x = Global.r.rand_int(start_coord[0], start_coord[0] + World.CHUNK - 1)
             y = Global.r.rand_int(start_coord[1], start_coord[1] + World.CHUNK - 1)
             tile = self.location.get_tile(x, y)
-            if not tile.things and tile.get_yield() > -8:
+            if not tile.is_seen() and tile.get_solidity() < 3:
                 spawn = self.get_spawn(tile.get_name(), level=savageness)
                 if spawn and spawn != 0:
                     made = Stock.make(spawn, tile)

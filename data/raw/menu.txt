@@ -1,7 +1,7 @@
 help,1,Move using WASD. Attack with SPACE. Q to grab or drop items. E to access pocket. TAB to access menu. END key to die. F11 to enter fullscreen.
 birth,2,The president has put up a bounty on the local evil lord. Kill the evil lord and buy your freedom!,Enter Tutorial,entertutorial
 tutorial1,1,Use the WASD keys to maneuver. Press the SPACE key to attack. Press TAB to close out of this dialog. You may press the END key to suicide and end tutorial at any time. You can always come back to tutorial area after you die\,\ so you don't have to memorize everything taught here.
-tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1. You will gain experience if you kill an enemy in melee\,\ depending on level difference.
+tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1. If you kill an enemy in melee\,\ you will get their level as experience.
 tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
 tutorial4,1,In safe areas you will find useful services like buying and selling goods\,\ swords for hire\,\ and life insurance. Most friendlies can be interacted with WASD keys. The character to your right is a supplier. Sell your torch\,\ and from the equipment menu you can check how much money you have.
 tutorial5,1,Some enemies have skills that should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description. You can also right click target to get description.
@@ -12,7 +12,7 @@ tutorial9,1,You can check your current health from the menu. You should always t
 tutorial10,1,You cannot perform time consuming actions like resting or leveling up when hungry. Hunger can be checked from TAB menu. Take some food from the crate. Wield the food then press SPACE to interact with it. If your inventory is full\,\ drop some items on the ground.
 tutorial11,1,You can press F11 to enter fullscreen mode.
 tutorial12,1,You can also use the mouse to play this game. Click on your character to access the menu and click adjacent to your character to attack.
-tutorial13,1,Even the easiest enemies can be difficult in some environments. You might find it difficult fighting an enemy against the wall or fighting multiple enemies at once.
+tutorial13,1,Even the easiest enemies can be difficult in some environments. You might find it difficult fighting an enemy against the wall or fighting multiple enemies at once. Note that attacks from behind ignore all defense.
 tutorial14,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!
 pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
 resident,3,What?,[Move,#swap],[Introduce,!intro_resident],[Join,#ally]
@@ -103,3 +103,7 @@ rogue2,3,I'm wandering... do you have business with me?,[Move,#swap],[Sell,>menu
 stoolking,2,I am the stool king. I wield the stool\,\ so that I may smite down the insolent with its might.,Me too!,!stoolking2
 stoolking2,3,Say\,\ will you join me in my quest to conquer the gates and free my people?,[Move,#swap],[Kneel,kneel]
 helper,3,Do you require assistance?,[Move,#swap],[Get Help,#ally]
+labguide,3,Hello. This is the brain warehouse.,[Introduce,!labguide_introduce],[Other,!labguide_other]
+labguide_introduce,2,When you take life insurance your brain is stored here so we can revive you after you die. This warehouse also has judicial functions.,Judicial Functions,!labguide_ask
+labguide_ask,1,You were living off the land\,\ taking jelly off the slimes and such\,\ but did you know you were trespassing on private property? All land on Earth belongs to a handful of landlords. They invest huge amounts of money building these warehouses so they can enforce the laws in afterlife.
+labguide_other,1,There is the non judicial version of this warehouse\,\ a heavenly place for a select few.

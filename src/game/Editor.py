@@ -89,16 +89,15 @@ class Editor:
             if action != self.prev_action:
                 self.tool.cancel()
                 objs = Global.world.location.get_tile(m[0], m[1], limit=True).things.copy()
-                if objs:
+                highest = [None, -1]
+                population = Global.world.location.population.get_all()
+                for obj in objs:
+                    if obj in population and obj.obstruct_type > highest[1]:
+                        highest = [obj, obj.obstruct_type]
+                if highest[0]:
                     self.tool = ToolObject('props')
-                    obj = objs.pop()
-                    while obj not in Global.world.location.population.get_all():
-                        if objs:
-                            obj = objs.pop()
-                        else:
-                            return
-                    self.display_text = obj.__str__()
-                    self.tool.select(obj.name, data=Data.process_raw(self.display_text))
+                    self.display_text = highest[0].__str__()
+                    self.tool.select(highest[0].name, data=Data.process_raw(self.display_text))
                 else:
                     self.tool = ToolTerrain()
                     tile = Global.world.location.get_tile(m[0], m[1], limit=True)
@@ -167,8 +166,8 @@ class Editor:
         return 0
 
     def command(self):
-        self.prev_command = Global.main.monologue.document.text
-        params = Global.main.monologue.document.text.split(',')
+        self.prev_command = Global.main.monologue.text.text
+        params = Global.main.monologue.text.text.split(',')
         arg1 = ' '.join(params[1:])
         if params[0] == 'to':
             Global.world.travel(int(params[1]) * Global.world.CHUNK, int(params[2]) * Global.world.CHUNK)
@@ -334,7 +333,7 @@ class ToolObject(Tool):
     def __init__(self, object_type):
         self.text = 'Door'
         self.selection = Stock.get('Door').add()
-        self.selection.save = False
+        self.selection.is_save = False
         self.tile = Global.world.location.get_tile(0, 0)
         self.object_list = list(Data.process_raw(Data.read('data/raw/' + object_type + '.txt')))
         self.current = 0
@@ -362,13 +361,13 @@ class ToolObject(Tool):
         if self.selection:
             self.selection.relocate(x=Global.player.control.cursor_tile[0], y=Global.player.control.cursor_tile[1])
             self.selection.add()
-            self.selection.save = False
+            self.selection.is_save = False
 
     def input(self, button, tile):
         if not button:
             self.selection.relocate(to=tile)
         elif button == 1:
-            self.selection.save = True
+            self.selection.is_save = True
             self.selection.relocate(to=tile, force=1)
             preexisting = 0
             for i in tile.things:

@@ -142,7 +142,7 @@ class Scry(Spell):
             ghost.tags.set('toy', pos[1])
             ghost.tags.set('view', 8)
             ghost.states.add('Script', 50, '#reclaim')
-            self.host.save = True
+            self.host.is_save = True
             Global.player.character.tags.set('husk', 1)
             Global.player.set_player(ghost)
             Global.map_view.overlay.blackout()
@@ -183,7 +183,7 @@ class Transience(Spell):
         ghost.tags.set('team', self.host.tags.get('team', 0))
         Global.world.location.population.adjust(ghost)
         if self.host == Global.player.character:
-            self.host.save = True
+            self.host.is_save = True
             Global.player.set_player(ghost)
         else:
             self.host.tags.remove('ai')
@@ -199,10 +199,10 @@ class Disintegrate(Spell):
         Global.world.location.sound.register(target, 18, file='critical')
         Particle.make('disintegrate', target)
         if target.get_yield() == -10:
-            target.set_terrain('.')
+            self.host.action.crush()
         else:
             for i in target.things.copy():
-                i.decay(5)
+                i.decay(8)
                 if i.name == 'Corpse':
                     Stock.make('Raw Meat', i.pos)
 
@@ -217,7 +217,7 @@ class Wall(Spell):
                         Stock.make('Spell Wall', tile)
 
 
-class Zombie(Spell):
+class Reanimate(Spell):
     def get_delay(self):
         return 14
 
@@ -653,7 +653,7 @@ class Breeze(Spell):
         return 8
 
     def get_cooldown(self):
-        return 200
+        return 100
 
     def perform(self):
         self.host.states.add('Levitation', 80, 0)

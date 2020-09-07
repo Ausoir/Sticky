@@ -1,4 +1,4 @@
 -24
-[[10,1],Fireplace,Prop,_g_21_4,[p:4,def:7,ob:0],[[Glow,-1,5],[Effect,-1,fire]]],[[8,2],Target,Prop,_g_12_4,[p:200,def:-1,ob:4],[]],[[10,3],Lantern,Ceiling,_g2_12_0,[p:1,ob:0],[[Glow,-1,12]]],[[8,4],Target,Prop,_g_12_4,[p:200,def:-1,ob:4],[]],[[9,6],Bed,Prop,_g_13_4,[p:4,def:1,ob:4,loot:Cloth,#:rest],[]],[[11,6],Bed,Prop,_g_13_4,[p:4,def:1,ob:4,loot:Cloth,#:rest],[]]
+[[10,1],Fireplace,Prop,_g_21_4,[p:4,def:7,ob:0,dir:0],[[Glow,-1,5],[Effect,-1,fire]]],[[8,2],Target,Prop,_g_12_4,[p:200,def:-1,ob:4,dir:0],[]],[[10,3],Lantern,Ceiling,_g2_12_0,[p:1,ob:0,dir:0],[[Glow,-1,12]]],[[8,4],Target,Prop,_g_12_4,[p:200,def:-1,ob:4,dir:0],[]],[[9,6],Bed,Prop,_g_13_4,[p:4,def:1,ob:4,loot:Cloth,#:rest,dir:0],[]],[[11,6],Bed,Prop,_g_13_4,[p:4,def:1,ob:4,loot:Cloth,#:rest,dir:0],[]]
 ~aaaar.BBBBBB%~aaaar.BwwBwB%~aaaar.BwwwwB%aaaaar.Bwwwww%aaaaar.BwwwwB%rraaar.BwwwwB%araaar.BwwwwB%araaar.BBBBBB%aaaaar.......%rraaarrrrrrrr%~raaaaaaaaaar%~raaaaaaaaaar%~raaaaaaaaaar
 1111110111111%1111110111111%1111110111111%1111110111111%1111110111111%1111110111111%1111110111111%1111110111111%1111110000000%1111111111111%0111111111111%0111111111111%0111111111111

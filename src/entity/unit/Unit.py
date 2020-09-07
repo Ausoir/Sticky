@@ -24,10 +24,16 @@ class Unit(Container):
         self.shadow = Data.get_form('_g_7_0')
 
     def __str__(self):
-        self.tags.set('dir', self.direction)
-        self.pilot.record()
         att = '[' + ','.join(self.skills) + ']'
         return super().__str__() + ',' + att
+
+    def save(self):
+        if self.action.delay:
+            if self.action.current_action:
+                self.tags.set('action', self.action.current_action)
+            self.tags.set('delay', self.action.delay)
+        self.pilot.record()
+        return super().save()
 
     def load(self, p):
         index = super().load(p)
@@ -40,6 +46,12 @@ class Unit(Container):
         if skills:
             for i in skills.split('&'):
                 self.skills.append(i)
+        action = self.tags.remove('action')
+        delay = self.tags.remove('delay')
+        if action:
+            self.action.set(action)
+        if delay:
+            self.action.delay = delay
         index += 1
         return index
 
@@ -124,34 +136,32 @@ class Unit(Container):
     def progress_level(self, exp, mode='other', var=None):
         personality = self.tags.get('class', 'classless')
         current_level = self.get_level()
-        curve = max(1, int(5 / current_level))
         if exp <= 0:
-            if mode == 'sabotage' and personality == 'agent' and var.name in self.tags.get('mission').split('&'):
-                exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 2) + var.get_value()
+            if mode == 'sabotage' and personality == 'agent' and var.name in self.tags.get('classg').split('&'):
+                exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 0) + var.get_value() + current_level
             else:
                 return
         if mode == 'kill':
             if personality == 'psycho' and var.tags.get('team') == self.tags.get('team'):
                 exp *= 3
-            elif personality == 'avenger' and var.name == self.tags.get('revenge'):
-                exp += var.get_level()
+            elif personality == 'avenger':
+                if var.name == self.tags.get('classg'):
+                    exp *= 2
+                exp += 1
         elif mode == 'eat':
             if personality == 'gourmet':
                 exp *= 2
-                if var.name == self.tags.get('favorite'):
-                    exp *= 4
-        elif mode == 'survive' and personality == 'survivor':
-            exp *= 2
-        elif mode == 'explore':
-            if personality == 'explorer':
-                exp = int(exp / curve)
-            else:
-                return
+                if var.name == self.tags.get('classg'):
+                    exp *= 2
+        elif mode == 'survive' and personality != 'survivor':
+            return
+        elif mode == 'explore' and personality != 'survivor':
+            return
         elif mode == 'observe' and personality == 'scholar':
-            exp *= 4
+            exp *= 2
         current_experience = self.tags.get('lvl', 100) % 100
-        exp += self.get_skill('clairvoyance')
-        new_experience = min(99, exp * curve + current_experience)
+        exp += exp * self.get_skill('clairvoyance')
+        new_experience = min(99, int(exp * 5 / current_level) + current_experience)
         if current_experience < 99 and new_experience == 99:
             from src.entity.Particle import Particle
             Particle.make('barrier3', self.pos)
@@ -172,23 +182,20 @@ class Unit(Container):
             damage -= self.tags.get('def', 0)
         self.states.trigger(['act', 'hit', damage])
         self.pilot.hit(hitter)
+        if damage > 0 and not backstab and self.get_skill('block'):
+            concentration = self.states.get('Concentration')
+            if concentration:
+                concentration.trigger(['spend'])
+                from src.entity.Particle import Particle
+                Particle.make('barrier', self.pos)
+                damage -= 1
         if damage > 0:
             self.pos.location.field.unregister(self)
             if self.get_skill('fortitude'):
                 self.states.add('Invincible', 8)
             hitter_direction = self.pos.get_face(hitter.pos)
             if has_hitter:
-                if self.get_skill('parry'):
-                    concentration = self.states.get('Concentration')
-                    if concentration:
-                        damage = 1
-                        attack_range = 1 + self.get_skill('reach') + self.get_skill('lunge')
-                        if (hitter.pos - self.pos).difference() <= attack_range:
-                            self.face(hitter_direction)
-                            self.action.attack()
-                            self.form.set_state('flurry')
-                            self.form.timer.set(4)
-                if self.direction == hitter_direction and self.get_skill('block'):
+                if self.direction == hitter_direction and self.get_skill('parry'):
                     concentration = self.states.get('Concentration')
                     if concentration:
                         concentration.trigger(['spend'])
@@ -201,8 +208,7 @@ class Unit(Container):
             r = self.decay(damage)
             if r == 2:
                 if has_hitter:
-                    exp = self.get_level() - hitter.get_level() + 1
-                    hitter.progress_level(exp, mode='kill', var=self)
+                    hitter.progress_level(self.get_level(), mode='kill', var=self)
                 self.on_hit(effect='splat', sound='hit_cut')
             else:
                 self.on_hit()
@@ -237,14 +243,12 @@ class Unit(Container):
             if result > 0:
                 if self.get_skill('frenzy'):
                     self.states.add('Damage', 40, 1)
-        if result == 0 and self.get_skill('crush'):
-            concentration = self.states.get('Concentration')
-            if concentration:
-                concentration.trigger(['spend'])
-                defense = target.tags.get('def')
-                target.tags.set('def', 0)
-                target.hit(self.get_damage(), hitter=self)
-                target.tags.set('def', defense)
+            elif result == 0 and self.get_skill('crush'):
+                concentration = self.states.get('Concentration')
+                if concentration:
+                    concentration.trigger(['spend'])
+                    target.states.add('Armoring', 40, -1)
+                    target.hit(self.get_damage(), hitter=self)
         if result > 0:
             flurry = self.get_skill('flurry')
             if flurry:
@@ -281,15 +285,18 @@ class Unit(Container):
         self.healthbar.appear(hp, m_hp)
 
     def die(self):
+        self.action.die()
+
+    def death(self):
         pos = self.pos
         super().die()
         if self.tags.get('corpse', 1) != 0:
             self.tags.remove('ai')
             from src.entity.Stock import Stock
             r = Stock.make('Corpse', pos)
-            r.set(self.form)
             hp = self.tags.get('P', 1)
             r.tags.set('p', hp)
+        return True
 
     def add(self):
         r = super().add()
@@ -359,8 +366,9 @@ class Unit(Container):
         spd = self.tags.get('spd')
         if spd:
             r += '\n' + Dialog.get('Speed') + ': ' + str(spd)
-        if self.skills:
-            r += '\n' + Dialog.get('Skills') + ': ' + ', '.join(self.skills)
+        skills = self.get_skills()
+        if skills:
+            r += '\n' + Dialog.get('Skills') + ': ' + ', '.join(skills)
         return r
 
     def get_level(self):
@@ -368,15 +376,14 @@ class Unit(Container):
         if level:
             r = int(level / 100)
         else:
-            r = len(self.skills)
-            r += self.tags.get_level() + self.tags.get('P', 2)
-            if self.tags.get('ab1'):
+            r = self.tags.get_level() + self.tags.get('P', 2) - 1
+            r += self.tags.get('def', 0) + self.tags.get('dmg', 0)
+            if self.tags.get('spd', 0) > 0:
                 r += 1
-            r -= 3
         return max(1, r)
 
     def get_weight(self):
-        return super().get_weight() + self.get_seed() % 4 + 4
+        return super().get_weight() + int(self.form.get_height(self.get_seed()) * 7)
 
     def get_damage(self):
         return self.tags.get('dmg', 0) + 1

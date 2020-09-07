@@ -1,4 +1,4 @@
--24
-[[5,0],Door,Door,_g_1_4,[p:2,def:2,ob:2,mut:Locked Door,alt:_g_2_4,loot:Plank],[]],[[7,1],Manhole,Prop,_g_26_4,[ob:0],[]],[[7,1],Teleport,Scripter,_g_4_0,[ob:0,trigger:always,tox:186,toy:221],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring,*player,*host]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]],[[6,6],Door,Door,_g_1_4,[p:2,def:2,ob:2,mut:Locked Door,alt:_g_2_4,loot:Plank],[]]
-RRRRCcCCCRRC.%RRRRCcCcCRRC=%RRRRCcCcCRRC=%RRRRCcccCRRC=%RRRRCcCcCRRC=%RRRRCcccCRRC=%RRRRCCcCCRR==%RRRRRR=RR====%RRRRRR=RR=RRR%RRRRRR=R==RRR%RRRRRR====RR~%RRR&RRR===RR~%RRR&&RR===RR~
-1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111100%1111111111100%1111111111100%1111111111100
+0
+[[7,1],Manhole,Prop,_g_26_4,[ob:0,dir:0],[]],[[7,1],Teleport,Scripter,_g_4_0,[ob:0,trigger:always,tox:186,toy:221,dir:0],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring,*player,*host]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]],[[6,3],Door,Door,_g_1_4,[p:2,def:2,ob:2,mut:Locked Door,alt:_g_2_4,loot:Plank,dir:0],[]]
+RRRR==CCCRRC.%RRRR==CcCRRC=%RRRR==CcCRRC=%RRRR==ccCRRC=%RRRR==CcCRRC=%RRRR==CcCRRC=%RRRR==CCCRR==%RRRR===RR====%RRRRR==RR=RRR%RRRRRR=R==RRR%RRRRRR====RR=%RRR=RRR===RR=%RRR==RR===RR=
+1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111

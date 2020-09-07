@@ -44,9 +44,4 @@ class Attribute(Tag):
             self.add_tag(host)
 
     def get_level(self):
-        r = 0
-        r += self.get('str', 2) + self.get('sth', 0) + self.get('int', 0) + self.get('cha', 0)
-        r += self.get('def', 0) + self.get('spd', 0)
-        if self.get('skill'):
-            r += 1
-        return r
+        return self.get('str', 0) + self.get('sth', 0) + self.get('int', 0) + self.get('cha', 0)

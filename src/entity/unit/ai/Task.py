@@ -329,22 +329,22 @@ class Attack(TargetTask):
                     lunge = self.host.get_skill('lunge')
                     if reach+1 >= diff and self.host.pos.location.collide_land(self.host.pos, self.target.pos,
                                                                                flag=self.host.collision_type+2,
-                                                                               return_prev=False) == self.target.pos:
+                                                                               prev=False) == self.target.pos:
                         self.pilot.face('attack', direction)
                         return
                     elif lunge+1 >= diff and self.host.pos.location.collide_land(self.host.pos, self.target.pos,
                                                                                  flag=self.host.collision_type,
-                                                                                 return_prev=False) == self.target.pos:
+                                                                                 prev=False) == self.target.pos:
                         self.pilot.face('attack', direction)
                         return
                     elif lunge + reach + 1 >= diff and\
                             self.host.pos.location.collide_land(self.host.pos, self.target.pos,
                                                                 flag=self.host.collision_type,
-                                                                return_prev=False) == self.target.pos:
+                                                                prev=False) == self.target.pos:
                         self.pilot.face('attack', direction)
                         return
                 ability = self.host.tags.get('ab1')
-                if ability and Global.r.rand_int(0, 6) == 0:
+                if ability and Global.r.rand_int(0, 5) == 0:
                     self.host.action.set('ability1')
                 else:
                     self.pilot.move.target = self.target.pos
@@ -366,7 +366,7 @@ class Follow(TargetTask):
                     if not self.target:
                         front = self.host.pos.get_cardinal(self.host.direction + sides, 2)
                         front = self.host.pos.location.collide_land(self.host.pos, front, flag=self.host.obstruct_type,
-                                                                    return_prev=False)
+                                                                    prev=False)
                         if front:
                             for i in front.things:
                                 if i.tags.get('team', 0) == self.host.tags.get('team', 0):

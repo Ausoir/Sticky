@@ -336,3 +336,6 @@
 9/07 Fly units optimize path. Fixed follow. Attack range AI fix. ! Map cache object duplication fix.
 9/07 ! Pos assignment disaster fix. Class balancing.
 ---- PUSH - Alpha v1.1
+9/08 Dying unit fall fix. Stealth limit. Companion joining. Bucket function. Delusionist area. Mountain. Rally change.
+9/08 Shapeshifting then reviving at shapeshift location fix. Flying units can now interact. Spellbinder. Boss balance.
+---- PUSH - Alpha v1.2

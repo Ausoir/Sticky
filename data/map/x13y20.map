@@ -1,4 +1,4 @@
 -24
-[[1,7],Stalagmite,Prop,_g_5_6,[p:1,def:5,ob:4],[]],[[12,9],Dead Bush,Prop,_g_3_6,[p:4,fuel:2,loot:Stick],[]],[[0,10],Stalagmite,Prop,_g_5_6,[p:1,def:5,ob:4],[]],[[11,12],Dead Bush,Prop,_g_3_6,[p:4,fuel:2,loot:Stick],[]]
+[[1,7],Stalagmite,Prop,_g_5_6,[p:1,def:5,ob:4,dir:0],[]],[[12,9],Dead Bush,Prop,_g_3_6,[p:4,fuel:2,loot:Stick,dir:0],[]],[[0,10],Stalagmite,Prop,_g_5_6,[p:1,def:5,ob:4,dir:0],[]],[[11,12],Dead Bush,Prop,_g_3_6,[p:4,fuel:2,loot:Stick,dir:0],[]]
 .RRRRRR...:::%RRRRRRR.:.::.%RRRRRRRR..:.:%=RRRRRRRRR...%=RRRRRRRRRRRR%=RRRRRRRRRRRR%=RRRRRRRRRRRR%=.RRRRRRRRRR.%=.RRRRRR.....%..RRRRRR.....%.RRRRRRR.....%RRRRRRR......%RRRRRRR......
 1111110000000%1111110000000%1111111000000%1111111000000%1111111000000%1111111000000%1111111000000%1111111000000%1111110000000%1111100000000%1110000000000%1110000000000%1110000000000

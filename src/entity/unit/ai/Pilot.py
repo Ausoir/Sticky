@@ -74,43 +74,51 @@ class Pilot:
         self.task.perform()
 
     def hit(self, hitter):
-        if hitter is not None:
-            if self.host.tags.get('ai'):
-                from src.entity.unit.item.Item import Item
-                if isinstance(hitter, Item):
-                    if hitter.host:
-                        hitter = hitter.host
-                if hitter != self.host:
+        ai = self.host.tags.get('ai')
+        if ai and hitter is not None:
+            from src.entity.unit.item.Item import Item
+            if isinstance(hitter, Item):
+                if hitter.host:
+                    hitter = hitter.host
+            if hitter != self.host:
+                if ai != 'ally' or self.host.tags.get('team', 0) != hitter.tags.get('team', 0):
                     self.set_task(self.attack)
                     self.task.target = hitter
-                    if self.host.get_skill('rally'):
+                    if not self.host.tags.get('deaf'):
                         allies = self.host.get_team(ally=True)
                         for ally in allies:
-                            if (ally.pos - self.host.pos).difference() <= 9:
-                                if ally.tags.get('ai') and ally.pilot.priority >= 2:
+                            distance = (ally.pos - self.host.pos).difference()
+                            if distance <= 9 and ally.tags.get('ai') and ally.pilot.priority >= 2:
+                                if Global.world.location.collide_land(self.host.pos, ally.pos, ally.sight, prev=False)\
+                                        == ally.pos:
                                     ally.pilot.set_task(ally.pilot.attack)
                                     ally.pilot.task.target = hitter
 
     def perceive(self, enemies):
         perceived = []
         night_vision = self.host.get_skill('nocturnal')
+        psychic = self.host.get_skill('psychic')
         vision = self.host.tags.get('sth', 0)
+        front = self.host.pos.get_cardinal(self.host.direction)
         for thing in enemies:
-            diff_x = abs(thing.pos.x - self.host.pos.x)
-            diff_y = abs(thing.pos.y - self.host.pos.y)
             if self.host.is_facing(thing.pos):
-                s = thing.tags.get('sth', 0) + 1
-                if s >= 1:
-                    s = max(1, s - vision - night_vision)
-                if thing.pos.light or night_vision:
-                    in_range = diff_x * s <= Global.map_view.sight_range and diff_y * s <= Global.map_view.sight_range_y
+                diff_x = abs(thing.pos.x - self.host.pos.x)
+                diff_y = abs(thing.pos.y - self.host.pos.y)
+                if psychic:
+                    in_range = True
                 else:
-                    in_range = diff_x <= 3 - s and diff_y <= 2 - s
+                    s = thing.tags.get('sth', 0) + 1
+                    if thing.pos == front:
+                        s -= 4
+                    elif s >= 1:
+                        s = max(1, s - vision - night_vision)
+                    if thing.pos.light or night_vision:
+                        in_range = diff_x * s <= Global.map_view.sight_range and\
+                                   diff_y * s <= Global.map_view.sight_range_y
+                    else:
+                        in_range = diff_x <= 4 - s and diff_y <= 3 - s
                 if in_range:
                     perceived.append(thing)
-        if self.host.get_skill('psychic'):
-            if Global.player.character not in perceived and Global.player.character in enemies:
-                perceived.append(Global.player.character)
         return perceived
 
     def hear(self, pos):
@@ -119,7 +127,7 @@ class Pilot:
                 if not self.host.tags.get('deaf'):
                     if (pos - self.host.pos).difference() >= 1:
                         self.face('idle', self.host.pos.get_face(pos))
-                        seen = Global.world.location.collide_land(self.host.pos, pos, self.host.sight)
+                        seen = Global.world.location.collide_land(self.host.pos, pos, self.host.sight, prev=False)
                         if seen == pos:
                             units = []
                             from src.entity.unit.Unit import Unit

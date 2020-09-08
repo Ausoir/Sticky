@@ -145,7 +145,7 @@ class Humanoid(Unit):
         return r
 
     def get_weight(self):
-        return super().get_weight() + self.get_equipment_weight()
+        return int(self.form.get_height(self.get_seed()) * 7) + self.get_equipment_weight() + 1
 
     def is_vacant(self, weight):
         return self.tags.get('str', 1) >= self.get_equipment_weight() + weight
@@ -237,23 +237,16 @@ class Humanoid(Unit):
         super().on_attack(result, target)
         if self.weapon:
             self.weapon.on_attack(target)
-        else:
-            if isinstance(target, Humanoid):
-                if self.get_skill('steal'):
-                    concentration = self.states.get('Concentration')
-                    if concentration:
-                        concentration.trigger(['spend'])
-                        if target.weapon:
-                            target.drop()
-                        elif target.headgear:
-                            target.unheadgear()
-                        elif target.armor:
-                            target.unarmor()
-                    else:
-                        self.pos.location.sound.register(self.pos, 0, file='wear', priority=2)
-                        item = target.inventory.take_item(0)
-                        if item:
-                            self.pick_up(item)
+        elif isinstance(target, Humanoid):
+            if self.get_skill('steal'):
+                if target.weapon:
+                    target.drop()
+                elif target.headgear:
+                    target.unheadgear()
+                elif target.inventory.items:
+                    target.inventory.take_item(0)
+                elif target.armor:
+                    target.unarmor()
 
     def drop(self):
         if self.weapon:

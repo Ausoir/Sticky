@@ -29,7 +29,9 @@ barrier2,[_gfx_27_0,_gfx_27_1,_gfx_27_2,_gfx_27_3],0.1,0
 barrier3,[_gfx_28_0,_gfx_28_1,_gfx_28_2,_gfx_28_3],0.1,0
 gate,[_gfx_29_0,_gfx_29_1,_gfx_29_2,_gfx_29_3],0.05,1
 eye,[_gfx_30_0,_gfx_30_1,_gfx_30_2,_gfx_30_3],0.1,0
+pattern,[_gfx_31_0,_gfx_31_1,_gfx_31_2,_gfx_31_3],0.1,1
 shout,[_g_5_0],0.3,0
 fog,[_gfx_19_0,_gfx_19_1,_gfx_19_2,_gfx_19_3],0.5,1
 evil blade,[_blade_0_13,_blade_0_14],0.1,1
 flameberge,[_blade_0_16,_blade_0_17],0.1,1
+spellbinder,[_blade_0_18,_blade_0_19],0.1,1

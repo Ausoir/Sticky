@@ -32,7 +32,18 @@ class ScriptManual:
             var.tags.set('tgt', 'x' + str(pos.x) + 'y' + str(pos.y))
             var.pilot.load('ally')
             var.tags.set('#', '>menu>order')
-            Global.main.monologue.set(Dialog.get(':join', [var.get_display_name()]))
+            if host == Global.player.character:
+                Global.main.monologue.set(Dialog.get(':join', [var.get_display_name()]))
+
+    @staticmethod
+    def companion(host, var):
+        if Global.player.companions:
+            from src.tools.Data import Data
+            from src.entity.Stock import Stock
+            data = Data.process_raw(Global.player.companions.pop())
+            unit = Stock.get(data[1], data)
+            unit.pos = host.pos.get_cardinal(host.direction)
+            unit.add()
 
     @staticmethod
     def repair(host, var):

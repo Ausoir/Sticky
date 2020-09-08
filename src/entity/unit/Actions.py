@@ -17,16 +17,15 @@ class Actions:
     def set(self, action):
         if self.current_action != action:
             self.idle_frame = 0
+            if self.delay and self.current_action != 'die':
+                self.on_finish = None
             self.current_action = action
             self.current_action_fn = getattr(self, action)
         if self.on_finish:
-            if self.delay:
-                self.on_finish = None
-            else:
-                fn = self.on_finish  # prevent recursion
-                self.on_finish = None
-                if fn():
-                    return True
+            fn = self.on_finish  # prevent recursion
+            self.on_finish = None
+            if fn():
+                return True
         self.current_action_fn()
         self.last_action = action
 
@@ -259,6 +258,8 @@ class Actions:
             elif not self.interact_on(self.host.pos):
                 self.make('grab', turn=1)
                 self.host.drop()
+        else:
+            self.interact_on(self.host.pos)
 
     def sheathe(self):
         if self.humanoid:
@@ -274,18 +275,18 @@ class Actions:
                 self.host.unsheathe(0)
 
     def attack(self):
+        from src.map.Tile import Tile
         self.host.states.trigger(['act', 'attack'])
         for i in range(self.host.get_skill('lunge')):
             front = self.host.pos.get_cardinal(self.host.direction, 1)
-            self.move(front, self.host.collision_type)
+            self.move(front, Tile.COLLIDE_FOG)
         atk_spd = self.host.get_skill('deft')
         self.host.form.animation_ended = 1
         reach = self.host.get_skill('reach')
         if reach > 0:
             front = self.host.pos.get_cardinal(self.host.direction, 1 + reach)
-            from src.map.Tile import Tile
             front = self.host.pos.location.collide_land(self.host.pos, front, flag=Tile.CHECK_FIRM,
-                                                        return_prev=False)
+                                                        prev=False)
         else:
             front = self.host.pos.get_cardinal(self.host.direction, 1)
         dmg = self.host.get_damage()

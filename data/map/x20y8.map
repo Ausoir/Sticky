@@ -1,4 +1,4 @@
 -24
-[[3,9],Dojo,Scripter,_g_6_0,[ob:0,trigger:time,time:6,spawn:Master],[[Invisible,-1,-1],[Immune,-1,0]],[[],[[v,1,tag,*host,spawn],[spawn,*1],[spawn,Pedestal],[remove,*host]],[]]],[[9,9],Lantern,Ceiling,_g2_12_0,[p:1,ob:0],[[Glow,-1,12]]],[[11,9],Gate,Prop,_g_34_4,[p:20,def:13,fuel:-1,#:gate,tox:286,toy:126],[]],[[12,9],Gate,Prop,_g_34_4,[p:20,def:13,fuel:-1,#:gate,tox:283,toy:126],[]]
+[[3,9],Dojo,Scripter,_g_6_0,[ob:0,trigger:time,time:6,spawn:Master,dir:0],[[Invisible,-1,-1],[Immune,-1,0]],[[],[[v,1,tag,*host,spawn],[spawn,*1],[spawn,Pedestal],[remove,*host]],[]]],[[9,9],Lantern,Ceiling,_g2_12_0,[p:1,ob:0,dir:0],[[Glow,-1,12]]],[[11,9],Gate,Prop,_g_34_4,[p:20,def:13,fuel:-1,#:gate,tox:286,toy:126,dir:0],[]],[[12,9],Gate,Prop,_g_34_4,[p:20,def:13,fuel:-1,#:gate,tox:283,toy:126,dir:0],[]]
 ~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~CCCCCCCCCCCC%~C??????????C%~C?kkkCkkkC?C%~C?CCkkkCkC?C%~C?kCkCkkkkkk%~C?kkkCCCkk?C%^C?kCCCkkkk?C%^C??????????C
 0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0111111111111%0111111111111%0111111111111%0111111111111%0111111111111%0111111111111%0111111111111%0111111111111

@@ -70,7 +70,7 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 :learnab?,Learn <#> ability for $#? This ability can be used by pressing <#>.
 !learnab,I have nothing to teach for now.
 !learnfull,You cannot learn more than 3 abilities.
-:insure?,I can clone your body so you can be revived even if you die. Will you take this life insurance for $#? Note that insurance does not apply to clones or shapeshifts.
+:insure?,I can clone your body so you can be revived even if you die. Will you take this life insurance for $#?
 :insurecancel?,You are already under revival contract. Would you like to cancel it?
 :observe,You gained # experience from this observation.
 !observe,You must wait # hours before observing again.
@@ -78,9 +78,10 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 :wait,Wait # seconds!
 :craftables,Click an item to view recipe
 dsc_examine,Use the arrow keys then press Enter to examine target
-:invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day at midnight\,\ but this investment does not transfer to your clone\,\ shapeshifts\,\ and is non-refundable. You currently have $# invested.
+:invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day at midnight. Investment does not transfer to clones and shapeshifts. You currently have $# invested.
 :pickone,Choose an item to grab
 :join,# joins the party.
+:companion,# joins you. Press R to summon.
 :neutral,This unit is not hostile.
 :death,You die...|Time: #|Your Level: #|Press ESC to exit.
 :victory1,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life.|Time of victory: #|Your Level: #|Press ESC to end.

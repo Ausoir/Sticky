@@ -171,7 +171,7 @@ class World:
                             prop.add()
                             prop.on_sleep(time_passed)
         if Global.player.character:
-            Global.player.character.progress_level(1, mode='explore')
+            Global.player.character.progress_level(min(explore, 4), mode='explore')
         return obj, others
 
     def regrow(self, cell_coord, start_coord):
@@ -180,7 +180,7 @@ class World:
             x = Global.r.rand_int(start_coord[0], start_coord[0] + World.CHUNK - 1)
             y = Global.r.rand_int(start_coord[1], start_coord[1] + World.CHUNK - 1)
             tile = self.location.get_tile(x, y)
-            if not tile.is_seen() and tile.get_solidity() < 3:
+            if tile.get_yield() > -8 and not tile.things:
                 spawn = self.get_spawn(tile.get_name(), level=savageness)
                 if spawn and spawn != 0:
                     made = Stock.make(spawn, tile)

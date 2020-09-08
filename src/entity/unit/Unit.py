@@ -166,6 +166,10 @@ class Unit(Container):
             from src.entity.Particle import Particle
             Particle.make('barrier3', self.pos)
             Global.world.location.sound.register(self.pos, 0, file='level', priority=1)
+            if self != Global.player.character:
+                self.tags.increment('P', 1)
+                self.tags.set('lvl', (current_level + 1) * 100)
+                return
         self.tags.set('lvl', current_level * 100 + new_experience)
 
     def hit(self, damage, hitter=None):
@@ -174,6 +178,12 @@ class Unit(Container):
         has_hitter = hitter is not None
         if has_hitter and not self.is_facing(hitter.pos):
             backstab = True
+            if isinstance(hitter, Unit) and hitter.get_skill('assassinate'):
+                self.tags.set('deaf', 1)
+                from src.entity.Particle import Particle
+                Particle.make('power', self.pos)
+                self.pos.location.sound.register(self.pos, 0, file='critical')
+                damage += 7
         else:
             backstab = False
         if self.states.get('Barrier'):
@@ -193,8 +203,8 @@ class Unit(Container):
             self.pos.location.field.unregister(self)
             if self.get_skill('fortitude'):
                 self.states.add('Invincible', 8)
-            hitter_direction = self.pos.get_face(hitter.pos)
             if has_hitter:
+                hitter_direction = self.pos.get_face(hitter.pos)
                 if self.direction == hitter_direction and self.get_skill('parry'):
                     concentration = self.states.get('Concentration')
                     if concentration:
@@ -213,7 +223,7 @@ class Unit(Container):
             else:
                 self.on_hit()
                 if has_hitter and not self.removed:
-                    front = self.pos.get_cardinal(hitter_direction + 2)
+                    front = self.pos.get_cardinal(self.pos.get_face(hitter.pos) + 2)
                     self.action.knockdown(self, 4, push=front)
                 else:
                     self.action.knockdown(self, 4)
@@ -226,10 +236,6 @@ class Unit(Container):
         if isinstance(target, Unit):
             if self.get_skill('disorient'):
                 target.face(Global.r.rand_int(0, 3))
-            if not target.is_facing(self.pos):
-                if self.get_skill('assassinate'):
-                    target.tags.set('deaf', 1)
-                    self.critical_attack(target)
             if self.get_skill('feed'):
                 for i in target.skills:
                     if i not in self.skills:
@@ -247,8 +253,9 @@ class Unit(Container):
                 concentration = self.states.get('Concentration')
                 if concentration:
                     concentration.trigger(['spend'])
-                    target.states.add('Armoring', 40, -1)
+                    defense = target.tags.remove('def')
                     target.hit(self.get_damage(), hitter=self)
+                    target.tags.set('def', defense)
         if result > 0:
             flurry = self.get_skill('flurry')
             if flurry:
@@ -337,12 +344,6 @@ class Unit(Container):
                 r += 1
         return r
 
-    def critical_attack(self, target):
-        target.decay(7)
-        from src.entity.Particle import Particle
-        Particle.make('power', target.pos, offset=16)
-        self.pos.location.sound.register(target.pos, 0, file='critical')
-
     def is_team(self, target):
         return self.tags.get('bad') == target.tags.get('bad')
 
@@ -368,7 +369,7 @@ class Unit(Container):
             r += '\n' + Dialog.get('Speed') + ': ' + str(spd)
         skills = self.get_skills()
         if skills:
-            r += '\n' + Dialog.get('Skills') + ': ' + ', '.join(skills)
+            r += '\n' + Dialog.get('Skills') + ': ' + ', '.join([x.title() for x in skills])
         return r
 
     def get_level(self):
@@ -383,7 +384,7 @@ class Unit(Container):
         return max(1, r)
 
     def get_weight(self):
-        return super().get_weight() + int(self.form.get_height(self.get_seed()) * 7)
+        return int(self.form.get_height(self.get_seed()) + self.tags.get('P', 1) * .5) + 2
 
     def get_damage(self):
         return self.tags.get('dmg', 0) + 1

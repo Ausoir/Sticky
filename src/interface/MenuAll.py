@@ -194,6 +194,10 @@ class MenuAll(MenuPlayer):
                 host.pilot.load('ally')
             elif arg == 4:
                 host.action.set('grab')
+            elif arg == 5:
+                Global.player.companions.append(host.__str__())
+                Global.main.monologue.set(Dialog.get(':companion', [host.get_display_name()]))
+                host.remove()
             self.display(-1)
         host = self.var
         host.face_toward(Global.player.character.pos)
@@ -204,6 +208,12 @@ class MenuAll(MenuPlayer):
             from src.entity.unit.Humanoid import Humanoid
             if isinstance(host, Humanoid):
                 self.window.add(Menu.make(Dialog.get('Wield'), order, name=4, width=320))
+        else:
+            self.window.add(Menu.make(Dialog.get('Cannot Follow'), None, width=320, color=None))
+        if Global.player.is_sociable(1, notice=False):
+            self.window.add(Menu.make(Dialog.get('Join'), order, name=5, width=320))
+        else:
+            self.window.add(Menu.make(Dialog.get('Cannot Join'), None, width=320, color=None))
         self.sub_window.display(1)
 
     def menu_learn(self):

@@ -41,6 +41,14 @@ class Generator:
         elif generator == 'warehouse':
             from src.map.GenerateWarehouse import GenerateWarehouse
             GenerateWarehouse(size_x, size_y).run()
+        elif generator == 'lab':
+            from src.map.GenerateWarehouse import GenerateWarehouse
+            r = GenerateWarehouse(size_x, size_y)
+            r.display_floor = 'K'
+            r.wall = 'J'
+            r.theme = {'.': 'j', 'D': 'Window', 'W': 'Window', ':': 'Brain', ';': 'Brain', 'Box': 'Floodlight'}
+            r.appliance = ['Brain']
+            r.run()
         Global.world.dirty = True
         Global.world.location.process_terrain()
 

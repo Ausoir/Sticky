@@ -489,7 +489,8 @@ class Ghost(Unit):
     def use(self):
         if self == Global.player.character:
             for i in self.pos.things:
-                if i != self and isinstance(i, Unit) and i.pilot.priority > 3 and not i.states.get('Immune'):
+                if i != self and isinstance(i, Unit) and i.pilot.priority > 3 and\
+                        not i.states.get('Immune') and not i.states.get('Deflection'):
                     safeguard = i.states.get('Safeguard')
                     if safeguard:
                         safeguard.trigger(['act', 'hit'])

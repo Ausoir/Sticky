@@ -74,13 +74,13 @@ class Location:
             prev_tile = tile
         return prev_tile
 
-    def collide_land(self, pos1, pos2, flag, distance=-1, return_prev=True):
-        def fn(prev, tile):
+    def collide_land(self, pos1, pos2, flag, distance=-1, prev=True):
+        def fn(prev_tile, tile):
             if tile:
                 is_int = isinstance(flag, int)
                 if (is_int and tile.get_solidity() >= flag) or (not is_int and tile.is_land(flag)):
-                    if return_prev:
-                        return prev
+                    if prev:
+                        return prev_tile
                     else:
                         return tile
         return self.collide_line(pos1.x, pos1.y, pos2.x, pos2.y, fn, distance)

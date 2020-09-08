@@ -6,7 +6,7 @@ class GenerateWarehouse(Generator):
         super().__init__(x, y, random)
         self.display_floor = 'c'
         self.wall = 'B'
-        self.theme = {'.': 'K', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf'}
+        self.theme = {'.': 'K', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf', 'Box': 'Crate'}
         self.appliance = ['Bed', 'Seat', 'Stool', 'Desk', 'Alchemy Table', 'Crate', 'Workbench', 'Sign', 'Window',
                           'Lantern', 'Sack', 'Table', 'Register', 'Barrel', 'Basket', 'Loom', 'Bookshelf', 'Throne',
                           'Rack', 'Armor Stand']
@@ -33,7 +33,6 @@ class GenerateWarehouse(Generator):
     def process(self):
         estate, garden = self.iterate(6, 1, self.get_width() - 7, 8)
         estate2, garden2 = self.iterate(0, 10, self.get_width(), self.get_height())
-        self.build_entrance()
         for rect in garden + estate + garden2 + estate2:
             width = rect[2] - rect[0]
             height = rect[3] - rect[1]
@@ -97,31 +96,12 @@ class GenerateWarehouse(Generator):
                 garden.append([int(x) for x in area2])
         return estate, garden
 
-    def build_entrance(self):
-        for x in range(5):
-            for y in range(5):
-                if x == 4 or y == 4:
-                    if x == 3:
-                        self.str_map[y][x] = 'D'
-                    else:
-                        rand = self.random.rand_int(1, 16)
-                        if rand == 1:
-                            self.str_map[y][x] = 'W'
-                        else:
-                            self.str_map[y][x] = self.wall
-                else:
-                    self.str_map[y][x] = 'w'
-
     def build_display(self, estate):
         item = self.appliance[self.random.rand_int(0, len(self.appliance) - 1)]
         for y in range(estate[1], estate[3]):
             for x in range(estate[0], estate[2]):
                 if x == estate[0] or x == estate[2] - 1 or y == estate[1] or y == estate[3] - 1:
-                    rand = self.random.rand_int(1, 3)
-                    # if rand != 1:
                     self.str_map[y][x] = item
-                    # else:
-                    #     self.str_map[y][x] = self.display_floor
                 else:
                     self.str_map[y][x] = self.wall
 
@@ -135,7 +115,7 @@ class GenerateWarehouse(Generator):
                     else:
                         self.str_map[y][x] = ';'
                 else:
-                    self.str_map[y][x] = 'Crate'
+                    self.str_map[y][x] = 'Box'
 
     def build_pillar(self, estate):
         for y in range(estate[1] + 1, estate[3] - 1):
@@ -149,7 +129,7 @@ class GenerateWarehouse(Generator):
         else:
             for y in range(estate[1] + 1, estate[3] - 1):
                 for x in range(estate[0] + 1, estate[2] - 1):
-                    self.str_map[y][x] = 'Crate'
+                    self.str_map[y][x] = 'Box'
             return
         for x in range(estate[0], estate[2]):
             wall = self.wall

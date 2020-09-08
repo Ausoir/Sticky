@@ -41,6 +41,8 @@ class Editor:
             Global.map_view.update_fog()
             Global.map_view.update()
             Global.map_view.update_region_editor()
+        else:
+            self.tool.cancel()
 
     def remove(self):
         self.tool.cancel()

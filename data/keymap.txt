@@ -17,6 +17,7 @@ ENTER,#examine
 SPACE,use
 Q,grab
 E,sheathe
+R,##companion
 _1,ability1
 _2,ability2
 _3,ability3

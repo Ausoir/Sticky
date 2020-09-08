@@ -19,8 +19,12 @@ class Game:
         Turn.hour_change.append(self.on_hour_change)
         from src.interface.Control import Control
         self.control = Control(self.input)
+        self.companions = []
         if Data.is_file('save/player.char'):
-            data = Data.process_raw(Data.read('save/player.char'))
+            player_data = Data.read('save/player.char')
+            data = Data.process_raw(player_data)
+            for companion in player_data.split('\n')[3:]:
+                self.companions.append(companion)
         else:
             data = Data.process_raw(Data.read('data/map/template.char'))
         self.tags = Tag()
@@ -80,7 +84,8 @@ class Game:
             self.tags.set('c_y', Global.world.cells[chunk][1])
             r = self.tags.__str__() + '\n'
             r += self.character.save() + '\n'
-            r += self.npc.__str__()
+            r += self.npc.__str__() + '\n'
+            r += '\n'.join(self.companions)
             Data.write('save/player.char', r)
 
     def get_biomes(self, level):
@@ -121,7 +126,7 @@ class Game:
     def sleep(self, time, blackout=True):
         if time != 0:
             self.save()
-            self.character.progress_level(time, mode='survive')
+            self.character.progress_level(1, mode='survive')
             Global.world.location.on_sleep(time)
             event = Global.r.rand_list(Data.get_line('raw.txt', 'event')[1])
             if event:
@@ -194,6 +199,7 @@ class Game:
                     revive.end()
                     args = [int(x) for x in revive.var.split('&')]
                     self.character.add()
+                    self.character.states.clear(lambda _: True)
                     self.character.tags.set('p', self.character.tags.get('P', 1))
                     self.character.tags.set('hunger', 0)
                     self.character.tags.remove('invest')
@@ -239,14 +245,15 @@ class Game:
             return True
         Global.main.monologue.set(Dialog.get('!pay', [amount]))
 
-    def is_sociable(self, arg):
-        count = 0
+    def is_sociable(self, arg, notice=True):
+        count = len(self.companions) * 2
         for i in Global.world.location.population.get_team(self.character.tags.get('team', 0)):
             if i.tags.get('ai', '') == 'ally' and i.pilot.task.target == self.character:
                 count += 1
         if count + arg <= self.character.tags.get('cha', 0):
             return True
-        Global.main.monologue.set(Dialog.get('!sociable', [count, self.character.tags.get('cha', 0)]))
+        if notice:
+            Global.main.monologue.set(Dialog.get('!sociable', [count, self.character.tags.get('cha', 0)]))
 
     def is_bright(self):
         if self.character.pos.light > 0:

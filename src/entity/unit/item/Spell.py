@@ -73,7 +73,7 @@ class Spell:
                 distance = (target.pos - self.host.pos).difference()
                 if distance < nearest_dist:
                     reachable = Global.world.location.collide_land(self.host.pos, target.pos, self.host.sight,
-                                                                   distance=distance + 1, return_prev=False)
+                                                                   distance=distance + 1, prev=False)
                     if target.pos == reachable:
                         nearest_dist = distance
                         nearest = target
@@ -84,7 +84,7 @@ class Spell:
         start = self.host.pos
         max_range = self.get_range()
         destination = self.host.pos.get_cardinal(direction, distance=max_range)
-        target = Global.world.location.collide_land(start, destination, block, distance=max_range, return_prev=False)
+        target = Global.world.location.collide_land(start, destination, block, distance=max_range, prev=False)
         return target
 
 
@@ -141,7 +141,7 @@ class Scry(Spell):
             ghost.tags.set('tox', pos[0])
             ghost.tags.set('toy', pos[1])
             ghost.tags.set('view', 8)
-            ghost.states.add('Script', 50, '#reclaim')
+            ghost.states.add('Script', 80, '#reclaim')
             self.host.is_save = True
             Global.player.character.tags.set('husk', 1)
             Global.player.set_player(ghost)
@@ -415,7 +415,7 @@ class Sting(Spell):
             r = Stock.make('Arrow', self.host.pos)
             r.face(target.get_face(r.pos))
             r.relocate(to=target)
-            Global.world.location.field.register(3, target, delay=1, hitter=self.host)
+            Global.world.location.field.register(2, target, delay=1, hitter=self.host)
 
 
 class Blink(Spell):
@@ -503,11 +503,9 @@ class Torment(Spell):
     def perform(self):
         targets = self.host.get_team(ally=False)
         for i in targets:
-            if (i.pos - self.host.pos).difference() <= 7:
+            if (i.pos - self.host.pos).difference() <= 9:
                 Global.world.location.sound.register(i.pos, 9, file='fire')
-                if len(self.host.pos.things) < 5:
-                    r = Stock.make('Flame', self.host.pos)
-                    r.relocate(to=i.pos)
+                i.states.add('Burn', 12)
 
 
 class Avatar(Spell):
@@ -546,13 +544,14 @@ class Summon(Spell):
 
 class Barrier(Spell):
     def get_cooldown(self):
-        return 40
+        return 80
 
     def get_delay(self):
         return 2
 
     def perform(self):
-        self.host.states.add('Barrier', 240)
+        self.host.states.add('Barrier', 80)
+        self.host.states.add('Deflection', 80)
 
 
 class Clone(Spell):
@@ -595,8 +594,7 @@ class Earthquake(Spell):
         for i in targets:
             for thing in i.things.copy():
                 Particle.make('spin', i)
-                if self.host.action.knockdown(thing, 24):
-                    break
+                thing.states.add('Knockout', 40)
 
 
 class Charge(Spell):

@@ -195,7 +195,9 @@ class Script:
         elif arg[0] == 'script':
             Script.execute_code(arg[1])
         elif arg[0] == 'build':
-            Script.var['host'].pos.set_terrain(arg[1])
+            arg[1].pos.set_terrain(arg[2])
+            Global.world.dirty = True
+            Global.world.location.process_terrain()
         elif arg[0] == 'spawn':
             from src.entity.Stock import Stock
             Script.var['1'] = Stock.make(arg[1], Script.var['host'].pos)

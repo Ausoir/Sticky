@@ -136,7 +136,8 @@ class Execute(pyglet.window.Window):
         Camera.update()
         Turn.update()
         self.monologue.update()
-        pyglet.clock.schedule_once(self.loop, self.fps - self.dt)
+        self.dispatch_events()
+        # pyglet.clock.schedule_once(self.loop, self.fps - self.dt)
 
     def on_draw(self):
         self.clear()
@@ -151,5 +152,5 @@ class Execute(pyglet.window.Window):
 
 if __name__ == '__main__':
     main = Execute()
-    main.loop(999)
+    pyglet.clock.schedule_interval(main.loop, main.fps)
     pyglet.app.run()

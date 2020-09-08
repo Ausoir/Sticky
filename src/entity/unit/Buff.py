@@ -126,8 +126,9 @@ class Revive(Buff):
         return ['stack']
 
     def on_start(self):
-        cell_coord = [str(x) for x in Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)]
-        self.var = '&'.join(cell_coord)
+        if not self.var:
+            cell_coord = [str(x) for x in Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)]
+            self.var = '&'.join(cell_coord)
         self.host.tags.set('corpse', 0)
         Particle.make('barrier3', self.host.pos, glow=4)
 
@@ -258,6 +259,7 @@ class Speed(StatBuff):
         from src.entity.unit.item.Item import Item
         if self.var > 0 and isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
+                self.duration = 1
                 self.host.tags.set('skill', 'deft')
         super().on_start()
 
@@ -270,8 +272,18 @@ class Damage(StatBuff):
         from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
+                self.duration = 1
                 if self.var > 0:
                     self.host.tags.increment('dmg', 1)
+                    rand = Global.r.rand_int(0, 3)
+                    if rand == 0:
+                        self.host.tags.increment('def', -1)
+                    elif rand == 1:
+                        self.host.tags.remove('skill')
+                    elif rand == 2:
+                        self.host.tags.increment('w', 1)
+                    elif rand == 3:
+                        self.host.tags.increment('P', -2, default=10)
                 elif self.var < 0:
                     self.host.tags.increment('dmg', -1)
         super().on_start()
@@ -285,6 +297,7 @@ class Armoring(StatBuff):
         from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
+                self.duration = 1
                 if self.var > 0:
                     self.host.tags.increment('def', 1)
                 elif self.var < 0:
@@ -300,6 +313,7 @@ class Insulation(StatBuff):
         from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
+                self.duration = 1
                 self.host.tags.increment('fuel', self.var)
         super().on_start()
 
@@ -320,7 +334,7 @@ class Invisible(Buff):
         Particle.make('mist', self.host.pos)
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            self.host.tags.increment('sth', 40)
+            self.host.tags.increment('sth', 10)
             for unit in Global.world.location.population.get_units():
                 unit.pilot.lose(self.host)
 
@@ -331,7 +345,7 @@ class Invisible(Buff):
     def on_finish(self):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
-            self.host.tags.increment('sth', -40)
+            self.host.tags.increment('sth', -10)
         self.host.show(True)
 
     def on_update(self):
@@ -468,9 +482,11 @@ class Lignification(Buff):
         from src.entity.unit.item.Item import Item
         if isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
+                self.duration = 1
                 rand_int = Global.r.rand_int(2, 3)
                 self.host.tags.increment('P', rand_int)
                 self.host.tags.increment('p', rand_int)
+                self.host.tags.increment('fuel', 1)
         self.host.tags.increment('fuel', 2)
         self.host.tags.increment('def', 2)
         self.host.tags.increment('spd', -12)
@@ -541,6 +557,7 @@ class Levitation(Buff):
             w = self.host.tags.get('w', 1)
             if w > 1:
                 if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
+                    self.duration = 1
                     self.host.tags.increment('w', -1)
             self.end()
         else:
@@ -624,6 +641,7 @@ class Amnesia(Buff):
 
     def on_start(self):
         self.host.skills.pop()
+        Global.world.location.sound.register(self.host.pos, 0, file='down')
 
 
 class Safeguard(Buff):

@@ -151,7 +151,7 @@ class World:
                         others += tile.others
                 if cell_num in added:
                     renew = time_passed >= 4
-                    # renew = False
+                    renew = False
                     if renew:
                         if not map_is_save:
                             explore += 1

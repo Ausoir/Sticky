@@ -1,6 +1,7 @@
+from time import time
+
 import pyglet
 from pyglet.gl import *
-
 from src.game import Global
 from src.tools.Space import Space
 from src.game.Camera import Camera
@@ -26,10 +27,12 @@ class Execute(pyglet.window.Window):
         self.set_location(self.setting['x'], self.setting['y'])
         if abs(self.screen.width - self.setting['width']) + abs(self.screen.height - self.setting['height']) < 80:
             self.maximize()
-        self.dt = 0
-        self.fps = 1 / 56.0
+        self.fps = 1 / 52.0
+        self.frame_current = 0
+        self.frame_last = time()
         self.init_other()
         self.monologue = Textbox()
+        self.is_running = True
 
         glEnable(pyglet.gl.GL_BLEND)
         glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -129,23 +132,30 @@ class Execute(pyglet.window.Window):
         Data.write('data/setting.txt', result.replace(',', '\n').replace(':', ',')[1:][:-1])
         self.close()
 
-    def loop(self, dt):
-        self.dt += dt
-        # if self.dt > self.fps:
-        # print(str(1 / self.dt))
-        self.dt = 0
-        Camera.update()
-        Turn.update()
-        self.monologue.update()
-        self.dispatch_events()
-        # pyglet.clock.schedule_once(self.loop, self.fps - self.dt)
+    def loop(self):
+        while self.is_running:
+            current_time = time()
+            if current_time - self.frame_last > self.fps:
+                Camera.update()
+                Turn.update()
+                self.render()
+                self.frame_current = 0
+                self.frame_last = current_time
+            else:
+                self.frame_current = self.frame_current + 1
+            self.dispatch_events()
 
-    def on_draw(self):
+    def render(self):
         self.clear()
+        pyglet.clock.tick()
+        self.monologue.update()
         Global.draw_group.draw()
+        if self.context:
+            self.flip()
 
     def quit(self):
-        Global.player.control.output('exit')
+        self.is_running = False
+        self.dispatch_events()
         Global.world.save()
         Global.player.save()
         self.on_close()
@@ -153,5 +163,5 @@ class Execute(pyglet.window.Window):
 
 if __name__ == '__main__':
     main = Execute()
-    pyglet.clock.schedule_interval(main.loop, main.fps)
-    pyglet.app.run()
+    main.switch_to()
+    main.loop()

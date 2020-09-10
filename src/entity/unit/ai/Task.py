@@ -299,7 +299,7 @@ class Attack(TargetTask):
             return True
 
     def perform(self):
-        if self.target:
+        if self.target and self.target.hittable:
             dist = self.target.pos - self.host.pos
             diff = dist.difference()
             if diff == 0:

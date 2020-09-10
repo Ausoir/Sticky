@@ -140,7 +140,7 @@ class GenerateCave(Tunneler):
         self.iterate()
         for x in range(self.get_width()):
             for y in range(self.start[1] - 1, self.start[1] + 2):
-                self.str_map[y][x] = 'm'
+                self.str_map[y][x] = 'N'
 
     def initialize_tunneler(self):
         return [self.random.rand_int(0, 3), self.start]

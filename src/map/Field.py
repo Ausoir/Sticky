@@ -32,9 +32,14 @@ class Field:
     def perform(self, data):
         if data[4]:
             self.location.sound.register(data[0].pos, data[4][1], file=data[4][0])
-        if data[2]:
-            for thing in data[2].things.copy():
+        if data[2] and data[2].things:
+            things = data[2].things.copy()
+            things.sort(key=lambda _: _.obstruct_type)
+            things.reverse()
+            for thing in things:
                 if thing.hittable:
                     hit = thing.hit(data[3], hitter=data[0])
                     if data[5]:
                         data[5](hit, thing)
+                    if hit == -1:
+                        return

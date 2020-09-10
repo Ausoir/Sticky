@@ -75,24 +75,19 @@ class Pilot:
 
     def hit(self, hitter):
         ai = self.host.tags.get('ai')
-        if ai and hitter is not None:
-            from src.entity.unit.item.Item import Item
-            if isinstance(hitter, Item):
-                if hitter.host:
-                    hitter = hitter.host
-            if hitter != self.host:
-                if ai != 'ally' or self.host.tags.get('team', 0) != hitter.tags.get('team', 0):
-                    self.set_task(self.attack)
-                    self.task.target = hitter
-                    if not self.host.tags.get('deaf'):
-                        allies = self.host.get_team(ally=True)
-                        for ally in allies:
-                            distance = (ally.pos - self.host.pos).difference()
-                            if distance <= 9 and ally.tags.get('ai') and ally.pilot.priority >= 2:
-                                if Global.world.location.collide_land(self.host.pos, ally.pos, ally.sight, prev=False)\
-                                        == ally.pos:
-                                    ally.pilot.set_task(ally.pilot.attack)
-                                    ally.pilot.task.target = hitter
+        if ai and hitter is not None and hitter != self.host:
+            if ai != 'ally' or self.host.tags.get('team', 0) != hitter.tags.get('team', 0):
+                self.set_task(self.attack)
+                self.task.target = hitter
+                if not self.host.tags.get('deaf'):
+                    allies = self.host.get_team(ally=True)
+                    for ally in allies:
+                        distance = (ally.pos - self.host.pos).difference()
+                        if distance <= 9 and ally.tags.get('ai') and ally.pilot.priority >= 2:
+                            if Global.world.location.collide_land(self.host.pos, ally.pos, ally.sight, prev=False)\
+                                    == ally.pos:
+                                ally.pilot.set_task(ally.pilot.attack)
+                                ally.pilot.task.target = hitter
 
     def perceive(self, enemies):
         perceived = []

@@ -26,8 +26,8 @@ class Mercenary:
 
     def spawn(self, o_x, o_y):
         if self.npc and Global.r.rand_int(1, 16) == 1:
-            x = Global.r.rand_int(o_x, o_x + Global.world.CHUNK)
-            y = Global.r.rand_int(o_y, o_y + Global.world.CHUNK)
+            x = Global.r.rand_int(o_x, o_x + Global.world.CHUNK - 1)
+            y = Global.r.rand_int(o_y, o_y + Global.world.CHUNK - 1)
             tile = Global.world.location.get_tile(x, y)
             if tile and tile.get_yield() > -8 and not tile.things and not tile.is_seen():
                 npc = self.npc.pop()

@@ -30,12 +30,14 @@ Delusionist,Humanoid,rot,[p:6,team:2,ai:wander,str:4,int:4,head:_half_16_0&_half
 Cultist,Humanoid,human,[P:10,p:10,team:3,ai:wander,str:4,+:speed,loot:#cabinet,have:1,ab1:breeze],[],[],[crush],Cult Robe,Veil,Dagger
 Fanatic,Humanoid,human,[P:4,p:4,team:3,ai:wander,str:4,sth:3,+:speed,ab1:torment],[],[],[],Cult Robe,Veil,Torch
 Sacrifice,Humanoid,zombie,[P:20,p:20,team:3,ai:wander,str:4,head:_half_14_0&_half_14_1&_half_14_2,ab1:avatar],[],[],[hide],Cult Robe,Veil,Scythe
-Skeleton,Humanoid,skeleton,[p:1,def:1,team:3,ai:wander,str:4,head:_half_15_0&_half_15_1&_half_15_2,zombie:3],[[Immune,-1,0]],[],[constitution,lunge],0,0,Scimitar
+Skeleton,Humanoid,skeleton,[p:1,def:1,team:3,ai:wander,str:4,head:_half_15_0&_half_15_1&_half_15_2,zombie:3],[[Immune,-1,0]],[],[constitution],0,0,Scimitar
+Dead Miner,Humanoid,skeleton,[p:3,def:1,team:3,ai:wander,str:4,head:_half_15_0&_half_15_1&_half_15_2,zombie:3],[[Immune,-1,0]],[],[constitution],0,Glow Hat,Pickaxe
 Wraith,Humanoid,skeleton,[p:5,def:1,team:3,ai:wander,str:7,head:_half_15_0&_half_15_1&_half_15_2,zombie:4],[[Immune,-1,0],[Glow,-1,2]],[?Amber],[constitution,lunge],Chainmail,Lace Helm,Broadsword
 Hobo,Humanoid,human,[P:2,p:2,team:2,str:2,ai:wander,spd:-1],[],[],[],Rags,0,0
 Thief,Humanoid,human,[P:2,p:2,team:2,str:3,int:1,ai:wander,loot:#cash,have:1],[],[],[],Fabric Wear,Bandana,0
-Thug,Humanoid,human,[P:2,p:2,team:2,str:2,int:2,ai:wander],[],[],[parkour,crush],Fabric Wear,Beanie,0
+Thug,Humanoid,human,[P:3,p:3,team:2,str:2,int:2,ai:wander],[],[],[parkour],Fabric Wear,Beanie,0
 Looter,Humanoid,human,[P:2,p:2,team:2,str:3,ai:wander,loot:#loot,have:1],[],[],[],Casual Wear,Bandana,Spear
+Monk,Humanoid,human,[P:4,p:4,team:2,str:2,ai:wander],[],[],[],White Robe,Headband,Quarterstaff
 Robber,Humanoid,human,[P:2,p:2,team:2,str:3,int:1,ai:wander,loot:#cash,have:1],[],[],[side step],Tough Wear,Bandana,Club
 Robber Boss,Humanoid,human,[P:8,p:8,team:2,ai:wander,sth:2,str:4,cha:3,!:bossrobber,+:_health],[],[],[flurry,parry],Ringmail,Bandana,Falchion
 Caller,Humanoid,human,[P:2,p:2,team:2,str:3,int:1,ai:wander,loot:#cabinet,have:1,ab1:pester],[],[?Torch],[],Green Robe,Beanie,0
@@ -44,27 +46,27 @@ Hunter,Humanoid,human,[P:2,p:2,team:2,str:3,int:2,sth:2,ai:wander,loot:#cabinet,
 Outlaw,Humanoid,human,[P:2,p:2,team:2,str:3,cha:3,ai:wander],[],[?Cash],[],Bloody Wear,Bandana,Stick
 Graverobber,Humanoid,human,[P:2,p:2,team:3,cdr:4,str:3,ai:wander,ab1:reanimate],[],[],[],Bloody Wear,Bandana,Torch
 Killer,Humanoid,human,[P:4,p:4,team:2,str:3,cha:3,ai:wander],[],[?Cash],[],Jumpsuit,Bandana,Shortsword
-Guildsman,Humanoid,human,[P:5,p:5,team:2,ai:wander,str:5,+:_health],[],[],[],Ringmail,Glow Hat,Rapier
-Destroyer,Humanoid,human,[P:7,p:7,team:2,ai:wander,str:5,+:_health],[],[],[frenzy,destroy],Ringmail,0,Spiked Mace
-Marauder,Humanoid,human,[P:2,p:2,ai:wander,team:2,str:5,int:2,e_armor:armors,e_weapon:weapons,e_head:headgears,+:_health&_health&_health&_health&_skills],[],[?Cash],[],0,0,0
+Guildsman,Humanoid,human,[P:5,p:5,team:2,ai:wander,str:5],[],[],[crush],Ringmail,Glow Hat,Rapier
+Destroyer,Humanoid,human,[P:7,p:7,team:2,ai:wander,str:5],[],[],[frenzy,destroy],Ringmail,0,Spiked Mace
+Marauder,Humanoid,human,[P:2,p:2,ai:wander,lvl:1000,team:2,str:5,int:2,e_armor:armors,e_weapon:weapons,e_head:headgears,+:_health&_health&_health&_health&_skills],[],[?Cash],[],0,0,0
 Vagrant,Humanoid,human,[P:6,p:6,team:2,ai:wander,str:3,int:2,sth:4,+:_health],[],[?Cash],[block,parry,lunge],Red Robe,Straw Hat,Katana
-Master,Humanoid,human,[P:7,p:7,team:2,ai:wander,str:5,int:5,loot:#weapons,have:1,+:_health&_health&_skills],[],[],[nocturnal,parry,lunge,flurry],Black Robe,Straw Hat,0
-Hireling,Humanoid,human,[P:3,p:3,team:1,cost:1,str:4,int:1,ai:wander,e_weapon:weapons,loot:#cash,have:1,#:!mercenary,+:_health&cost&cost],[],[],[parry],Leather Gear,Cap,0
-Soldier,Humanoid,human,[P:4,p:4,team:1,str:5,int:1,ai:guard,loot:#cash,have:1,#:#swap,+:_health],[],[],[],Chainmail,Lace Helm,Longsword
+Master,Humanoid,human,[P:7,p:7,team:2,ai:wander,str:5,int:5,loot:#weapons,have:1,+:_skills],[],[],[nocturnal,parry,lunge,flurry],Black Robe,Straw Hat,0
+Hireling,Humanoid,human,[P:3,p:3,team:1,cost:1,str:4,int:1,ai:wander,e_weapon:weapons,loot:#cash,have:1,#:!mercenary,+:cost&cost],[],[],[parry],Leather Gear,Cap,0
+Soldier,Humanoid,human,[P:4,p:4,team:1,str:5,int:1,ai:guard,loot:#cash,have:1,#:#swap],[],[],[],Chainmail,Lace Helm,Longsword
 Resident,Humanoid,human,[P:2,p:2,ai:wander,str:2,sth:0,int:0,cha:0,team:1,lvl:100,money:0,dir:0,hunger:0,+:resident],[],[],[],Casual Wear,0,0
-Vendor,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#vendor,have:6,ai:guard,#:!trader,+:_health&cost],[[Concentration,-1,0],[Concentration,-1,0],[Safeguard,-1,0]],[],[],Gold Robe,Top Hat,0
-Farmer,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#food,have:6,ai:guard,#:!trader,+:_health],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Green Robe,Straw Hat,Trident
-Tailor,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#tailor,have:6,ai:guard,#:!trader,+:_health&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Green Robe,Hat,0
-Armorer,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#armorer,have:6,ai:guard,#:!blacksmith,+:_health&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Black Robe,Headband,Hammer
-Supplier,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#supplier,have:1,ai:guard,cost:2,#:!supply,+:_health&cost&cost&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Blue Robe,Fur Hat,0
-Insurer,Humanoid,human,[P:3,p:3,str:2,team:1,ai:guard,#:!insurer,+:_health&insurecost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Red Suit,Top Hat,0
-Pawnbroker,Humanoid,human,[P:3,p:3,str:2,team:1,ai:guard,#:!pawnbroker,+:_health],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Red Suit,Glasses,0
-Banker,Humanoid,human,[P:3,p:3,str:7,team:1,ai:guard,cost:1,#:!banker,+:_health&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Tuxedo,Top Hat,0
-Gambler,Humanoid,human,[P:3,p:3,str:5,team:1,ai:guard,head:_half_1_0&_half_1_1&_half_1_2,#:!trader,+:_health&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[Loot Box,Loot Box,Loot Box],[],Tuxedo,Sunglasses,0
-Alchemist,Humanoid,human,[P:5,p:5,str:5,team:1,loot:#potions,have:6,ai:guard,#:!trader,+:_health&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Teal Robe,Glow Hat,Bottle
-Scribe,Humanoid,human,[P:5,p:5,str:5,team:1,loot:#cabinet,have:6,ai:guard,#:!trader,+:_health&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Teal Robe,0,Paper
-Trainer,Humanoid,human,[P:6,p:6,str:2,lvl:300,sth:-1,team:1,ai:guard,#:!trainer,+:_health&_ability&learncost&level],[[Concentration,-1,0],[Safeguard,-1,0],[Barrier,-1,0],[Deflection,-1,0]],[Manual],[],White Robe,Headband,Stick
-Teacher,Humanoid,human,[P:7,p:7,str:5,team:0,ai:guard,#:!trainer,+:_health&_ability&learncost],[],[?Manual,?Cash],[],Black Robe,Headband,Katana
+Vendor,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#vendor,have:6,ai:guard,#:!trader,+:cost],[[Concentration,-1,0],[Concentration,-1,0],[Safeguard,-1,0]],[],[],Gold Robe,Top Hat,0
+Farmer,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#food,have:6,ai:guard,#:!trader],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Green Robe,Straw Hat,Trident
+Tailor,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#tailor,have:6,ai:guard,#:!trader,+:cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Green Robe,Hat,0
+Armorer,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#armorer,have:6,ai:guard,#:!blacksmith,+:cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Black Robe,Headband,Hammer
+Supplier,Humanoid,human,[P:7,p:7,str:2,team:1,loot:#supplier,have:1,ai:guard,cost:2,#:!supply,+:cost&cost&cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Blue Robe,Fur Hat,0
+Insurer,Humanoid,human,[P:3,p:3,str:2,team:1,ai:guard,#:!insurer,+:insurecost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Red Suit,Top Hat,0
+Pawnbroker,Humanoid,human,[P:3,p:3,str:2,team:1,ai:guard,#:!pawnbroker,+:cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Red Suit,Glasses,0
+Banker,Humanoid,human,[P:3,p:3,str:7,team:1,ai:guard,cost:1,#:!banker,+:cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Tuxedo,Top Hat,0
+Gambler,Humanoid,human,[P:3,p:3,str:5,team:1,ai:guard,head:_half_1_0&_half_1_1&_half_1_2,#:!trader,+:cost],[[Concentration,-1,0],[Safeguard,-1,0]],[Loot Box,Loot Box,Loot Box],[],Tuxedo,Sunglasses,0
+Alchemist,Humanoid,human,[P:5,p:5,str:5,team:1,loot:#potions,have:6,ai:guard,#:!trader,+:cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Teal Robe,Glow Hat,Bottle
+Scribe,Humanoid,human,[P:5,p:5,str:5,team:1,loot:#cabinet,have:6,ai:guard,#:!trader,+:cost],[[Concentration,-1,0],[Safeguard,-1,0]],[],[],Teal Robe,0,Paper
+Trainer,Humanoid,human,[P:6,p:6,str:2,lvl:500,cost:1,int:1,team:1,ai:guard,#:!trainer,+:_ability&cost&cost&cost&learncost&level],[[Concentration,-1,0],[Safeguard,-1,0],[Barrier,-1,0],[Deflection,-1,0]],[Manual],[],White Robe,Headband,Stick
+Teacher,Humanoid,human,[P:7,p:7,str:5,team:0,ai:guard,#:!trainer,+:_ability&learncost],[],[?Manual,?Cash],[],Black Robe,Headband,Katana
 Transporter,Humanoid,human,[P:3,p:3,str:2,lvl:200,team:1,ai:guard,#:!transporter,to:Spawn,tox:266,toy:435,cost:1],[[Barrier,-1,0]],[?Cash],[],Traveller Gear,Hat,Torch
 Evil Lord,Humanoid,human,[P:16,p:16,head:_half_17_0&_half_17_1&_half_17_2,team:3,cdr:3,str:8,cha:8,int:8,sth:8,ai:guard,ab1:Barrier,!:victory],[[Deflection,-1,0]],[Mirror],[deep sense,parry,lunge,flurry,deft,crush,constitution,perseverance],Evil Gear,Evil Helm,Evil Blade
 Robot,Unit,robot,[P:7,p:7,def:2,team:3,ai:wander,sth:4,spd:-1,dmg:-1,lvl:300,ab1:sting],[[Brand,-1,>buff>*host>Knockout>12>0]],[Iron],[]

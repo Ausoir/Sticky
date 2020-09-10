@@ -83,7 +83,7 @@ class Data:
         directory = 'data/sound/' + fdir
         cache = Data.get_cache(directory)
         if not cache:
-            cache = pyglet.media.StaticSource(pyglet.media.load(Data.direct(directory + '.wav')))
+            cache = pyglet.media.load(Data.direct(directory + '.wav'), streaming=False)
             Data.set_cache(directory, cache)
         return cache
 

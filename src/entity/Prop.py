@@ -32,6 +32,7 @@ class Prop(Object):
     def add(self):
         r = super().add()
         if r:
+            self.hittable = True
             self.states.on_load()
             return r
 
@@ -177,3 +178,4 @@ class Prop(Object):
             from src.entity.Particle import Particle
             Particle.make('drown', self.pos)
             self.remove()
+            return True

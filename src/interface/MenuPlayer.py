@@ -98,6 +98,8 @@ class MenuPlayer(Menu):
         def stat(arg):
             if Global.player.try_sleep(1):
                 host.tags.increment(arg, 1)
+                if arg == 'P':
+                    host.tags.increment('p', 1)
                 host.tags.increment('lvl', 1)
                 Global.main.monologue.set(Dialog.get(':stat_applied', [level + 1]))
                 from src.entity.Particle import Particle
@@ -299,4 +301,26 @@ class MenuPlayer(Menu):
         for item in self.var[:5]:
             fn = self.get_prompt(item.describe(), Dialog.get('Take'), pickup, item)
             self.window.add(Menu.make(item.get_display_name(), fn, width=320))
+        self.sub_window.display(1)
+
+    def menu_death(self):
+        Global.player.dead = 11
+        datetime = Dialog.date(Global.player.days)
+        level = Global.player.character.get_level()
+        gold = Global.player.character.tags.get('money', 0)
+        restarts = Global.player.tags.get('revives', 0)
+        self.get_prompt(Dialog.get(':death', [datetime, level, gold, restarts]),
+                        Dialog.get('Restart'), self.execute_code, 'restart')()
+        self.sub_window.display(1)
+
+    def menu_victory(self):
+        Global.player.dead = 11
+        datetime = Dialog.date(Global.player.days)
+        level = Global.player.character.get_level()
+        gold = Global.player.character.tags.get('money', 0)
+        restarts = Global.player.tags.get('revives', 0)
+        if Global.player.tags.get('brained', 0) == 1:
+            self.get_message(Dialog.get(':victory1', [datetime, level, gold, restarts]))()
+        else:
+            self.get_message(Dialog.get(':victory2', [datetime, level, gold, restarts]))()
         self.sub_window.display(1)

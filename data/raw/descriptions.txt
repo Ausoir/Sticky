@@ -1,3 +1,5 @@
+Package,Use to unpack a furniture.
+Pouch,Contains enchanting potions.
 Lifesaver,Adventurer's insurance.
 Spellbinder,A magical sword that hinders the victim's ability to cast.
 Flameberge,Light and strong. Wielders fear its fire affinity.
@@ -39,7 +41,7 @@ Lunge,Move forward when attacking. Stacks.
 Cleave,Stand still to concentrate. Attacks affect diagonals while concentrated.
 Flurry,Stand still to concentrate. Rapidly attack hostiles in reach up to 3 times. Stacks.
 Frenzy,Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
-Crush,Stand still to concentrate. Next attack bypasses target armor.
+Crush,Stand still to concentrate. Next attack knocks target down.
 Assassinate,Attacks from behind silences target and deal 7 extra damage.
 Side Step,Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
 Hide,Stand still to concentrate\,\ becoming invisible until moving.

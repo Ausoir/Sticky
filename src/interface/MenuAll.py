@@ -223,7 +223,7 @@ class MenuAll(MenuPlayer):
                 Global.player.character.tags.set('ab' + str(count), ability)
                 Global.main.monologue.set(Dialog.get(':transacted'))
         host = self.var
-        cost = host.tags.get('cost', 0)
+        cost = host.tags.get('cost2', 0)
         ability = host.tags.get('ab1')
         self.history.pop()
         if ability:
@@ -253,23 +253,3 @@ class MenuAll(MenuPlayer):
         cost = host.tags.get('cost', 0)
         self.history.pop()
         self.get_prompt(Dialog.get(':travel?', [host.tags.get('to'), cost]), Dialog.get('Proceed'), transport)()
-
-    def menu_death(self):
-        Global.player.dead = 11
-        datetime = Dialog.date(Global.player.days)
-        level = Global.player.character.get_level()
-        gold = Global.player.character.tags.get('money', 0)
-        self.get_prompt(Dialog.get(':death', [datetime, level, gold]),
-                        Dialog.get('Restart'), self.execute_code, 'restart')()
-        self.sub_window.display(1)
-
-    def menu_victory(self):
-        Global.player.dead = 11
-        datetime = Dialog.date(Global.player.days)
-        level = Global.player.character.get_level()
-        gold = Global.player.character.tags.get('money', 0)
-        if Global.player.tags.get('brained', 0) == 1:
-            self.get_message(Dialog.get(':victory1', [datetime, level, gold]))()
-        else:
-            self.get_message(Dialog.get(':victory2', [datetime, level, gold]))()
-        self.sub_window.display(1)

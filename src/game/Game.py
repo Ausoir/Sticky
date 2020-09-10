@@ -69,7 +69,7 @@ class Game:
         self.character.relocate(to=self.character.pos.get_neighbor(World.CHUNK, World.CHUNK), force=True)
         self.set_player(self.character)
         self.initialize_mode()
-        Global.world.location.sound.make_bgm()
+        Global.world.location.sound.initialize()
         if is_new:
             Script.execute_code('birth')
 
@@ -204,6 +204,7 @@ class Game:
                     self.character.tags.set('hunger', 0)
                     self.character.tags.remove('invest')
                     self.character.tags.remove('investt')
+                    Global.player.tags.increment('revives', 1)
                     Global.world.travel(args[0], args[1])
                     self.dead = -1
                 else:
@@ -213,7 +214,7 @@ class Game:
             else:
                 self.dead += 1
         elif self.character.action.delay > 0:
-            self.character.tags.increment('hunger', 2)
+            self.character.tags.increment('hunger', 1)
         elif self.character.action.current_action == 'idle':
             if self.character.is_hungry():
                 self.character.form.set_state('hunger')

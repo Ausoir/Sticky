@@ -22,6 +22,7 @@ class Unit(Container):
         self.sight = Tile.CHECK_SIGHT
         from src.tools.Data import Data
         self.shadow = Data.get_form('_g_7_0')
+        self.last_hitter = None
 
     def __str__(self):
         att = '[' + ','.join(self.skills) + ']'
@@ -174,47 +175,49 @@ class Unit(Container):
         self.action.idle_frame = 0
         from src.entity.Particle import Particle
         has_hitter = hitter is not None
-        if has_hitter and not self.is_facing(hitter.pos):
+        if has_hitter:
+            self.last_hitter = hitter
+        if self.action.current_action == 'fall' or has_hitter and not self.is_facing(hitter.pos):
             backstab = True
-            if isinstance(hitter, Unit) and hitter.get_skill('assassinate'):
-                self.tags.set('deaf', 1)
-                Particle.make('power', self.pos)
-                self.pos.location.sound.register(self.pos, 0, file='critical')
-                damage += 7
         else:
             backstab = False
+        if not backstab:
+            damage -= self.tags.get('def', 0)
+        elif hitter.get_skill('assassinate'):
+            self.tags.set('deaf', 1)
+            Particle.make('power', self.pos)
+            self.pos.location.sound.register(self.pos, 0, file='critical')
+            damage += 7
         if self.states.get('Barrier'):
             damage = 0
-        if not backstab and self.action.current_action != 'fall':
-            damage -= self.tags.get('def', 0)
         self.states.trigger(['act', 'hit', damage])
         self.pilot.hit(hitter)
         if damage > 0:
             self.pos.location.field.unregister(self)
             if self.get_skill('fortitude'):
                 self.states.add('Invincible', 8)
-            if has_hitter:
-                hitter_direction = self.pos.get_face(hitter.pos)
-                concentration = self.states.get('Concentration')
-                if concentration:
-                    if self.direction == hitter_direction and self.get_skill('block') and self.action.delay == 0:
-                        Particle.make('barrier', self.pos)
+            concentration = self.states.get('Concentration')
+            if concentration:
+                if has_hitter:
+                    hitter_direction = self.pos.get_face(hitter.pos)
+                    if self.direction == hitter_direction and self.get_skill('block') and self.action.delay <= 1:
+                        self.pos.location.sound.register(self.pos, 3, file='hit_armor')
                         damage -= 1
-                        self.action.hit()
+                        self.action.force('hit')
                         self.form.set_state('parry')
                         if damage == 0:
-                            return 0
-                    if not backstab and self.get_skill('parry'):
-                        concentration.trigger(['spend'])
-                        self.face(self.pos.get_face(hitter.pos))
-                        Particle.make('barrier', self.pos)
-                        self.pos.location.sound.register(self.pos, 0, file='critical')
-                        return 0
+                            return -1
+                if not backstab and self.get_skill('parry'):
+                    concentration.trigger(['spend'])
+                    self.face(self.pos.get_face(hitter.pos))
+                    self.form.set_state('parry')
+                    Particle.make('barrier', self.pos)
+                    self.pos.location.sound.register(self.pos, 0, file='critical')
+                    self.action.delay = 0
+                    return -1
             self.form.randomize_once(4)
             r = self.decay(damage)
             if r == 2:
-                if has_hitter:
-                    hitter.progress_level(self.get_level(), mode='kill', var=self)
                 self.on_hit(effect='splat', sound='hit_cut')
             else:
                 self.on_hit()
@@ -245,13 +248,12 @@ class Unit(Container):
             if result > 0:
                 if self.get_skill('frenzy'):
                     self.states.add('Damage', 40, 1)
-            elif result == 0 and self.get_skill('crush'):
+            elif self.get_skill('crush'):
                 concentration = self.states.get('Concentration')
                 if concentration:
                     concentration.trigger(['spend'])
-                    defense = target.tags.remove('def') or 0
-                    target.hit(self.get_damage(), hitter=self)
-                    target.tags.set('def', defense)
+                    target.action.force('fall')
+                    target.action.delay = 10
         if result > 0:
             flurry = self.get_skill('flurry')
             if flurry:
@@ -290,11 +292,19 @@ class Unit(Container):
         self.healthbar.appear(hp, m_hp)
 
     def die(self):
-        self.action.die()
+        self.action.force('die')
+
+    def drown(self):
+        if super().drown():
+            if self.last_hitter:
+                self.last_hitter.progress_level(self.get_level(), mode='kill', var=self)
+            return True
 
     def death(self):
         pos = self.pos
         super().die()
+        if self.last_hitter:
+            self.last_hitter.progress_level(self.get_level(), mode='kill', var=self)
         if self.tags.get('corpse', 1) != 0:
             self.tags.remove('ai')
             from src.entity.Stock import Stock

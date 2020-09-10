@@ -10,10 +10,6 @@ class Attribute(Tag):
         self.host = host
 
     def update(self):
-        if 'p' in self.attributes:
-            self.host.hittable = True
-        else:
-            self.host.hittable = False
         if 'col' in self.attributes:
             self.host.collision_type = self.attributes['col']
         if 'ob' in self.attributes:

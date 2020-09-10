@@ -73,9 +73,9 @@ w.corrupt,1,Places that the evil lord have corrupted have become home to many st
 tourguide,3,Hello. Do you need help?,[Directions,!tourguide2],[Tips,!tourguide3]
 tourguide2,1,You are looking for the big bad evil guy? Your destination should be the Mountain Pass. Exit through this east gate out of uptown. Keep going east\,\ through the workshop and the cliff road. The mountain pass is near the bamboo forest.
 tourguide3,2,Many people gather around for the grand reward\,\ but most don't even make it to the Mountain Pass. If you want a chance\,\ get a life insurance at the brick building near the west gate.,Next Tip,!tourguide4
-tourguide4,1,The stool is great, but try to find a quarterstaff. It is a great weapon for beginners. You can farm one in the mansion.
+tourguide4,1,The stool is great, but try to find a training sword or a quarterstaff. They are great weapons for beginners. You can farm one in the mansion.
 poet,2,What do words mean in this deafening orderly presense?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!poet2
-poet2,3,I would tell you how blue the sky was a night ago\,\ but have no words to show for it.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
+poet2,3,You complain about the insurance cost\,\ but you know not of the past when all kinds of insurance existed.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
 chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a restaurant... But honestly\,\ honest work seems to be out of order. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
 chef moe2,3,Mhmm.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
 trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
@@ -92,7 +92,8 @@ mary2,3,I am Mary. How may I be of service?,[Move,#swap],[Buy,>menu>shop],[Join,
 brock,2,I am Brock. I break rocks. If you want to know what rare minerals are used for\,\ ask a wand carver\,\ because I don't care.,Ok,!brock2
 brock2,3,Dig dig dig.,[Move,#swap],[Buy,>menu>shop],[Join,#ally]
 masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young'un wielding a flaming blade on a field casting scorch on a slime. I took her in\,\ taught her the ways of fighting\,\ and soon she went off to make her own world past the mountains.,Ok,!masterlee2
-masterlee2,3,Young grass hopper?,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair]
+masterlee2,3,Young grass hopper?,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair],[Tips,!masterlee3]
+masterlee3,1,Combat is harder to master than you think. For example\,\ hitting enemies against a wall will have a different outcome than hitting them against open terrain.
 jane,2,Welcome\,\ fellow civilian. I find good living here\,\ living day to day looting off one another and eating jelly off slimes.,Ok,!jane2
 jane2,3,You are going for the evil lord? You know\,\ I also have nothing better to do.,[Move,#swap],[Join,#ally]
 john,2,Kill the evil lord? Are you crazy? You won't even make it to the castle. You'll be butchered and turned into a tasty slime the moment you pass the gates. Look around\,\ where do you think all those slimes come from?,Nah,!john2
@@ -104,5 +105,4 @@ rogue2,3,I'm wandering... do you have business with me?,[Move,#swap],[Sell,>menu
 stoolking,2,I am the stool king. I wield the stool\,\ so that I may smite down the insolent with its might.,Me too!,!stoolking2
 stoolking2,3,Say\,\ will you join me in my quest to conquer the gates and free my people?,[Move,#swap],[Kneel,kneel]
 labguide,3,Hello. This is the brain warehouse.,[Introduce,!labguide_introduce]
-labguide_introduce,2,When you take life insurance your brain is stored here so we can revive you after you die. This warehouse also has judicial functions.,Judicial Functions,!labguide_ask
-labguide_ask,1,You were living off the land\,\ taking jelly off the slimes and such\,\ but did you know you were trespassing on private property? They invest huge amounts of money building these warehouses so they can enforce the laws in afterlife.
+labguide_introduce,1,When you take life insurance your brain is stored here so we can revive you after you die.

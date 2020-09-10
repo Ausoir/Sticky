@@ -29,6 +29,12 @@ class Actions:
         self.current_action_fn()
         self.last_action = action
 
+    def force(self, action):
+        self.on_finish = None
+        self.current_action = action
+        getattr(self, action)()
+        self.last_action = action
+
     def set_animation(self, arg):
         if self.host.form.state_name != arg or self.host.form.animation_ended:
             self.host.form.set_state(arg)
@@ -46,12 +52,12 @@ class Actions:
         if isinstance(victim, Unit):
             if victim.get_skill('constitution'):
                 if victim.action.current_action not in ['fall', 'die']:
-                    victim.action.hit()
+                    victim.action.force('hit')
             else:
                 if push:
-                    victim.action.move(push, check=victim.collision_type + 2)
+                    victim.move_line(push, flag=victim.collision_type + 2)
                 if victim.action.current_action not in ['fall', 'die']:
-                    victim.action.fall()
+                    victim.action.force('fall')
                 victim.action.delay = max(victim.action.delay, time)
             return True
 
@@ -210,10 +216,9 @@ class Actions:
     def die(self):
         if self.host.form.state_name != 'dead':
             self.host.obstruct_type = 1
-            self.current_action = 'die'
             self.host.hittable = False
-            self.make('dead', turn=8)
             self.host.is_save = False
+            self.make('dead', turn=8)
             self.on_finish = self.host.death
         else:
             self.on_finish = None
@@ -303,19 +308,20 @@ class Actions:
         else:
             motion = 'attack'
         self.make(motion, turn=6 - atk_spd)
-        self.host.pos.location.field.register(dmg, front, delay=1 - self.host.get_skill('instinct'),
+        delay = 1 - self.host.get_skill('instinct')
+        self.host.pos.location.field.register(dmg, front, delay=delay,
                                               hitter=self.host, sound=['swing', 0], callback=self.host.on_attack)
         if self.host.get_skill('cleave'):
             side = front.get_cardinal(self.host.direction + 1)
-            self.host.pos.location.field.register(dmg, side, delay=1 - self.host.get_skill('instinct'),
+            self.host.pos.location.field.register(dmg, side, delay=delay,
                                                   hitter=self.host, sound=['swing', 0], callback=self.host.on_attack)
             side = front.get_cardinal(self.host.direction - 1)
-            self.host.pos.location.field.register(dmg, side, delay=1 - self.host.get_skill('instinct'),
+            self.host.pos.location.field.register(dmg, side, delay=delay,
                                                   hitter=self.host, sound=['swing', 0], callback=self.host.on_attack)
         if self.host.get_skill('destroy') and dmg > front.get_hardness():
-            self.on_finish = self.crush
+            self.on_finish = self.destroy
 
-    def crush(self):
+    def destroy(self):
         front = self.host.pos.get_cardinal(self.host.direction, 1)
         if front.get_yield() == -10:
             if self.host == Global.player.character:

@@ -378,11 +378,17 @@ class Invisible(Buff):
 
 
 class Invincible(Buff):
+    def get_tags(self):
+        return ['stack']
+
     def on_start(self):
         self.host.hittable = False
 
     def on_finish(self):
         self.host.hittable = True
+
+    def on_stack(self, duration, var):
+        self.duration = max(duration, self.duration)
 
 
 class Immune(Buff):
@@ -619,6 +625,10 @@ class Poison(Buff):
         from src.entity.unit.Unit import Unit
         if isinstance(self.host, Unit):
             return super().is_valid()
+
+    def on_start(self):
+        super().on_start()
+        Global.world.location.sound.register(self.host.pos, 0, file='poison')
 
     def on_update(self):
         if self.effect(12):

@@ -248,7 +248,7 @@ class Game:
     def is_sociable(self, arg, notice=True):
         count = len(self.companions) * 2
         for i in Global.world.location.population.get_team(self.character.tags.get('team', 0)):
-            if i.tags.get('ai', '') == 'ally' and i.pilot.task.target == self.character:
+            if i.tags.get('summon', 0) == 1:
                 count += 1
         if count + arg <= self.character.tags.get('cha', 0):
             return True

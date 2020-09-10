@@ -26,6 +26,7 @@ class ScriptManual:
     @staticmethod
     def ally(host, var):
         if host != Global.player.character or Global.player.is_sociable(1):
+            var.tags.set('summon', 1)
             var.tags.set('team', host.tags.get('team', 0))
             Global.world.location.population.adjust(var)
             pos = host.pos - var.pos
@@ -192,7 +193,7 @@ class ScriptManual:
         scholar = host.tags.get('class', 'classless') == 'scholar'
         wait = Global.player.days - host.tags.get('observe', -12)
         if scholar:
-            wait -= 4
+            wait -= 6
         else:
             wait -= 12
         if wait >= 0:
@@ -204,10 +205,8 @@ class ScriptManual:
                     host.tags.set('observed', i.name)
                     exp = i.get_level()
                     unit_team = i.tags.get('team', 0)
-                    if unit_team == host.tags.get('team', 0):
-                        exp = int(exp / 3)
-                    elif unit_team == 0:
-                        exp = int(exp / 2)
+                    if unit_team != host.tags.get('team', 0):
+                        exp *= 2
                     Global.menu.get_message(i.describe() + '\n' + Dialog.get(':observe', [max(0, exp)]))(0)
                     host.progress_level(exp, mode='observe')
                     if not scholar:

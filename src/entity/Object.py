@@ -71,9 +71,6 @@ class Object(Image):
     def bound(self, visible):
         self.form.bound(visible)
 
-    def trigger(self):
-        pass
-
     def relocate(self, to=None, x=None, y=None, force=False):
         if to is None:
             to = Global.world.location.get_tile(x, y, limit=True)

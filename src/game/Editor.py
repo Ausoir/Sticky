@@ -163,7 +163,7 @@ class Editor:
             self.display_text = 'saved map'
         self.prev_action = action
         if self.display_text != '':
-            Global.main.monologue.set(self.display_text + ' @ ' + self.display_subtext)
+            Global.main.monologue.set(self.display_text + ' @ ' + self.display_subtext, time=999)
             self.display_text = ''
         return 0
 

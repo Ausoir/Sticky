@@ -258,15 +258,18 @@ class MenuAll(MenuPlayer):
         Global.player.dead = 11
         datetime = Dialog.date(Global.player.days)
         level = Global.player.character.get_level()
-        self.get_prompt(Dialog.get(':death', [datetime, level]), Dialog.get('Restart'), self.execute_code, 'restart')()
+        gold = Global.player.character.tags.get('money', 0)
+        self.get_prompt(Dialog.get(':death', [datetime, level, gold]),
+                        Dialog.get('Restart'), self.execute_code, 'restart')()
         self.sub_window.display(1)
 
     def menu_victory(self):
         Global.player.dead = 11
         datetime = Dialog.date(Global.player.days)
         level = Global.player.character.get_level()
+        gold = Global.player.character.tags.get('money', 0)
         if Global.player.tags.get('brained', 0) == 1:
-            self.get_message(Dialog.get(':victory1', [datetime, level]))()
+            self.get_message(Dialog.get(':victory1', [datetime, level, gold]))()
         else:
-            self.get_message(Dialog.get(':victory2', [datetime, level]))()
+            self.get_message(Dialog.get(':victory2', [datetime, level, gold]))()
         self.sub_window.display(1)

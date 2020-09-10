@@ -456,14 +456,16 @@ class Phantom(Unit):
 
     def set_host(self, host):
         self.host = host
+        host.states.set_host(self)
+        host.deregister()
+
+    def on_set_host(self):
         self.tags.sync('spd', self.host.tags.get('spd'))
         self.tags.sync('dmg', self.host.tags.get('dmg'))
         self.tags.sync('def', self.host.tags.get('def'))
         skill = self.host.tags.get('skill')
         if skill:
             self.skills.append(skill)
-        host.states.set_host(self)
-        host.deregister()
 
     def set_row(self, row):
         if self.host:
@@ -477,11 +479,20 @@ class Phantom(Unit):
             self.host.form.rotation = self.form.organs[0].lower_joint.get_atan()
             self.host.form.place(x, y)
 
+    def hit(self, damage, hitter=None):
+        return super().hit(damage, hitter)
+
+    def death(self):
+        super().death()
+        if self.host:
+            self.host.relocate(to=self.pos, force=True)
+            self.states.set_host(self.host)
+        return True
+
     def remove(self):
         if super().remove():
             if self.host:
-                self.host.relocate(to=self.pos, force=True)
-                self.states.set_host(self.host)
+                self.host.remove()
             return True
 
 

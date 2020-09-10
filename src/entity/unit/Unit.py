@@ -46,10 +46,7 @@ class Unit(Container):
         if skills:
             for i in skills.split('&'):
                 self.skills.append(i)
-        action = self.tags.remove('action')
         delay = self.tags.remove('delay')
-        if action:
-            self.action.set(action)
         if delay:
             self.action.delay = delay
         index += 1
@@ -138,7 +135,7 @@ class Unit(Container):
         current_level = self.get_level()
         if exp <= 0:
             if mode == 'sabotage' and personality == 'agent' and var.name in self.tags.get('classg').split('&'):
-                exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 0) + var.get_value() + current_level
+                exp += var.tags.get('def', 0) * 2 + var.tags.get('P', 1) + var.get_value() + int(current_level / 2)
             else:
                 return
         if mode == 'kill':
@@ -175,12 +172,12 @@ class Unit(Container):
     def hit(self, damage, hitter=None):
         r = 0
         self.action.idle_frame = 0
+        from src.entity.Particle import Particle
         has_hitter = hitter is not None
         if has_hitter and not self.is_facing(hitter.pos):
             backstab = True
             if isinstance(hitter, Unit) and hitter.get_skill('assassinate'):
                 self.tags.set('deaf', 1)
-                from src.entity.Particle import Particle
                 Particle.make('power', self.pos)
                 self.pos.location.sound.register(self.pos, 0, file='critical')
                 damage += 7
@@ -192,27 +189,26 @@ class Unit(Container):
             damage -= self.tags.get('def', 0)
         self.states.trigger(['act', 'hit', damage])
         self.pilot.hit(hitter)
-        if damage > 0 and not backstab and self.get_skill('block'):
-            concentration = self.states.get('Concentration')
-            if concentration:
-                concentration.trigger(['spend'])
-                from src.entity.Particle import Particle
-                Particle.make('barrier', self.pos)
-                damage -= 1
         if damage > 0:
             self.pos.location.field.unregister(self)
             if self.get_skill('fortitude'):
                 self.states.add('Invincible', 8)
             if has_hitter:
                 hitter_direction = self.pos.get_face(hitter.pos)
-                if self.direction == hitter_direction and self.get_skill('parry'):
-                    concentration = self.states.get('Concentration')
-                    if concentration:
+                concentration = self.states.get('Concentration')
+                if concentration:
+                    if self.direction == hitter_direction and self.get_skill('block') and self.action.delay == 0:
+                        Particle.make('barrier', self.pos)
+                        damage -= 1
+                        self.action.hit()
+                        self.form.set_state('parry')
+                        if damage == 0:
+                            return 0
+                    if not backstab and self.get_skill('parry'):
                         concentration.trigger(['spend'])
-                        from src.entity.Particle import Particle
+                        self.face(self.pos.get_face(hitter.pos))
                         Particle.make('barrier', self.pos)
                         self.pos.location.sound.register(self.pos, 0, file='critical')
-                        self.action.hit()
                         return 0
             self.form.randomize_once(4)
             r = self.decay(damage)
@@ -253,16 +249,18 @@ class Unit(Container):
                 concentration = self.states.get('Concentration')
                 if concentration:
                     concentration.trigger(['spend'])
-                    defense = target.tags.remove('def')
+                    defense = target.tags.remove('def') or 0
                     target.hit(self.get_damage(), hitter=self)
                     target.tags.set('def', defense)
         if result > 0:
             flurry = self.get_skill('flurry')
             if flurry:
                 valid_sides = []
+                reach = self.get_skill('reach')
+                lunge = self.get_skill('lunge')
                 for sides in [0, 1, -1, 2]:
-                    attack_range = 1 + self.get_skill('reach') + self.get_skill('lunge')
-                    front = self.pos.get_cardinal(self.direction + sides, distance=attack_range)
+                    front = self.pos.get_cardinal(self.direction + sides, distance=reach + lunge + 1)
+                    front = self.pos.location.collide_land(self.pos, front, flag=self.collision_type, prev=False)
                     if front:
                         for i in front.things:
                             if isinstance(i, Unit) and i.tags.get('team') != self.tags.get('team'):

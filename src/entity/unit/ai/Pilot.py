@@ -209,7 +209,7 @@ class Routes:
             if i.obstruct_type >= self.host.collision_type:
                 hp = i.tags.get('p')
                 if not hp or self.host.get_damage() <= i.tags.get('def', 0)\
-                        or i.tags.get('team') == self.host.tags.get('team'):
+                        or i.tags.get('team', 0) == self.host.tags.get('team', 0):
                     return -1
                 else:
                     weight += hp

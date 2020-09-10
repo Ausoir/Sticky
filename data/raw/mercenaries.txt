@@ -8,17 +8,17 @@ Some Rando,Humanoid,human,[P:2,p:2,ai:wander,team:1,cost:1,#:!rando,str:3,e_armo
 Chef Moe,Humanoid,human,[P:18,p:18,ai:wander,team:1,cost:3,#:!chef moe,str:3],[],[?Burger,?Sandwich,?Roast,?Corn,?Fruit,?Salad],[],Green Robe,Headband,Cleaver
 Poet,Humanoid,human,[P:4,p:4,seed:2,ai:wander,team:1,#:!poet,str:3,cost:1,loot:#cabinet,have:6,+:_ability],[],[],[],White Robe,Glow Hat,Paper
 Trashman,Humanoid,human,[P:4,p:4,ai:wander,team:1,#:!trashman,cost:2,str:3,ab1:pester,abp:30],[],[?Scrap,?Glass,?Spoon,?Brush,?Cloth,?Fiber],[frenzy],Rags,Headband,Stick
-Knight Knight,Humanoid,human,[P:7,p:7,seed:3,team:1,ai:wander,cost:20,#:!knightknight,str:7,+:_health],[],[?Cash Bundle],[parry],Platemail,Full Helm,Broadsword
+Former Lord,Humanoid,human,[P:7,p:7,seed:3,team:1,ai:wander,cost:20,#:!lord,str:7,+:_health],[],[?Cash Bundle],[parry],Platemail,Full Helm,Broadsword
 Undead J,Humanoid,skeleton,[P:3,p:3,def:1,team:1,head:_half_15_0&_half_15_1&_half_15_2,ai:wander,#:!undeadj,!:undead,str:3],[],[?Cash Bundle],[],Jumpsuit,Hat,0
-Macaroni,Unit,slime5,[p:20,fuel:-1,team:1,ai:wander,spd:-1,#:!macaroni],[],[?Jelly],[parry,reach,flurry]
+Macaroni,Unit,slime5,[p:20,fuel:-1,team:1,ai:wander,spd:-1,#:!macaroni],[],[?Jelly],[parry,reach,flurry,disorient]
 Humble Bob,Humanoid,human,[P:8,p:8,team:1,head:_half_1_0&_half_1_1&_half_1_2,ai:wander,cost:10,#:!humblebob,str:5],[],[?Cash,?Roast],[],Scalemail,0,Axe
-Mary J,Humanoid,human,[P:6,p:6,seed:7,team:1,ai:wander,cost:4,#:!maryj,str:3,ab1:barrier],[],[?Cash,?Bread,?Plant,?Plant,?Plant],[],Green Robe,0,Scythe
+Mary,Humanoid,human,[P:6,p:6,seed:7,team:1,ai:wander,cost:4,#:!mary,str:3,ab1:barrier],[],[?Cash,?Bread,?Plant,?Plant,?Plant],[],Green Robe,0,Scythe
 Brock,Humanoid,human,[P:3,p:3,seed:2,ai:wander,team:1,cost:3,#:!brock,str:5],[],[?Iron,?Silver,?Pickaxe,?Gold,?Amber,?Jet],[],Jumpsuit,Glow Hat,Pickaxe
 Master Lee,Humanoid,human,[P:9,p:9,seed:1,ai:wander,team:1,#:!masterlee,str:4,cha:3,sth:5],[],[?Manual],[parry,lunge,deft],Red Robe,Straw Hat,Quarterstaff
 Jane,Humanoid,human,[P:8,p:8,str:4,seed:6,ai:wander,team:1,#:!jane,str:3,+:_health&_health],[],[],[hide,side step],Fabric Wear,Hat,Parasol
 John,Humanoid,human,[P:8,p:8,str:4,seed:2,ai:wander,team:1,#:!john,str:3,loot:#food,have:4,+:_health&_health&_health&_skills],[],[],[block],Wool Wear,Cap,Shortsword
-Jack Stab,Humanoid,human,[P:2,p:2,seed:2,ai:wander,team:1,#:!jackstab,str:3,sth:3,+:_health&_health&_health&_skills],[],[],[assassinate,side step],Bloody Wear,Cap,Dagger
-Rogue,Humanoid,human,[P:7,p:7,seed:2,str:4,sth:2,ai:wander,team:1,cost:10,ab1:sting,#:!rogue,+:_skills],[],[?Jerky,?Jet,?Amber,?Oil Lamp,?Veil,?Cult Robe],[steal],Night Wear,Veil,Bow
+Stabby,Humanoid,human,[P:2,p:2,seed:2,ai:wander,team:1,#:!stabby,str:3,sth:3,+:_health&_health&_health&_skills],[],[],[assassinate],Bloody Wear,Cap,Dagger
+Rogue,Humanoid,human,[P:7,p:7,seed:2,str:8,ai:wander,team:1,cost:10,ab1:sting,#:!rogue,+:_skills],[],[?Jerky,?Jet,?Amber,?Oil Lamp,?Veil,?Cult Robe],[steal],Night Wear,Veil,Bow
 Stool King,Humanoid,human,[P:5,p:5,seed:0,ai:wander,team:1,#:!stoolking,str:3,cha:3],[],[?Burger],[fortitude],Casual Wear,Full Helm,Stool
 Creep,Humanoid,human,[P:7,p:7,ai:wander,team:2,str:3,+:_health&_health],[],[?Cash],[psychic],Cult Robe,Glasses,Telescope
 Captain Knight,Humanoid,human,[P:9,p:9,ai:wander,team:2,str:6,+:_health&_health],[],[?Cash Bundle],[lunge,crush],Scalemail,Lace Helm,Warhammer

@@ -15,6 +15,6 @@ transmogrify,[Dog,Slime,Moth,Spider,Venomous Spider,Cat,Rat,Boar,Tiger,Mole,Worm
 class,[avenger,psycho,gourmet,survivor,agent,scholar]
 revenge,[Slime,Bat,Robber,Looter,Hobo,Outlaw,Boar,Dog,Moth,Wasp,Snake,Rat,Resident,Mud Slime,Cave Slime,Venomous Spider,Soldier,Hireling,Skeleton,Cultist,Marauder,Vagrant,Thief]
 favorite,[Jelly,Pudding,Bread,Cheese,Sandwich,Burger,Roast,Jerky,Salad,Fruit,Corn]
-mission,[[Paper,Register,Cabinet],[Register,Cabinet,Bookshelf,Stool],[Sack,Crate],[Barrel,Bottle,Bucket,Well],[Window,Locked Door,Door,Floor],[Streetlight,Lantern,Candle,Oil Lamp,Torch],[Statue,Rock,Pebble,Stalagmite,Ore],[Painting,Seat,Body Bag,Brush,Flower],[Alchemy Table,Spellcraft Table,Candle,Ink],[Loom,Hanger,Fiber],[Bed,Cloth],[Skull,Corpse]]
+mission,[[Paper,Register,Cabinet],[Register,Cabinet,Bookshelf,Stool],[Sack,Crate],[Barrel,Bottle,Bucket,Well],[Window,Locked Door,Door,Floor],[Streetlight,Lantern,Candle,Oil Lamp,Torch],[Statue,Rock,Stone,Pebble,Stalagmite,Ore],[Painting,Seat,Body Bag,Brush,Flower],[Alchemy Table,Spellcraft Table,Candle,Ink],[Loom,Hanger,Fiber],[Bed,Cloth],[Skull,Corpse]]
 zombie,[Zombie,Skeleton,Wraith,Shade,Skull]
-event,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,event_1,event_2,event_3,event_4,event_5,event_6,event_7]
+event,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,event_1,event_2,event_3,event_4,event_5,event_6,event_7]

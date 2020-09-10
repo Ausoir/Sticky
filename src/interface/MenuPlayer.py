@@ -91,6 +91,10 @@ class MenuPlayer(Menu):
         self.window.add(button_date)
 
     def menu_character(self):
+        def update():
+            experience = host.tags.get('lvl', 0) % 100
+            level_button.set_text(Dialog.get('Level') + ' ' + str(level) + ' (' + str(experience) + '%)')
+
         def stat(arg):
             if Global.player.try_sleep(1):
                 host.tags.increment(arg, 1)
@@ -99,13 +103,15 @@ class MenuPlayer(Menu):
                 from src.entity.Particle import Particle
                 Particle.make('barrier3', host.pos)
                 Global.world.location.sound.register(host.pos, 0, file='level', priority=1)
+        self.update = update
         host = Global.player.character
         rmb = self.get_message(Dialog.get('dsc_level'))
         tag_level = host.tags.get('lvl', 0)
         level = int(tag_level / 100)
         experience = tag_level % 100
         text = Dialog.get('Level') + ' ' + str(level) + ' (' + str(experience) + '%)'
-        self.window.add(Menu.make(text, rmb, color=None))
+        level_button = Menu.make(text, rmb, color=None)
+        self.window.add(level_button)
         rmb = self.get_message(Global.player.describe_class())
         self.sub_window.add(Menu.make(host.tags.get('class', 'classless').title(), rmb, color=None))
         stats = Data.get_line('raw.txt', 'stat')[1]

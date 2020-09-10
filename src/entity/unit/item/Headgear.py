@@ -36,6 +36,12 @@ class Headgear(Equipment):
 
 
 class Talisman(Headgear):
+    def wear(self, start=False):
+        super().wear(start)
+        from src.game import Global
+        if not start and self.host == Global.player.character:
+            Global.main.monologue.set(Dialog.get(':talisman'))
+
     def describe(self):
         r = super().describe()
         spell = self.tags.get('spell')
@@ -43,7 +49,7 @@ class Talisman(Headgear):
             r += '\n' + Dialog.get(':artifact', [spell.title()])
         return r
 
-    def on_hit(self, effect=None, sound=None):
+    def trigger(self):
         if self.host:
             spell = self.tags.get('spell')
             if spell:
@@ -52,4 +58,4 @@ class Talisman(Headgear):
             effect = self.tags.get('effect')
             if effect:
                 self.host.states.add(effect, self.tags.get('dur', 0), self.tags.get('var', 0))
-        super().on_hit()
+            self.decay(1)

@@ -21,6 +21,7 @@ R,##companion
 _1,ability1
 _2,ability2
 _3,ability3
+_4,talisman
 Z,#equipment
 X,#inventory
 C,#skill

@@ -1,9 +1,10 @@
 import os
 
 import pyglet
-from pyglet.image import Texture, Animation
+from pyglet.image import Texture
 from pyglet.image.atlas import TextureAtlas
 
+from src.form.Animation import Animation
 from src.form.Picture import Picture, Model
 
 
@@ -21,19 +22,18 @@ class Data:
         res = Data.process_raw(Data.read('data/raw/resource.txt'))
         for i in res:
             Data.initialize_image(i[0], i[1], i[2], i[3])
+        for i in Data.get_files('data/unit', lambda f: f.endswith('.2d')):
+            Data.set_cache(i, Data.get_cache_clip('data/unit/' + i))
+
+    @staticmethod
+    def initialize_animation():
         animation = Data.process_raw(Data.read('data/raw/animations.txt'))
         for i in animation:
             sequence = []
             for sprite in i[1]:
                 image = Data.get_graphics(sprite)
                 sequence.append(image)
-            loop = bool(i[3])
-            if not loop:
-                sequence.append(Data.get_cache('none'))
-            ani = pyglet.image.Animation.from_image_sequence(sequence, float(i[2]), loop=loop)
-            Data.set_cache(i[0], ani)
-        for i in Data.get_files('data/unit', lambda f: f.endswith('.2d')):
-            Data.set_cache(i, Data.get_cache_clip('data/unit/' + i))
+            Data.set_cache(i[0], (sequence, i[2], i[3]))
 
     @staticmethod
     def direct(fdir, path=''):
@@ -103,8 +103,10 @@ class Data:
             cache = Data.get_image(fdir, True)
         if not form:
             if cache:
-                if isinstance(cache, Texture) or isinstance(cache, Animation):
+                if isinstance(cache, Texture):
                     return Picture(cache, **kwargs)
+                elif isinstance(cache, tuple):
+                    return Animation(cache[0], cache[1], cache[2])
                 else:
                     return cache
         else:

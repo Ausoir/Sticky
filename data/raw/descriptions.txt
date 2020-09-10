@@ -1,3 +1,4 @@
+Lifesaver,Adventurer's insurance.
 Spellbinder,A magical sword that hinders the victim's ability to cast.
 Flameberge,Light and strong. Wielders fear its fire affinity.
 Warhammer,Damages victim's equipment on hit.
@@ -16,7 +17,7 @@ Pudding,A sweet and salty slime pudding.
 Burger,Very fullfilling.
 Jerky,Long lasting ration commonly carried around for adventuring and dungeon crawling.
 Fiber,Some fibrous material.
-Observer,Use on units to gain experience just as if you killed them. Usable once per 12 hours.
+Observer,Use on units to gain experience just as if you killed them. Gain double experience on hostiles. Usable every 12 hours and cannot be used on same type consequently.
 Marker,This is part of a conjuration polygram. In a dark area\,\ bring a candle on the polygram to begin ritual.
 Mirror,Use to mark a location and return there later.
 Gold Mirror,Use to return home.
@@ -28,8 +29,8 @@ Manual,Read to learn skill.
 Ore,Break to obtain rare minerals.
 Plant,Used in alchemy.
 Fortitude,After taking damage\,\ gain damage immunity for a short while.
-Block,Stand still to concentrate. Next incoming damage is reduced by 1.
-Parry,Stand still to concentrate. Ignore next attack from the front.
+Block,Stand still to concentrate. While concentrated and idle\,\ get +1 defense against frontal attacks.
+Parry,Stand still to concentrate. Parry the next non backstab attack.
 Iron Will,Stand still to concentrate. Deflect next harmful debuff. Shielding cancels on taking damage.
 Constitution,Immune to knockdown.
 Perseverance,Heal 1 health every hour when not hungry.

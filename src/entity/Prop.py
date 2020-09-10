@@ -10,7 +10,7 @@ class Prop(Object):
     def __init__(self):
         super().__init__()
         self.direction = 0
-        self.hittable = 1
+        self.hittable = True
         self.states = Buffs(self)
         self.tags = Attribute(self)
 

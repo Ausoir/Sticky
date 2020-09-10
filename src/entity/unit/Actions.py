@@ -58,8 +58,7 @@ class Actions:
     def idle(self):
         if self.idle_frame >= 12:
             self.idle_frame = 0
-            if self.host.get_skills():
-                self.host.states.add('Concentration', -1)
+            self.host.states.add('Concentration', -1)
         else:
             self.idle_frame += 1
         self.make('idle', turn=0)
@@ -163,10 +162,15 @@ class Actions:
             code = target.tags.get('#')
         if code is None:
             code = target.tags.get('##')
-        if code and (held or Global.player.is_safe()):
-            self.make('interact', turn=1)
-            self.on_finish = fn
-            return True
+        if code:
+            if held:
+                self.make('eat', turn=1)
+                self.on_finish = fn
+                return True
+            elif Global.player.is_safe():
+                self.make('interact', turn=1)
+                self.on_finish = fn
+                return True
 
     def side_step(self, tile):
         for thing in tile.things:
@@ -176,6 +180,7 @@ class Actions:
                     concentration.trigger(['spend'])
                     old = thing.pos
                     thing.relocate(to=self.host.pos)
+                    thing.face(thing.pos.get_face(self.host.pos))
                     thing.states.add('Knockout', 20)
                     self.move(old)
                     return True
@@ -200,12 +205,15 @@ class Actions:
 
     def hit(self):
         self.make('idle', turn=4)
-        self.host.form.randomize_once(4)
+        self.host.form.randomize_once(5)
 
     def die(self):
         if self.host.form.state_name != 'dead':
+            self.host.obstruct_type = 1
             self.current_action = 'die'
+            self.host.hittable = False
             self.make('dead', turn=8)
+            self.host.is_save = False
             self.on_finish = self.host.death
         else:
             self.on_finish = None
@@ -322,21 +330,23 @@ class Actions:
         if ability:
             exhaustion = self.host.states.get('Exhaustion')
             from src.game.Turn import Turn
-            if not exhaustion:
-                from src.entity.unit.item.Spell import Spell
-                spell = Spell.get(ability)
-                cooldown = spell.get_cooldown() * Turn.rounds
-                cdr = self.host.tags.get('cdr', 0) + 1
-                if cdr > 1:
-                    cooldown = int(cooldown / cdr)
-                elif cdr <= 0:
-                    cooldown = cooldown * (-cdr + 2)
+            from src.entity.unit.item.Spell import Spell
+            spell = Spell.get(ability)
+            cooldown = spell.get_cooldown() * Turn.rounds
+            maximum = Turn.rounds * 100
+            cdr = self.host.tags.get('cdr', 0) + 1
+            if cdr > 1:
+                cooldown = int(cooldown / cdr)
+            elif cdr <= 0:
+                cooldown = cooldown * (-cdr + 2)
+            if not exhaustion or exhaustion.duration + cooldown < maximum:
                 if cooldown > 0:
                     self.host.states.add('Exhaustion', cooldown)
                 spell.cast(self.host)
             elif self.host == Global.player.character:
                 from src.tools.Dialog import Dialog
-                Global.main.monologue.set(Dialog.get(':wait', [exhaustion.duration]), time=20)
+                wait = int((exhaustion.duration + cooldown - maximum) / Turn.rounds)
+                Global.main.monologue.set(Dialog.get(':wait', [wait]), time=20)
 
     def ability1(self):
         self.ability(self.host.tags.get('ab1'))
@@ -346,3 +356,10 @@ class Actions:
 
     def ability3(self):
         self.ability(self.host.tags.get('ab3'))
+
+    def talisman(self):
+        if self.humanoid and self.host.headgear:
+            from src.entity.unit.item.Headgear import Talisman
+            if isinstance(self.host.headgear, Talisman):
+                self.host.headgear.trigger()
+                self.make('eat', turn=4)

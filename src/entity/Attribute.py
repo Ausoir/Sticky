@@ -11,9 +11,9 @@ class Attribute(Tag):
 
     def update(self):
         if 'p' in self.attributes:
-            self.host.hittable = 1
+            self.host.hittable = True
         else:
-            self.host.hittable = 0
+            self.host.hittable = False
         if 'col' in self.attributes:
             self.host.collision_type = self.attributes['col']
         if 'ob' in self.attributes:

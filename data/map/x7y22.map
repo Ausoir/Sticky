@@ -1,4 +1,4 @@
 -24
-[[10,4],Dojo,Scripter,_g_6_0,[ob:0,trigger:time,time:6,spawn:Master],[[Invisible,-1,-1],[Immune,-1,0]],[[],[[v,1,tag,*host,spawn],[spawn,*1],[spawn,Pedestal],[remove,*host]],[]]]
+[[10,4],Dojo,Scripter,_g_6_0,[ob:0,trigger:time,time:6,spawn:Master,dir:0],[[Invisible,-1,-1],[Immune,-1,0]],[[],[[v,1,tag,*host,spawn],[spawn,*1],[spawn,Pedestal],[remove,*host]],[]]]
 cRRRR.Bcccccc%cRRRR.BCvvvvv%cRRRRRBCvvvvv%cRRRRRBCvvvvv%cRRRRRBCckkkc%cRRRRRBCvvvvv%cRRRRRBCvvvvv%cRRRRRBCvvvvv%cRRRRRBcccccc%cRRRRRBBBBBBB%cRRRRRRRRRRRR%cRRRRRRRRRRRR%cRRRRRRRRRRRR
 0000001111111%0000001100000%0000001100000%0000001100000%0000001100000%0000001100000%0000001100000%0000001100000%0000001111111%0000001111111%0000000000000%0000000000000%0000000000000

@@ -159,7 +159,7 @@ class World:
                         for i in map_data[1]:
                             prop = Stock.get(i[2], i)
                             if prop.tags.get('$', 0) <= 0:
-                                prop.relocate(x=prop.pos.x + start_coord[0], y=prop.pos.y + start_coord[1], force=True)
+                                prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
                                 prop.add()
                                 prop.on_sleep(time_passed)
                                 prop.mutate()
@@ -167,7 +167,7 @@ class World:
                     else:
                         for i in map_data[1]:
                             prop = Stock.get(i[2], i)
-                            prop.relocate(x=prop.pos.x + start_coord[0], y=prop.pos.y + start_coord[1], force=True)
+                            prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
                             prop.add()
                             prop.on_sleep(time_passed)
         if Global.player.character:

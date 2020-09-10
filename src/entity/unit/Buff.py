@@ -47,7 +47,7 @@ class Buff:
         if 'magic' in self.get_tags() and 'harm' in self.get_tags():
             deflect = self.host.states.get('Deflection')
             if deflect:
-                deflect.trigger()
+                deflect.trigger(['spend'])
                 return False
         return not self.host.states.get('Immune')
 
@@ -88,11 +88,6 @@ class StatBuff(Buff):
     def on_finish(self):
         self.host.tags.increment(self.get_stat()[0], -self.var)
 
-    def trigger(self, arg):
-        super().trigger(arg)
-        if arg[0] == 'act' and arg[1] in ['hit']:
-            self.end()
-
 
 class Glow(Buff):
     def __init__(self, host, name, duration, var):
@@ -118,7 +113,7 @@ class Glow(Buff):
             self.host.pos.glow(self.var)
 
     def on_finish(self):
-        self.host.pos.glow_stop(self.var, max(1, self.var - 7))
+        self.host.pos.glow_stop(self.var, max(1, self.var - 4))
 
 
 class Revive(Buff):
@@ -214,9 +209,15 @@ class Burn(Buff):
                                 Stock.make('Flame', i.pos)
                             if i.hit(1, hitter=None) != 2:
                                 i.decay(1)
-        else:
-            if fuel > 0:
-                self.host.decay(1)
+
+    def on_stack(self, duration, var):
+        self.duration = duration
+        self.var = var
+        if self.host.tags.get('fuel', 0) + 1 > 0:
+            self.host.decay(1)
+
+    def on_finish(self):
+        self.host.decay(1)
 
     def on_update(self):
         self.var += 1
@@ -260,7 +261,26 @@ class Speed(StatBuff):
         if self.var > 0 and isinstance(self.host, Item):
             if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
                 self.duration = 1
-                self.host.tags.set('skill', 'deft')
+                if self.var > 0:
+                    if Global.r.rand_bool():
+                        self.host.tags.set('skill', 'deft')
+                    else:
+                        self.host.tags.increment('cdr', 1)
+                    rand = Global.r.rand_int(0, 5)
+                    if rand == 0:
+                        self.host.tags.increment('def', -1)
+                    elif rand == 1:
+                        self.host.tags.increment('w', 1)
+                    elif rand == 2:
+                        self.host.tags.increment('P', -2, default=10)
+                    elif rand == 3:
+                        self.host.tags.increment('cha', -1)
+                    elif rand == 4:
+                        self.host.tags.increment('sth', -1)
+                    elif rand == 5:
+                        self.host.tags.increment('end', -1)
+                elif self.var < 0:
+                    self.host.tags.increment('spd', -1)
         super().on_start()
 
 
@@ -278,11 +298,11 @@ class Damage(StatBuff):
                     rand = Global.r.rand_int(0, 3)
                     if rand == 0:
                         self.host.tags.increment('def', -1)
-                    elif rand == 1:
+                    elif rand == 1 and self.host.tags.get('skill'):
                         self.host.tags.remove('skill')
                     elif rand == 2:
                         self.host.tags.increment('w', 1)
-                    elif rand == 3:
+                    else:
                         self.host.tags.increment('P', -2, default=10)
                 elif self.var < 0:
                     self.host.tags.increment('dmg', -1)
@@ -359,10 +379,10 @@ class Invisible(Buff):
 
 class Invincible(Buff):
     def on_start(self):
-        self.host.hittable = 0
+        self.host.hittable = False
 
     def on_finish(self):
-        self.host.hittable = 1
+        self.host.hittable = True
 
 
 class Immune(Buff):
@@ -608,8 +628,8 @@ class Poison(Buff):
         self.host.decay(self.var)
 
     def end(self):
-        super().end()
         self.var = 0
+        super().end()
 
 
 class Knockout(Buff):
@@ -666,7 +686,7 @@ class Safeguard(Buff):
 
 class Exhaustion(Buff):
     def get_tags(self):
-        return ['harm']
+        return ['stack', 'harm']
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit
@@ -682,7 +702,7 @@ class Barrier(Buff):
         return ['magic']
 
     def trigger(self, arg):
-        if arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
+        if arg[0] == 'act' and arg[1] == 'hit':
             Global.world.location.sound.register(self.host.pos, 2, file='energy')
             Particle.make('barrier', self.host.pos)
             self.end()
@@ -704,7 +724,7 @@ class Deflection(Buff):
             Global.world.location.sound.register(self.host.pos, 2, file='energy')
             Particle.make('barrier2', self.host.pos)
             self.end()
-        elif arg[0] == 'act' and arg[1] == 'hit' and arg[2] > 0:
+        elif arg[0] == 'act' and arg[1] == 'hit':
             Global.world.location.sound.register(self.host.pos, 2, file='void')
             self.end()
 

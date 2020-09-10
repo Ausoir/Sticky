@@ -141,7 +141,7 @@ class Scry(Spell):
             ghost.tags.set('tox', pos[0])
             ghost.tags.set('toy', pos[1])
             ghost.tags.set('view', 8)
-            ghost.states.add('Script', 80, '#reclaim')
+            ghost.states.add('Script', 160, '#reclaim')
             self.host.is_save = True
             Global.player.character.tags.set('husk', 1)
             Global.player.set_player(ghost)
@@ -168,8 +168,11 @@ class Charm(Spell):
         return 1
 
     def perform(self):
-        target = self.auto_target(2)
-        if target:
+        target = self.auto_target(0)
+        from src.entity.unit.Unit import Unit
+        if target and isinstance(target, Unit):
+            Particle.make('spin', target.pos)
+            Global.world.location.sound.register(target.pos, 18, file='spell')
             from src.game.ScriptManual import ScriptManual
             ScriptManual.ally(self.host, target)
 
@@ -225,18 +228,19 @@ class Reanimate(Spell):
         return 9
 
     def perform(self):
-        target = self.auto_target(0)
-        if target:
-            zombie_able = target.tags.get('zombie')
-            if zombie_able:
-                from src.tools.Data import Data
-                zombie_type = Data.get_line('raw.txt', 'zombie')[1][zombie_able - 1]
-                Particle.make('zwip', target.pos)
-                Global.world.location.sound.register(target.pos, 8, file='void')
-                zombie = Stock.make(zombie_type, target.pos)
-                from src.game.ScriptManual import ScriptManual
-                ScriptManual.ally(self.host, zombie)
-                target.remove()
+        targets = self.host.pos.get_area(8, 8)
+        for tile in targets:
+            for target in tile.things:
+                zombie_able = target.tags.get('zombie')
+                if zombie_able:
+                    from src.tools.Data import Data
+                    zombie_type = Data.get_line('raw.txt', 'zombie')[1][zombie_able - 1]
+                    Particle.make('zwip', target.pos)
+                    Global.world.location.sound.register(target.pos, 8, file='void')
+                    zombie = Stock.make(zombie_type, target.pos)
+                    from src.game.ScriptManual import ScriptManual
+                    ScriptManual.ally(self.host, zombie)
+                    target.remove()
 
 
 class Fog(Spell):
@@ -273,16 +277,18 @@ class Phantom(Spell):
     def perform(self):
         target = self.auto_target(0)
         if target:
-            Global.world.location.sound.register(target.pos, 8, file='void')
-            Particle.make('mist', target.pos)
-            if isinstance(target, Item):
-                if not target.host:
-                    phantom = Stock.make('Phantom', target.pos)
-                    phantom.set_host(target)
-                    phantom.states.add('Script', 240, 'remove')
-                    from src.game.ScriptManual import ScriptManual
-                    ScriptManual.ally(self.host, phantom)
-                    return
+            for i in target.pos.things:
+                Global.world.location.sound.register(target.pos, 8, file='void')
+                Particle.make('mist', target.pos)
+                if isinstance(i, Item):
+                    if not i.host:
+                        phantom = Stock.make('Phantom', i.pos)
+                        phantom.set_host(i)
+                        phantom.on_set_host()
+                        from src.game.ScriptManual import ScriptManual
+                        ScriptManual.ally(self.host, phantom)
+                        phantom.tags.remove('#')
+                        return
 
 
 class Pester(Spell):
@@ -348,7 +354,7 @@ class Transmogrify(Spell):
 
 class Snare(Spell):
     def get_cooldown(self):
-        return 20
+        return 50
 
     def perform(self):
         target = self.auto_target(2)
@@ -360,7 +366,7 @@ class Snare(Spell):
 
 class Fireball(Spell):
     def get_cooldown(self):
-        return 20
+        return 40
 
     def get_range(self):
         return 7
@@ -424,11 +430,14 @@ class Blink(Spell):
 
     def perform(self):
         power = 9
-        x = Global.r.rand_int(-power, power)
-        y = Global.r.rand_int(-power, power)
-        destination = self.host.pos.get_neighbor(x, y, limit=True)
-        for i in self.host.pos.things:
-            i.move_line(destination)
+        moved = False
+        count = 0
+        while not moved and count < 9:
+            count += 1
+            x = Global.r.rand_int(-power, power)
+            y = Global.r.rand_int(-power, power)
+            destination = self.host.pos.get_neighbor(x, y, limit=True)
+            moved = self.host.move_line(destination)
 
 
 class Corona(Spell):
@@ -509,6 +518,9 @@ class Torment(Spell):
 
 
 class Avatar(Spell):
+    def get_cooldown(self):
+        return 100
+
     def perform(self):
         golem = Stock.make('Golem', self.host.pos)
         x = Global.r.rand_int(-1, 1)
@@ -517,7 +529,8 @@ class Avatar(Spell):
         golem.move_line(destination)
         from src.game.ScriptManual import ScriptManual
         ScriptManual.ally(self.host, golem)
-        golem.states.add('Script', 240, 'remove')
+        golem.states.add('Script', 400, 'remove')
+        golem.tags.remove('#')
 
 
 class Summon(Spell):
@@ -525,7 +538,7 @@ class Summon(Spell):
         return 2
 
     def get_cooldown(self):
-        return 16
+        return 60
 
     def get_range(self):
         return 12
@@ -544,7 +557,7 @@ class Summon(Spell):
 
 class Barrier(Spell):
     def get_cooldown(self):
-        return 80
+        return 50
 
     def get_delay(self):
         return 2
@@ -594,7 +607,7 @@ class Earthquake(Spell):
         for i in targets:
             for thing in i.things.copy():
                 Particle.make('spin', i)
-                thing.states.add('Knockout', 40)
+                thing.states.add('Knockout', 20)
 
 
 class Charge(Spell):
@@ -651,7 +664,7 @@ class Breeze(Spell):
         return 8
 
     def get_cooldown(self):
-        return 100
+        return 60
 
     def perform(self):
         self.host.states.add('Levitation', 80, 0)

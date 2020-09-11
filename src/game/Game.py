@@ -126,7 +126,7 @@ class Game:
     def sleep(self, time, blackout=True):
         if time != 0:
             self.save()
-            self.character.progress_level(1, mode='survive')
+            self.character.progress_level(time, mode='survive')
             Global.world.location.on_sleep(time)
             event = Global.r.rand_list(Data.get_line('raw.txt', 'event')[1])
             if event:
@@ -194,21 +194,7 @@ class Game:
     def turn(self):
         if self.character.removed:
             if self.dead == 10:
-                revive = self.character.states.get('Revive')
-                if revive:
-                    revive.end()
-                    args = [int(x) for x in revive.var.split('&')]
-                    self.character.add()
-                    self.character.states.clear(lambda _: True)
-                    self.character.tags.set('p', self.character.tags.get('P', 1))
-                    self.character.tags.set('hunger', 0)
-                    self.character.tags.remove('invest')
-                    self.character.tags.remove('investt')
-                    Global.player.tags.increment('revives', 1)
-                    Global.world.travel(args[0], args[1])
-                    self.dead = -1
-                else:
-                    Script.execute_code('death')
+                Script.execute_code('death')
             elif self.dead == 11:
                 Global.menu.display(1)
             else:

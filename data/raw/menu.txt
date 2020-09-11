@@ -1,19 +1,17 @@
-help,1,Move using WASD. Attack with SPACE. Q to grab or drop items. E to access pocket. TAB to access menu. END key to die. F11 to enter fullscreen.
+help,1,Move using WASD|Attack with SPACE|Q to grab or drop items|E to access pocket|TAB to access menu|END key to die|F11 to enter fullscreen.
 birth,2,The president has put up a bounty on the local evil lord. Kill the evil lord and buy your freedom!,Enter Tutorial,entertutorial
-tutorial1,1,Use the WASD keys to maneuver. Press the SPACE key to attack. Press TAB to close out of this dialog. You may press the END key to suicide and end tutorial at any time. You can always come back to tutorial area after you die\,\ so you don't have to memorize everything taught here.
-tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1. If you kill an enemy in melee\,\ you will get their level as experience.
+tutorial1,1,Press F1 for key help. Press TAB to close out of this dialog.
+tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1.
 tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
-tutorial4,1,In safe areas you will find useful services like buying and selling goods\,\ swords for hire\,\ and life insurance. Most friendlies can be interacted with WASD keys. The character to your right is a supplier. Sell your torch\,\ and from the equipment menu you can check how much money you have.
-tutorial5,1,Some enemies have skills that should be avoided until you know what you are doing. Use arrow keys to view tile and press Enter to get target description. You can also right click target to get description.
-tutorial6,1,Some weapons provide martial skills. Press Q to wield the stick. You will get access to a new skill called lunge. Press TAB to access your menu then press 4 to enter skills menu to read about the skill.
-tutorial7,1,If you attempt to pick up the stool on your left\,\ the item will go into your inventory. To wield the stool\,\ enter the inventory menu or press E to quick swap. If you want to drop your current weapon\,\ press Q on an empty tile.
-tutorial8,1,If you examine the window you will notice it has an armor value of 1. That means the window decreases incoming damage by 1. That means you need more than 1 damage to break that window. The stool you picked up provides +1 damage\,\ so if you wield it you would deal 2 damage in total. Smash the window with the stool.
-tutorial9,1,You can check your current health from the menu. You should always travel with full health. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag or use WASD keys to interact with the bed.
-tutorial10,1,You cannot perform time consuming actions like resting or leveling up when hungry. Hunger can be checked from TAB menu. Take some food from the crate. Wield the food then press SPACE to interact with it. If your inventory is full\,\ drop some items on the ground.
-tutorial11,1,You can press F11 to enter fullscreen mode.
-tutorial12,1,You can also use the mouse to play this game. Click on your character to access the menu and click adjacent to your character to attack.
-tutorial13,1,Even the easiest enemies can be difficult in some environments. You might find it difficult fighting an enemy against the wall or fighting multiple enemies at once. Note that attacks from behind ignore all defense.
-tutorial14,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!
+tutorial4,1,Most friendlies can be interacted with WASD keys. Sell your torch to the merchant. You can check how much money you have in your equipment menu.
+tutorial5,1,Use arrow keys to view tile and press Enter to get target description. You can also right click target to get description.
+tutorial6,1,Some weapons provide skills. Press Q to wield the stick. You will get access to a new skill called lunge. Press TAB to access your menu then press 4 to enter skills menu to read about the skill.
+tutorial7,1,If you attempt to pick up the stool on your left\,\ the item will go into your inventory. To wield the stool\,\ enter the inventory menu or press E to swap it out. If you want to drop your current weapon\,\ press Q on an empty tile.
+tutorial8,1,If you examine the window you will notice it has an armor value of 1. The stool you picked up provides +1 damage. Smash the window with the stool.
+tutorial9,1,You can check your current health from the menu. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag or use WASD keys to interact with the bed.
+tutorial10,1,You cannot perform time consuming actions like resting or leveling up when hungry. Hunger can be checked from TAB menu. Take some food from the crate. Wield the food then press SPACE to eat it.
+tutorial11,1,You can also use the mouse to play this game. Click on your character to access the menu and click adjacent to your character to attack.
+tutorial12,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!
 pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
 resident,3,What?,[Move,#swap],[Introduce,!intro_resident],[Join,#ally]
 intro_resident,1,I'm just a resident of this region. You got something to do?
@@ -73,15 +71,16 @@ w.corrupt,1,Places that the evil lord have corrupted have become home to many st
 tourguide,3,Hello. Do you need help?,[Directions,!tourguide2],[Tips,!tourguide3]
 tourguide2,1,You are looking for the big bad evil guy? Your destination should be the Mountain Pass. Exit through this east gate out of uptown. Keep going east\,\ through the workshop and the cliff road. The mountain pass is near the bamboo forest.
 tourguide3,2,Many people gather around for the grand reward\,\ but most don't even make it to the Mountain Pass. If you want a chance\,\ get a life insurance at the brick building near the west gate.,Next Tip,!tourguide4
-tourguide4,1,The stool is great, but try to find a training sword or a quarterstaff. They are great weapons for beginners. You can farm one in the mansion.
-poet,2,What do words mean in this deafening orderly presense?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!poet2
-poet2,3,You complain about the insurance cost\,\ but you know not of the past when all kinds of insurance existed.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
+tourguide4,2,The stool is great, but try to find a quarterstaff. It is a great weapon for beginners.,Next Tip,!tourguide5
+tourguide5,1,Minor stats like intelligence and charisma are more situational. Try to allocate points to them only if you think they suit your current build.
+poet,2,What do words mean in this deafening orderly presence?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!poet2
+poet2,3,I had looked to zealots like you\,\ but now I only see deaf tools\,\ hauled to the fire\,\ led by gold.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
 chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a restaurant... But honestly\,\ honest work seems to be out of order. I still sell food\,\ if that is something you need.,Proceed,!chef moe2
 chef moe2,3,Mhmm.,[Move,#swap],[Buy,>menu>shop],[Hire,>menu>hire]
 trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
 rando,3,I'm a desperate resident surviving day to day looting from outlaws and wildlife... just like you.,[Move,#swap],[Hire,>menu>hire]
 lord,2,I was the former evil lord before I retired. Everyone hated me\,\ but they don't seem to realize that humans are never in shortage. Right after I retired\,\ the role chose someone else\,\ you see?,Sure,!lord2
-lord2,3,I'm too lazy to do anything anymore.,[Move,#swap],[Hire,>menu>hire]
+lord2,3,I can't afford to get hurt. Pension didn't adjust for inflation\,\ you see.,[Move,#swap],[Hire,>menu>hire]
 undeadj,2,Calm down man\,\ I'm no monster. The life insurance guy did a shoddy job at cloning me. You know?,That happens?,!undeadj2
 undeadj2,3,I'm a pretty good kicker. Are you are thinking what I'm thinking? maybe we should party up and kick a leper around!,[Move,#swap],[Join,#ally]
 humblebob,3,My name is bob. I can fight.,[Move,#swap],[Hire,>menu>hire]
@@ -91,18 +90,20 @@ mary,2,There are many interesting plants around here. If you know some alchemy\,
 mary2,3,I am Mary. How may I be of service?,[Move,#swap],[Buy,>menu>shop],[Join,#ally]
 brock,2,I am Brock. I break rocks. If you want to know what rare minerals are used for\,\ ask a wand carver\,\ because I don't care.,Ok,!brock2
 brock2,3,Dig dig dig.,[Move,#swap],[Buy,>menu>shop],[Join,#ally]
-masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young'un wielding a flaming blade on a field casting scorch on a slime. I took her in\,\ taught her the ways of fighting\,\ and soon she went off to make her own world past the mountains.,Ok,!masterlee2
+masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young'un wielding a flaming blade on a field casting scorch on a slime. I took him in\,\ taught him the ways of fighting\,\ and soon he went off to make his own world past the mountains.,Ok,!masterlee2
 masterlee2,3,Young grass hopper?,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair],[Tips,!masterlee3]
 masterlee3,1,Combat is harder to master than you think. For example\,\ hitting enemies against a wall will have a different outcome than hitting them against open terrain.
 jane,2,Welcome\,\ fellow civilian. I find good living here\,\ living day to day looting off one another and eating jelly off slimes.,Ok,!jane2
 jane2,3,You are going for the evil lord? You know\,\ I also have nothing better to do.,[Move,#swap],[Join,#ally]
 john,2,Kill the evil lord? Are you crazy? You won't even make it to the castle. You'll be butchered and turned into a tasty slime the moment you pass the gates. Look around\,\ where do you think all those slimes come from?,Nah,!john2
-john2,3,I'm not going to the gates. You need to realize that there are things worse than death in this hell of a world.,[Move,#swap],[Sell,>menu>supply]
+john2,3,I'm not going anywhere near the mountain pass. You need to realize that there are things worse than death in this hell of a world.,[Move,#swap],[Sell,>menu>supply]
 stabby,2,Hey there good fellow\,\ I am also a good fellow. How do you do?,I'm fine.,!stabby2
 stabby2,1,My name is Jack Stab. I like to stab people while they are engaged in a conversation with me.
 rogue,2,I am just a wandering rogue. I've been wandering... was putting all my points into strength worth it?,Hmm.,!rogue2
 rogue2,3,I'm wandering... do you have business with me?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
 stoolking,2,I am the stool king. I wield the stool\,\ so that I may smite down the insolent with its might.,Me too!,!stoolking2
 stoolking2,3,Say\,\ will you join me in my quest to conquer the gates and free my people?,[Move,#swap],[Kneel,kneel]
+madga,2,This is a pretty fun place eh? I put great effort into making this world.,Whatever.,!madga2
+madga2,1,Hey\,\ don't whatever me! I'll turn you into a slime!
 labguide,3,Hello. This is the brain warehouse.,[Introduce,!labguide_introduce]
 labguide_introduce,1,When you take life insurance your brain is stored here so we can revive you after you die.

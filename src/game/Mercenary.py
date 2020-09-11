@@ -25,7 +25,7 @@ class Mercenary:
             self.npc.append(line)
 
     def spawn(self, o_x, o_y):
-        if self.npc and Global.r.rand_int(1, 16) == 1:
+        if self.npc and Global.r.rand_int(1, 16) == 1 and Global.player.tags.get('npc', 0) == 1:
             x = Global.r.rand_int(o_x, o_x + Global.world.CHUNK - 1)
             y = Global.r.rand_int(o_y, o_y + Global.world.CHUNK - 1)
             tile = Global.world.location.get_tile(x, y)

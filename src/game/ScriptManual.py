@@ -38,13 +38,35 @@ class ScriptManual:
 
     @staticmethod
     def companion(host, var):
+        front = host.pos.get_cardinal(host.direction)
+        if host.tags.get('summon', 0) == 0:
+            for thing in front.things:
+                if thing.tags.get('summon', 0) == 1 and thing.tags.get('p', 0) > 0:
+                    Global.player.companions.append(thing.__str__())
+                    Global.main.monologue.set(Dialog.get(':companion', [thing.get_display_name()]))
+                    thing.remove()
+                    return
         if Global.player.companions:
             from src.tools.Data import Data
             from src.entity.Stock import Stock
             data = Data.process_raw(Global.player.companions.pop())
             unit = Stock.get(data[1], data)
-            unit.pos = host.pos.get_cardinal(host.direction)
+            unit.pos = front
             unit.add()
+            if unit.tags.get('#', '') == 'reclaim':
+                unit.tags.remove('#')
+                Global.player.set_player(unit)
+
+    @staticmethod
+    def uncontrol(host, var):
+        if var.tags.get('summon', 0) == 1 and Global.player.companions:
+            from src.tools.Data import Data
+            from src.entity.Stock import Stock
+            data = Data.process_raw(Global.player.companions.pop())
+            unit = Stock.get(data[1], data)
+            unit.pos = var.pos
+            unit.add()
+            Global.player.set_player(unit)
 
     @staticmethod
     def repair(host, var):

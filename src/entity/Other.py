@@ -510,7 +510,7 @@ class Ghost(Unit):
                         if not i.tags.get('lvl'):
                             i.tags.set('lvl', i.get_level() * 100)
                         Global.player.set_player(i)
-                        i.states.add('Script', 160, 'tame')
+                        i.states.add('Script', 120, 'tame')
                         if not i.get_skill('eject'):
                             i.skills.append('eject')
                         i.center_camera()

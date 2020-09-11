@@ -1,3 +1,4 @@
+Bucket,Use to fill terrain with dirt.
 Package,Use to unpack a furniture.
 Pouch,Contains enchanting potions.
 Lifesaver,Adventurer's insurance.
@@ -35,17 +36,17 @@ Block,Stand still to concentrate. While concentrated and idle\,\ get +1 defense 
 Parry,Stand still to concentrate. Parry the next non backstab attack.
 Iron Will,Stand still to concentrate. Deflect next harmful debuff. Shielding cancels on taking damage.
 Constitution,Immune to knockdown.
-Perseverance,Heal 1 health every hour when not hungry.
+Perseverance,Heal 1 health every hour when not hungry at the cost of 10% hunger. Stacks.
 Instinct,Attacks are performed instantly without pre attack delay.
 Lunge,Move forward when attacking. Stacks.
-Cleave,Stand still to concentrate. Attacks affect diagonals while concentrated.
-Flurry,Stand still to concentrate. Rapidly attack hostiles in reach up to 3 times. Stacks.
+Cleave,Attacks reach all 3 tiles in front.
+Flurry,Stand still to concentrate. Using concentration\,\ Rapidly attack up to 3 times. Stacks.
 Frenzy,Successful attacks continuously increase maximum damage by 1 as long as attacks persist.
-Crush,Stand still to concentrate. Next attack knocks target down.
+Crush,Stand still to concentrate. Using concentration\,\ next attack ignores armor.
 Assassinate,Attacks from behind silences target and deal 7 extra damage.
-Side Step,Stand still to concentrate\,\ then move towards a unit to knockout and swap places.
-Hide,Stand still to concentrate\,\ becoming invisible until moving.
-Deep Sense,When standing still\,\ obtain vision through obstacles\,\ but not terrain.
+Side Step,Stand still to concentrate. Using concentration\,\ move towards a unit for a knockout.
+Hide,Stand still to concentrate. Become invisible until taking action.
+Deep Sense,Stand still to concentrate. While concentrated\,\ obtain sharp vision.
 Parkour,Stand still to concentrate. While concentrated\,\ move over obstacles freely.
 Alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers.
 Scribing,Create spell scrolls at a registry desk.
@@ -77,7 +78,7 @@ Reanimate,Turn corpses into undead.
 Phantom,Summon a phantom to possess a target item.
 Transmogrify,Mutate target into a random creature.
 Evacuate,Immediately teleport to a random location.
-Gateway,Create a one way teleport gate.
+Gateway,Create a gateway. Cast again to create a one way teleport gate to the previous gateway.
 Ghost Form,Turn into a ghost that can pass through walls but cannot interact with the world.
 Earthquake,Knock down everything near the caster.
 Push,Push something in caster's way away from the caster.

@@ -16,8 +16,8 @@ dsc_level,You progress in level by doing things like eating\,\ killing units of 
 dsc_vitality,Vitality determines your maximum health. Humanoids have 2 health by default.
 dsc_strength,Strength determines how much weight you can carry.
 dsc_stealth,Stealth determines how close enemies have to be to detect you.
-dsc_intelligence,Intelligence determines how many skills you can learn.
-dsc_charisma,Charisma determines how many allies can follow you at a time. This also applies to charmed enemies and summoned creatures.
+dsc_intelligence,Intelligence determines how many skills and abilities you can learn.
+dsc_charisma,Charisma determines how many allies you can have. You can control companions if your charisma is higher than their level.
 :travel?,Travel to <#> for $#?
 :soldout,I am all out of goods to sell.
 :invfull,You cannot store any more items.
@@ -49,6 +49,7 @@ dsc_charisma,Charisma determines how many allies can follow you at a time. This 
 :sight_range,Sight Range: #
 !dsc_skill,No skill information provided.
 :item_skill,This skill was granted by an item.
+:ability_skill,This skill is an active ability.
 :light_range,Light Radius: #
 :artifact,Enchanted with spell: #
 :terrain wall,This terrain is impassible

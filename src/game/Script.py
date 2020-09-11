@@ -200,11 +200,11 @@ class Script:
             Global.world.location.process_terrain()
         elif arg[0] == 'spawn':
             from src.entity.Stock import Stock
-            Script.var['1'] = Stock.make(arg[1], Script.var['host'].pos)
+            Script.var['result'] = Stock.make(arg[2], arg[1].pos)
         elif arg[0] == 'effect':
-            Particle.make(arg[1], Script.var['host'].pos, offset=4)
+            Particle.make(arg[2], arg[1].pos, offset=4)
         elif arg[0] == 'sound':
-            Global.world.location.sound.register(Script.var['host'].pos, arg[1], file=arg[2])
+            Global.world.location.sound.register(arg[1].pos, arg[2], file=arg[3])
         elif arg[0] == 'closemenu':
             Global.menu.display(-1)
         elif arg[0] == 'message':
@@ -278,4 +278,8 @@ class Script:
         elif arg[0] == 'clearbuffs':
             arg[1].states.clear(lambda _: True)
         elif arg[0] == 'clearmagic':
-            arg[1].states.clear(lambda x: 'magic' in x.get_tags())
+            arg[1].states.dispel()
+        elif arg[0] == 'setplayer':
+            Global.player.set_player(arg[1])
+        elif arg[0] == 'save':
+            Global.player.save()

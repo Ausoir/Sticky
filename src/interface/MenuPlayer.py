@@ -133,7 +133,9 @@ class MenuPlayer(Menu):
 
     def menu_skill(self):
         index = 0
-        for skill in Global.player.character.get_skills():
+        player_skills = Global.player.character.get_skills()
+        extended = len(player_skills) > 12
+        for skill in player_skills:
             title = skill.title()
             desc = Data.get_line('descriptions.txt', title)
             if desc:
@@ -141,13 +143,24 @@ class MenuPlayer(Menu):
             else:
                 text = Dialog.get('!dsc_skill')
             if skill not in Global.player.character.skills:
-                text += '\n' + Dialog.get(':item_skill')
+                is_ability = False
+                for i in ['ab1', 'ab2', 'ab3']:
+                    ability = Global.player.character.tags.get(i)
+                    if ability == skill:
+                        is_ability = True
+                if is_ability:
+                    text += '\n' + Dialog.get(':ability_skill')
+                else:
+                    text += '\n' + Dialog.get(':item_skill')
             button = Menu.make(title, self.get_message(text))
-            if index < 6:
+            if index < 6 or (extended and index < 12):
                 self.window.add(button)
             else:
                 self.sub_window.add(button)
             index += 1
+        if extended:
+            self.window.height = 600
+            self.sub_window.height = 600
         self.sub_window.display(1)
 
     def menu_equipment(self):

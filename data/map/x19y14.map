@@ -1,4 +1,4 @@
 -24
-[[0,1],Post,Prop,_g_11_4,[p:4,ob:4,def:3,dir:0],[]],[[2,1],Window,Door,_g_3_4,[p:1,ob:4,def:1,alt:_g_4_4,loot:Glass,dir:0],[]],[[3,1],Window,Door,_g_3_4,[p:1,ob:4,def:1,alt:_g_4_4,loot:Glass,dir:0],[]],[[12,5],Window,Door,_g_3_4,[p:1,ob:4,def:1,alt:_g_4_4,loot:Glass,dir:0],[]],[[12,10],Shelf,Prop,_g_6_4,[p:3,def:1,ob:4,mut:Shelf Full,dir:0],[]]
+[[0,1],Post,Prop,_g_11_4,[p:4,ob:4,def:3,dir:0],[]],[[2,1],Window,Door,_g_3_4,[p:1,ob:4,fuel:0,def:1,alt:_g_4_4,loot:Glass,dir:0],[]],[[3,1],Window,Door,_g_3_4,[p:1,ob:4,fuel:0,def:1,alt:_g_4_4,loot:Glass,dir:0],[]],[[12,5],Window,Door,_g_3_4,[p:1,ob:4,fuel:0,def:1,alt:_g_4_4,loot:Glass,dir:0],[]],[[12,10],Shelf,Prop,_g_6_4,[p:3,def:1,ob:4,mut:Shelf Full,dir:0],[]]
 WbbbbbbW..p..%bWbbWbbW..p..%..........p..%..........ppp%.............%~~.~......BBb%~~~~......Bbb%~~~~......BBb%~~~~......Bbb%~~~~~.....Bbb%~~~~~.....Bbb%~~~~~~~~..Bbb%~~~~~~~~~~BBB
 1111100000000%1111100000000%0000000000000%0000000000000%0000000000000%0000000000111%0000000000111%0000000000111%0000000000111%0000000000111%0000000000111%0000000000111%0000000000111

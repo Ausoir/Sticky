@@ -70,6 +70,8 @@ class Buffs:
             if fn(i):
                 i.end()
                 r += 1
+        if not self.buffs:
+            self.on_remove()
         return r
 
     def trigger(self, arg):
@@ -77,7 +79,8 @@ class Buffs:
             i.trigger(arg)
 
     def dispel(self):
-        self.clear(lambda x: 'magic' in x.get_tags())
+        if not self.get('Immune'):
+            self.clear(lambda x: 'magic' in x.get_tags())
 
     def on_load(self):
         for i in self.buffs:
@@ -89,7 +92,7 @@ class Buffs:
         for i in self.buffs:
             if i.duration > 0:
                 if time > 0:
-                    i.duration = max(0, i.duration - (time * hour_tick))
+                    i.duration = max(1, i.duration - (time * hour_tick))
                 i.trigger(['time', time])
 
     def on_add(self):

@@ -151,7 +151,7 @@ class World:
                         others += tile.others
                 if cell_num in added:
                     renew = time_passed >= 4
-                    renew = False
+                    # renew = False
                     if renew:
                         if not map_is_save:
                             explore += 1
@@ -171,7 +171,7 @@ class World:
                             prop.add()
                             prop.on_sleep(time_passed)
         if Global.player.character:
-            Global.player.character.progress_level(min(explore, 4), mode='explore')
+            Global.player.character.progress_level(1, mode='explore')
         return obj, others
 
     def regrow(self, cell_coord, start_coord):

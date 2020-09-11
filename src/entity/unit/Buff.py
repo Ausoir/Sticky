@@ -128,7 +128,6 @@ class Revive(Buff):
         Particle.make('barrier3', self.host.pos, glow=4)
 
     def on_stack(self, duration, var):
-        Global.world.location.sound.register(self.host.pos, 0, file='down')
         Particle.make('spin', self.host.pos, glow=4)
 
     def on_finish(self):
@@ -136,14 +135,21 @@ class Revive(Buff):
 
     def trigger(self, arg):
         if arg[0] == 'die':
-            if self.host != Global.player.character:
-                self.duration = 0
-                data = Data.parse(self.host.__str__())
-                from src.entity.Stock import Stock
-                unit = Stock.get(data[1], data=data)
-                unit.pos = self.host.pos
-                unit.add()
-                unit.decay(-1)
+            self.duration = 0
+            data = Data.parse(self.host.__str__())
+            from src.entity.Stock import Stock
+            unit = Stock.get(data[1], data=data)
+            unit.pos = self.host.pos
+            unit.add()
+            unit.tags.set('p', unit.tags.get('P', 1))
+            if self.host == Global.player.character:
+                Global.player.set_player(unit)
+                self.host.tags.set('hunger', 0)
+                self.host.tags.remove('invest')
+                self.host.tags.remove('investt')
+                Global.player.tags.increment('revives', 1)
+                args = [int(x) for x in self.var.split('&')]
+                Global.world.travel(args[0], args[1])
 
 
 class Health(Buff):
@@ -272,7 +278,8 @@ class Speed(StatBuff):
                     elif rand == 1:
                         self.host.tags.increment('w', 1)
                     elif rand == 2:
-                        self.host.tags.increment('P', -2, default=10)
+                        self.host.tags.increment('P', -2, default=8)
+                        self.host.decay(2)
                     elif rand == 3:
                         self.host.tags.increment('cha', -1)
                     elif rand == 4:
@@ -282,6 +289,10 @@ class Speed(StatBuff):
                 elif self.var < 0:
                     self.host.tags.increment('spd', -1)
         super().on_start()
+
+    def on_update(self):
+        if self.effect(12):
+            self.host.form.colorize([180, 180, 90])
 
 
 class Damage(StatBuff):
@@ -303,7 +314,8 @@ class Damage(StatBuff):
                     elif rand == 2:
                         self.host.tags.increment('w', 1)
                     else:
-                        self.host.tags.increment('P', -2, default=10)
+                        self.host.tags.increment('P', -3, default=8)
+                        self.host.decay(3)
                 elif self.var < 0:
                     self.host.tags.increment('dmg', -1)
         super().on_start()
@@ -632,6 +644,7 @@ class Poison(Buff):
 
     def on_update(self):
         if self.effect(12):
+            self.host.form.colorize([40, 220, 40])
             Particle.make('poison', self.host.pos, offset=8)
 
     def on_finish(self):

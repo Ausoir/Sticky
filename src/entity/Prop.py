@@ -13,6 +13,7 @@ class Prop(Object):
         self.hittable = True
         self.states = Buffs(self)
         self.tags = Attribute(self)
+        self.last_hitter = None
 
     def __str__(self):
         self.tags.set('dir', self.direction)
@@ -67,19 +68,13 @@ class Prop(Object):
         self.form.face(self.direction)
 
     def die(self):
-        self.states.trigger(['die'])
         from src.entity.Particle import Particle
         Particle.make('disintegrate', self.pos, offset=0)
         loot = self.get_loot()
         if loot:
             from src.entity.Stock import Stock
             Stock.make(loot, self.pos)
-        on_death = self.tags.remove('!')
-        if on_death:
-            from src.game.Script import Script
-            Script.var['host'] = self
-            Script.execute_code(on_death)
-        self.remove()
+        self.on_death()
 
     def get_loot(self):
         loot = self.tags.get('loot')
@@ -177,5 +172,14 @@ class Prop(Object):
         if self.tags.get('fly', 0) == 0 and Global.player.player_mode == 1:
             from src.entity.Particle import Particle
             Particle.make('drown', self.pos)
-            self.remove()
+            self.on_death()
             return True
+
+    def on_death(self):
+        on_death = self.tags.remove('!')
+        if on_death:
+            from src.game.Script import Script
+            Script.var['1'] = self
+            Script.execute_code(on_death)
+        self.states.trigger(['die'])
+        self.remove()

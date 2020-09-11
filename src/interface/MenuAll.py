@@ -198,6 +198,14 @@ class MenuAll(MenuPlayer):
                 Global.player.companions.append(host.__str__())
                 Global.main.monologue.set(Dialog.get(':companion', [host.get_display_name()]))
                 host.remove()
+            elif arg == 6:
+                host.tags.remove('ai')
+                host.tags.set('!', '#uncontrol')
+                old_host = Global.player.character
+                old_host.tags.set('#', 'reclaim')
+                Global.player.set_player(host)
+                Global.player.companions.append(old_host.__str__())
+                old_host.remove()
             self.display(-1)
         host = self.var
         host.face_toward(Global.player.character.pos)
@@ -214,6 +222,10 @@ class MenuAll(MenuPlayer):
             self.window.add(Menu.make(Dialog.get('Join'), order, name=5, width=320))
         else:
             self.window.add(Menu.make(Dialog.get('Cannot Join'), None, width=320, color=None))
+        if Global.player.is_sociable(host.get_level(), notice=False):
+            self.window.add(Menu.make(Dialog.get('Control'), order, name=6, width=320))
+        else:
+            self.window.add(Menu.make(Dialog.get('Cannot Control'), None, width=320, color=None))
         self.sub_window.display(1)
 
     def menu_learn(self):

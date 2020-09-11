@@ -57,7 +57,7 @@ class Pilot:
         self.task = task
         if self.priority == 1:
             interaction = self.host.tags.get('#')
-            if interaction and interaction != 'busy':
+            if interaction and interaction != 'busy' and interaction != '>menu>order':
                 self.host.tags.set('!#', interaction)
                 self.host.tags.set('#', 'busy')
         else:
@@ -92,7 +92,7 @@ class Pilot:
     def perceive(self, enemies):
         perceived = []
         night_vision = self.host.get_skill('nocturnal')
-        psychic = self.host.get_skill('psychic')
+        psychic = self.host.get_skill('psychic') or self.host.states.get('Vision')
         vision = self.host.tags.get('sth', 0)
         front = self.host.pos.get_cardinal(self.host.direction)
         for thing in enemies:

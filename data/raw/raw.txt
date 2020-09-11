@@ -1,5 +1,4 @@
-spawn,[[187,179],[179,180],[199,184],[198,215],[142,262],[152,182]]
-evacuate,[[210,177],[210,250],[144,261],[133,204],[160,392],[320,310],[233,382],[56,162],[160,455]]
+spawn,[[187,179],[179,180],[199,184],[198,215],[152,182]]
 face,[[_half_0_0,_half_0_1,_half_0_2],[_half_1_0,_half_1_1,_half_1_2],[_half_2_0,_half_2_1,_half_2_2],[_half_3_0,_half_3_1,_half_3_2],[_half_4_0,_half_4_1,_half_4_2],[_half_5_0,_half_5_1,_half_5_2],[_half_6_0,_half_6_1,_half_6_2],[_half_7_0,_half_7_1,_half_7_2],[_half_8_0,_half_8_1,_half_8_2],[_half_9_0,_half_9_1,_half_9_2],[_half_10_0,_half_10_1,_half_10_2],[_half_11_0,_half_11_1,_half_11_2],[_half_12_0,_half_12_1,_half_12_2]]
 plant,[_half_0_5,_half_1_5,_half_2_5,_half_3_5,_half_4_5,_half_5_5,_half_6_5,_half_7_5,_half_8_5,_half_9_5,_half_10_5,_half_11_5,_half_12_5,_half_13_5,_half_14_5,_half_15_5]
 plant_cue,[pale,soft,brittle,striped,strange,sweet,crystal,grim,shiny,rough,glowing,sticky,oily,red,green,blue,purple,orange,yellow,indigo,violet,gray,white,colorful,spiny]

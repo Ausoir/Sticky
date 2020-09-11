@@ -92,7 +92,7 @@ class Stock:
             else:
                 name = name or 'UNDEFINED'
                 print("Cannot load Stock Object " + name)
-                return None
+                return Stock.get_class_by_name('Humanoid')
         else:
             r = Stock.get_class_by_name(data[2])()
         r.load(data)

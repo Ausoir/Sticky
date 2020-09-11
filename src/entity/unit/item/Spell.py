@@ -99,7 +99,7 @@ class Dispel(Spell):
                 thing.hit(0)
                 thing.pos.light_source = 0
                 thing.pos.light = 0
-                thing.states.clear(lambda x: 'magic' in x.get_tags())
+                thing.states.dispel()
             if dispelled:
                 Particle.make('sonic', i)
 
@@ -202,9 +202,10 @@ class Disintegrate(Spell):
         Global.world.location.sound.register(target, 18, file='critical')
         Particle.make('disintegrate', target)
         if target.get_yield() == -10:
-            self.host.action.crush()
+            self.host.action.destroy()
         else:
             for i in target.things.copy():
+                i.last_hitter = self.host
                 i.decay(8)
                 if i.name == 'Corpse':
                     Stock.make('Raw Meat', i.pos)
@@ -354,14 +355,14 @@ class Transmogrify(Spell):
 
 class Snare(Spell):
     def get_cooldown(self):
-        return 50
+        return 70
 
     def perform(self):
         target = self.auto_target(2)
         if target:
             Global.world.location.sound.register(target.pos, 1, file='drain')
             Particle.make('zap', target.pos)
-            target.states.add('Speed', 60, -20)
+            target.states.add('Speed', 50, -10)
 
 
 class Fireball(Spell):
@@ -389,6 +390,9 @@ class Fireball(Spell):
         destination = self.host.pos.get_cardinal(self.host.direction, distance=self.get_range())
         target = Global.world.location.collide_line(self.host.pos.x, self.host.pos.y,
                                                     destination.x, destination.y, self.fn, 10)
+        for i in destination.get_area(2, 2):
+            for thing in i.things:
+                thing.last_hitter = self.host
         Global.world.location.sound.register(target, 9, file='fire')
         r.relocate(to=target)
         r.states.add('Script', 2, '>buff>*host>Burn>8>0')
@@ -412,7 +416,7 @@ class Sting(Spell):
             if tile:
                 if not tile.is_seen():
                     return prev
-                if tile.get_solidity() >= Tile.COLLIDE_FOG:
+                elif tile.get_solidity() in Tile.CHECK_FIRM:
                     return tile
         target = self.auto_target(2)
         if target:
@@ -421,12 +425,14 @@ class Sting(Spell):
             r = Stock.make('Arrow', self.host.pos)
             r.face(target.get_face(r.pos))
             r.relocate(to=target)
-            Global.world.location.field.register(2, target, delay=1, hitter=self.host)
+            Global.world.location.field.register(3, target, delay=1, hitter=self.host)
+            for i in target.things:
+                i.last_hitter = self.host
 
 
 class Blink(Spell):
     def get_cooldown(self):
-        return 4
+        return 7
 
     def perform(self):
         power = 9
@@ -456,20 +462,24 @@ class Corona(Spell):
 
 class Push(Spell):
     def get_delay(self):
-        return 0
+        return 4
 
     def get_cooldown(self):
         return 16
 
     def get_motion(self):
-        return 'fly'
+        return 'cast'
+
+    def get_range(self):
+        return 8
 
     def perform(self):
+        Global.world.location.sound.register(self.host.pos, 4, file='spell')
         target = self.cardinal_target(block=Tile.COLLIDE_ITEM)
         Particle.make('wind', target)
         tile = target.get_cardinal(self.host.direction)
         for i in target.things.copy():
-            i.relocate(to=tile)
+            i.move_line(to=tile, flag=Tile.COLLIDE_OBJECT)
 
 
 class Jump(Spell):
@@ -477,12 +487,13 @@ class Jump(Spell):
         return 20
 
     def get_motion(self):
-        return 'fly'
+        return 'cast'
 
     def get_delay(self):
-        return 0
+        return 4
 
     def perform(self):
+        Global.world.location.sound.register(self.host.pos, 4, file='heal')
         front = self.host.pos.get_cardinal(self.host.direction, distance=Global.r.rand_int(3, 9))
         self.host.move_line(front, flag=self.host.collision_type + 2)
 
@@ -494,7 +505,7 @@ class Evacuate(Spell):
     def perform(self):
         if self.host == Global.player.character:
             from src.tools.Data import Data
-            pos = Global.r.rand_list(Data.get_line('raw.txt', 'evacuate')[1])
+            pos = Global.r.rand_list(Data.get_line('raw.txt', 'spawn')[1])
             Global.world.travel(pos[0], pos[1])
         else:
             Global.world.location.sound.register(self.host.pos, 4, file='void')
@@ -514,12 +525,13 @@ class Torment(Spell):
         for i in targets:
             if (i.pos - self.host.pos).difference() <= 9:
                 Global.world.location.sound.register(i.pos, 9, file='fire')
+                i.last_hitter = self.host
                 i.states.add('Burn', 12)
 
 
 class Avatar(Spell):
     def get_cooldown(self):
-        return 100
+        return 240
 
     def perform(self):
         golem = Stock.make('Golem', self.host.pos)
@@ -615,17 +627,23 @@ class Charge(Spell):
         return 0
 
     def get_cooldown(self):
-        return 20
+        return 60
 
     def get_motion(self):
         return 'bash'
 
+    def callback(self, result, target):
+        target.last_hitter = self.host
+
     def perform(self):
-        front = self.host.pos.get_cardinal(self.host.direction, distance=3)
-        self.host.move_line(front, flag=self.host.collision_type)
-        front = self.host.pos.get_cardinal(self.host.direction)
-        Global.world.location.field.register(1, front, delay=0, hitter=self.host)
-        self.host.action.make('bash', 8)
+        count = 0
+        moved = True
+        while moved and count < 4:
+            count += 1
+            front = self.host.pos.get_cardinal(self.host.direction)
+            Global.world.location.field.register(1, front, delay=0, hitter=self.host, callback=self.callback)
+            moved = self.host.move_line(front, flag=self.host.collision_type + 1)
+        self.host.action.make('bash', 12)
 
 
 class Sanctuary(Spell):

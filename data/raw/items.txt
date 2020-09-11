@@ -11,7 +11,7 @@ Bottle,Item,_g_9_5,[p:1,alt:_g_10_5,container:1],[]
 Manual,Manual,_g_13_5,[$:12,p:3],[],0
 Pouch,Item,_g_12_5,[p:1,#:pouch],[]
 Package,Item,_g_14_5,[p:4,#:furniture],[]
-Bucket,Item,_g_18_5,[p:3,build:.,#:build],[]
+Bucket,Item,_g_18_5,[p:3,build:.,#:build,!:build],[]
 Floor,Item,_g_19_5,[p:1,build:w,#:build],[]
 Stool,Item,_g_22_5,[$:0,P:1,p:1,dmg:1],[]
 Seat,Item,_g_23_5,[p:2],[]

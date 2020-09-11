@@ -22,7 +22,6 @@ class Unit(Container):
         self.sight = Tile.CHECK_SIGHT
         from src.tools.Data import Data
         self.shadow = Data.get_form('_g_7_0')
-        self.last_hitter = None
 
     def __str__(self):
         att = '[' + ','.join(self.skills) + ']'
@@ -177,13 +176,13 @@ class Unit(Container):
         has_hitter = hitter is not None
         if has_hitter:
             self.last_hitter = hitter
-        if self.action.current_action == 'fall' or has_hitter and not self.is_facing(hitter.pos):
+        if self.action.current_action == 'fall' or (has_hitter and not self.is_facing(hitter.pos)):
             backstab = True
         else:
             backstab = False
         if not backstab:
             damage -= self.tags.get('def', 0)
-        elif hitter.get_skill('assassinate'):
+        elif has_hitter and hitter.get_skill('assassinate'):
             self.tags.set('deaf', 1)
             Particle.make('power', self.pos)
             self.pos.location.sound.register(self.pos, 0, file='critical')
@@ -248,12 +247,6 @@ class Unit(Container):
             if result > 0:
                 if self.get_skill('frenzy'):
                     self.states.add('Damage', 40, 1)
-            elif self.get_skill('crush'):
-                concentration = self.states.get('Concentration')
-                if concentration:
-                    concentration.trigger(['spend'])
-                    target.action.force('fall')
-                    target.action.delay = 10
         if result > 0:
             flurry = self.get_skill('flurry')
             if flurry:
@@ -265,7 +258,7 @@ class Unit(Container):
                     front = self.pos.location.collide_land(self.pos, front, flag=self.collision_type, prev=False)
                     if front:
                         for i in front.things:
-                            if isinstance(i, Unit) and i.tags.get('team') != self.tags.get('team'):
+                            if isinstance(i, Unit) and i.tags.get('team') != self.tags.get('team') and i.hittable:
                                 valid_sides.append(sides)
                                 break
                 if valid_sides:
@@ -279,6 +272,15 @@ class Unit(Container):
                             self.form.set_state('flurry')
                             self.form.timer.set(4)
                             concentration.duration = self.action.delay
+        else:
+            if self.get_skill('crush'):
+                concentration = self.states.get('Concentration')
+                if concentration:
+                    concentration.trigger(['spend'])
+                    from src.entity.Particle import Particle
+                    Particle.make('power', target.pos)
+                    target.pos.location.sound.register(target.pos, 0, file='critical')
+                    target.decay(self.get_damage())
 
     def decay(self, damage):
         r = super().decay(damage)
@@ -404,14 +406,19 @@ class Unit(Container):
 
     def on_sleep(self, time):
         super().on_sleep(time)
-        if not self.is_hungry():
+        hunger = self.tags.get('hunger')
+        if not hunger or hunger < 10000:
             if time >= 4:
                 mhp = self.tags.get('P')
                 if mhp:
                     self.tags.set('p', mhp)
-            elif time > 0 and self.get_skill('perseverance'):
-                self.decay(-time)
-        hunger = self.tags.get('hunger')
+            elif time != 0:
+                perseverance = self.get_skill('perseverance')
+                if perseverance > 0:
+                    if hunger:
+                        if self.tags.get('p', 1) < self.tags.get('P', 1):
+                            hunger = self.tags.increment('hunger', 1000)
+                    self.decay(-abs(time * perseverance))
         if hunger:
             new = min(100000, hunger + (500 * abs(time)))
             self.tags.set('hunger', new)

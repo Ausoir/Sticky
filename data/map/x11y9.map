@@ -1,4 +1,4 @@
 -24
-[[3,9],Barrel,Prop,_g_14_4,[p:1,def:1,ob:4,!:barrel,dir:0],[]],[[4,9],Barrel,Prop,_g_14_4,[p:1,def:1,ob:4,!:barrel,dir:0],[]],[[5,9],Barrel,Prop,_g_14_4,[p:1,def:1,ob:4,!:barrel,dir:0],[]],[[5,11],Dojo,Scripter,_g_6_0,[ob:0,trigger:time,time:6,spawn:Master,dir:0],[[Invisible,-1,-1],[Immune,-1,0]],[[],[[v,1,tag,*host,spawn],[spawn,*1],[spawn,Pedestal],[remove,*host]],[]]]
+[[3,9],Barrel,Prop,_g_14_4,[p:1,def:1,ob:4,!:barrel,dir:0],[]],[[4,9],Barrel,Prop,_g_14_4,[p:1,def:1,ob:4,!:barrel,dir:0],[]],[[5,9],Barrel,Prop,_g_14_4,[p:1,def:1,ob:4,!:barrel,dir:0],[]],[[5,11],Dojo,Scripter,_g_6_0,[ob:0,trigger:time,time:6,spawn:Master,dir:0],[[Invisible,-1,-1],[Immune,-1,0]],[[],[[v,1,tag,*host,spawn],[spawn,*host,*1],[spawn,*host,Pedestal],[remove,*host]],[]]]
 ~~~~~~~~RRRRR%~~~~~~~~~~~~R%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~RRRR~~~~~%~~RRR.....R~~%RR..RRR....~~%...........~~%R..kkkkk.R.~~%R..kkkkk.R.~~%...kkkkk..R.~
 0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000

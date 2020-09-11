@@ -180,14 +180,15 @@ class Actions:
 
     def side_step(self, tile):
         for thing in tile.things:
-            if isinstance(thing, Unit) and thing.action.delay == 0:
+            if isinstance(thing, Unit) and thing.action.delay == 0 and\
+                    thing.tags.get('team', 0) != self.host.tags.get('team', 0):
                 concentration = self.host.states.get('Concentration')
                 if concentration:
                     concentration.trigger(['spend'])
                     old = thing.pos
                     thing.relocate(to=self.host.pos)
                     thing.face(thing.pos.get_face(self.host.pos))
-                    thing.states.add('Knockout', 20)
+                    thing.states.add('Knockout', 10)
                     self.move(old)
                     return True
 
@@ -334,25 +335,27 @@ class Actions:
 
     def ability(self, ability):
         if ability:
-            exhaustion = self.host.states.get('Exhaustion')
-            from src.game.Turn import Turn
             from src.entity.unit.item.Spell import Spell
             spell = Spell.get(ability)
-            cooldown = spell.get_cooldown() * Turn.rounds
-            maximum = Turn.rounds * 100
-            cdr = self.host.tags.get('cdr', 0) + 1
-            if cdr > 1:
-                cooldown = int(cooldown / cdr)
-            elif cdr <= 0:
-                cooldown = cooldown * (-cdr + 2)
-            if not exhaustion or exhaustion.duration + cooldown < maximum:
-                if cooldown > 0:
-                    self.host.states.add('Exhaustion', cooldown)
-                spell.cast(self.host)
-            elif self.host == Global.player.character:
-                from src.tools.Dialog import Dialog
-                wait = int((exhaustion.duration + cooldown - maximum) / Turn.rounds)
-                Global.main.monologue.set(Dialog.get(':wait', [wait]), time=20)
+            if spell:
+                exhaustion = self.host.states.get('Exhaustion')
+                from src.game.Turn import Turn
+                cooldown = spell.get_cooldown() * Turn.rounds
+                maximum = Turn.rounds * 100
+                cdr = self.host.tags.get('cdr', 0) + 1
+                if cdr > 1:
+                    cooldown = int(cooldown / cdr)
+                elif cdr <= 0:
+                    cooldown = cooldown * (-cdr + 2)
+                if not exhaustion or exhaustion.duration + cooldown < maximum:
+                    self.host.states.trigger(['act', 'ability'])
+                    if cooldown > 0:
+                        self.host.states.add('Exhaustion', cooldown)
+                    spell.cast(self.host)
+                elif self.host == Global.player.character:
+                    from src.tools.Dialog import Dialog
+                    wait = int((exhaustion.duration + cooldown - maximum) / Turn.rounds)
+                    Global.main.monologue.set(Dialog.get(':wait', [wait]), time=20)
 
     def ability1(self):
         self.ability(self.host.tags.get('ab1'))
@@ -367,5 +370,5 @@ class Actions:
         if self.humanoid and self.host.headgear:
             from src.entity.unit.item.Headgear import Talisman
             if isinstance(self.host.headgear, Talisman):
-                self.host.headgear.trigger()
-                self.make('eat', turn=4)
+                self.make('eat', turn=1)
+                self.on_finish = self.host.headgear.trigger

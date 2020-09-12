@@ -5,12 +5,12 @@ tutorial2,1,Most enemies are hostile on sight. If you wait for them to move towa
 tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
 tutorial4,1,Most friendlies can be interacted with WASD keys. Sell your torch to the merchant. You can check how much money you have in your equipment menu.
 tutorial5,1,Use arrow keys to view tile and press Enter to get target description. You can also right click target to get description.
-tutorial6,1,Some weapons provide skills. Press Q to wield the stick. You will get access to a new skill called lunge. Press TAB to access your menu then press 4 to enter skills menu to read about the skill.
-tutorial7,1,If you attempt to pick up the stool on your left\,\ the item will go into your inventory. To wield the stool\,\ enter the inventory menu or press E to swap it out. If you want to drop your current weapon\,\ press Q on an empty tile.
-tutorial8,1,If you examine the window you will notice it has an armor value of 1. The stool you picked up provides +1 damage. Smash the window with the stool.
+tutorial6,1,Some weapons provide skills. Press Q to wield the stick. You will get access to a new skill called lunge. Press TAB then enter skills menu to read about the skill.
+tutorial7,1,If you attempt to pick up the stool on your left\,\ the item will go into your inventory. To wield the stool\,\ enter the inventory menu or press E to swap it out.
+tutorial8,1,If you examine the window you will notice it has an armor value of 1. Since you can't break it by kicking\,\ use the stool.
 tutorial9,1,You can check your current health from the menu. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag or use WASD keys to interact with the bed.
 tutorial10,1,You cannot perform time consuming actions like resting or leveling up when hungry. Hunger can be checked from TAB menu. Take some food from the crate. Wield the food then press SPACE to eat it.
-tutorial11,1,You can also use the mouse to play this game. Click on your character to access the menu and click adjacent to your character to attack.
+tutorial11,1,You can also use the mouse to play this game. Click on your character to access the menu and click adjacent to your character to attack. Also\,\ you can use the keyboard to use the menu. For example\,\ press TAB then 1 to enter character menu\,\ then press Q to go back to previous menu.
 tutorial12,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!
 pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
 resident,3,What?,[Move,#swap],[Introduce,!intro_resident],[Join,#ally]

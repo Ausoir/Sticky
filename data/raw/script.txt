@@ -28,7 +28,7 @@ credit,[],[[v,2,tag,*1,tag],[v,3,tag,*1,amount],[addtag,*host,*2,*3],[effect,*ho
 shock,[],[[act,fall,8],[effect,*host,zap]],[]
 airhorn,[],[[sound,*player,15,obtain]],[]
 gate,[],[[v,2,tag,*1,tox],[v,3,tag,*1,toy],[teleport,*2,*3]],[]
-safegate,[],[[insure,-1],[v,2,tag,*1,tox],[v,3,tag,*1,toy],[teleport,*2,*3]],[]
+safegate,[],[[clearbuffs,*player],[insure,-1],[v,2,tag,*1,tox],[v,3,tag,*1,toy],[teleport,*2,*3]],[]
 pedestal,[],[[remove,*1],[v,1,?raw,raw,ability],[settag,*host,ab3,*1],[message,You gained a special ability. Press 3 to use it.]],[]
 crystal,[],[[remove,*1],[v,1,?raw,raw,ability],[settag,*host,ab2,*1],[message,You gained a special ability. Press 2 to use it.]],[]
 build,[],[[v,2,tag,*1,build],[build,*1,*2],[remove,*1]],[]

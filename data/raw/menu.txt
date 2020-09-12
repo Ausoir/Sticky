@@ -10,7 +10,7 @@ tutorial7,1,If you attempt to pick up the stool on your left\,\ the item will go
 tutorial8,1,If you examine the window you will notice it has an armor value of 1. Since you can't break it by kicking\,\ use the stool.
 tutorial9,1,You can check your current health from the menu. You can heal by resting at a bed or a sleeping bag. Press Q to interact with the sleeping bag or use WASD keys to interact with the bed.
 tutorial10,1,You cannot perform time consuming actions like resting or leveling up when hungry. Hunger can be checked from TAB menu. Take some food from the crate. Wield the food then press SPACE to eat it.
-tutorial11,1,You can also use the mouse to play this game. Click on your character to access the menu and click adjacent to your character to attack. Also\,\ you can use the keyboard to use the menu. For example\,\ press TAB then 1 to enter character menu\,\ then press Q to go back to previous menu.
+tutorial11,1,You can use the keyboard to use the menu. For example\,\ press TAB then 1 to enter character menu\,\ then press Q to go back to previous menu.
 tutorial12,1,The world out there is dangerous. You will encounter tough enemies using strange skills\,\ be ambushed by multiple enemies\,\ fight in difficult landscapes\,\ and get lost in the dark. Good luck!
 pedestal,2,This orb contains powerful ancient knowledge.,Learn Power,pedestal,0
 resident,3,What?,[Move,#swap],[Introduce,!intro_resident],[Join,#ally]
@@ -71,7 +71,7 @@ w.corrupt,1,Places that the evil lord have corrupted have become home to many st
 tourguide,3,Hello. Do you need help?,[Directions,!tourguide2],[Tips,!tourguide3]
 tourguide2,1,You are looking for the big bad evil guy? Your destination should be the Mountain Pass. Exit through this east gate out of uptown. Keep going east\,\ through the workshop and the cliff road. The mountain pass is near the bamboo forest.
 tourguide3,2,Many people gather around for the grand reward\,\ but most don't even make it to the Mountain Pass. If you want a chance\,\ get a life insurance at the brick building near the west gate.,Next Tip,!tourguide4
-tourguide4,2,The stool is great, but try to find a quarterstaff. It is a great weapon for beginners.,Next Tip,!tourguide5
+tourguide4,2,The stool is great\,\ but try to find a quarterstaff. It is a great weapon for beginners.,Next Tip,!tourguide5
 tourguide5,1,Minor stats like intelligence and charisma are more situational. Try to allocate points to them only if you think they suit your current build.
 poet,2,What do words mean in this deafening orderly presence?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!poet2
 poet2,3,I had looked to zealots like you\,\ but now I only see deaf tools\,\ hauled to the fire\,\ led by gold.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]

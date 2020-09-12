@@ -1,5 +1,3 @@
-from pyglet.media import Player
-
 from src.game import Global
 from src.game.Camera import Camera
 from src.tools.Data import Data
@@ -9,7 +7,6 @@ class Sound:
     def __init__(self, location):
         self.location = location
         self.tab = []
-        self.priority = 3
         self.frame = 0
         self.rest = 0
         self.phase = 0
@@ -43,16 +40,15 @@ class Sound:
                     self.phase = 0
                     self.repeat -= 1
 
-    def register(self, pos, magnitude, file=None, priority=3):
+    def register(self, pos, magnitude, file=None):
         if magnitude > 0:
             units = self.location.population.get_units()
             for unit in units:
                 if (unit.pos - pos).difference() <= min(magnitude, 13):
                     unit.pilot.hear(pos)
-        if file:
-            if file == 'step':
-                self.play_step.play()
-            elif Camera.target and (pos - Camera.target.pos).difference() <= Global.SIGHT and pos.is_seen():
-                # print(str((pos - Camera.target.pos).difference()) + '/' + str(magnitude) + ' - ' + file)
-                Data.get_track(file).play()
-                self.priority = priority
+        if file and Camera.target:
+            if pos.is_seen() or (pos - Camera.target.pos).difference() <= min(magnitude + 2, 13):
+                if file == 'step':
+                    self.play_step.play()
+                else:
+                    Data.get_track(file).play()

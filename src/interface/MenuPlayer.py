@@ -104,7 +104,7 @@ class MenuPlayer(Menu):
                 Global.main.monologue.set(Dialog.get(':stat_applied', [level + 1]))
                 from src.entity.Particle import Particle
                 Particle.make('barrier3', host.pos)
-                Global.world.location.sound.register(host.pos, 0, file='level', priority=1)
+                Global.world.location.sound.register(host.pos, 0, file='level')
         self.update = update
         host = Global.player.character
         rmb = self.get_message(Dialog.get('dsc_level'))

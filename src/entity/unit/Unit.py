@@ -162,7 +162,7 @@ class Unit(Container):
         if current_experience < 99 and new_experience == 99:
             from src.entity.Particle import Particle
             Particle.make('barrier3', self.pos)
-            Global.world.location.sound.register(self.pos, 0, file='level', priority=1)
+            Global.world.location.sound.register(self.pos, 0, file='level')
             if self != Global.player.character:
                 self.tags.increment('P', 1)
                 self.tags.set('lvl', (current_level + 1) * 100)
@@ -240,7 +240,7 @@ class Unit(Container):
                         from src.entity.Particle import Particle
                         Particle.make('spin', target.pos)
                         target.skills.remove(i)
-                        self.pos.location.sound.register(target.pos, 2, file='drain', priority=2)
+                        self.pos.location.sound.register(target.pos, 2, file='drain')
                         break
             if result > 0:
                 if self.get_skill('frenzy'):

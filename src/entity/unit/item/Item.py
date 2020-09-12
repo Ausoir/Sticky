@@ -66,12 +66,12 @@ class Item(Prop):
         from src.entity.Particle import Particle
         if rng <= int(100 * (1 / max(1, self.tags.get('mod', 0) + 2))):
             Particle.make('shine', self.pos)
-            self.pos.location.sound.register(self.pos, 1, file='heal', priority=2)
+            self.pos.location.sound.register(self.pos, 1, file='heal')
             self.tags.increment('mod', 1)
             return True
         else:
             Particle.make('shock', self.pos)
-            self.pos.location.sound.register(self.pos, 1, file='down', priority=2)
+            self.pos.location.sound.register(self.pos, 1, file='down')
             if rng >= 75:
                 self.die()
         return False

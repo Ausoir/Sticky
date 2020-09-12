@@ -172,6 +172,7 @@ class Prop(Object):
         if self.tags.get('fly', 0) == 0 and Global.player.player_mode == 1:
             from src.entity.Particle import Particle
             Particle.make('drown', self.pos)
+            self.pos.location.sound.register(self.pos, 5, file='drown')
             self.on_death()
             return True
 

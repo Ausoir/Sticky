@@ -135,8 +135,8 @@ class Actions:
                     self.make('fly', turn=max(0, 2 - speed))
                 else:
                     self.make('walk', turn=max(0, 1 - speed))
-                    sound = max(0, -self.host.tags.get('sth', 0))
-                    self.host.pos.location.sound.register(self.host.pos, sound, file='step', priority=4)
+                    sound = max(0, 2-self.host.tags.get('sth', 0))
+                    self.host.pos.location.sound.register(self.host.pos, sound, file='step')
                 self.host.relocate(to=front)
                 self.host.states.trigger(['act', 'move'])
                 from src.map.Tile import Tile

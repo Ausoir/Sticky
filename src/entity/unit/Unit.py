@@ -201,11 +201,9 @@ class Unit(Container):
                     hitter_direction = self.pos.get_face(hitter.pos)
                     if self.direction == hitter_direction and self.get_skill('block') and self.action.delay <= 1:
                         self.pos.location.sound.register(self.pos, 3, file='hit_armor')
-                        damage -= 1
                         self.action.force('hit')
                         self.form.set_state('parry')
-                        if damage == 0:
-                            return -1
+                        return -1
                 if not backstab and self.get_skill('parry'):
                     concentration.trigger(['spend'])
                     self.face(self.pos.get_face(hitter.pos))
@@ -272,15 +270,14 @@ class Unit(Container):
                             self.form.set_state('flurry')
                             self.form.timer.set(4)
                             concentration.duration = self.action.delay
-        else:
-            if self.get_skill('crush'):
-                concentration = self.states.get('Concentration')
-                if concentration:
-                    concentration.trigger(['spend'])
-                    from src.entity.Particle import Particle
-                    Particle.make('power', target.pos)
-                    target.pos.location.sound.register(target.pos, 0, file='critical')
-                    target.decay(self.get_damage())
+        elif self.get_skill('crush'):
+            concentration = self.states.get('Concentration')
+            if concentration:
+                concentration.trigger(['spend'])
+                from src.entity.Particle import Particle
+                Particle.make('power', target.pos)
+                target.pos.location.sound.register(target.pos, 0, file='critical')
+                target.decay(self.get_damage())
 
     def decay(self, damage):
         r = super().decay(damage)

@@ -1,4 +1,4 @@
-Crack,Prop,_g_12_0,[ob:0],[]
+Crack,Prop,_g_12_0,[p:3,def:1,ob:0,build:.,!:build],[]
 Vine,Prop,_g_13_0,[p:4,ob:0],[]
 Splatter,Prop,_g_14_0,[p:1,ob:0],[]
 Weed,Prop,_g_0_6,[p:1,ob:0,spd:-1],[]

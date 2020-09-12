@@ -1,6 +1,10 @@
 Bucket,Use to fill terrain with dirt.
+Bucket Helm,<...And as long as you wear this\,\ mankind would mark you casual from oceans away.>
 Package,Use to unpack a furniture.
 Pouch,Contains enchanting potions.
+Adrenaline,This artifact grants haste effect on use.
+Drop Charm,Adventurer's panic button.
+Blink Charm,Works great when surrounded.
 Lifesaver,Adventurer's insurance.
 Spellbinder,A magical sword that hinders the victim's ability to cast.
 Flameberge,Light and strong. Wielders fear its fire affinity.
@@ -14,7 +18,7 @@ Pearl,Cheap ingredient for charms. Can be used to obtain money.
 Clam,Might have a pearl inside.
 Jet,Ingredient for charms. Can be used to obtain money.
 Amber,Rare ingredient for charms. Can be used to obtain money.
-Chalk,Use to draw conjuration polygrams. Result depends on shape and terrain. Shine it to begin. Requires <Conjuration> skill.
+Chalk,Use to draw portals. Result depends on shape and terrain\,\ and is sensitive to light. Shine it to begin. Requires <Conjuration> skill.
 Jelly,A blob of slime goo. Juicy and delicious\,\ but does not last long uncooked.
 Pudding,A sweet and salty slime pudding.
 Burger,Very fullfilling.
@@ -32,7 +36,7 @@ Manual,Read to learn skill.
 Ore,Break to obtain rare minerals.
 Plant,Used in alchemy.
 Fortitude,After taking damage\,\ gain damage immunity for a short while.
-Block,Stand still to concentrate. While concentrated and idle\,\ get +1 defense against frontal attacks.
+Block,Stand still to concentrate. While concentrated and idle\,\ block attacks from the front.
 Parry,Stand still to concentrate. Parry the next non backstab attack.
 Iron Will,Stand still to concentrate. Deflect next harmful debuff. Shielding cancels on taking damage.
 Constitution,Immune to knockdown.
@@ -74,7 +78,7 @@ Passwall,Pass through a solid wall.
 Charm,Increase friendliness of target.
 Transience,Assume a spiritual form from which you may possess another living being. Press attack key on top of a unit in ghost form.
 Wall,Create a spell wall to block out enemies.
-Reanimate,Turn corpses into undead.
+Reanimate,Turn corpses into undead. Make sure to have enough charisma.
 Phantom,Summon a phantom to possess a target item.
 Transmogrify,Mutate target into a random creature.
 Evacuate,Immediately teleport to a random location.
@@ -86,8 +90,9 @@ Jump,Jump 3 to 9 tiles.
 Blink,Randomly blink 9 tiles away.
 Corona,Light up objects near the caster.
 Torment,Conjure scorching flame to burn all enemies near the caster.
-Avatar,Summon a powerful golem to serve the caster for some time.
+Avatar,Summon a powerful golem to serve the caster for some time. Make sure to have enough charisma.
 Barrier,Defend the caster from physical harm once.
+Deflection,Defend the caster from a spell effect once. Shielding cancels on taking damage.
 Clone,Clone anything in front of the caster.
 Charge,Attack 4 tiles away.
 Breeze,Travel like the wind for a few seconds.
@@ -109,7 +114,7 @@ Invisible,Become invisible.
 Invincible,Immune to physical damage.
 Immune,Immune to status effects.
 Concentration,Ready for special actions.
-Amnesia,A more popular alternative to brainsuckers.
+Amnesia,Removes a learned skill. A more popular alternative to brainsuckers.
 Exhaustion,Special ability cannot be performed while exhausted.
 Lignification,Incoming damage reduced by 2 but become immobile and vulnerable to fire. Enchantable.
 Vision,Sharpens vision.
@@ -121,6 +126,7 @@ Bamboo Slime,Once a cute slime\,\ now a practitioner of martial arts.
 Looter,These scavengers don't care if they loot from the dead or alive.
 Deer,A deer. Or is it a moose?
 Leper,A victim of slime pox.
+Mad Leper,Slime pox victims eventually go insane like this.
 Venomous Spider,A venomous version of the common spider. Anyone bit will likely be dead in an hour.
 Snake,This snake is poisonous. Anyone bit will likely be dead in an hour.
 Killer Ivy,A man eating plant that ambush its prey from out of sight.

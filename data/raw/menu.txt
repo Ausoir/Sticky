@@ -44,29 +44,29 @@ d.marsh,1,From uptown\,\ exit through the south and walk southeast. To the south
 d.mines,1,From uptown\,\ exit through the west and walk northwest. You may have to walk quite a while. Past the cove you will find a fishing village where you may take a rest and use services.
 d.gates,1,From uptown\,\ exit through the east and keep walking east. Past the factory you will find a dangerous cliff path. Follow the path into the bamboo forest and keep moving east into the Mountain Pass. The eastern gates of the Mountain Pass is the gate known as the evil gates.
 skills,3,Here are listings of few martial techniques that should be approached with caution.,[Reach,!sk.reach],[Lunge,!sk.lunge],[Parry,!sk.parry],[Constitution,!sk.constitution],[Side Step,!sk.side step],[Hide,!sk.hide]
-sk.reach,1,Foes with reach can attack you from 2 tiles away. Try to lure them into a closed area\,\ because they cannot attack directly in front of them. After a successful knockdown\,\ move directly into them\,\ because they will retaliate faster than you can attack them again. Reach is usually provided by spear type weapons.
-sk.lunge,1,Foes using lunge will move forward when attacking\,\ so it is important to approach them from the diagonals. Do not attempt to attack in succession. When knocked down\,\ step away as soon as you get up. Lunge is usually provided by sword type weapons like Sticks.
-sk.parry,1,Foes using parry will ignore the first direct attack hit. Attacks from the sides bypass this effect\,\ so having allies would help a lot against parrying enemies. Likewise\,\ the block skill provide defense from non backstab attacks\,\ so have an ally hit the blocker from behind.
-sk.constitution,1,Foes with constitution\,\ such as lepers and the undead\,\ will not get knocked down. If you want to avoid taking damage\,\ try to one shot them.
-sk.side step,1,Foes using side step will knock you down on contact and swap places. This can be lethal when facing more than one foe or if the foe has the assassination skill\,\ which deals 2 extra damage from behind.
+sk.reach,1,Foes with reach can attack you from a tile away. Try to attack them from the sides. After a successful knockdown\,\ move directly into them\,\ because they will retaliate faster than you can attack them again. Reach is usually provided by spear type weapons.
+sk.lunge,1,Foes using lunge will move forward when attacking. Just like with reach\,\ approach them from the diagonals. Do not attempt to attack in succession. When knocked down\,\ step away as soon as you get up. Lunge is usually provided by sword type weapons.
+sk.parry,1,Foes using parry will ignore the first direct attack hit. Attacks from behind bypasses all armor\,\ so attack them from behind.
+sk.constitution,1,Foes with constitution\,\ such as the lepers and the undead\,\ will not get knocked down. If you want to avoid taking damage\,\ try to one shot them.
+sk.side step,1,Foes using side step will knock you down on contact and swap places. This can be lethal when facing more than one foe or if the foe has the assassination skill\,\ which deals critical damage against prone enemies.
 sk.hide,1,Foes with the hide skill will become invisible when standing still. For example\,\ the killer ivy in the woods are invisible until you get too close. This effect can be dispelled.
 outlaws,3,This tourist pamphlet identifies the various types of outlaws by region. Visit now!,[The Homeless,!o.hobo],[The Outlaws,!o.outlaws],[The Rogues,!o.rogue],[The Fanatics,!o.fanatic]
 o.hobo,1,In derelict houses and grassy fields you will commonly spot people wearing rags. These desperate homeless people will kill and eat you.
-o.outlaws,1,Most buildings are filled with outlaws. Notable outlaws are the thieves who steal your weapon\,\ lepers who don't feel pain\,\ and looters who poke at you with their spear.
+o.outlaws,1,Most buildings are filled with outlaws. Notable outlaws are the thieves who steal your weapon\,\ lepers who don't feel pain\,\ and looters who poke you at range with their spear.
 o.rogue,1,Some places like the warehouse and workshop are filled with powerful vagrants and marauders. Beware the hunters who ensnare the running victims\,\ the robbers who quickly surround their victim\,\ and other rogues with martial expertise.
 o.fanatic,1,Past the mountain pass lies the corruption\,\ with all those fanatics of evil. They possess strange abilities and should be approached with extreme caution.
 enchanting,3,This book describes the various potions that can enchant items.,[Basics,!e.basics],[Speed,!e.speed],[Damage,!e.damage],[Armor,!e.armor],[Health,!e.health],[Weight,!e.weight]
 e.basics,1,To enchant an item\,\ place a potion on top of an item and break it. Items have 50% chance to be enchanted at +0\,\ but chances halve with each upgrade.
-e.speed,1,The speed enchantment imbues items with the skill <Deft>\,\ but this does not stack. This enchantment can be imbued via the Speed potion.
-e.damage,1,The damage enchantment increases the damage of the item by 1. This enchantment can be imbued via the Might potion.
+e.speed,1,The speed enchantment can imbue items with the skill <Deft> or grant cooldown reduction\,\ at the cost of some random property of the item. This enchantment can be imbued via the Speed potion.
+e.damage,1,The damage enchantment increases the damage of the item by 1\,\ at the cost of some random property of the item. This enchantment can be imbued via the Might potion.
 e.armor,1,The armor enchantment increases the armor of the item by 1. This enchantment can be imbued via the Armoring potion.
-e.health,1,The health enchantment increases the maximum and current health of the item by 1. This enchantment can be imbued via the Lignification potion.
-e.weight,1,The weight enchantment decreases the weight of the item by 1. This enchantment can be imbued via the Levitation potion.
+e.health,1,The health enchantment increases the maximum and current health of the item by 2 to 3\,\ but decreases its fire resistance. This enchantment can be imbued via the Lignification potion.
+e.weight,1,The weight enchantment decreases the weight of the item by 1\,\ at the cost of item integrity. This enchantment can be imbued via the Levitation potion.
 wildlife,3,This book contains information about wildlife creatures by region.,[Mud and Marsh,!w.marsh],[Danger Gardens,!w.grass],[Cave Ecology,!w.crust],[The Undead,!w.undead],[Corruption,!w.corrupt]
-w.marsh,1,In muddy areas breed the Mud Slime\,\ which are a breed of slimes with a taste for human blood. In even wetter areas reside the Octopus\,\ dangerous sea animals possessing tough skin.
-w.grass,1,Normally the grassy area is home to green slimes\,\ which are not hostile by default but will occasionally devour anything nearby. At night you might find snakes on the grasslands\,\ which possess lethal venom dealing extra damage after an hour.
-w.crust,1,The caverns are home to rats\,\ bats\,\ spiders\,\ and various rare minerals. Note that bats possess night vision and spiders may weave webs to block passages. Bring a torch\,\ and avoid open area to avoid getting surrounded.
-w.undead,1,Every civilian knows that the graveyards at night are patrolled by the undead. The undead do not feel pain\,\ and skeletal undead possess natural armor.
+w.marsh,1,In muddy areas the Mud Slimes breed\,\ which are a type of slimes with a taste for human blood. In even wetter areas reside the Octopus\,\ dangerous sea animals possessing tough skin.
+w.grass,1,Normally the grassy area is home to green slimes\,\ which are not hostile by default but will occasionally devour anything nearby. At night you might find snakes on the grasslands\,\ which possess lethal venom dealing damage after time if left uncured.
+w.crust,1,The caverns are home to rats\,\ bats\,\ spiders\,\ and various rare minerals. Note that bats possess night vision and spiders may weave webs to block passages. Bring a torch\,\ and minimize which direction you could be ambushed from.
+w.undead,1,Every resident knows that the graveyards at night are patrolled by the undead. Be aware of the skeletal undead that possess natural armor and the zombies that rise again after being killed.
 w.corrupt,1,Places that the evil lord have corrupted have become home to many strange creatures. For example\,\ the corruption moles can summon their running victims to bring them to attack range. Not much else is known about the ecology of the corruption.
 tourguide,3,Hello. Do you need help?,[Directions,!tourguide2],[Tips,!tourguide3]
 tourguide2,1,You are looking for the big bad evil guy? Your destination should be the Mountain Pass. Exit through this east gate out of uptown. Keep going east\,\ through the workshop and the cliff road. The mountain pass is near the bamboo forest.
@@ -90,13 +90,13 @@ mary,2,There are many interesting plants around here. If you know some alchemy\,
 mary2,3,I am Mary. How may I be of service?,[Move,#swap],[Buy,>menu>shop],[Join,#ally]
 brock,2,I am Brock. I break rocks. If you want to know what rare minerals are used for\,\ ask a wand carver\,\ because I don't care.,Ok,!brock2
 brock2,3,Dig dig dig.,[Move,#swap],[Buy,>menu>shop],[Join,#ally]
-masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young'un wielding a flaming blade on a field casting scorch on a slime. I took him in\,\ taught him the ways of fighting\,\ and soon he went off to make his own world past the mountains.,Ok,!masterlee2
+masterlee,2,Hello stranger. Stay a while and listen. Once upon a time I found a young'un wielding a flaming blade on a field casting scorch on a slime. I took her in\,\ taught her the ways of fighting\,\ and soon she went off to make her own world past the mountains.,Ok,!masterlee2
 masterlee2,3,Young grass hopper?,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Repair,#repair],[Tips,!masterlee3]
 masterlee3,1,Combat is harder to master than you think. For example\,\ hitting enemies against a wall will have a different outcome than hitting them against open terrain.
 jane,2,Welcome\,\ fellow civilian. I find good living here\,\ living day to day looting off one another and eating jelly off slimes.,Ok,!jane2
 jane2,3,You are going for the evil lord? You know\,\ I also have nothing better to do.,[Move,#swap],[Join,#ally]
 john,2,Kill the evil lord? Are you crazy? You won't even make it to the castle. You'll be butchered and turned into a tasty slime the moment you pass the gates. Look around\,\ where do you think all those slimes come from?,Nah,!john2
-john2,3,I'm not going anywhere near the mountain pass. You need to realize that there are things worse than death in this hell of a world.,[Move,#swap],[Sell,>menu>supply]
+john2,3,I'm not going anywhere near the mountain pass. You need to realize that there are things worse than death.,[Move,#swap],[Sell,>menu>supply]
 stabby,2,Hey there good fellow\,\ I am also a good fellow. How do you do?,I'm fine.,!stabby2
 stabby2,1,My name is Jack Stab. I like to stab people while they are engaged in a conversation with me.
 rogue,2,I am just a wandering rogue. I've been wandering... was putting all my points into strength worth it?,Hmm.,!rogue2

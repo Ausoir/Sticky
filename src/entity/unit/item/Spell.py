@@ -213,12 +213,13 @@ class Disintegrate(Spell):
 
 class Wall(Spell):
     def perform(self):
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                if x != 0 or y != 0:
-                    tile = self.host.pos.get_neighbor(x, y)
-                    if tile and not tile.things:
-                        Stock.make('Spell Wall', tile)
+        front = self.host.pos.get_cardinal(self.host.direction)
+        Stock.make('Spell Wall', front)
+        for side in [1, -1]:
+            for distance in range(4):
+                sides = front.get_cardinal(self.host.direction + side, distance=distance)
+                if sides:
+                    Stock.make('Spell Wall', sides)
 
 
 class Reanimate(Spell):

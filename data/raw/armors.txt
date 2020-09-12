@@ -21,7 +21,7 @@ Scalemail,Armor,_wear_2_2,[$:11,P:10,p:10,cdr:-1,sth:-1,def:1,DEF:1,end:2,w:2,lo
 Platemail,Armor,_wear_3_2,[$:12,P:12,p:12,cdr:-1,sth:-1,def:2,DEF:1,end:3,w:3,loot:Iron,+:v_armor_d],[]
 Night Wear,Armor,_wear_4_2,[$:10,p:24,def:1,str:1,sth:2,skill:nocturnal,+:v_armor_s],[]
 Druid Robe,Armor,_wear_6_3,[$:5,P:16,p:16,str:3,cdr:1,loot:Cloth,skill:herbalism],[]
-Sage Robe,Armor,_wear_7_3,[$:5,P:16,p:16,str:2,cha:1,cdr:1,loot:Cloth,skill:clairvoyance],[]
+Sage Robe,Armor,_wear_7_3,[$:5,P:16,p:16,str:2,cha:1,loot:Cloth,skill:clairvoyance],[]
 Cult Robe,Armor,_wear_4_3,[$:2,p:16,str:1,cha:1,cdr:1,fuel:-1],[],[]
 Bloody Wear,Armor,_wear_6_1,[$:1,P:2,p:2,str:1,fuel:1,cha:-1,skill:cleave],[]
 Evil Gear,Armor,_wear_5_3,[$:50,P:20,p:20,cdr:-1,fuel:-1,def:2,DEF:1,end:5,w:3],[]

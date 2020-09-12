@@ -131,7 +131,7 @@ class ScriptManual:
                     require.append('<' + Dialog.get('Ingredients') + '>')
                 Global.menu.get_message(Dialog.get(':req_item', [','.join(require)]))()
         else:
-            Global.menu.get_message(Dialog.get(':req_skill', [Dialog.get('Alchemy')]))()
+            Global.main.monologue.set(Dialog.get(':req_skill', [Dialog.get('Alchemy')]))
 
     @staticmethod
     def carve(host, var):
@@ -143,9 +143,9 @@ class ScriptManual:
                     var.tags.set('stick', 1)
                 elif host.weapon.tags.get('jewel'):
                     Global.world.location.sound.register(host.pos, 0, file='mix')
-                    host.drop().remove()
                     var.tags.set('jewel', host.weapon.tags.get('jewel'))
                     var.tags.set('jewelt', host.weapon.tags.get('jewelt'))
+                    host.drop().remove()
                 else:
                     spell = host.weapon.tags.get('spell')
                     if spell:
@@ -167,14 +167,14 @@ class ScriptManual:
             else:
                 require = []
                 if not var.tags.get('stick'):
-                    require.append('<' + Dialog.get('Stick') + '>')
+                    require.append('<' + Dialog.get('Wood') + '>')
                 if not var.tags.get('jewel'):
                     require.append('<' + Dialog.get('Jewel') + '>')
                 if not var.tags.get('spell'):
                     require.append('<' + Dialog.get('Spell') + '>')
                 Global.menu.get_message(Dialog.get(':req_item', [','.join(require)]))()
         else:
-            Global.menu.get_message(Dialog.get(':req_skill', [Dialog.get('Carving')]))()
+            Global.main.monologue.set(Dialog.get(':req_skill', [Dialog.get('Carving')]))
 
     @staticmethod
     def draw(host, var):
@@ -184,7 +184,7 @@ class ScriptManual:
             marker.tags.set('seed', var.get_seed())
             marker.trigger()
         else:
-            Global.menu.get_message(Dialog.get(':req_skill', [Dialog.get('Conjuration')]))()
+            Global.main.monologue.set(Dialog.get(':req_skill', [Dialog.get('Conjuration')]))
 
     @staticmethod
     def shapeshift(host, var, data=None):

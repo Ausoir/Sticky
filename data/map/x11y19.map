@@ -1,4 +1,4 @@
 -24
-[[11,4],Stalagmite,Prop,_g_5_6,[p:1,def:5,ob:4,dir:0],[]],[[0,12],Trashcan,Container,_g_24_4,[p:4,ob:4,loot:#trash,#:>menu>container,have:3,dir:0],[],[]],[[0,12],Trashcan,Container,_g_24_4,[p:4,ob:4,loot:#trash,#:>menu>container,have:3,dir:0],[],[]],[[0,12],Trashcan,Container,_g_24_4,[p:4,ob:4,loot:#trash,#:>menu>container,have:3,dir:0],[],[]],[[0,12],Trashcan,Container,_g_24_4,[p:4,ob:4,loot:#trash,#:>menu>container,have:3,dir:0],[],[]],[[9,12],Campfire,Prop,_g_8_4,[p:4,ob:4,#:campfire,dir:0],[[Glow,-1,6],[Effect,-1,fire]]]
+[[11,4],Stalagmite,Prop,_g_5_6,[p:1,def:5,ob:4,dir:0],[]],[[9,12],Campfire,Prop,_g_8_4,[p:4,ob:4,#:campfire,dir:0],[[Glow,-1,6],[Effect,-1,fire]]]
 ^^^^^^.RRRRRR%.......RRRRR=%......RRRRR==%.......RRRR==%......RRRRR==%^^^^^^^^RRRR=%.:.......RRRR%:::::.....RRR%::::......RRR%:::.......RRR%::.:.......RR%::.........RR%:...........R
 0000000000111%0000000000111%0000000000111%0000000000111%0000000000111%0000000000111%0000000000111%0000000000001%0000000000001%0000000000001%0000000000001%0000000000001%0000000000001

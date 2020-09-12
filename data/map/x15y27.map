@@ -1,4 +1,4 @@
 -24
-[[0,3],Shelf Full,Prop,_g_7_4,[p:4,loot:Shelf,mut:Shelf],[]],[[5,6],Manhole,Prop,_g_26_4,[ob:0],[]],[[5,6],Teleport,Scripter,_g_4_0,[ob:0,trigger:always,tox:223,toy:375],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring,*player,*host]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]]
+[[0,3],Shelf Full,Prop,_g_7_4,[p:4,loot:Shelf,mut:Shelf,dir:0],[]],[[5,6],Manhole,Prop,_g_26_4,[ob:0,dir:0],[]],[[5,6],Teleport,Scripter,_g_4_0,[ob:0,trigger:always,tox:223,toy:375,dir:0],[[Invisible,-1,-1],[Immune,-1,0]],[[[bring,*player,*host]],[[v,1,tag,*host,tox],[v,2,tag,*host,toy],[teleport,*1,*2]],[]]]
 bbW.:::.~~~~~%bbW.:::.~~~~~%bbW.:::.~~~~~%bbW::::.~~~~~%bbW::...~~~~~%bbW.^...~~~~~%WWW.^..~~~~~~%...^^.~~~~~~~%^^^^.~~~~~~~~%..~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~%~~~~~~~~~~~~~
 1110000000000%1110000000000%1110000000000%1110000000000%1110000000000%1110000000000%1110000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000

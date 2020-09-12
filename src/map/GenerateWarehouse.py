@@ -9,7 +9,8 @@ class GenerateWarehouse(Generator):
         self.theme = {'.': 'K', 'D': 'Door', 'W': 'Window', ':': 'Shelf Full', ';': 'Shelf', 'Box': 'Crate'}
         self.appliance = ['Bed', 'Seat', 'Stool', 'Desk', 'Alchemy Table', 'Crate', 'Workbench', 'Sign', 'Window',
                           'Lantern', 'Sack', 'Table', 'Register', 'Barrel', 'Basket', 'Loom', 'Bookshelf', 'Throne',
-                          'Rack', 'Armor Stand']
+                          'Rack', 'Armor Stand', 'Showcase', 'Package', 'Floor', 'Scaffold', 'Statue', 'Flower',
+                          'Plank', 'Iron', 'Painting']
         self.background = {'!': self.display_floor}
         self.divide = 8
         self.thickness = 4

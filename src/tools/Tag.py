@@ -40,6 +40,8 @@ class Tag:
             elif arg != 0:
                 self.attributes[tag] = default + arg
                 return self.attributes[tag]
+            else:
+                return 0
         else:
             self.set(tag, arg)
 

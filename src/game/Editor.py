@@ -43,6 +43,8 @@ class Editor:
             Global.map_view.update_region_editor()
         else:
             self.tool.cancel()
+            if not isinstance(self.tool, ToolTerrain):
+                self.tool = ToolTerrain()
 
     def remove(self):
         self.tool.cancel()
@@ -367,7 +369,8 @@ class ToolObject(Tool):
 
     def input(self, button, tile):
         if not button:
-            self.selection.relocate(to=tile)
+            if self.selection:
+                self.selection.relocate(to=tile)
         elif button == 1:
             self.selection.is_save = True
             self.selection.relocate(to=tile, force=1)

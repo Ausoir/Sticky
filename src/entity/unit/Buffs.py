@@ -44,7 +44,7 @@ class Buffs:
                 return i(host, title, duration, var)
 
     def add(self, buff_name, duration, var=0, load=False, stack=True):
-        if duration != 0:
+        if duration > -2:
             preexisting = self.get(buff_name)
             if not stack or not preexisting or 'stack' not in preexisting.get_tags():
                 buff = Buffs.get_buff(buff_name, self.host, duration, var)

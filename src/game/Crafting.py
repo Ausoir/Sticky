@@ -49,11 +49,11 @@ class Crafting:
         subjects = host.get_accessibles()
         for i in subjects:
             if i.name in resource:
-                i.decay(1)
+                i.remove()
                 resource.remove(i.name)
             for tag in i.tags.attributes.keys():
-                if '#' + tag in resource:
-                    i.decay(1)
+                if i.tags.attributes[tag] != 0 and '#' + tag in resource:
+                    i.remove()
                     resource.remove('#' + tag)
                     break
         from src.entity.Stock import Stock

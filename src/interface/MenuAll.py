@@ -135,11 +135,11 @@ class MenuAll(MenuPlayer):
         # noinspection PyUnresolvedReferences
         def store(arg):
             if Global.player.pay(cost):
-                Global.player.character.tags.increment('invest', cost)
-                Global.player.character.tags.set('investt', Global.player.days % 24)
+                Global.player.tags.increment('invest', cost)
+                Global.player.tags.set('investt', Global.player.days % 24)
                 Global.main.monologue.set(Dialog.get(':transacted'))
         cost = (self.var.get_seed() % 7 + 1) * self.var.tags.get('cost')
-        text = Dialog.get(':invest', [cost, Global.player.character.tags.get('invest', 0)])
+        text = Dialog.get(':invest', [cost, Global.player.tags.get('invest', 0)])
         self.var.tags.set('#', '!banker2')
         self.history.pop()
         self.get_prompt(text, Dialog.get('Store'), store, 0)()
@@ -149,6 +149,7 @@ class MenuAll(MenuPlayer):
         def insure(arg):
             if not Global.player.character.is_hungry():
                 if Global.player.pay(cost) and Global.player.try_sleep(1):
+                    host.tags.increment('cost', 2)
                     player.states.add('Revive', -1)
                     Global.main.monologue.set(Dialog.get(':transacted'))
                     Global.player.tags.set('brained', 1)
@@ -166,14 +167,14 @@ class MenuAll(MenuPlayer):
             self.history.pop()
             self.get_prompt(Dialog.get(':insurecancel?'), Dialog.get('Cancel'), cancel)()
         else:
-            cost = host.tags.get('cost', 0) + player.get_level()
+            cost = host.tags.get('cost', 0)
             self.history.pop()
             self.get_prompt(Dialog.get(':insure?', [cost]), Dialog.get('Insure'), insure)()
 
     def menu_hire(self):
         # noinspection PyUnresolvedReferences
         def hire(arg):
-            if Global.player.pay(cost):
+            if Global.player.is_sociable(1) and Global.player.pay(cost):
                 from src.game.ScriptManual import ScriptManual
                 ScriptManual.ally(Global.player.character, host)
         host = self.var

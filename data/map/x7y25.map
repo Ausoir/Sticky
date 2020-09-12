@@ -1,4 +1,4 @@
 -24
-[[9,10],Shelf,Prop,_g_6_4,[p:3,def:1,ob:4,mut:Shelf Full],[]],[[10,11],Bead Door,Door,_g_28_4,[p:1,ob:2,loot:Fiber,alt:_g_29_4],[]],[[9,12],Bucket,Item,_g_18_5,[p:3,build:.,#:build,!:build],[]],[[11,12],Trashcan,Container,_g_24_4,[p:4,ob:4,loot:#trash,#:>menu>container,have:3],[],[]]
+[[9,10],Shelf,Prop,_g_6_4,[p:3,def:1,ob:4,mut:Shelf Full,dir:0],[]],[[10,11],Bead Door,Door,_g_28_4,[p:1,ob:2,loot:Fiber,alt:_g_29_4,dir:0],[]],[[9,12],Bucket,Item,_g_18_5,[p:3,build:.,#:build,!:build,dir:0],[]],[[11,12],Trashcan,Container,_g_24_4,[p:4,ob:4,loot:#trash,#:>menu>container,have:3,dir:0],[],[]]
 RRRRR~~~~RR~~%RRRRR~~~~RR~~%RRRRR~~~~~~~~%RRRR~~RRRRRRR%~~~~~RRRRRRRR%~~~~RRRRRR^^^%~~~RRRRRR....%~~~RRRR.:::..%~~~RRRR..::..%~~~RRRRRWWWWc%~~~RRRRRWcccc%~~~RRRRRWWcWW%~~~RRRRRWcccW
 0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000000000%0000000011111%0000000011111%0000000011111%0000000011111

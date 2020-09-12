@@ -134,12 +134,12 @@ class Game:
                 Script.execute_code(event)
             if time > 0:
                 self.days += time
-                investment = Global.player.character.tags.get('invest', 0)
+                investment = self.tags.get('invest', 0)
                 if investment:
-                    time = self.character.tags.increment('investt', time)
+                    time = self.tags.increment('investt', time)
                     if time >= 24:
                         Global.player.character.tags.increment('money', max(1, int(investment / 10)) * int(time / 24))
-                        self.character.tags.set('investt', self.days % 24)
+                        self.tags.set('investt', self.days % 24)
         if blackout:
             Global.map_view.overlay.blackout()
         else:

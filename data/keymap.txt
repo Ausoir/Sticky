@@ -1,5 +1,6 @@
 ESCAPE,#exit
 F11,fullscreen
+GRAVE,switch
 F1,#!help
 TAB,#menu
 LMB,click

@@ -124,29 +124,30 @@ class Revive(Buff):
         if not self.var:
             cell_coord = [str(x) for x in Global.world.get_tile_true_pos(self.host.pos.x, self.host.pos.y)]
             self.var = '&'.join(cell_coord)
-        self.host.tags.set('corpse', 0)
         Particle.make('barrier3', self.host.pos, glow=4)
 
     def on_stack(self, duration, var):
         Particle.make('spin', self.host.pos, glow=4)
 
-    def on_finish(self):
-        self.host.tags.remove('corpse')
-
     def trigger(self, arg):
         if arg[0] == 'die':
-            self.duration = 0
+            self.duration = -2
             data = Data.parse(self.host.__str__())
             from src.entity.Stock import Stock
             unit = Stock.get(data[1], data=data)
             unit.pos = self.host.pos
             unit.add()
+            from src.entity.unit.Humanoid import Humanoid
+            if isinstance(unit, Humanoid):
+                unit.unarmor()
+                unit.unheadgear()
             unit.tags.set('p', unit.tags.get('P', 1))
             if self.host == Global.player.character:
+                unit.tags.set('hunger', 0)
+                Global.player.tags.remove('invest')
+                Global.player.tags.remove('investt')
                 Global.player.set_player(unit)
-                self.host.tags.set('hunger', 0)
-                self.host.tags.remove('invest')
-                self.host.tags.remove('investt')
+                Global.player.dead = -1
                 Global.player.tags.increment('revives', 1)
                 args = [int(x) for x in self.var.split('&')]
                 Global.world.travel(args[0], args[1])
@@ -597,6 +598,10 @@ class Levitation(Buff):
                 if self.host.enhance(Global.r.rand_int(1, min(100, self.duration))):
                     self.duration = 1
                     self.host.tags.increment('w', -1)
+                    rand = Global.r.rand_int(1, 3)
+                    if self.host.tags.get('P'):
+                        self.host.tags.increment('P', -rand, default=8)
+                    self.host.decay(rand)
             self.end()
         else:
             self.host.tags.set('fly', 1)

@@ -1,4 +1,4 @@
 -24
-[[4,12],Campfire,Prop,_g_8_4,[p:4,ob:4,#:campfire],[[Glow,-1,6],[Effect,-1,fire]]],[[5,12],Chest,Container,_g_22_4,[p:4,def:3,loot:#chest,have:1,#:die],[],[]]
+[[4,12],Campfire,Prop,_g_8_4,[p:4,ob:4,#:campfire,dir:0],[[Glow,-1,6],[Effect,-1,fire]]],[[5,12],Chest,Container,_g_22_4,[p:4,def:3,loot:#chest,have:1,#:die,dir:0],[],[]]
 mmmmmmmRRRRRR%m~~~mmmRRRRRR%m~~~mmmRRRRRR%.~~~~~mRRRRRR%~~~~~~~RRRRRR%.~~~~~~~RRRRR%R~~~~~~~RRRRR%RRRRRR~~RRRRR%RRRRRR~RRRRRR%RRRRRRRRRRRRR%RRRRRRRRRRRRR%RRRRRRRRRRRRR%RRRGGGGGRRRRR
 0000000000000%0000000000000%0000000000000%0000000011111%0000000011111%1000000111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111%1111111111111

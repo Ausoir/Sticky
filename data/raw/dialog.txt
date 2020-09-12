@@ -12,7 +12,7 @@
 :scholar,You are a Scholar. You can use the observer item indefinitely and 2 times more often.
 :no_status,No abnormal status effect found.
 :stat_applied,Level up! You are now level #!
-dsc_level,You progress in level by doing things like eating\,\ killing units of higher level\,\ or performing class missions. Experience gain diminishes with level increase.
+dsc_level,You progress in level by doing things like eating\,\ killing\,\ or doing class missions. Experience gain diminishes with level increase.
 dsc_vitality,Vitality determines your maximum health. Humanoids have 2 health by default.
 dsc_strength,Strength determines how much weight you can carry.
 dsc_stealth,Stealth determines how close enemies have to be to detect you.
@@ -40,7 +40,6 @@ dsc_charisma,Charisma determines how many allies you can have. You can control c
 !sociable,Not enough charisma! #/# companions
 ?learn,Learn #?
 :learn,Learned skill <#>!
-!learn_full,<#> is already mastered
 !learn_int,Not enough intelligence!
 :food_expire,Expires in #
 :food_expired,Expired
@@ -79,7 +78,7 @@ dsc_charisma,Charisma determines how many allies you can have. You can control c
 :wait,Wait # seconds!
 :craftables,Click an item to view recipe
 dsc_examine,Use the arrow keys then press Enter to examine target
-:invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day at midnight. Investment does not transfer to clones and shapeshifts. You currently have $# invested.
+:invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day. Investment does not transfer to clones and shapeshifts. You currently have $# invested.
 :pickone,Choose an item to grab
 :join,# joins the party.
 :companion,# joins you. Press R to summon.

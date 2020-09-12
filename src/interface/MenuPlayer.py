@@ -198,7 +198,7 @@ class MenuPlayer(Menu):
                                          lambda _: Global.player.character.drop())
             self.sub_window.add(Menu.make(display, weapon_lmb))
         self.window.add(Menu.make(Dialog.get('Money'), None, color=None))
-        rmb = self.get_message(Dialog.get(':dsc_money', [Global.player.character.tags.get('invest', 0)]))
+        rmb = self.get_message(Dialog.get(':dsc_money', [Global.player.tags.get('invest', 0)]))
         money = Menu.make('$' + str(Global.player.character.tags.get('money', 0)), rmb, color=None)
         self.sub_window.add(money)
         self.sub_window.display(1)

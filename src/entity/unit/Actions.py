@@ -188,7 +188,8 @@ class Actions:
                     old = thing.pos
                     thing.relocate(to=self.host.pos)
                     thing.face(thing.pos.get_face(self.host.pos))
-                    thing.states.add('Knockout', 10)
+                    thing.action.force('fall')
+                    thing.action.delay = 10
                     self.move(old)
                     return True
 

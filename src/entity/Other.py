@@ -254,21 +254,23 @@ class Marker(Prop):
         return r
 
     def turn(self):
+        if self.pos.light > 0:
+            Particle.make('fire', self.pos, offset=4)
+        if self.tags.increment('stress', self.pos.light) > 80:
+            self.tags.increment('fuel', ord(self.pos.get_icon()) + self.tags.get('way', 1) % 10)
+            self.states.add('Burn', 12)
         glow = self.states.get('Glow')
         if not glow:
             if self.pos.light_source > 0:
                 self.states.add('Glow', 7, 5)
         elif glow.duration == 1:
-            if self.tags.increment('stress', 1) > 12:
-                self.tags.increment('fuel', ord(self.pos.get_icon()) + self.tags.get('way', 1) % 10)
-                self.states.add('Burn', 12)
             routes = self.get_routes()
             for tile in routes:
                 for thing in tile.things.copy():
                     if isinstance(thing, Marker):
-                        Particle.make('fire', tile, offset=4)
-                        thing.states.add('Glow', 1, glow.var - thing.tags.get('ohm', 0))
-                        if glow.var >= 11 and len(thing.states.buffs) > 0:
+                        if len(thing.states.buffs) == 0:
+                            thing.states.add('Glow', 2, glow.var - thing.tags.get('ohm', 0))
+                        elif glow.var >= 8 and len(thing.states.buffs) > 0:
                             thing_glow = thing.states.get('Glow')
                             if thing_glow:
                                 self.echo(1)
@@ -292,7 +294,7 @@ class Marker(Prop):
         data = Data.get_line('raw.txt', 'portals')[1]
         from src.entity.unit.item.Spell import Spell
         spell = data[arg % len(data)]
-        Spell.get(spell).cast_on(self)
+        Spell.get(spell).cast_on(Global.player.character)
         # print('spell ' + spell)
 
 
@@ -377,13 +379,10 @@ class Manual(Item):
     def learn(self):
         if self.host and self.host == Global.player.character:
             skill = self.tags.get('skill').lower()
-            if skill not in self.host.skills:
-                if Global.player.is_learnable() and Global.player.is_bright() and Global.player.sleep(1):
-                    Global.main.monologue.set(Dialog.get(':learn', [skill]))
-                    self.host.skills.append(skill)
-                    self.die()
-            else:
-                Global.main.monologue.set(Dialog.get('!learn_full', [skill]))
+            if Global.player.is_learnable() and Global.player.is_bright() and Global.player.sleep(1):
+                Global.main.monologue.set(Dialog.get(':learn', [skill]))
+                self.host.skills.append(skill)
+                self.die()
 
 
 class Potion(Food):

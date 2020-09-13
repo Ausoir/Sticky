@@ -262,7 +262,7 @@ class Script:
         elif arg[0] == 'deletefiles':
             Data.delete_all()
         elif arg[0] == 'restart':
-            Global.main.init_other()
+            Global.main.restart()
         elif arg[0] == 'gen':
             from src.map.Generator import Generator
             Generator.generate(arg[1])

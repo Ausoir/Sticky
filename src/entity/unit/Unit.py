@@ -174,37 +174,37 @@ class Unit(Container):
         self.action.idle_frame = 0
         from src.entity.Particle import Particle
         has_hitter = hitter is not None
+        backstab = self.action.current_action == 'fall'
         if has_hitter:
             self.last_hitter = hitter
-        if self.action.current_action == 'fall' or (has_hitter and not self.is_facing(hitter.pos)):
-            backstab = True
-        else:
-            backstab = False
-        if not backstab:
-            damage -= self.tags.get('def', 0)
-        elif has_hitter and hitter.get_skill('assassinate'):
-            self.tags.set('deaf', 1)
-            Particle.make('power', self.pos)
-            self.pos.location.sound.register(self.pos, 0, file='critical')
-            damage += 7
-        if self.states.get('Barrier'):
-            damage = 0
-        self.states.trigger(['act', 'hit', damage])
-        self.pilot.hit(hitter)
-        if damage > 0:
-            self.pos.location.field.unregister(self)
-            if self.get_skill('fortitude'):
-                self.states.add('Invincible', 8)
-            concentration = self.states.get('Concentration')
-            if concentration:
-                if has_hitter:
-                    hitter_direction = self.pos.get_face(hitter.pos)
-                    if self.direction == hitter_direction and self.get_skill('block') and self.action.delay <= 1:
+            if not self.is_facing(hitter.pos):
+                backstab = True
+            if not backstab:
+                hitter_direction = self.pos.get_face(hitter.pos)
+                if self.direction == hitter_direction and self.get_skill('block') and self.action.delay <= 1:
+                    concentration = self.states.get('Concentration')
+                    if concentration:
                         self.pos.location.sound.register(self.pos, 3, file='hit_armor')
                         self.action.force('hit')
                         self.form.set_state('parry')
                         return -1
-                if not backstab and self.get_skill('parry'):
+                damage -= self.tags.get('def', 0)
+            elif hitter.get_skill('assassinate'):
+                self.tags.set('deaf', 1)
+                Particle.make('power', self.pos)
+                self.pos.location.sound.register(self.pos, 0, file='critical')
+                damage += 7
+        self.states.trigger(['act', 'hit', damage])
+        self.pilot.hit(hitter)
+        if self.states.get('Barrier'):
+            return -1
+        if damage > 0:
+            self.pos.location.field.unregister(self)
+            if self.get_skill('fortitude'):
+                self.states.add('Invincible', 8)
+            if not backstab and self.get_skill('parry'):
+                concentration = self.states.get('Concentration')
+                if concentration:
                     concentration.trigger(['spend'])
                     self.face(self.pos.get_face(hitter.pos))
                     self.form.set_state('parry')

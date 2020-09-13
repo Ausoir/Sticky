@@ -9,10 +9,11 @@ from src.tools.Data import Data
 
 
 class Stock:
-    registry = {}
+    registry = None
 
     @staticmethod
     def init():
+        Stock.registry = {}
         for i in Data.registry_list:
             registry_items = Data.process_raw(Data.read('data/raw/' + i + '.txt'))
             for item in registry_items:

@@ -17,6 +17,7 @@ class Location:
         self.push_status = [0, 0]
         self.header = None
         Turn.add(self.field.turn)
+        Turn.add(self.sound.turn)
 
     def __str__(self):
         rt = []

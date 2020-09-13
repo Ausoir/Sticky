@@ -206,7 +206,6 @@ class Game:
                 self.character.form.set_state('hunger')
             if self.character.tags.get('p', 0) == 1 and self.character.tags.get('P'):
                 Particle.make('blood', self.character.pos, offset=8)
-        Global.world.location.sound.update_bgm()
         if Global.world.recenter(self.character.pos.x, self.character.pos.y):
             Global.map_view.turn()
             Camera.update()

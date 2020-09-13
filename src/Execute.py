@@ -18,7 +18,7 @@ from src.tools.Random import Random
 # noinspection PyAbstractClass
 class Execute(pyglet.window.Window):
     def __init__(self):
-        Data.init()
+        Data.initialize()
         self.setting = Dialog.to_dict(Data.process_raw(Data.read('data/setting.txt')))
         super(Execute, self).__init__(self.setting['width'], self.setting['height'], ' ',
                                       vsync=False, resizable=True)
@@ -30,6 +30,7 @@ class Execute(pyglet.window.Window):
         self.fps = 1 / 52.0
         self.frame_current = 0
         self.frame_last = time()
+        pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
         self.init_other()
         self.monologue = Textbox()
         self.is_running = True
@@ -39,6 +40,9 @@ class Execute(pyglet.window.Window):
         glEnable(GL_ALPHA_TEST)
         glAlphaFunc(GL_GREATER, 0.1)
         glClearColor(Global.mask_color[0], Global.mask_color[1], Global.mask_color[2], Global.mask_color[3])
+
+    def restart(self):
+        self.init_other()
 
     def init_other(self):
         Global.r = Random()
@@ -55,9 +59,7 @@ class Execute(pyglet.window.Window):
         World.BIOME = Dialog.to_dict(Data.process_raw(Data.read('data/raw/habitat.txt')))
         Dialog.init()
         Global.draw_group = DrawGroup()
-        Data.initialize_animation()
         Stock.init()
-        pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
         Global.font = pyglet.font.load('Default Font', 18)
         Global.main = self
         Global.blank_form = Data.get_form('none')

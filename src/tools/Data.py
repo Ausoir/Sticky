@@ -15,7 +15,7 @@ class Data:
     atlas = None
 
     @staticmethod
-    def init():
+    def initialize():
         os.chdir('../')
         Data.atlas = TextureAtlas()
         Data.set_cache('none', Texture.create(1, 1))
@@ -24,9 +24,6 @@ class Data:
             Data.initialize_image(i[0], i[1], i[2], i[3])
         for i in Data.get_files('data/unit', lambda f: f.endswith('.2d')):
             Data.set_cache(i, Data.get_cache_clip('data/unit/' + i))
-
-    @staticmethod
-    def initialize_animation():
         animation = Data.process_raw(Data.read('data/raw/animations.txt'))
         for i in animation:
             sequence = []

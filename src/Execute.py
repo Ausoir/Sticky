@@ -138,7 +138,7 @@ class Execute(pyglet.window.Window):
             current_time = time()
             dt = current_time - self.frame_last
             if dt > self.fps:
-                print('fps:', 1 / dt)
+                # print('fps:', 1 / dt)
                 Camera.update()
                 Turn.update()
                 self.render()

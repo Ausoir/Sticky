@@ -356,3 +356,4 @@
 9/12 *Sound memory leak fix - pyglet player dependent on app timer but no app is run.
 9/13 !Mob brands enchanting worn equipment causing permanent player stat change.
 9/13 Tourist saying charisma is minor stat removed. Concentration can be dispelled. Blink mist effect.
+9/13 Remove fps counter output

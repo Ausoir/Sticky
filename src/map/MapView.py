@@ -98,11 +98,13 @@ class MapView:
         cam_x = self.old_camera.x
         cam_y = self.old_camera.y
         dim_light = self.overlay.get_dim_light()
-        col_range = [cam_x-self.sight_range, cam_x+self.sight_range]
-        row_range = [cam_y-self.sight_range_y, cam_y+self.sight_range_y]
-        for pos_y in range(row_range[0] - 1, row_range[1] + 2):
-            for pos_x in range(col_range[0] - 1, col_range[1] + 2):
-                this_tile = Global.world.location.get_tile(pos_x, pos_y)
+        col_range = [max(0, cam_x-self.sight_range),
+                     min(Global.world.location.get_width()-1, cam_x+self.sight_range)]
+        row_range = [max(0, cam_y-self.sight_range_y),
+                     min(Global.world.location.get_height()-1, cam_y+self.sight_range_y)]
+        for pos_y in range(row_range[0], row_range[1] + 1):
+            for pos_x in range(col_range[0], col_range[1] + 1):
+                this_tile = Global.world.location.tiles[pos_y][pos_x]
                 if this_tile:
                     if this_tile.roof == 0:
                         this_tile.light = max(this_tile.light, self.brightness)

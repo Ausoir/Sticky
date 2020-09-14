@@ -439,6 +439,7 @@ class Blink(Spell):
         power = 9
         moved = False
         count = 0
+        Particle.make('mist', self.host.pos)
         while not moved and count < 9:
             count += 1
             x = Global.r.rand_int(-power, power)

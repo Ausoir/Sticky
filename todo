@@ -1,0 +1,2 @@
+further optimization
+- Game.init line 17 - Turn.fast_queue.append(Global.map_view.update) - drops fps by 20

@@ -354,3 +354,5 @@
 9/12 Tourguide added tip. Sound distance and step sound. Drown sound.
 9/12 Block only blocks melee attacks. Block calculates before armor to save durability.
 9/12 *Sound memory leak fix - pyglet player dependent on app timer but no app is run.
+9/13 !Mob brands enchanting worn equipment causing permanent player stat change.
+9/13 Tourist saying charisma is minor stat removed. Concentration can be dispelled. Blink mist effect.

@@ -28,7 +28,6 @@ class Execute(pyglet.window.Window):
         if abs(self.screen.width - self.setting['width']) + abs(self.screen.height - self.setting['height']) < 80:
             self.maximize()
         self.fps = 1 / 52.0
-        self.frame_current = 0
         self.frame_last = time()
         pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
         self.init_other()
@@ -137,14 +136,13 @@ class Execute(pyglet.window.Window):
     def loop(self):
         while self.is_running:
             current_time = time()
-            if current_time - self.frame_last > self.fps:
+            dt = current_time - self.frame_last
+            if dt > self.fps:
+                print('fps:', 1 / dt)
                 Camera.update()
                 Turn.update()
                 self.render()
-                self.frame_current = 0
                 self.frame_last = current_time
-            else:
-                self.frame_current = self.frame_current + 1
             self.dispatch_events()
 
     def render(self):

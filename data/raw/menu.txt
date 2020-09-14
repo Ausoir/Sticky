@@ -72,8 +72,7 @@ tourguide,3,Hello. Do you need help?,[Directions,!tourguide2],[Tips,!tourguide3]
 tourguide2,1,You are looking for the big bad evil guy? Your destination should be the Mountain Pass. Exit through this east gate out of uptown. Keep going east\,\ through the workshop and the cliff road. The mountain pass is near the bamboo forest.
 tourguide3,2,Many people gather around for the grand reward\,\ but most don't even make it to the Mountain Pass. If you want a chance\,\ get a life insurance at the brick building near the west gate.,Next Tip,!tourguide4
 tourguide4,2,The stool is great\,\ but try to find a quarterstaff. It is a great weapon for beginners.,Next Tip,!tourguide5
-tourguide5,2,Minor stats like intelligence and charisma are more situational. Try to allocate points to them only if you think they suit your current build.,Next Tip,!tourguide6
-tourguide6,1,Look\,\ I know that you just can't wait to run out the east gate and kill the big boss. But with that attitude\,\ you won't make it far. Try taking it a bit slower. Level up\,\ find good loot\,\ and get some knowledge of this world first.
+tourguide5,1,Look\,\ I know that you just can't wait to run out the east gate and kill the big boss. But with that attitude\,\ you won't make it far. Try taking it a bit slower. Level up\,\ find good loot\,\ and get some knowledge of this world first.
 trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
 rando,3,I'm a desperate resident surviving day to day looting from outlaws and wildlife... just like you.,[Move,#swap],[Hire,>menu>hire]
 lord,2,I was the former evil lord before I retired. Everyone hated me\,\ but they don't seem to realize that humans are never in shortage. Right after I retired\,\ the role chose someone else\,\ you see?,Sure,!lord2

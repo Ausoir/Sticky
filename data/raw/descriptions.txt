@@ -66,7 +66,7 @@ Destroy,Destroy walls when damage is higher than hardness of the wall.
 Psychic,All seeing.
 Nocturnal,Gain night vision.
 Clairvoyance,Doubles experience gain. Stacks.
-Dispel,Purge all magical status effects in an area around the caster.
+Dispel,Purge all magical status effects and concentration in an area around the caster.
 Charm,Enslave target unit permanently. Target must be directly in front of the caster.
 Clone,Clone anything directly in front of the caster. 50% success rate.
 Push,Push anything in front away.

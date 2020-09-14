@@ -82,6 +82,13 @@ class StatBuff(Buff):
     def get_display_name(self):
         return Dialog.sign(self.var) + ' ' + Dialog.get(self.get_stat()[1])
 
+    def is_valid(self):
+        if super().is_valid():
+            from src.entity.unit.item.Item import Item
+            if isinstance(self.host, Item) and self.host.host is not None:
+                return False
+            return True
+
     def on_start(self):
         self.host.tags.increment(self.get_stat()[0], self.var)
 
@@ -473,7 +480,7 @@ class Shapeshift(Buff):
 
 class Concentration(Buff):
     def get_tags(self):
-        return ['hide', 'stack']
+        return ['hide', 'stack', 'magic']
 
     def is_valid(self):
         from src.entity.unit.Unit import Unit

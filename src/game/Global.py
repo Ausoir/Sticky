@@ -18,6 +18,6 @@ r_t = None
 blank_form = None
 mask_color = (0, 0, 0, 255)
 cardinal_coord = [[0, 1], [-1, 0], [0, -1], [1, 0]]
-SIGHT = 10
+SIGHT = 11
 temp = {}
 npc = None

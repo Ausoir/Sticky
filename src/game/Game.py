@@ -12,7 +12,7 @@ from src.tools.Tag import Tag
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, mode=False):
         Turn.add(Global.menu.turn)
         Turn.fast_queue.append(Global.map_view.update)
         Turn.add(self.turn)
@@ -33,7 +33,7 @@ class Game:
         self.dead = -1
         self.days = self.tags.get('time')
         Turn.frame = self.tags.get('frame')
-        self.player_mode = 1
+        self.editor_mode = mode
         self.character = None
         self.temporary = data
         self.npc = Mercenary()
@@ -169,13 +169,13 @@ class Game:
 
     def initialize_mode(self):
         Global.menu.display(-1)
-        if self.player_mode == 0:
+        if self.editor_mode:
             self.control.set_keymap('editor_keymap.txt')
             self.player = Editor(self)
             self.temporary = self.character.sight
             self.character.sight = []
         else:
-            self.player_mode = 1
+            self.editor_mode = False
             self.control.set_keymap('keymap.txt')
             self.player = self.character
             self.character.center_camera()
@@ -184,11 +184,11 @@ class Game:
         Global.map_view.on_sight_change()
 
     def switch(self):
-        if self.player_mode == 1:
-            self.player_mode = 0
-        elif self.player_mode == 0:
+        if not self.editor_mode:
+            self.editor_mode = True
+        else:
             self.player.remove()
-            self.player_mode = 1
+            self.editor_mode = False
         self.initialize_mode()
 
     def turn(self):

@@ -1,6 +1,6 @@
 help,1,Move using WASD|Attack with SPACE|Q to grab or drop items|E to access pocket|TAB to access menu|END key to die|F11 to enter fullscreen.
-birth,2,The president has put up a bounty on the local evil lord. Kill the evil lord and buy your freedom!,Enter Tutorial,entertutorial
-tutorial1,1,Press F1 for key help. Press TAB to close out of this dialog.
+birth,2,The president has put up a bounty on the local evil lord. Kill the evil lord and you are set for life!,Enter Tutorial,entertutorial
+tutorial1,1,Try to exit this room through the south. Press F1 for key help.
 tutorial2,1,Most enemies are hostile on sight. If you wait for them to move toward you then attack at the right timing\,\ you should easily be able to beat most enemies 1 on 1.
 tutorial3,1,Pick up a torch from the basket on your left. Remember to use the WASD keys to interact.
 tutorial4,1,Most friendlies can be interacted with WASD keys. Sell your torch to the merchant. You can check how much money you have in your equipment menu.
@@ -23,7 +23,7 @@ insurer,3,Do you require aid?,[Move,#swap],[Introduce,!intro_insurer],[Diagnose,
 intro_insurer,1,I am a insurance agent. This place is dangerous and sooner or later you will die. I cannot help you not die\,\ but I can help you revive!
 supply,3,Are you here to sell?,[Move,#swap],[Introduce,!intro_supplier],[Sell,>menu>supply]
 intro_supplier,1,I am a supplier. I buy doodads from public agents like you and sell them to merchants. Speak to me again if you want to earn some money.
-pawnbroker,3,Are you selling?,[Move,#swap],[Introduce,!intro_pawn],[Sell,>menu>pawn]
+pawnbroker,3,Got anything interesting?,[Move,#swap],[Introduce,!intro_pawn],[Sell,>menu>pawn]
 pawnbroker2,3,Thanks for the business.,[Move,#swap],[Introduce,!intro_pawn]
 intro_pawn,1,I am a pawnbroker. I will take whatever item that you are holding and I will give you the money that I think it was worth.
 banker,3,How can I help you?,[Move,#swap],[Introduce,!intro_banker],[Invest,>menu>invest],[Store,>menu>store_item],[Retrieve,>menu>container]
@@ -75,8 +75,8 @@ tourguide4,2,The stool is great\,\ but try to find a quarterstaff. It is a great
 tourguide5,1,Look\,\ I know that you just can't wait to run out the east gate and kill the big boss. But with that attitude\,\ you won't make it far. Try taking it a bit slower. Level up\,\ find good loot\,\ and get some knowledge of this world first.
 trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
 rando,3,I'm a desperate resident surviving day to day looting from outlaws and wildlife... just like you.,[Move,#swap],[Hire,>menu>hire]
-lord,2,I was the former evil lord before I retired. Everyone hated me\,\ but they don't seem to realize that humans are never in shortage. Right after I retired\,\ the role chose someone else\,\ you see?,Sure,!lord2
-lord2,3,I can't afford to get hurt. Pension didn't adjust for inflation\,\ you see.,[Move,#swap],[Hire,>menu>hire]
+lord,2,I was the former evil lord before I retired. Everyone hated me\,\ but they don't realize that humans are never in shortage.,Sure,!lord2
+lord2,3,I can't afford to get hurt. My pension didn't adjust for inflation\,\ you see.,[Move,#swap],[Hire,>menu>hire]
 poet,2,What do words mean in this deafening orderly presence?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!poet2
 poet2,3,I had looked to zealots like you\,\ but now I only see deaf tools\,\ hauled to the fire\,\ led by gold.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
 chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a restaurant... But honestly\,\ honest work seems to be out of order. I still sell food\,\ if that is something you need.,Proceed,!chef moe2

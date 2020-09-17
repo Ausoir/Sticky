@@ -1,3 +1,4 @@
+import sys
 from time import time
 
 import pyglet
@@ -17,7 +18,7 @@ from src.tools.Random import Random
 
 # noinspection PyAbstractClass
 class Execute(pyglet.window.Window):
-    def __init__(self):
+    def __init__(self, args):
         Data.initialize()
         self.setting = Dialog.to_dict(Data.process_raw(Data.read('data/setting.txt')))
         super(Execute, self).__init__(self.setting['width'], self.setting['height'], ' ',
@@ -30,7 +31,7 @@ class Execute(pyglet.window.Window):
         self.fps = 1 / 52.0
         self.frame_last = time()
         pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
-        self.init_other()
+        self.init_other('editor' in args)
         self.monologue = Textbox()
         self.is_running = True
 
@@ -43,7 +44,7 @@ class Execute(pyglet.window.Window):
     def restart(self):
         self.init_other()
 
-    def init_other(self):
+    def init_other(self, editor=False):
         Global.r = Random()
         Global.r_t = Random()
         Space.reusable = Space()
@@ -65,7 +66,7 @@ class Execute(pyglet.window.Window):
         Global.map_view = MapView()
         Global.menu = MenuAll()
         Global.world = World()
-        Global.player = Game()
+        Global.player = Game(mode=editor)
         Global.DISPLAY = (self.setting['width'], self.setting['height'])  # Menu position fix
         Global.player.initialize()
 
@@ -162,6 +163,6 @@ class Execute(pyglet.window.Window):
 
 
 if __name__ == '__main__':
-    main = Execute()
+    main = Execute(sys.argv)
     main.switch_to()
     main.loop()

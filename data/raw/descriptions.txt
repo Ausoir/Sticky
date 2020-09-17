@@ -1,5 +1,5 @@
 Bucket,Use to fill terrain with dirt.
-Bucket Helm,<...And as long as you wear this\,\ mankind would mark you casual from oceans away.>
+Bucket Helm,You are a filthy casual-noob.
 Package,Use to unpack a furniture.
 Pouch,Contains enchanting potions.
 Adrenaline,This artifact grants haste effect on use.
@@ -8,7 +8,7 @@ Blink Charm,Works great when surrounded.
 Lifesaver,Adventurer's insurance.
 Spellbinder,A magical sword that hinders the victim's ability to cast.
 Flameberge,Light and strong. Wielders fear its fire affinity.
-Warhammer,Damages victim's equipment on hit.
+Warhammer,Damages victim's defense on hit.
 Chest,Contains treasures like gold\,\ manual\,\ or enchanting potions.
 Clarity Scroll,Grants free experience.
 Glass,Ingredient for various crafts. Also a cheap ingredient for wands.
@@ -18,7 +18,7 @@ Pearl,Cheap ingredient for charms. Can be used to obtain money.
 Clam,Might have a pearl inside.
 Jet,Ingredient for charms. Can be used to obtain money.
 Amber,Rare ingredient for charms. Can be used to obtain money.
-Chalk,Use to draw portals. Result depends on shape and terrain\,\ and is sensitive to light. Shine it to begin. Requires <Conjuration> skill.
+Chalk,Use to draw portals. Result depends on shape and terrain. Exposure to light begins the ritual. Requires <Conjuration> skill.
 Jelly,A blob of slime goo. Juicy and delicious\,\ but does not last long uncooked.
 Pudding,A sweet and salty slime pudding.
 Burger,Very fullfilling.
@@ -31,9 +31,9 @@ Gold Mirror,Use to return home.
 Telescope,Use to look farther.
 Airhorn,Use to draw attention.
 Oil Lamp,Use to produce light.
-Fade Charm,Imbues the owner with invisibility when destroyed.
+Fade Charm,Use to fade into invisibility.
 Manual,Read to learn skill.
-Ore,Break to obtain rare minerals.
+Ore,Break to obtain minerals.
 Plant,Used in alchemy.
 Fortitude,After taking damage\,\ gain damage immunity for a short while.
 Block,Stand still to concentrate. While concentrated and idle\,\ block attacks from the front.
@@ -53,7 +53,7 @@ Hide,Stand still to concentrate. Become invisible until taking action.
 Deep Sense,Stand still to concentrate. While concentrated\,\ obtain sharp vision.
 Parkour,Stand still to concentrate. While concentrated\,\ move over obstacles freely.
 Alchemy,Brew potions on an alchemy table with alchemical ingredients like flowers.
-Scribing,Create spell scrolls at a registry desk.
+Scribing,Create spell scrolls at a research desk.
 Carving,Carve wands and charms on a spellcraft table using a catalyst\,\ rare mineral\,\ and a stick.
 Herbalism,Dropping plants on farm plots allow them to spread to nearby vacant farm plots over time.
 Conjuration,Draw conjuration polygrams using a chalk to conjure things at virtually no cost.
@@ -61,45 +61,40 @@ Reach,Increase range of attacks by 1 tile. Stacks.
 Steal,Unarmed attacks steal items or equipment from the victim.
 Feed,When damaging any unit\,\ this skill is replaced by one skill that the victim knew.
 Deft,Decreases post attack delay. Stacks.
-Disorient,On successful attack\,\ change face direction of the victim.
+Disorient,On attack\,\ change face direction of the victim.
 Destroy,Destroy walls when damage is higher than hardness of the wall.
 Psychic,All seeing.
 Nocturnal,Gain night vision.
-Clairvoyance,Doubles experience gain. Stacks.
+Clairvoyance,+1 to experience gain. Stacks.
 Dispel,Purge all magical status effects and concentration in an area around the caster.
 Charm,Enslave target unit permanently. Target must be directly in front of the caster.
 Clone,Clone anything directly in front of the caster. 50% success rate.
-Push,Push anything in front away.
 Glow,Makes target glow permanently. Stacks.
 Scorch,Create a scorching flame on the target.
 Scry,Travel as a ghost to observe far away locations relatively safely.
-Disintegrate,Deal massive damage to target in a line\,\ ignoring armor. Destroys terrain if cast directly in front of it.
+Disintegrate,Deal 8 damage to a target. Destroys terrain if cast directly in front of it.
 Passwall,Pass through a solid wall.
-Charm,Increase friendliness of target.
 Transience,Assume a spiritual form from which you may possess another living being. Press attack key on top of a unit in ghost form.
 Wall,Create a spell wall to block out enemies.
 Reanimate,Turn corpses into undead. Make sure to have enough charisma.
 Phantom,Summon a phantom to possess a target item.
 Transmogrify,Mutate target into a random creature.
-Evacuate,Immediately teleport to a random location.
+Evacuate,Immediately teleport to town.
 Gateway,Create a gateway. Cast again to create a one way teleport gate to the previous gateway.
-Ghost Form,Turn into a ghost that can pass through walls but cannot interact with the world.
 Earthquake,Knock down everything near the caster.
 Push,Push something in caster's way away from the caster.
 Jump,Jump 3 to 9 tiles.
 Blink,Randomly blink 9 tiles away.
 Corona,Light up objects near the caster.
-Torment,Conjure scorching flame to burn all enemies near the caster.
+Torment,Burn all enemies near the caster.
 Avatar,Summon a powerful golem to serve the caster for some time. Make sure to have enough charisma.
 Barrier,Defend the caster from physical harm once.
 Deflection,Defend the caster from a spell effect once. Shielding cancels on taking damage.
-Clone,Clone anything in front of the caster.
-Charge,Attack 4 tiles away.
+Charge,Dash forward\,\ attacking everything in between.
 Breeze,Travel like the wind for a few seconds.
 Sanctuary,Changes landscape near the caster to make it safe.
 Capture,Capture anything in front of the caster. Cast again to summon.
-Timesave,Everything near the caster will be recreated if destroyed within 200 ticks. Does not stack with insurance.
-Glow,You emit light.
+Timesave,Everything near the caster will be recreated if destroyed within 400 ticks. Does not stack with insurance.
 Revive,Revive on death.
 Health,Modifies health over time.
 Knockout,Causes knockdown.
@@ -130,17 +125,16 @@ Mad Leper,Slime pox victims eventually go insane like this.
 Venomous Spider,A venomous version of the common spider. Anyone bit will likely be dead in an hour.
 Snake,This snake is poisonous. Anyone bit will likely be dead in an hour.
 Killer Ivy,A man eating plant that ambush its prey from out of sight.
-Deathtrap,A deadly plant that lobs fireball at its prey. How it does that is on a debate by scholars world wide.
+Ivy Live,A deadly plant that moves around lobbing fireball at people. What a world to be alive in!
 Moth,This thing is a moth?
 Crab,This crab has 2 pairs of claws!
 Octopus,These beasts and their multiple appendages are specialized for fighting multiple opponents at once.
 Tiger,A striped version of the cat. Much more deadly.
 Zombie,Once dead\,\ now undead. Once dead again\,\ it will rise again.
-Foul Snack,Once a snack\,\ now a bringer of despair. You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
+Foul Snack,You better start running. Anyone who gets devoured by the Foul Snack becomes a Slime!
 Captain Knight,A wandering killing machine. Run!
 Reaper,A particularly infamous undead known to annoy the locals. Be careful!
 Brainsucker,This vile creature steals the knowledge of its victims. For this reason this creature gets frequent visits from gurus who wish to start anew.
-Leper,A blighted fellow. Fortunately for him and unfortunately for you\,\This guy does not seem to feel pain anymore.
 Skeleton,In addition to being immune to pain\,\ this undead has some innate skeletal armor.
 Caller,A scholar of the arcane arts who learned to summon moths.
 Witch,A scholar of witchcraft who learned how to turn you into something disgusting.
@@ -154,6 +148,6 @@ Rando,A desperate resident surviving by looting from the outlaws and wildlife de
 Panda,This animal is educated in the ways of the martial arts. Stay out of its way!
 Worm,Their attacks exhaust their victims\,\ preventing them from using special abilities.
 Duelist,This guy is looking for a fight.
-Robot,A non lethal robot that can electrocute their victims.
+Robot,A robot that electrocute their victims.
 Hunter,These hunters typically hunt by paralyzing their victim and poking from a distance.
 Evil Lord,Beat him and the reward is yours.

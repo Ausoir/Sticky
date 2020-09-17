@@ -725,4 +725,4 @@ class Timesave(Spell):
         targets = self.host.pos.get_area(4, 4)
         for i in targets:
             for thing in i.things:
-                thing.states.add('Revive', 160, 0)
+                thing.states.add('Revive', 400, 0)

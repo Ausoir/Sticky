@@ -1,7 +1,7 @@
-:dsc_health,You die when your health reaches 0. Health: # / #
-:dsc_health2,You die when your health reaches 0. Health: # / #|Vitality from armor: #|Worn armor durability: # / #|Vitality from headgear: #|Worn headgear durability: # / #
-:dsc_date,Date and Time: #. Current Hunger: #%
-:dsc_hunger,Date and Time: #. Current Hunger: #%|You are hungry and you cannot perform time consuming actions such as resting\,\ crafting\,\ or leveling up. You will take 1 damage each hour if hunger reaches 1000%.
+:dsc_health,You die when your health reaches 0.|Health: # / #
+:dsc_health2,You die when your health reaches 0.|Health: # / #|Vitality from armor: #|Worn armor durability: # / #|Vitality from headgear: #|Worn headgear durability: # / #
+:dsc_date,Date and Time: #.|Current Hunger: #%
+:dsc_hunger,Date and Time: #.|Current Hunger: #%|You are hungry and you cannot perform time consuming actions such as resting\,\ crafting\,\ or leveling up. You will take 1 damage each hour if hunger reaches 1000%.
 :dsc_money,You can use money to buy things from vendors or hire mercenaries. You currently have $# invested.
 :classless,You are classless.
 :avenger,You are an Avenger. You get +1 experience from killing. When you slay <#> you gain double experience.
@@ -46,7 +46,7 @@ dsc_charisma,Charisma determines how many allies you can have. You can control c
 :experience,Provides # experience
 !pay,Not enough money! Requires $#.
 :sight_range,Sight Range: #
-!dsc_skill,No skill information provided.
+!dsc_skill,No skill information.
 :item_skill,This skill was granted by an item.
 :ability_skill,This skill is an active ability.
 :light_range,Light Radius: #
@@ -78,7 +78,7 @@ dsc_charisma,Charisma determines how many allies you can have. You can control c
 :wait,Wait # seconds!
 :craftables,Click an item to view recipe
 dsc_examine,Use the arrow keys then press Enter to examine target
-:invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day. Investment does not transfer to clones and shapeshifts. You currently have $# invested.
+:invest,Would you like to invest $# into the pension fund? You will receive 10% of your investment every day. You lose all your investment if you die. You currently have $# invested.
 :pickone,Choose an item to grab
 :join,# joins the party.
 :companion,# joins you. Press R to summon.
@@ -87,3 +87,20 @@ dsc_examine,Use the arrow keys then press Enter to examine target
 :death,You die...|Time: #|Your Level: #|Your Gold: #|Revives: #|Press ESC to exit|Press END to restart.
 :victory1,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life.|Time of victory: #|Your Level: #|Your Gold: #|Revives: #|Press ESC to end.
 :victory2,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life. You have achieved freedom!|Time of victory: #|Your Level: #|Your Gold: #|Revives: #|Press ESC to end.
+sign_boss,Route is closed due to evil lord activity in area.
+sign_library,Library
+sign_bank,Banking and Insurance Building
+sign_warn,Do not enter
+sign_tailor,Tailor's Shop
+sign_tavern,Tavern
+sign_mansion,Mansion (*)
+sign_pass,To Mountain Pass
+sign_pass2,Welcome to the Mountain Pass
+sign_warehouse,Warehouse (***)
+sign_forest,Bamboo Forest (****)
+sign_brain,Employees Only
+sign_mines,Mines (**)
+sign_highland,Highlands (*)
+sign_beach,Beach Passage
+sign_hub,The Trader Hub
+sign_temple,Temple (*****)

@@ -21,7 +21,7 @@ class Data:
         Data.set_cache('none', Texture.create(1, 1))
         res = Data.process_raw(Data.read('data/raw/resource.txt'))
         for i in res:
-            Data.initialize_image(i[0], i[1], i[2], i[3])
+            Data.initialize_image(i[0], i[1], i[2], i[3], i[4])
         for i in Data.get_files('data/unit', lambda f: f.endswith('.2d')):
             Data.set_cache(i, Data.get_cache_clip('data/unit/' + i))
         animation = Data.process_raw(Data.read('data/raw/animations.txt'))
@@ -38,7 +38,7 @@ class Data:
 
     @staticmethod
     def read(fdir):
-        with open(Data.direct(fdir), "U", newline='\n') as f:
+        with open(Data.direct(fdir), "U", newline='\n', encoding='UTF-8') as f:
             data = f.readlines()
             return '\n'.join([x.strip().split(' //')[0] for x in data])
 
@@ -136,11 +136,11 @@ class Data:
         return Model(seq, **kwargs)
 
     @staticmethod
-    def initialize_image(name, texture, subset_size, anchor=None):
+    def initialize_image(name, texture, subset_size, anchor=None, pad=0):
         Data.graphics[name] = []
-        image = Data.atlas.add(pyglet.image.load(Data.direct('data/image/' + texture + '.png')))
+        image = pyglet.image.load(Data.direct('data/image/' + texture + '.png'))
         # image = pyglet.image.load(Data.direct('data/image/' + texture + '.png'))
-        image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0])
+        image_grid = pyglet.image.ImageGrid(image, subset_size[1], subset_size[0], row_padding=pad, column_padding=pad)
         seq = pyglet.image.TextureGrid(image_grid)
         i = 0
         for y in range(subset_size[1]):

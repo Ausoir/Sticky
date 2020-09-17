@@ -68,7 +68,7 @@ class World:
             if remove:
                 for i in remove_objs:
                     i.remove()
-            if Global.player.player_mode == 0:
+            if Global.player.editor_mode:
                 line_1 = '0'
             else:
                 line_1 = str(Global.player.days)
@@ -136,7 +136,7 @@ class World:
                     map_data = Data.process_raw(Data.read(map_data_name))
                     self.cache[cache_key] = map_data
                     time_passed = 8
-                if Global.player.player_mode == 0:
+                if Global.player.editor_mode:
                     time_passed = 0
                 terrains = map_data[2][0].split('%')
                 roofs = map_data[3][0].split('%')

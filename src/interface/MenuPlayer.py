@@ -79,10 +79,13 @@ class MenuPlayer(Menu):
         self.window.add(Menu.make(text, lambda _: self.direct(self.menu_character)))
         from src.entity.unit.Humanoid import Humanoid
         if isinstance(host, Humanoid):
-            if host.weapon or host.armor or host.headgear or host.tags.get('money'):
+            if host.weapon or host.armor or host.headgear:
                 self.window.add(Menu.make(Dialog.get('Equipment'), lambda _: self.direct(self.menu_equipment)))
-            if host.weapon is not None or host.inventory.items:
                 self.window.add(Menu.make(Dialog.get('Inventory'), lambda _: self.direct(self.menu_inventory)))
+            elif host.inventory.items:
+                self.window.add(Menu.make(Dialog.get('Inventory'), lambda _: self.direct(self.menu_inventory)))
+            elif host.tags.get('money'):
+                self.window.add(Menu.make(Dialog.get('Equipment'), lambda _: self.direct(self.menu_equipment)))
         if host.get_skills():
             self.window.add(Menu.make(Dialog.get('Skills'), lambda _: self.direct(self.menu_skill)))
         hp_display = Menu.make('', None, color=None)
@@ -115,7 +118,7 @@ class MenuPlayer(Menu):
         level_button = Menu.make(text, rmb, color=None)
         self.window.add(level_button)
         rmb = self.get_message(Global.player.describe_class())
-        self.sub_window.add(Menu.make(host.tags.get('class', 'classless').title(), rmb, color=None))
+        self.sub_window.add(Menu.make(Dialog.get(host.tags.get('class', 'classless').title()), rmb, color=None))
         stats = Data.get_line('raw.txt', 'stat')[1]
         for i in stats:
             tag = host.tags.get(i[1])
@@ -226,12 +229,12 @@ class MenuPlayer(Menu):
         self.window.margin.y = 2
         temp2 = self.sub_window.margin.y
         self.sub_window.margin.y = 2
-        if Global.player.character.weapon:
-            items = [Global.player.character.weapon] + Global.player.character.inventory.items
+        if host.weapon:
+            items = [host.weapon] + host.inventory.items
         else:
-            items = Global.player.character.inventory.items
-        capacity = Global.player.character.tags.get('str', 1)
-        text = 'Weight: ' + str(Global.player.character.get_equipment_weight()) + ' / ' + str(capacity)
+            items = host.inventory.items
+        capacity = host.tags.get('str', 1)
+        text = Dialog.get('Weight') + ': ' + str(host.get_equipment_weight()) + ' / ' + str(capacity)
         capacity_label = Menu.make(text, None, None, height=20, color=None)
         capacity_label.margin.load(0, 0)
         capacity_label.document.set_style(0, 99, dict(font_size=12, bold='True'))

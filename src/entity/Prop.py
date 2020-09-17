@@ -169,7 +169,7 @@ class Prop(Object):
             self.tags.set('alt', original)
 
     def drown(self):
-        if self.tags.get('fly', 0) == 0 and Global.player.player_mode == 1:
+        if self.tags.get('fly', 0) == 0 and not Global.player.editor_mode:
             from src.entity.Particle import Particle
             Particle.make('drown', self.pos)
             self.pos.location.sound.register(self.pos, 5, file='drown')

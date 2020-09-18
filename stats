@@ -360,3 +360,6 @@
 9/14 Adjusted jewelry price
 9/16 Signs reference dialog. Korean patch. Descriptions update.
 9/17 Image grid padding to fix face sprite bleeding
+9/17 Resource padding removed for armor and head - messes up animation. Manually added padding for faces.
+9/17 Added rent. Sound stop on exit. Glow reach disabled.
+---- PUSH - RELEASE v1

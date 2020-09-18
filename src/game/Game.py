@@ -133,6 +133,8 @@ class Game:
                 Script.var['host'] = self
                 Script.execute_code(event)
             if time > 0:
+                if self.tags.increment('rent', -time) <= 0:
+                    Script.execute_code('rent')
                 self.days += time
                 investment = self.tags.get('invest', 0)
                 if investment:

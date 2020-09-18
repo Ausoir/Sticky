@@ -75,3 +75,10 @@ class Sound:
                         self.play_step.play()
                 else:
                     self.play(file)
+
+    def exit(self):
+        if self.play_step.playing:
+            self.play_step.pause()
+        for i in self.players:
+            if i[1].playing:
+                i[1].pause()

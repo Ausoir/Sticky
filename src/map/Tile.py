@@ -153,9 +153,9 @@ class Tile(Space):
     def glow(self, mag):
         self.light = min(13, max(mag, self.light))
         self.light_source = Turn.rounds
-        diff = (Camera.target.pos - self).abs()
-        if diff.x > Global.map_view.sight_range or diff.y > Global.map_view.sight_range_y:
-            self.glow_reach(mag * Turn.rounds)
+        # diff = (Camera.target.pos - self).abs()
+        # if diff.x > Global.map_view.sight_range or diff.y > Global.map_view.sight_range_y:
+        #     self.glow_reach(mag * Turn.rounds)
 
     def glow_reach(self, prev_diff):
         if self.light > 0:

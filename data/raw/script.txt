@@ -42,6 +42,7 @@ ev_4,[[v,1,time],[greater,*1,480]],[[=,1,event_7],[script,#raid],[say,You see la
 ev_5,[[v,1,tag,*player,lvl],[greater,*1,500]],[[=,1,event_1],[script,#raid],[say,You feel a chill coming down on your spine.]],[]
 ev_6,[[v,1,time],[greater,*1,48]],[[=,1,event_4],[script,#raid],[say,You hear buzzing sounds.]],[]
 ev_7,[[v,1,time],[greater,*1,72]],[[=,1,event_5],[script,#raid],[say,You hear bustling noise.]],[]
+rent,[],[[settag,*game,rent,720],[settag,*player,money,0],[say,Your landlord claims all your wealth as rent.]],[]
 hourpass,[],[[v,1,time],[v,1,+,*1,4],[time,*1]],[]
 busy,[],[[say,This unit is busy.]],[]
 travel,[],[[v,2,tag,*1,tox],[v,3,tag,*1,toy],[teleport,*2,*3]],[]

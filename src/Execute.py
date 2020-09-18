@@ -159,6 +159,7 @@ class Execute(pyglet.window.Window):
         self.dispatch_events()
         Global.world.save()
         Global.player.save()
+        Global.world.location.sound.exit()
         self.on_close()
 
 

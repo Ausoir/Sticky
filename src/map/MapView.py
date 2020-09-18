@@ -109,24 +109,22 @@ class MapView:
                     if this_tile.roof == 0:
                         this_tile.light = max(this_tile.light, self.brightness)
                     this_tile.update_light()
-                    in_screen = row_range[0] <= pos_y <= row_range[1] and col_range[0] <= pos_x <= col_range[1]
-                    if in_screen:
-                        if self.draw_tiles[index].visible:
-                            if this_tile.light > 7:
-                                self.shadows[index].set_color(self.overlay.fade)
-                            elif this_tile.light > 4:
-                                self.shadows[index].set_color(dim_light)
-                            else:
-                                self.shadows[index].set_color(self.overlay.minimum)
-                            for thing in this_tile.things:
-                                thing.update()
-                            for thing in this_tile.others:
-                                thing.update()
-                        vec_x, vec_y = Camera.get_relative_pos(pos_x * Global.BLOCK,
-                                                               pos_y * Global.BLOCK)
-                        self.draw_tiles[index].place(vec_x + Global.HALF_BLOCK, vec_y - Global.HALF_BLOCK)
-                        self.shadows[index].update(x=vec_x, y=Global.DISPLAY[1] - vec_y)
-                        index += 1
+                    if self.draw_tiles[index].visible:
+                        if this_tile.light > 7:
+                            self.shadows[index].set_color(self.overlay.fade)
+                        elif this_tile.light > 4:
+                            self.shadows[index].set_color(dim_light)
+                        else:
+                            self.shadows[index].set_color(self.overlay.minimum)
+                        for thing in this_tile.things:
+                            thing.update()
+                        for thing in this_tile.others:
+                            thing.update()
+                    vec_x, vec_y = Camera.get_relative_pos(pos_x * Global.BLOCK,
+                                                           pos_y * Global.BLOCK)
+                    self.draw_tiles[index].place(vec_x + Global.HALF_BLOCK, vec_y - Global.HALF_BLOCK)
+                    self.shadows[index].update(x=vec_x, y=Global.DISPLAY[1] - vec_y)
+                    index += 1
         tx = self.draw_tiles[0].x - Global.OFFSET[0] - Global.BLOCK
         ty = Global.DISPLAY[1] - (self.draw_tiles[0].y - Global.OFFSET[1]) - Global.HALF_BLOCK - Global.BLOCK
         self.tape.update(x=tx, y=ty)

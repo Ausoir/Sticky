@@ -75,8 +75,8 @@ tourguide4,2,The stool is great\,\ but try to find a quarterstaff. It is a great
 tourguide5,1,Look\,\ I know that you just can't wait to run out the east gate and kill the big boss. But with that attitude\,\ you won't make it far. Try taking it a bit slower. Level up\,\ find good loot\,\ and get some knowledge of this world first.
 trashman,3,You got anything for me? huh?,[Move,#swap],[Sell,>menu>supply],[Hire,>menu>hire]
 rando,3,I'm a desperate resident surviving day to day looting from outlaws and wildlife... just like you.,[Move,#swap],[Hire,>menu>hire]
-lord,2,I was the former evil lord before I retired. Everyone hated me\,\ but they don't realize that humans are never in shortage.,Sure,!lord2
-lord2,3,I can't afford to get hurt. My pension didn't adjust for inflation\,\ you see.,[Move,#swap],[Hire,>menu>hire]
+lord,2,I was the former evil lord before I retired. Many people like you wanted to slay me\,\ but I got through pretty well.,I see.,!lord2
+lord2,3,I can't afford to get hurt anymore. My pension didn't adjust for inflation.,[Move,#swap],[Hire,>menu>hire]
 poet,2,What do words mean in this deafening orderly presence?. Speak softly\,\ just to be colored stain and heard like stench?,What?,!poet2
 poet2,3,I had looked to zealots like you\,\ but now I only see deaf tools\,\ hauled to the fire\,\ led by gold.,[Move,#swap],[Diagnose,>menu>effects],[Cure,cure],[Buy,>menu>shop]
 chef moe,2,You look like a good enough sort. I am Chef Moe\,\ I used to run a restaurant... But honestly\,\ honest work seems to be out of order. I still sell food\,\ if that is something you need.,Proceed,!chef moe2

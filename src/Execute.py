@@ -132,7 +132,6 @@ class Execute(pyglet.window.Window):
         self.setting['fullscreen'] = 1 if self.fullscreen else 0
         result = Dialog.dict(self.setting)
         Data.write('data/setting.txt', result.replace(',', '\n').replace(':', ',')[1:][:-1])
-        self.close()
 
     def loop(self):
         while self.is_running:
@@ -145,6 +144,7 @@ class Execute(pyglet.window.Window):
                 self.render()
                 self.frame_last = current_time
             self.dispatch_events()
+        self.close()
 
     def render(self):
         self.clear()

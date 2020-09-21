@@ -7,7 +7,7 @@ Corpse,Prop,_g_11_0,[p:1,$:1,ob:0,mut:Skull,zombie:1],[]
 Marker,Marker,none,[p:1,ob:0,forms:_g_15_0&_g_16_0&_g_17_0&_g_18_0],[]
 Flame,Prop,scorch,[p:5,ob:4,fuel:4],[[Burn,-1,0],[Script,60,remove]]
 Fireball,Prop,fireball,[P:1,p:1,fuel:9],[[Glow,-1,3],[Script,4,remove]]
-Arrow,Prop,_g_19_0,[p:1],[]
+Arrow,Prop,_g_19_0,[p:1],[[Script,4,remove]]
 Mine,Mine,_g_10_0,[p:1,ob:0],[],Scorch
 Plant,Specie,0,[seed:-1,p:1,$:1,alchemy:1],[]
 Bread,Food,_half_0_3,[$:1,p:1,hunger:3000,time:-48],[]

@@ -1,6 +1,6 @@
 gfx,_effect,[32,4],0,1
 g,_single,[36,9],0,0
 g2,_oversize,[16,1],[20,20],1
-half,_half,[18,7],0,0
+half,_half,[18,7],0,1
 wear,unit/armor,[8,4],0,0
 blade,_blade,[1,20],[2,4],1

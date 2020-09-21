@@ -31,7 +31,7 @@ tiles,[0,Resident,Vendor,Farmer,Soldier,Hireling,Insurer,Banker,Supplier,Pawnbro
 andesite,[Crate,Sack,Alchemy Bag,Web,Rat,Rat,Rat,Spider,Spider,Spider,Venomous Spider]
 marble,[Stool,Resident,Resident,Body Bag,Candle]
 grave,[Candle,Plate,Bottle,Casual Wear,Pearl,Salt,Paper,Tomb,Flower,Graverobber,Graverobber,Graverobber,Graverobber,Graverobber]
-grave_night,[Tomb,Shade,Wraith]
+grave_night,[0,Candle,Tomb,Tomb,Shade,Wraith,Shade,Wraith,Skeleton,Skeleton,Skeleton,Manual]
 taint,[0,0,0,Skeleton,Skeleton,Skeleton,Skeleton,Wraith]
 muck,[0,0,0,0,0,0,Candle,Seat,Cultist,Cultist,Cultist,Fanatic,Sacrifice]
 corruption,[0,0,0,0,0,0,Worm,Mole,Zombie,Shade]

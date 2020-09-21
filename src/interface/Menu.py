@@ -2,6 +2,7 @@ from src.game import Global
 from src.game.Script import Script
 from src.interface.Window import Window
 from src.tools.Data import Data
+from src.tools.Dialog import Dialog
 
 
 class Menu:
@@ -85,7 +86,7 @@ class Menu:
     @staticmethod
     def make(text, callback, name=0, color=Window.fore_color2, width=160, height=40, resize=False):
         button = Window(0, 0, width=width, height=height, name=name, color=color, multi_line=resize)
-        button.set_text(text)
+        button.set_text(Dialog.get(text))
         button.on_click = callback
         return button
 

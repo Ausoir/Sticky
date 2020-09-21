@@ -363,3 +363,6 @@
 9/17 Resource padding removed for armor and head - messes up animation. Manually added padding for faces.
 9/17 Added rent. Sound stop on exit. Glow reach disabled.
 ---- PUSH - RELEASE v1
+9/20 Arrow lifetime. Menu button translate. Korean patch.
+9/20 Tweak close mechanism. Face padding and image adjust.
+---- PUSH - Release v1.1

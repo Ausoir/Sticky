@@ -41,20 +41,22 @@ class Appendage(Limb):
             self.form.scale_y *= -1
         self.form.image.anchor_x = self.form.width / 2
         if self.flip_y:
-            self.form.image.anchor_y = 3
+            self.form.image.anchor_y = 2
         else:
-            self.form.image.anchor_y = self.form.height - 3
+            self.form.image.anchor_y = self.form.height - 2
 
     def place(self, x, y):
         diff = self.lower_joint - self.upper_joint
         rotation = diff.get_atan() - 90
+        lower_x = x + self.upper_joint.x
+        lower_y = y - self.upper_joint.y
         if self.resize:
             length = diff.distance()
             if abs(length) > 2:
                 scale_y = length / (self.form.height / self.form.scale_y)
-                self.form.place(x + self.upper_joint.x, y - self.upper_joint.y, rotation=rotation, scale_y=scale_y)
+                self.form.place(lower_x, lower_y, rotation=rotation, scale_y=scale_y)
                 return
-        self.form.place(x + self.upper_joint.x, y - self.upper_joint.y, rotation=rotation)
+        self.form.place(lower_x, lower_y, rotation=rotation)
 
     def flip(self, side, direction):
         if side <= 0:

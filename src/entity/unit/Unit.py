@@ -181,7 +181,7 @@ class Unit(Container):
                 backstab = True
             if not backstab:
                 hitter_direction = self.pos.get_face(hitter.pos)
-                if self.direction == hitter_direction and self.get_skill('block') and self.action.delay <= 1:
+                if self.direction == hitter_direction and self.get_skill('block') and self.action.delay == 0:
                     concentration = self.states.get('Concentration')
                     if concentration:
                         self.pos.location.sound.register(self.pos, 3, file='hit_armor')

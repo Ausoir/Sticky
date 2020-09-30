@@ -31,7 +31,7 @@ class MenuAll(MenuPlayer):
             if Global.player.pay(arg[1]):
                 sold = host.inventory.take_item(arg[0])
                 Global.player.character.pick_up(sold)
-                Global.main.monologue.set(Dialog.get(':transacted'))
+                Global.text.set(Dialog.get(':transacted'))
         host = self.var
         host.load_content()
         if not host.inventory.items:
@@ -62,9 +62,9 @@ class MenuAll(MenuPlayer):
             if receipt > 0:
                 host.inventory.take_item(arg[2]).remove()
                 Global.player.character.tags.increment('money', receipt)
-                Global.main.monologue.set(Dialog.get(':transacted'))
+                Global.text.set(Dialog.get(':transacted'))
             else:
-                Global.main.monologue.set(Dialog.get(':reqnotmet'))
+                Global.text.set(Dialog.get(':reqnotmet'))
         host = self.var
         host.load_content()
         if host.inventory.items:
@@ -88,10 +88,10 @@ class MenuAll(MenuPlayer):
             if Global.player.character.weapon == arg[0]:
                 Global.player.character.drop().remove()
                 Global.player.character.tags.increment('money', arg[1])
-                Global.main.monologue.set(Dialog.get(':pawned', [arg[1]]))
+                Global.text.set(Dialog.get(':pawned', [arg[1]]))
                 host.tags.set('#', '!pawnbroker2')
             else:
-                Global.main.monologue.set(Dialog.get(':reqnotmet'))
+                Global.text.set(Dialog.get(':reqnotmet'))
         host = self.var
         item = Global.player.character.weapon
         if item and item.get_value() > 1:
@@ -113,7 +113,7 @@ class MenuAll(MenuPlayer):
                 host.tags.set('$', 0)
                 storing = Global.player.character.drop()
                 host.inventory.attempt_add(storing)
-                Global.main.monologue.set(Dialog.get(':transacted'))
+                Global.text.set(Dialog.get(':transacted'))
         item = Global.player.character.weapon
         host = self.var
         host.load_content()
@@ -137,7 +137,7 @@ class MenuAll(MenuPlayer):
             if Global.player.pay(cost):
                 Global.player.tags.increment('invest', cost)
                 Global.player.tags.set('investt', Global.player.days % 24)
-                Global.main.monologue.set(Dialog.get(':transacted'))
+                Global.text.set(Dialog.get(':transacted'))
         cost = (self.var.get_seed() % 7 + 1) * self.var.tags.get('cost')
         text = Dialog.get(':invest', [cost, Global.player.tags.get('invest', 0)])
         self.var.tags.set('#', '!banker2')
@@ -151,14 +151,14 @@ class MenuAll(MenuPlayer):
                 if Global.player.pay(cost) and Global.player.try_sleep(1):
                     host.tags.increment('cost', 2)
                     player.states.add('Revive', -1)
-                    Global.main.monologue.set(Dialog.get(':transacted'))
+                    Global.text.set(Dialog.get(':transacted'))
                     Global.player.tags.set('brained', 1)
             else:
-                Global.main.monologue.set(Dialog.get('!eat'))
+                Global.text.set(Dialog.get('!eat'))
 
         def cancel(arg):
             revival.end()
-            Global.main.monologue.set(Dialog.get(':transacted'))
+            Global.text.set(Dialog.get(':transacted'))
 
         host = self.var
         player = Global.player.character
@@ -197,7 +197,7 @@ class MenuAll(MenuPlayer):
                 host.action.set('grab')
             elif arg == 5:
                 Global.player.companions.append(host.__str__())
-                Global.main.monologue.set(Dialog.get(':companion', [host.get_display_name()]))
+                Global.text.set(Dialog.get(':companion', [host.get_display_name()]))
                 host.remove()
             elif arg == 6:
                 host.tags.remove('ai')
@@ -234,7 +234,7 @@ class MenuAll(MenuPlayer):
         def learn(arg):
             if Global.player.is_learnable() and Global.player.pay(cost):
                 Global.player.character.tags.set('ab' + str(count), ability)
-                Global.main.monologue.set(Dialog.get(':transacted'))
+                Global.text.set(Dialog.get(':transacted'))
         host = self.var
         cost = host.tags.get('cost2', 0)
         ability = host.tags.get('ab1')
@@ -249,7 +249,7 @@ class MenuAll(MenuPlayer):
                 elif not Global.player.character.tags.get('ab3'):
                     count = 3
                 else:
-                    Global.main.monologue.set(Dialog.get('!learnfull'))
+                    Global.text.set(Dialog.get('!learnfull'))
                     return
                 self.get_prompt(Dialog.get(':learnab?', [ability, cost, count]), Dialog.get('Learn'), learn)()
             else:

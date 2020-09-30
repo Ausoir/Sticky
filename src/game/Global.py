@@ -13,6 +13,7 @@ SCREEN_TILES = None
 CURRENT_OFFSET = (0, 0)
 OFFSET = (10000, 10000)
 menu = None
+text = None
 r = None
 r_t = None
 blank_form = None

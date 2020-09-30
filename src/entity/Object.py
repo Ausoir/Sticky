@@ -103,9 +103,3 @@ class Object(Image):
 
     def update_vec(self):
         self.vec.load(self.pos.get_center())
-
-    def adjust_pos(self, x, y):
-        self.relocate(x=self.pos.x + x, y=self.pos.y + y)
-        self.vec.x += x * Global.BLOCK
-        self.vec.y += y * Global.BLOCK
-        self.bound(False)

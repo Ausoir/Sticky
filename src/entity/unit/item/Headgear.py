@@ -40,7 +40,7 @@ class Talisman(Headgear):
         super().wear(start)
         from src.game import Global
         if not start and self.host == Global.player.character:
-            Global.main.monologue.set(Dialog.get(':talisman'))
+            Global.text.set(Dialog.get(':talisman'))
 
     def describe(self):
         r = super().describe()

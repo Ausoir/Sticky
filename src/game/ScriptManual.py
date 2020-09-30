@@ -34,7 +34,7 @@ class ScriptManual:
             var.pilot.load('ally')
             var.tags.set('#', '>menu>order')
             if host == Global.player.character:
-                Global.main.monologue.set(Dialog.get(':join', [var.get_display_name()]))
+                Global.text.set(Dialog.get(':join', [var.get_display_name()]))
 
     @staticmethod
     def companion(host, var):
@@ -43,7 +43,7 @@ class ScriptManual:
             for thing in front.things:
                 if thing.tags.get('summon', 0) == 1 and thing.tags.get('p', 0) > 0:
                     Global.player.companions.append(thing.__str__())
-                    Global.main.monologue.set(Dialog.get(':companion', [thing.get_display_name()]))
+                    Global.text.set(Dialog.get(':companion', [thing.get_display_name()]))
                     thing.remove()
                     return
         if Global.player.companions:
@@ -79,17 +79,35 @@ class ScriptManual:
                             mhp = i.tags.get('P')
                             if mhp:
                                 i.tags.set('p', mhp)
-                Global.main.monologue.set(Dialog.get(':repair'))
+                Global.text.set(Dialog.get(':repair'))
                 item.remove()
                 return
-        Global.main.monologue.set(Dialog.get(':req_item', ['Iron']))
+        Global.text.set(Dialog.get(':req_item', ['Iron']))
+
+    @staticmethod
+    def taste(host, var):
+        seed = var.get_seed()
+        density = seed % 100
+        acidity = density - (abs(math.sin(seed % 101)) * density)
+        toxicity = density - (abs(math.sin(seed % 102)) * density)
+        from src.tools.Data import Data
+        data = Data.get_line('raw.txt', 'potions')[1]
+        effect_num = len(data) - 1
+        if acidity < toxicity:
+            effect = acidity / toxicity
+        else:
+            effect = toxicity / acidity
+        effect = int(effect * effect_num)
+        var.decay(1)
+        host.states.add(data[effect][0], data[effect][1], data[effect][2])
+        Global.world.location.sound.register(host.pos, 0, file='eat')
 
     @staticmethod
     def alchemy(host, var):
         if host.get_skill('alchemy'):
             if host.weapon and host.weapon.tags.get('alchemy'):
                 Global.world.location.sound.register(host.pos, 0, file='mix')
-                seed = host.weapon.tags.get('seed')
+                seed = host.weapon.get_seed()
                 density = seed % 100
                 acidity = density - (abs(math.sin(seed % 101)) * density)
                 toxicity = density - (abs(math.sin(seed % 102)) * density)
@@ -131,7 +149,7 @@ class ScriptManual:
                     require.append('<' + Dialog.get('Ingredients') + '>')
                 Global.menu.get_message(Dialog.get(':req_item', [','.join(require)]))()
         else:
-            Global.main.monologue.set(Dialog.get(':req_skill', [Dialog.get('Alchemy')]))
+            Global.text.set(Dialog.get(':req_skill', [Dialog.get('Alchemy')]))
 
     @staticmethod
     def carve(host, var):
@@ -174,7 +192,7 @@ class ScriptManual:
                     require.append('<' + Dialog.get('Spell') + '>')
                 Global.menu.get_message(Dialog.get(':req_item', [','.join(require)]))()
         else:
-            Global.main.monologue.set(Dialog.get(':req_skill', [Dialog.get('Carving')]))
+            Global.text.set(Dialog.get(':req_skill', [Dialog.get('Carving')]))
 
     @staticmethod
     def draw(host, var):
@@ -184,7 +202,7 @@ class ScriptManual:
             marker.tags.set('seed', var.get_seed())
             marker.trigger()
         else:
-            Global.main.monologue.set(Dialog.get(':req_skill', [Dialog.get('Conjuration')]))
+            Global.text.set(Dialog.get(':req_skill', [Dialog.get('Conjuration')]))
 
     @staticmethod
     def shapeshift(host, var, data=None):
@@ -235,7 +253,7 @@ class ScriptManual:
                         var.decay(1)
                     return
         else:
-            Global.main.monologue.set(Dialog.get('!observe', [-wait]))
+            Global.text.set(Dialog.get('!observe', [-wait]))
 
     @staticmethod
     def reclaim(host, var):

@@ -196,7 +196,7 @@ class Script:
             Script.execute_code(arg[1])
         elif arg[0] == 'build':
             arg[1].pos.set_terrain(arg[2])
-            Global.world.dirty = True
+            Global.world.save()
             Global.world.location.process_terrain()
         elif arg[0] == 'spawn':
             from src.entity.Stock import Stock
@@ -212,7 +212,7 @@ class Script:
         elif arg[0] == 'dialog':
             Global.menu.topic(arg[1:])
         elif arg[0] == 'say':
-            Global.main.monologue.set(arg[1])
+            Global.text.set(arg[1])
         elif arg[0] == 'remove':
             arg[1].remove()
         elif arg[0] == 'buff':

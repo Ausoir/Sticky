@@ -32,7 +32,6 @@ class Execute(pyglet.window.Window):
         self.frame_last = time()
         pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
         self.init_other('editor' in args)
-        self.monologue = Textbox()
         self.is_running = True
 
         glEnable(pyglet.gl.GL_BLEND)
@@ -68,12 +67,19 @@ class Execute(pyglet.window.Window):
         Global.world = World()
         Global.player = Game(mode=editor)
         Global.DISPLAY = (self.setting['width'], self.setting['height'])  # Menu position fix
+        Global.CENTER = (int(Global.DISPLAY[0] / 2), int(Global.DISPLAY[1] / 2))
+        Global.text = Textbox()
         Global.player.initialize()
 
     def set_fullscreen(self, fullscreen=True, screen=None, mode=None,
                        width=None, height=None):
-        super().set_fullscreen(fullscreen, width=width, height=height)
-        self.set_location(0, 0)
+        if width is None:
+            width = self.setting['res_x']
+        if height is None:
+            height = self.setting['res_y']
+        super().set_fullscreen(fullscreen, screen=screen, mode=mode, width=width, height=height)
+        if fullscreen:
+            self.set_location(0, 0)
         self.clear()
 
     def on_text(self, text):
@@ -123,7 +129,7 @@ class Execute(pyglet.window.Window):
         glTranslatef(Global.CURRENT_OFFSET[0] - Global.OFFSET[0], Global.CURRENT_OFFSET[1] - Global.OFFSET[1], 0)
         Global.CURRENT_OFFSET = Global.OFFSET
         Global.player.set_darkness()
-        self.monologue.on_resize()
+        Global.text.on_resize()
 
     def on_deactivate(self):
         Global.player.control.clear_press()
@@ -149,7 +155,7 @@ class Execute(pyglet.window.Window):
     def render(self):
         self.clear()
         pyglet.clock.tick()
-        self.monologue.update()
+        Global.text.update()
         Global.draw_group.draw()
         if self.context:
             self.flip()

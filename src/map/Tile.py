@@ -49,7 +49,7 @@ class Tile(Space):
         self.index = 0
         self.set_terrain(terrain)
         self.direction = 0
-        self.sub_image = None
+        self.sub_image = 0
         self.things = List()
         self.others = List()
         self.roof = 0
@@ -70,8 +70,6 @@ class Tile(Space):
     def set_index(self, index):
         self.index = index
         self.direction = 0
-        if self.get_extend() > 0:
-            self.sub_image = 0
 
     def get_face(self, pos):
         diff = pos - self

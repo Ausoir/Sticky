@@ -244,7 +244,7 @@ class Burn(Buff):
                 if self.host.pos.has_tag('wood') and Global.r.rand_int(1, 8) == 1:
                     Stock.make('Plank', self.host.pos)
                     self.host.pos.set_terrain('.')
-                    Global.world.dirty = True
+                    Global.world.save()
                 else:
                     x = Global.r.rand_int(-1, 1)
                     y = Global.r.rand_int(-1, 1)
@@ -775,10 +775,14 @@ class Nutrition(Buff):
             return super().is_valid()
 
     def on_stack(self, duration, var):
-        pass
+        self.duration += duration
+        self.var += var
 
-    def on_start(self):
-        self.host.tags.increment('hunger', -self.var)
+    def on_update(self):
+        if self.host.tags.get('hunger'):
+            self.host.tags.increment('hunger', -self.var)
+        if self.effect(14):
+            self.host.form.colorize([250, 150, 30])
 
 
 class Ego(Buff):

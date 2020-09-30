@@ -180,10 +180,6 @@ class Pilot:
             else:
                 self.host.input(action)
 
-    def adjust_pos(self, diff):
-        if self.task:
-            self.task.adjust_pos(diff)
-
 
 class Routes:
     def __init__(self, host, destroy):

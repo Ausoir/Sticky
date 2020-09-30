@@ -276,6 +276,10 @@ class Actions:
         else:
             self.interact_on(self.host.pos)
 
+    def drop(self):
+        if self.humanoid:
+            self.host.drop()
+
     def sheathe(self):
         if self.humanoid:
             if self.host.weapon:
@@ -332,9 +336,10 @@ class Actions:
             front.set_terrain('.')
             front.connect_connect()
             front.update_update_shader()
-            Global.world.dirty = True
+            Global.world.save()
 
-    def ability(self, ability):
+    def ability(self):
+        ability = self.host.tags.get('ab1')
         if ability:
             from src.entity.unit.item.Spell import Spell
             spell = Spell.get(ability)
@@ -342,30 +347,20 @@ class Actions:
                 exhaustion = self.host.states.get('Exhaustion')
                 from src.game.Turn import Turn
                 cooldown = spell.get_cooldown() * Turn.rounds
-                maximum = Turn.rounds * 100
                 cdr = self.host.tags.get('cdr', 0) + 1
                 if cdr > 1:
                     cooldown = int(cooldown / cdr)
                 elif cdr <= 0:
                     cooldown = cooldown * (-cdr + 2)
-                if not exhaustion or exhaustion.duration + cooldown < maximum:
+                if not exhaustion:
                     self.host.states.trigger(['act', 'ability'])
                     if cooldown > 0:
                         self.host.states.add('Exhaustion', cooldown)
                     spell.cast(self.host)
                 elif self.host == Global.player.character:
                     from src.tools.Dialog import Dialog
-                    wait = int((exhaustion.duration + cooldown - maximum) / Turn.rounds)
-                    Global.main.monologue.set(Dialog.get(':wait', [wait]), time=20)
-
-    def ability1(self):
-        self.ability(self.host.tags.get('ab1'))
-
-    def ability2(self):
-        self.ability(self.host.tags.get('ab2'))
-
-    def ability3(self):
-        self.ability(self.host.tags.get('ab3'))
+                    wait = int(exhaustion.duration / Turn.rounds)
+                    Global.text.set(Dialog.get(':wait', [wait]), time=20)
 
     def talisman(self):
         if self.humanoid and self.host.headgear:

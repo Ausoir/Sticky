@@ -154,7 +154,7 @@ class Game:
             self.sleep(arg)
             return True
         else:
-            Global.main.monologue.set(Dialog.get('!eat'))
+            Global.text.set(Dialog.get('!eat'))
 
     def set_darkness(self):
         time = self.days % 24
@@ -189,6 +189,7 @@ class Game:
         if not self.editor_mode:
             self.editor_mode = True
         else:
+            Global.text.set('', time=1)
             self.player.remove()
             self.editor_mode = False
         self.initialize_mode()
@@ -217,21 +218,18 @@ class Game:
             Global.map_view.turn()
 
     def is_safe(self):
-        for unit in self.character.get_team(ally=False):
+        for unit in Global.world.location.population.get_units():
             if unit.tags.get('ai'):
-                diff = (unit.pos - self.character.pos).difference()
-                if diff <= 2:
-                    Global.main.monologue.set(Dialog.get('!safe'))
-                    return False
-                elif diff <= 13 and unit.pilot.task == unit.pilot.attack and unit.pilot.task.target == self.character:
-                    Global.main.monologue.set(Dialog.get('!safe'))
-                    return False
+                if unit.pilot.task == unit.pilot.attack and unit.pilot.task.target == self.character:
+                    if unit.pos.is_seen():
+                        Global.text.set(Dialog.get('!safe'))
+                        return False
         return True
 
     def pay(self, amount):
         if amount <= 0 or self.character.tags.require('money', amount):
             return True
-        Global.main.monologue.set(Dialog.get('!pay', [amount]))
+        Global.text.set(Dialog.get('!pay', [amount]))
 
     def is_sociable(self, arg, notice=True):
         count = len(self.companions) * 2
@@ -241,12 +239,12 @@ class Game:
         if count + arg <= self.character.tags.get('cha', 0):
             return True
         if notice:
-            Global.main.monologue.set(Dialog.get('!sociable', [count, self.character.tags.get('cha', 0)]))
+            Global.text.set(Dialog.get('!sociable', [count, self.character.tags.get('cha', 0)]))
 
     def is_bright(self):
         if self.character.pos.light > 0:
             return True
-        Global.main.monologue.set(Dialog.get('!bright'))
+        Global.text.set(Dialog.get('!bright'))
 
     def is_learnable(self):
         intelligence = self.character.tags.get('int', 0)
@@ -259,7 +257,7 @@ class Game:
             current += 1
         if intelligence > current:
             return True
-        Global.main.monologue.set(Dialog.get('!learn_int'))
+        Global.text.set(Dialog.get('!learn_int'))
 
     def describe_class(self):
         persona = self.character.tags.get('class', 'classless')

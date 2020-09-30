@@ -83,7 +83,7 @@ dsc_examine,Use the arrow keys then press Enter to examine target
 :join,# joins the party.
 :companion,# joins you. Press R to summon.
 :neutral,This unit is not hostile.
-:talisman,Press 4 to activate talisman.
+:talisman,Press F to activate talisman.
 :death,You die...|Time: #|Your Level: #|Your Gold: #|Revives: #|Press ESC to exit|Press END to restart.
 :victory1,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life.|Time of victory: #|Your Level: #|Your Gold: #|Revives: #|Press ESC to end.
 :victory2,You have slain the evil lord! You receive enough money to freely live as you please for the rest of your life. You have achieved freedom!|Time of victory: #|Your Level: #|Your Gold: #|Revives: #|Press ESC to end.

@@ -15,12 +15,11 @@ DOWN,down2
 ENTER,#examine
 SPACE,use
 Q,grab
+LS+Q,drop
 E,sheathe
 R,##companion
-_1,ability1
-_2,ability2
-_3,ability3
-_4,talisman
+LS+SPACE,ability
+F,talisman
 Z,#equipment
 X,#inventory
 C,#skill

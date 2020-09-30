@@ -63,8 +63,6 @@ class Stock:
             return Marker
         elif name == 'Food':
             return Food
-        elif name == 'Corpse':
-            return Corpse
         elif name == 'Manual':
             return Manual
         elif name == 'Potion':

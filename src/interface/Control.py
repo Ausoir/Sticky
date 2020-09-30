@@ -82,7 +82,7 @@ class Control:
 
     def on_text(self, key):
         if self.text_mode:
-            Global.main.monologue.set(Global.main.monologue.text.text + key)
+            Global.text.set(Global.text.text.text + key)
 
     def input(self, code):
         if self.text_mode:
@@ -90,10 +90,10 @@ class Control:
             if code in self.keymap and self.keymap[code] == 'text':
                 self.text_mode = False
                 self.output('command')
-                Global.main.monologue.set('')
+                Global.text.set('')
             elif code > 5:
                 if code == pyglet.window.key.BACKSPACE:
-                    Global.main.monologue.set(Global.main.monologue.text.text[:-1])
+                    Global.text.set(Global.text.text.text[:-1])
         else:
             if Global.menu.visible == 1:
                 if Global.menu.input(code):
@@ -164,7 +164,7 @@ class Control:
                     Global.player.switch()
                 elif command == 'text':
                     self.clear_press(code)
-                    Global.main.monologue.set('')
+                    Global.text.set('')
                     self.text_mode = True
                 elif Global.menu.visible != 1:
                     if command == 'left2':

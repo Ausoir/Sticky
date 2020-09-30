@@ -299,7 +299,7 @@ class Humanoid(Unit):
                 from src.tools.Dialog import Dialog
                 params = [self.get_equipment_weight(), self.tags.get('str', 1), item.get_weight()]
                 if self == Global.player.character:
-                    Global.main.monologue.set(Dialog.get('!heavy', params))
+                    Global.text.set(Dialog.get('!heavy', params))
 
     def get_damage(self):
         r = super().get_damage()

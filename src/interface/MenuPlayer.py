@@ -104,7 +104,7 @@ class MenuPlayer(Menu):
                 if arg == 'P':
                     host.tags.increment('p', 1)
                 host.tags.increment('lvl', 1)
-                Global.main.monologue.set(Dialog.get(':stat_applied', [level + 1]))
+                Global.text.set(Dialog.get(':stat_applied', [level + 1]))
                 from src.entity.Particle import Particle
                 Particle.make('barrier3', host.pos)
                 Global.world.location.sound.register(host.pos, 0, file='level')

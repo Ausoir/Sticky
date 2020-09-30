@@ -27,9 +27,6 @@ class Idle:
             return False
         return True
 
-    def adjust_pos(self, arg):
-        pass
-
 
 class TileTask(Idle):
     def __init__(self, pilot):
@@ -55,10 +52,6 @@ class TileTask(Idle):
                 self.pilot.set_task(self.pilot.default)
                 return False
             return True
-
-    def adjust_pos(self, arg):
-        if self.target:
-            self.target = self.target.get_neighbor(arg.x, arg.y)
 
 
 class TargetTask(TileTask):
@@ -86,9 +79,6 @@ class TargetTask(TileTask):
                 self.pilot.set_task(self.pilot.default)
                 return False
             return True
-
-    def adjust_pos(self, arg):
-        pass
 
 
 class Return(Idle):
@@ -345,7 +335,7 @@ class Attack(TargetTask):
                         return
                 ability = self.host.tags.get('ab1')
                 if ability and Global.r.rand_int(0, 5) == 0:
-                    self.host.action.set('ability1')
+                    self.host.action.set('ability')
                 else:
                     self.pilot.move.target = self.target.pos
                     self.pilot.move.perform()

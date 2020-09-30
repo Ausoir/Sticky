@@ -129,8 +129,8 @@ class Specie(Item):
             cue = Data.get_line('raw.txt', self.name.lower())[1]
             arg = cue[seed % len(cue)]
             self.set_form(arg)
-            luminance = seed % 240
-            if luminance < 3:
+            luminance = seed % 300
+            if luminance <= 5:
                 self.states.add('Glow', -1, luminance + 1)
             fuel = seed % 64
             if fuel <= 8:
@@ -337,7 +337,7 @@ class Food(Item):
             self.host.action.act('eat', 8)
             self.host.action.on_finish = self.eat
         else:
-            Global.main.monologue.set(Dialog.get('!expire'))
+            Global.text.set(Dialog.get('!expire'))
             from src.entity.Stock import Stock
             Stock.make('Trash', self.pos)
             self.die()
@@ -380,7 +380,7 @@ class Manual(Item):
         if self.host and self.host == Global.player.character:
             skill = self.tags.get('skill').lower()
             if Global.player.is_learnable() and Global.player.is_bright() and Global.player.sleep(1):
-                Global.main.monologue.set(Dialog.get(':learn', [skill]))
+                Global.text.set(Dialog.get(':learn', [skill]))
                 self.host.skills.append(skill)
                 self.die()
 

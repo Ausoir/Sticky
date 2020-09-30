@@ -29,7 +29,6 @@ class World:
         self.last_cells = self.cells
         self.dirty = False
         self.map_biome = None
-        self.cache = {}
 
     def set_seed(self, seed):
         self.map_biome = Biome(seed)
@@ -76,11 +75,6 @@ class World:
             line_3 = '%'.join(cell_tiles)
             line_4 = '%'.join(cell_roofs)
             write = '\n'.join([line_1, line_2, line_3, line_4])
-            if map_name in self.cache:
-                if remove:
-                    del self.cache[map_name]
-                else:
-                    self.cache[map_name] = Data.process_raw(write)
             Data.write('save/' + map_name + '.map', write)
 
     def load_cells(self, x, y):
@@ -88,7 +82,6 @@ class World:
         abandoned = []
         added = []
         if self.dirty:
-            self.cache = {}
             added = World.ALL
             abandoned = World.ALL
             self.dirty = False
@@ -104,10 +97,9 @@ class World:
         return added
 
     def load_bubble(self, added, time=-1):
-        obj = []
-        others = []
         explore = 0
-        for cell_num, cell_coord in enumerate(self.cells):
+        for cell_num in added:
+            cell_coord = self.cells[cell_num]
             map_save_name = 'save/' + World.coord_to_map_name(cell_coord) + '.map'
             map_data_name = 'data/map/' + World.coord_to_map_name(cell_coord) + '.map'
             start_coord = World.get_chunk_coord(cell_num)
@@ -121,20 +113,12 @@ class World:
                         tile.roof = 0
                         tile.light_source = 0
                         tile.light = 0
-                        obj += tile.things
-                        others += tile.others
             else:
-                cache_key = World.coord_to_map_name(cell_coord)
-                if cache_key in self.cache:
-                    map_data = self.cache[cache_key]
-                    time_passed = max(0, time - int(map_data[0][0]))
-                elif map_is_save:
+                if map_is_save:
                     map_data = Data.process_raw(Data.read(map_save_name))
-                    self.cache[cache_key] = map_data
                     time_passed = max(0, time - int(map_data[0][0]))
                 else:
                     map_data = Data.process_raw(Data.read(map_data_name))
-                    self.cache[cache_key] = map_data
                     time_passed = 8
                 if Global.player.editor_mode:
                     time_passed = 0
@@ -147,32 +131,54 @@ class World:
                         tile.roof = int(roofs[y][x])
                         tile.light_source = 0
                         tile.light = 0
-                        obj += tile.things
-                        others += tile.others
-                if cell_num in added:
-                    renew = time_passed >= 4
-                    # renew = False
-                    if renew:
-                        if not map_is_save:
-                            explore += 1
-                            Global.player.npc.spawn(start_coord[0], start_coord[1])
-                        for i in map_data[1]:
-                            prop = Stock.get(i[2], i)
-                            if prop.tags.get('$', 0) <= 0:
-                                prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
-                                prop.add()
-                                prop.on_sleep(time_passed)
-                                prop.mutate()
-                        self.regrow(cell_coord, start_coord)
-                    else:
-                        for i in map_data[1]:
-                            prop = Stock.get(i[2], i)
+                renew = time_passed >= 4
+                if renew:
+                    if not map_is_save:
+                        explore += 1
+                        Global.player.npc.spawn(start_coord[0], start_coord[1])
+                    for i in map_data[1]:
+                        prop = Stock.get(i[2], i)
+                        if prop.tags.get('$', 0) <= 0:
                             prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
                             prop.add()
                             prop.on_sleep(time_passed)
+                            prop.mutate()
+                    self.regrow(cell_coord, start_coord)
+                else:
+                    for i in map_data[1]:
+                        prop = Stock.get(i[2], i)
+                        prop.pos = prop.pos.get_neighbor(start_coord[0], start_coord[1])
+                        prop.add()
+                        prop.on_sleep(time_passed)
         if Global.player.character:
             Global.player.character.progress_level(1, mode='explore')
-        return obj, others
+
+    def move_bubble(self, offset):
+        tiles = {}
+        moved = []
+        new_cells = []
+        if offset[0] == 1:
+            new_cells = [1, 2, 0, 4, 5, 3, 7, 8, 6]
+        elif offset[0] == -1:
+            new_cells = [2, 0, 1, 5, 3, 4, 8, 6, 7]
+        elif offset[1] == 1:
+            new_cells = [3, 4, 5, 6, 7, 8, 0, 1, 2]
+        elif offset[1] == -1:
+            new_cells = [6, 7, 8, 0, 1, 2, 3, 4, 5]
+        for count, cell_num in enumerate(new_cells):
+            start_coord = World.get_chunk_coord(count)
+            start_coord2 = World.get_chunk_coord(cell_num)
+            for y in range(13):
+                for x in range(13):
+                    tile = self.location.tiles[start_coord2[1] + y][start_coord2[0] + x]
+                    tile.x = x + start_coord[0]
+                    tile.y = y + start_coord[1]
+                    moved += tile.others
+                    tiles[str(tile.x) + ',' + str(tile.y)] = tile
+        for k, v in tiles.items():
+            key = k.split(',')
+            self.location.tiles[int(key[1])][int(key[0])] = v
+        return moved
 
     def regrow(self, cell_coord, start_coord):
         savageness = self.get_biome(cell_coord[0], cell_coord[1])
@@ -219,32 +225,15 @@ class World:
             offset_y = 1
         else:
             return False
-        lights = []
-        light_sources = []
-        for row in self.location.tiles:
-            for tile in row:
-                lights.append(tile.light)
-                light_sources.append(tile.light_source)
         added = self.load_cells(self.cells[4][0] + offset_x, self.cells[4][1] + offset_y)
-        objs, others = self.load_bubble(added, time=Global.player.days)
+        moved = self.move_bubble((offset_x, offset_y))
+        all_obj = self.location.population.get_all()
+        self.load_bubble(added, time=Global.player.days)
         offset_x *= -World.CHUNK
         offset_y *= -World.CHUNK
-        for i in objs:
-            i.adjust_pos(offset_x, offset_y)
-        for i in others:
-            i.relocate(x=i.pos.x + offset_x, y=i.pos.y + offset_y, force=True)
-        index = 0
-        width = self.location.get_width()
-        height = self.location.get_height()
-        for row in range(height):
-            if 0 <= row + offset_y < height:
-                for col in range(width):
-                    if 0 <= col + offset_x < width:
-                        self.location.tiles[row + offset_y][col + offset_x].light = lights[index]
-                        self.location.tiles[row + offset_y][col + offset_x].light_source = light_sources[index]
-                    index += 1
-            else:
-                index += self.location.get_width()
+        for i in all_obj + moved:
+            i.vec.x += offset_x * Global.BLOCK
+            i.vec.y += offset_y * Global.BLOCK
         self.location.process_terrain()
         return offset_x, offset_y
 

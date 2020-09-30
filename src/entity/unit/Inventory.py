@@ -43,7 +43,7 @@ class Inventory:
             if self.host == Global.player.character:
                 from src.tools.Dialog import Dialog
                 params = [self.host.get_equipment_weight(), self.host.tags.get('str', 1), item.get_weight()]
-                Global.main.monologue.set(Dialog.get('!heavy', params))
+                Global.text.set(Dialog.get('!heavy', params))
 
     def add_item(self, item, insert=False):
         item.remove()

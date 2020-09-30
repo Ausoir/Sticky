@@ -165,13 +165,13 @@ class Editor:
             self.display_text = 'saved map'
         self.prev_action = action
         if self.display_text != '':
-            Global.main.monologue.set(self.display_text + ' @ ' + self.display_subtext, time=999)
+            Global.text.set(self.display_text + ' @ ' + self.display_subtext, time=999)
             self.display_text = ''
         return 0
 
     def command(self):
-        self.prev_command = Global.main.monologue.text.text
-        params = Global.main.monologue.text.text.split(',')
+        self.prev_command = Global.text.text.text
+        params = Global.text.text.text.split(',')
         arg1 = ' '.join(params[1:])
         if params[0] == 'to':
             Global.world.travel(int(params[1]) * Global.world.CHUNK, int(params[2]) * Global.world.CHUNK)

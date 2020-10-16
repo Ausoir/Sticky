@@ -28,7 +28,7 @@ class Execute(pyglet.window.Window):
         self.set_location(self.setting['x'], self.setting['y'])
         if abs(self.screen.width - self.setting['width']) + abs(self.screen.height - self.setting['height']) < 80:
             self.maximize()
-        self.fps = 1 / 52.0
+        self.fps = 1 / 48.0
         self.frame_last = time()
         pyglet.font.add_file(Data.direct('data/Ubuntu-Regular.ttf'))
         self.init_other('editor' in args)
@@ -135,6 +135,7 @@ class Execute(pyglet.window.Window):
         Global.player.control.clear_press()
 
     def on_close(self):
+        self.is_running = False
         self.setting['fullscreen'] = 1 if self.fullscreen else 0
         result = Dialog.dict(self.setting)
         Data.write('data/setting.txt', result.replace(',', '\n').replace(':', ',')[1:][:-1])
@@ -161,7 +162,6 @@ class Execute(pyglet.window.Window):
             self.flip()
 
     def quit(self):
-        self.is_running = False
         self.dispatch_events()
         Global.world.save()
         Global.player.save()

@@ -37,17 +37,17 @@ class Sound:
                 self.players[i][0] = self.players[i][0] - 1
                 if self.players[i][0] == 0:
                     self.players[i][1].next_source()
-        if self.repeat > 0:
-            self.frame += 1
-            if self.frame >= self.rest:
-                self.frame = 0
-                track = self.tab[self.phase]
-                if track:
-                    self.play(track)
-                self.phase += 1
-                if self.phase >= len(self.tab):
-                    self.phase = 0
-                    self.repeat -= 1
+        # if self.repeat > 0:
+        #     self.frame += 1
+        #     if self.frame >= self.rest:
+        #         self.frame = 0
+        #         track = self.tab[self.phase]
+        #         if track:
+        #             self.play(track)
+        #         self.phase += 1
+        #         if self.phase >= len(self.tab):
+        #             self.phase = 0
+        #             self.repeat -= 1
 
     def play(self, track):
         for i in self.players:

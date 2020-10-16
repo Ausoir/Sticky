@@ -370,3 +370,5 @@
 9/24 Plant raw effects. Save on terrain change instead of dirty. Set resolution on fullscreen.
 9/26 Humanoid leg shaking on idle fix. 1 ability. Drop key. World move_bubble - smoother cell transition.
 ---- PUSH - Release
+10/16 Removed bgm. Close on clicking exit.
+---- PUSH

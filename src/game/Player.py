@@ -11,7 +11,7 @@ from src.tools.Dialog import Dialog
 from src.tools.Tag import Tag
 
 
-class Game:
+class Player:
     def __init__(self, mode=False):
         Turn.add(Global.menu.turn)
         Turn.fast_queue.append(Global.map_view.update)

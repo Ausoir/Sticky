@@ -372,3 +372,4 @@
 ---- PUSH - Release
 10/16 Removed bgm. Close on clicking exit.
 ---- PUSH
+10/24 Use absolute directory to locate files to fix steam launch problem.

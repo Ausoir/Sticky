@@ -9,14 +9,16 @@ from src.form.Picture import Picture, Model
 
 
 class Data:
+    cwd = None
     cache = {}
     graphics = {}
     registry_list = ['props', 'units', 'items', 'armors', 'weapons', 'headgears', 'miscellaneous', 'mercenaries']
     atlas = None
 
     @staticmethod
-    def initialize():
-        os.chdir('../')
+    def initialize(cwd):
+        Data.cwd = cwd.replace('\\', '/')
+        Data.swd = pyglet.resource.get_settings_path('Jiguland')
         Data.atlas = TextureAtlas()
         Data.set_cache('none', Texture.create(1, 1))
         res = Data.process_raw(Data.read('data/raw/resource.txt'))
@@ -33,8 +35,8 @@ class Data:
             Data.set_cache(i[0], (sequence, i[2], i[3]))
 
     @staticmethod
-    def direct(fdir, path=''):
-        return os.path.join(path + fdir)
+    def direct(fdir):
+        return os.path.join(Data.cwd + '/' + fdir)
 
     @staticmethod
     def read(fdir):
@@ -220,7 +222,7 @@ class Data:
     @staticmethod
     def get_cache_clip(fdir):
         r = []
-        clip = Data.read(Data.direct(fdir))
+        clip = Data.read(fdir)
         lines = clip.split('\n\n')
         r.append(Data.process_raw(lines[0]))
         r.append(Data.process_raw(lines[1]))
@@ -229,8 +231,8 @@ class Data:
 
     @staticmethod
     def delete_all():
-        for f in os.listdir('save/'):
-            os.remove(Data.direct(f, 'save/'))
+        for f in os.listdir(Data.direct('save/')):
+            os.remove(Data.direct('save/' + f))
 
     @staticmethod
     def delete(directory):

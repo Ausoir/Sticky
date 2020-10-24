@@ -1,4 +1,6 @@
 import sys
+import os
+import inspect
 from time import time
 
 import pyglet
@@ -7,7 +9,7 @@ from src.game import Global
 from src.tools.Space import Space
 from src.game.Camera import Camera
 from src.map.MapView import MapView
-from src.game.Game import Game
+from src.game.Player import Player
 from src.game.DrawGroup import DrawGroup
 from src.game.Turn import Turn
 from src.interface.Textbox import Textbox
@@ -17,12 +19,14 @@ from src.tools.Random import Random
 
 
 # noinspection PyAbstractClass
-class Execute(pyglet.window.Window):
+class Game(pyglet.window.Window):
     def __init__(self, args):
-        Data.initialize()
+        filename = inspect.getframeinfo(inspect.currentframe()).filename
+        path = os.path.dirname(os.path.abspath(filename))
+        Data.initialize(path)
         self.setting = Dialog.to_dict(Data.process_raw(Data.read('data/setting.txt')))
-        super(Execute, self).__init__(self.setting['width'], self.setting['height'], ' ',
-                                      vsync=False, resizable=True)
+        super(Game, self).__init__(self.setting['width'], self.setting['height'], 'Jiguland',
+                                   vsync=False, resizable=True)
         if self.setting['fullscreen'] == 1:
             self.set_fullscreen(fullscreen=True, width=self.setting['res_x'], height=self.setting['res_y'])
         self.set_location(self.setting['x'], self.setting['y'])
@@ -65,7 +69,7 @@ class Execute(pyglet.window.Window):
         Global.map_view = MapView()
         Global.menu = MenuAll()
         Global.world = World()
-        Global.player = Game(mode=editor)
+        Global.player = Player(mode=editor)
         Global.DISPLAY = (self.setting['width'], self.setting['height'])  # Menu position fix
         Global.CENTER = (int(Global.DISPLAY[0] / 2), int(Global.DISPLAY[1] / 2))
         Global.text = Textbox()
@@ -170,6 +174,6 @@ class Execute(pyglet.window.Window):
 
 
 if __name__ == '__main__':
-    main = Execute(sys.argv)
+    main = Game(sys.argv)
     main.switch_to()
     main.loop()
